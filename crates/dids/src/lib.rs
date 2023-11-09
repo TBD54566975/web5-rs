@@ -1,14 +1,10 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+mod did_jwk;
+pub use did_jwk::*;
+mod key_manager;
+pub use key_manager::*;
+mod key;
+pub use key::*;
+mod key_store;
+pub use key_store::*;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+uniffi::setup_scaffolding!();
