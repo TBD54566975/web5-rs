@@ -13,23 +13,8 @@ pub trait Key {
 
 pub type KeyAlias = String;
 
-#[derive(Clone, uniffi::Object)]
-pub struct PublicKey(pub JWK);
-
-impl Key for PublicKey {
-    fn alias(&self) -> KeyAlias {
-        self.0.thumbprint().unwrap()
-    }
-}
-
-#[derive(Clone, uniffi::Object)]
+#[derive(uniffi::Object, Clone)]
 pub struct PrivateKey(pub JWK);
-
-impl PrivateKey {
-    pub fn to_public(&self) -> PublicKey {
-        PublicKey(self.0.to_public())
-    }
-}
 
 impl Key for PrivateKey {
     fn alias(&self) -> KeyAlias {

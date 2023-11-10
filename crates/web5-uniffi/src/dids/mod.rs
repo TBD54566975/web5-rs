@@ -1,1 +1,1 @@
-mod did_jwk;
+pub mod did_jwk;

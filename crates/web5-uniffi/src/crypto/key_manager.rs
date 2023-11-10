@@ -1,13 +1,12 @@
-use crate::crypto::default_key_generator::DefaultKeyGenerator;
-use crate::crypto::key_generator::KeyGenerator;
-use crate::crypto::key_store::KeyStore;
+use crate::crypto::key::{KeyAlgorithm, PrivateKey};
 use std::fmt::Debug;
 use std::sync::Arc;
 
-use crate::crypto::key::{KeyAlgorithm, PrivateKey};
-
-#[derive(uniffi::Error)]
-pub struct KeyManagerError {}
+#[derive(uniffi::Error, thiserror::Error, Debug)]
+pub enum KeyManagerError {
+    #[error("An unknown error occurred")]
+    Unknown,
+}
 
 #[uniffi::export]
 pub trait KeyManager: Send + Sync {
