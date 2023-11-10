@@ -12,7 +12,7 @@ pub enum LocalKeyStoreError {
 #[uniffi::export]
 pub trait LocalKeyStore: Send + Sync {
     fn get(&self, key: String) -> Result<Option<Arc<PrivateKey>>, LocalKeyStoreError>;
-    fn insert(&self, key: String, value: &PrivateKey) -> Result<(), LocalKeyStoreError>;
+    fn insert(&self, key: String, value: Arc<PrivateKey>) -> Result<(), LocalKeyStoreError>;
 }
 
 #[derive(uniffi::Object)]
@@ -49,7 +49,9 @@ impl KeyManager for LocalKeyManager {
 
         let private_key = PrivateKey(jwk);
         // TODO: handle error case once I understand a bit more
-        let _ = self.key_store.insert(private_key.alias(), &private_key);
+        let _ = self
+            .key_store
+            .insert(private_key.alias(), private_key.clone().into());
 
         Ok(private_key.into())
     }

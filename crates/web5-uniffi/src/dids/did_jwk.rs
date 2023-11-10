@@ -9,6 +9,7 @@ pub struct DidJwk {
     pub uri: String,
 }
 
+#[uniffi::export]
 impl DidJwk {
     #[uniffi::constructor]
     pub fn new(key_algorithm: KeyAlgorithm, key_manager: Arc<dyn KeyManager>) -> Arc<Self> {

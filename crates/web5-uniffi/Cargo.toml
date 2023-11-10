@@ -11,8 +11,8 @@ did-jwk = "0.1.1"
 ssi-dids = "0.1.1"
 ssi-jwk = "0.1.2"
 thiserror = "1.0.50"
-uniffi = "0.25.1"
+uniffi = { workspace = true }
 
 [build-dependencies]
-uniffi = { version = "0.25.1", features = ["build"] }
-uniffi_bindgen = "0.25.1"
+uniffi = { workspace = true, features = ["build"] }
+uniffi_bindgen = { workspace = true}
