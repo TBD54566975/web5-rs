@@ -1,16 +1,12 @@
 [package]
-name = "dids"
+name = "crypto"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-crate-type = ["lib", "cdylib", "staticlib"]
-name = "dids"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-crypto = { path = "../crypto" }
-did-jwk = "0.1.1"
-ssi-dids = "0.1.1"
+ssi-jwk = "0.1.2"
 thiserror = "1.0.50"
 uniffi = "0.25.1"
 
