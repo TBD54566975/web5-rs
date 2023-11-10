@@ -3,10 +3,6 @@ name = "dids"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-crate-type = ["lib", "cdylib", "staticlib"]
-name = "dids"
-
 [dependencies]
 crypto = { path = "../crypto" }
 did-jwk = "0.1.1"
