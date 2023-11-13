@@ -33,13 +33,15 @@ impl DidKey {
     }
 }
 
+pub struct DidKeyResolver;
+
 #[async_trait]
-impl DidResolver for DidKey {
+impl DidResolver for DidKeyResolver {
     fn method_name() -> &'static str {
         "key"
     }
 
-    async fn resolve(did_uri: &str) -> Result<DidResolutionResult, Web5Error> {
+    async fn resolve(&self, did_uri: &str) -> Result<DidResolutionResult, Web5Error> {
         let (resolution_metadata, did_document, did_document_metadata) = DIDKey
             .resolve(did_uri, &ResolutionInputMetadata::default())
             .await;

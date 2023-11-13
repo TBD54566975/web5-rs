@@ -33,13 +33,15 @@ impl DidJwk {
     }
 }
 
+pub struct DidJwkResolver;
+
 #[async_trait]
-impl DidResolver for DidJwk {
+impl DidResolver for DidJwkResolver {
     fn method_name() -> &'static str {
         "jwk"
     }
 
-    async fn resolve(did_uri: &str) -> Result<DidResolutionResult, Web5Error> {
+    async fn resolve(&self, did_uri: &str) -> Result<DidResolutionResult, Web5Error> {
         let (resolution_metadata, did_document, did_document_metadata) = DIDJWK
             .resolve(did_uri, &ResolutionInputMetadata::default())
             .await;
