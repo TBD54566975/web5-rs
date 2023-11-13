@@ -16,8 +16,16 @@ pub type KeyAlias = String;
 #[derive(uniffi::Object, Clone)]
 pub struct PrivateKey(pub JWK);
 
+#[uniffi::export]
 impl Key for PrivateKey {
     fn alias(&self) -> KeyAlias {
         self.0.thumbprint().unwrap()
+    }
+}
+
+#[uniffi::export]
+impl PrivateKey {
+    fn to_json(&self) -> String {
+        serde_json::to_string(&self.0).unwrap()
     }
 }

@@ -1,16 +1,16 @@
 use crate::crypto::key::KeyAlgorithm;
 use crate::crypto::key_manager::KeyManager;
-use did_jwk::DIDJWK;
+use did_method_key::DIDKey;
 use ssi_dids::{DIDMethod, Source};
 use std::sync::Arc;
 
 #[derive(uniffi::Object)]
-pub struct DidJwk {
+pub struct DidKey {
     pub uri: String,
 }
 
 #[uniffi::export]
-impl DidJwk {
+impl DidKey {
     #[uniffi::constructor]
     pub fn new(key_algorithm: KeyAlgorithm, key_manager: Arc<KeyManager>) -> Arc<Self> {
         // TODO: handle the error properly
@@ -19,7 +19,7 @@ impl DidJwk {
             .get_public_key(key_alias)
             .unwrap()
             .expect("public key not found immediately after creating the private key");
-        let uri = DIDJWK.generate(&Source::Key(&private_key.0)).unwrap();
+        let uri = DIDKey.generate(&Source::Key(&private_key.0)).unwrap();
 
         Self { uri }.into()
     }

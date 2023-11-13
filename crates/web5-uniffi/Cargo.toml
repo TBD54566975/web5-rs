@@ -7,7 +7,9 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
+did-method-key = "0.2.2"
 did-jwk = "0.1.1"
+serde_json = "1.0.108"
 ssi-dids = "0.1.1"
 ssi-jwk = "0.1.2"
 thiserror = "1.0.50"
