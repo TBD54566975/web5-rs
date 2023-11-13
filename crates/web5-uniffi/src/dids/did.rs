@@ -23,15 +23,11 @@ pub(crate) trait DidResolver {
 async fn resolve(did_uri: String) -> Result<DidResolutionResult, Web5Error> {
     let did_method = parse_did_method(&did_uri)?;
 
-    let result = match did_method.as_str() {
-        "jwk" => DidJwk::resolve(&did_uri).await?,
-        "key" => DidKey::resolve(&did_uri).await?,
-        default => {
-            return Err(Web5Error::Unknown);
-        }
-    };
-
-    Ok(result)
+    match did_method.as_str() {
+        "jwk" => DidJwk::resolve(&did_uri).await,
+        "key" => DidKey::resolve(&did_uri).await,
+        _ => Err(Web5Error::Unknown),
+    }
 }
 
 fn parse_did_method(did: &str) -> Result<String, Web5Error> {
