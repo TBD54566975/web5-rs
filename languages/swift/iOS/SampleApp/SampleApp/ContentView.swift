@@ -1,13 +1,9 @@
 import SwiftUI
 import web5_uniffiFFI;
 
-let keyStore = SwiftKeyStore()
-let keyManager = KeyManager(keyStore: keyStore)
+let keyManager = KeyManager(keyStore: SwiftKeyStore())
 
 struct ContentView: View {
-
-  @State var didUri: String = ""
-
   var body: some View {
     VStack {
       Button("Generate Key Only") {
@@ -24,7 +20,7 @@ struct ContentView: View {
         print("Generated did:key: \(did.getUri())")
       }
       Button("Print KeyStore keys") {
-        let allPrivateKeys = try! keyStore.dump()
+        let allPrivateKeys = try! keyManager.getKeyStore().dump()
         for pk in allPrivateKeys {
           print("Key: \(pk.toJson())")
         }

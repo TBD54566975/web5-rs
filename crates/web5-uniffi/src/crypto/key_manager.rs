@@ -45,6 +45,10 @@ impl KeyManager {
         let private_key = self.key_store.get(key_alias.clone())?;
         Ok(private_key)
     }
+
+    fn get_key_store(&self) -> Arc<dyn KeyStore> {
+        self.key_store.clone()
+    }
 }
 
 /// A thread-safe in-memory key store.
@@ -72,10 +76,6 @@ impl KeyStore for InMemoryKeyStore {
     fn insert(&self, value: Arc<PrivateKey>) -> Result<String, CryptoError> {
         let key = value.0.thumbprint().unwrap();
         self.map.write().unwrap().insert(key.clone(), value);
-        println!(
-            "map now contains {} entries",
-            self.map.read().unwrap().len()
-        );
         Ok(key)
     }
 
