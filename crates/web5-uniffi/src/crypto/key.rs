@@ -1,4 +1,5 @@
 use ssi_jwk::JWK;
+use std::sync::Arc;
 
 #[derive(uniffi::Enum)]
 pub enum KeyAlgorithm {
@@ -27,5 +28,16 @@ impl Key for PrivateKey {
 impl PrivateKey {
     fn to_json(&self) -> String {
         serde_json::to_string(&self.0).unwrap()
+    }
+
+    fn sign(&self, payload: Vec<u8>) -> Vec<u8> {
+        let algorithm = self
+            .0
+            .get_algorithm()
+            .expect("Expected algorithm to be present");
+        let signed_bytes = ssi_jws::sign_bytes(algorithm, &payload, &self.0)
+            .expect("Signature not computed properly");
+
+        signed_bytes
     }
 }
