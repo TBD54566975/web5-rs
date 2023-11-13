@@ -12,12 +12,21 @@ struct ContentView: View {
         print("Generated Key: \(key!.toJson())")
       }
       Button("Generate did:jwk") {
-        let did = DidJwk(keyAlgorithm: .secp256k1, keyManager: keyManager)
-        print("Generated did:jwk: \(did.getUri())")
+        Task {
+          let did = DidJwk(keyAlgorithm: .secp256k1, keyManager: keyManager)
+          print("Generated did:jwk: \(did.getUri())")
+          let resolution = try! await resolve(didUri: did.getUri())
+          print("Resolved DIDDocument: \(resolution.didDocument)")
+        }
       }
       Button("Generate did:key") {
-        let did = DidKey(keyAlgorithm: .secp256r1, keyManager: keyManager)
-        print("Generated did:key: \(did.getUri())")
+        Task {
+          let did = DidKey(keyAlgorithm: .secp256r1, keyManager: keyManager)
+          print("Generated did:key: \(did.getUri())")
+          let resolution = try! await resolve(didUri: did.getUri())
+          print("Resolved DIDDocument: \(resolution.didDocument)")
+        }
+
       }
       Button("Print KeyStore keys") {
         let allPrivateKeys = try! keyManager.getKeyStore().dump()
@@ -28,11 +37,6 @@ struct ContentView: View {
       }
     }
     .padding()
-    .task {
-      let didJwk = DidJwk(keyAlgorithm: .ed25519, keyManager: keyManager)
-      let resolution = try! await resolve(didUri: didJwk.getUri())
-      print("Resolution: \(resolution)")
-    }
   }
 }
 

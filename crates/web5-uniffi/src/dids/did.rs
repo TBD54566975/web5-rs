@@ -1,7 +1,7 @@
 use crate::did_jwk::DidJwk;
+use crate::did_key::DidKey;
 use crate::error::Web5Error;
 use async_trait::async_trait;
-use did_jwk::DIDJWK;
 
 pub trait Did {
     fn uri(&self) -> String;
@@ -21,5 +21,23 @@ pub(crate) trait DidResolver {
 
 #[uniffi::export]
 async fn resolve(did_uri: String) -> Result<DidResolutionResult, Web5Error> {
-    DidJwk::resolve(&did_uri).await
+    let did_method = parse_did_method(&did_uri)?;
+
+    let result = match did_method.as_str() {
+        "jwk" => DidJwk::resolve(&did_uri).await?,
+        "key" => DidKey::resolve(&did_uri).await?,
+        default => {
+            return Err(Web5Error::Unknown);
+        }
+    };
+
+    Ok(result)
+}
+
+fn parse_did_method(did: &str) -> Result<String, Web5Error> {
+    let parts: Vec<&str> = did.splitn(3, ':').collect();
+    if parts.len() == 3 && parts[0] == "did" {
+        return Ok(parts[1].to_string());
+    }
+    Err(Web5Error::Unknown)
 }
