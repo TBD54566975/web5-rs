@@ -9,7 +9,7 @@ var keyManager = createKeyManager()
 
 struct ContentView: View {
   var body: some View {
-    VStack {
+    VStack(spacing: 10) {
       Button("Generate Key Only") {
         let keyAlias = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
         let key = try! keyManager.getPublicKey(keyAlias: keyAlias)
@@ -31,6 +31,26 @@ struct ContentView: View {
           print("Resolved DIDDocument: \(resolution.didDocument)")
         }
 
+      }
+      Button("Sign & Verify with new Key") {
+        let keyAlias = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
+
+        let payload = "Hello, world!".data(using: .utf8)!
+        let signature = keyManager.sign(keyAlias: keyAlias, payload: payload)
+
+        let publicKey = try! keyManager.getPublicKey(keyAlias: keyAlias)!;
+        let result = publicKey.verify(payload: payload, signature: signature)
+        print("Verification Result: \(result)")
+      }
+      Button("Sign & Verify with new different keys") {
+        let keyAlias = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
+        let payload = "Hello, world!".data(using: .utf8)!
+        let signature = keyManager.sign(keyAlias: keyAlias, payload: payload)
+
+        let keyAlias2 = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
+        let publicKey2 = try! keyManager.getPublicKey(keyAlias: keyAlias2)!;
+        let result = publicKey2.verify(payload: payload, signature: signature)
+        print("Verification Result: \(result)")
       }
       Button("Print KeyStore keys") {
         let allPrivateKeys = try! keyManager.getKeyStore().dump()

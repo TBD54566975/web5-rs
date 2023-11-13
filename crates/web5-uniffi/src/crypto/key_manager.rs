@@ -1,6 +1,5 @@
-use crate::crypto::key::{KeyAlgorithm, PrivateKey};
+use crate::crypto::key::{KeyAlgorithm, PrivateKey, PublicKey};
 use crate::error::Web5Error;
-use crate::key::KeyAlias;
 use ssi_jwk::JWK;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -36,17 +35,21 @@ impl KeyManager {
         Ok(key_alias)
     }
 
-    pub fn get_public_key(&self, key_alias: String) -> Result<Option<Arc<PrivateKey>>, Web5Error> {
+    pub fn get_public_key(&self, key_alias: String) -> Result<Option<Arc<PublicKey>>, Web5Error> {
         // TODO: Don't love the ending clone. Can/Should get take &str?
-        let private_key = self.key_store.get(key_alias.clone())?;
-        Ok(private_key)
+        let private_key = self
+            .key_store
+            .get(key_alias.clone())?
+            .expect("Couldn't generate public key");
+
+        Ok(Some(private_key.to_public_key()))
     }
 
-    pub fn sign(&self, key_alias: KeyAlias, payload: Vec<u8>) -> Vec<u8> {
+    pub fn sign(&self, key_alias: String, payload: &Vec<u8>) -> Vec<u8> {
         // TODO: It goes without saying: unwrapping is bad, and I need to go through
         // all the code so far and remove them with proper error handling.
         let private_key = self.key_store.get(key_alias).unwrap().unwrap();
-        private_key.sign(payload)
+        private_key.sign(&payload)
     }
 
     fn get_key_store(&self) -> Arc<dyn KeyStore> {
