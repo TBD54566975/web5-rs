@@ -1,5 +1,6 @@
 use crate::crypto::key::{KeyAlgorithm, PrivateKey};
 use crate::error::Web5Error;
+use crate::key::KeyAlias;
 use ssi_jwk::JWK;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -39,6 +40,13 @@ impl KeyManager {
         // TODO: Don't love the ending clone. Can/Should get take &str?
         let private_key = self.key_store.get(key_alias.clone())?;
         Ok(private_key)
+    }
+
+    pub fn sign(&self, key_alias: KeyAlias, payload: Vec<u8>) -> Vec<u8> {
+        // TODO: It goes without saying: unwrapping is bad, and I need to go through
+        // all the code so far and remove them with proper error handling.
+        let private_key = self.key_store.get(key_alias).unwrap().unwrap();
+        private_key.sign(payload)
     }
 
     fn get_key_store(&self) -> Arc<dyn KeyStore> {

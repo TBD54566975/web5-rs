@@ -30,7 +30,7 @@ impl PrivateKey {
         serde_json::to_string(&self.0).unwrap()
     }
 
-    fn sign(&self, payload: Vec<u8>) -> Vec<u8> {
+    pub fn sign(&self, payload: Vec<u8>) -> Vec<u8> {
         let algorithm = self
             .0
             .get_algorithm()
