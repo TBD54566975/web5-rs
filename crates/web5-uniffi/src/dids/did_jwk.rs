@@ -1,6 +1,10 @@
 use crate::crypto::key::KeyAlgorithm;
 use crate::crypto::key_manager::KeyManager;
+use crate::dids::did::{DidResolutionResult, DidResolver};
+use crate::error::Web5Error;
+use async_trait::async_trait;
 use did_jwk::DIDJWK;
+use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 use ssi_dids::{DIDMethod, Source};
 use std::sync::Arc;
 
@@ -26,5 +30,34 @@ impl DidJwk {
 
     pub fn get_uri(&self) -> String {
         self.uri.clone()
+    }
+}
+
+#[async_trait]
+impl DidResolver for DidJwk {
+    fn method_name() -> &'static str {
+        "jwk"
+    }
+
+    async fn resolve(did_uri: &str) -> Result<DidResolutionResult, Web5Error> {
+        let (resolution_metadata, did_document, did_document_metadata) = DIDJWK
+            .resolve(did_uri, &ResolutionInputMetadata::default())
+            .await;
+
+        if let Some(error_message) = resolution_metadata.error {
+            // TODO: forward this error message into an error type
+            println!("Error resolving DIDDocument: {}", error_message);
+            return Err(Web5Error::Unknown);
+        }
+
+        // TODO: Proper error here
+        let did_document = did_document.ok_or(Web5Error::Unknown)?;
+
+        // TODO: Handle errors here
+        Ok(DidResolutionResult {
+            did_document: serde_json::to_string(&did_document).unwrap(),
+            did_document_metadata: did_document_metadata
+                .map(|md| serde_json::to_string(&md).unwrap()),
+        })
     }
 }

@@ -28,6 +28,11 @@ struct ContentView: View {
       }
     }
     .padding()
+    .task {
+      let didJwk = DidJwk(keyAlgorithm: .ed25519, keyManager: keyManager)
+      let resolution = try! await resolve(didUri: didJwk.getUri())
+      print("Resolution: \(resolution)")
+    }
   }
 }
 
