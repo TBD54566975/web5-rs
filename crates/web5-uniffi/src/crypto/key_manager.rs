@@ -52,6 +52,12 @@ pub struct InMemoryKeyStore {
     map: RwLock<HashMap<String, Arc<PrivateKey>>>,
 }
 
+impl Drop for InMemoryKeyStore {
+    fn drop(&mut self) {
+        println!("InMemoryKeyStore deallocated!");
+    }
+}
+
 #[uniffi::export]
 impl InMemoryKeyStore {
     #[uniffi::constructor]

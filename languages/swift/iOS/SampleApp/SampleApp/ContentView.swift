@@ -1,7 +1,11 @@
 import SwiftUI
 import web5_uniffiFFI;
 
-let keyManager = KeyManager(keyStore: SwiftKeyStore())
+func createKeyManager() -> KeyManager {
+  return KeyManager(keyStore: InMemoryKeyStore())
+}
+
+var keyManager = createKeyManager()
 
 struct ContentView: View {
   var body: some View {
@@ -35,6 +39,9 @@ struct ContentView: View {
         }
         print("Total key count: \(allPrivateKeys.count)")
       }
+      Button("Reset KeyManager") {
+        keyManager = createKeyManager()
+      }
     }
     .padding()
   }
@@ -57,5 +64,9 @@ class SwiftKeyStore: KeyStore {
 
   func dump() throws -> [PrivateKey] {
     return Array(map.values)
+  }
+
+  deinit {
+    print("SwiftKeyStore deallocated!")
   }
 }
