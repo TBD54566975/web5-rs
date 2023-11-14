@@ -1,5 +1,5 @@
 [package]
-name = "web5-uniffi"
+name = "web5-ffi"
 version = "0.1.0"
 edition = "2021"
 
@@ -16,6 +16,7 @@ ssi-jwk = "0.1.2"
 ssi-jws = "0.1.1"
 thiserror = "1.0.50"
 uniffi = { workspace = true }
+web5 = { path = "../../crates/web5"}
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
