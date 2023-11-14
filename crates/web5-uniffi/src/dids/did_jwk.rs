@@ -16,16 +16,18 @@ pub struct DidJwk {
 #[uniffi::export]
 impl DidJwk {
     #[uniffi::constructor]
-    pub fn new(key_algorithm: KeyAlgorithm, key_manager: Arc<KeyManager>) -> Arc<Self> {
+    pub fn new(
+        key_algorithm: KeyAlgorithm,
+        key_manager: Arc<KeyManager>,
+    ) -> Result<Arc<Self>, Web5Error> {
         // TODO: handle the error properly
         let key_alias = key_manager.generate_private_key(key_algorithm).unwrap();
         let public_key = key_manager
-            .get_public_key(key_alias)
-            .unwrap()
+            .get_public_key(key_alias)?
             .expect("public key not found immediately after creating the private key");
         let uri = DIDJWK.generate(&Source::Key(&public_key.0)).unwrap();
 
-        Self { uri }.into()
+        Ok(Arc::new(Self { uri }))
     }
 
     pub fn get_uri(&self) -> String {

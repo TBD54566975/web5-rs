@@ -17,7 +17,7 @@ struct ContentView: View {
       }
       Button("Generate did:jwk") {
         Task {
-          let did = DidJwk(keyAlgorithm: .secp256k1, keyManager: keyManager)
+          let did = try! DidJwk(keyAlgorithm: .secp256k1, keyManager: keyManager)
           print("Generated did:jwk: \(did.getUri())")
           let resolution = try! await resolve(didUri: did.getUri())
           print("Resolved DIDDocument: \(resolution.didDocument)")
@@ -25,7 +25,7 @@ struct ContentView: View {
       }
       Button("Generate did:key") {
         Task {
-          let did = DidKey(keyAlgorithm: .secp256r1, keyManager: keyManager)
+          let did = try! DidKey(keyAlgorithm: .secp256r1, keyManager: keyManager)
           print("Generated did:key: \(did.getUri())")
           let resolution = try! await resolve(didUri: did.getUri())
           print("Resolved DIDDocument: \(resolution.didDocument)")
