@@ -5,10 +5,25 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
+// TODO: really dive into this, and understand why I can't just use Web5Error, and instead need to create my own custom Error type here.
+// There's something about this error's use in a Trait by a foreign-language implementation
+// that's causing the error to get lifted. This may just be a bug on the uniffi side.
 #[derive(uniffi::Error, thiserror::Error, Debug)]
 pub enum KeyStoreError {
-    #[error("An unknown error occurred")]
-    Unknown,
+    #[error("ReadError: {message}")]
+    ReadError { message: String },
+    #[error("WriteError: {message}")]
+    WriteError { message: String },
+    #[error("InternalKeyStoreError")]
+    InternalKeyStoreError,
+}
+
+// Need to implement this From<> impl in order to handle unexpected callback errors.  See the
+// Callback Interfaces section of the uniffi handbook for more info.
+impl From<uniffi::UnexpectedUniFFICallbackError> for KeyStoreError {
+    fn from(_: uniffi::UnexpectedUniFFICallbackError) -> Self {
+        Self::InternalKeyStoreError
+    }
 }
 
 #[uniffi::export]
@@ -90,12 +105,26 @@ impl InMemoryKeyStore {
 #[uniffi::export]
 impl KeyStore for InMemoryKeyStore {
     fn get(&self, key: String) -> Result<Option<Arc<PrivateKey>>, KeyStoreError> {
-        Ok(self.map.read().unwrap().get(&key).cloned())
+        let readable_map = self.map.read().map_err(|e| KeyStoreError::ReadError {
+            message: format!("Unable to acquire RwLockReadGuard: {}", e),
+        })?;
+
+        Ok(readable_map.get(&key).cloned())
     }
 
     fn insert(&self, value: Arc<PrivateKey>) -> Result<String, KeyStoreError> {
-        let key = value.0.thumbprint().unwrap();
-        self.map.write().unwrap().insert(key.clone(), value);
+        let key = value
+            .0
+            .thumbprint()
+            .map_err(|e| KeyStoreError::WriteError {
+                message: format!("Unable to generate thumbprint: {}", e),
+            })?;
+
+        let mut writable_map = self.map.write().map_err(|e| KeyStoreError::WriteError {
+            message: format!("Unable to acquire RwLockWriteGuard: {}", e),
+        })?;
+
+        writable_map.insert(key.clone(), value);
         Ok(key)
     }
 
