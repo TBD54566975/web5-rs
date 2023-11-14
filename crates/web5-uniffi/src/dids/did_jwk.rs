@@ -1,7 +1,7 @@
 use crate::crypto::key::KeyAlgorithm;
 use crate::crypto::key_manager::KeyManager;
 use crate::dids::did::{DidResolutionResult, DidResolver};
-use crate::error::Web5Error;
+use crate::{Web5Error, Web5Result};
 use async_trait::async_trait;
 use did_jwk::DIDJWK;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
@@ -16,10 +16,7 @@ pub struct DidJwk {
 #[uniffi::export]
 impl DidJwk {
     #[uniffi::constructor]
-    pub fn new(
-        key_algorithm: KeyAlgorithm,
-        key_manager: Arc<KeyManager>,
-    ) -> Result<Arc<Self>, Web5Error> {
+    pub fn new(key_algorithm: KeyAlgorithm, key_manager: Arc<KeyManager>) -> Web5Result<Arc<Self>> {
         // TODO: handle the error properly
         let key_alias = key_manager.generate_private_key(key_algorithm).unwrap();
         let public_key = key_manager
@@ -43,7 +40,7 @@ impl DidResolver for DidJwkResolver {
         "jwk"
     }
 
-    async fn resolve(&self, did_uri: &str) -> Result<DidResolutionResult, Web5Error> {
+    async fn resolve(&self, did_uri: &str) -> Web5Result<DidResolutionResult> {
         let (resolution_metadata, did_document, did_document_metadata) = DIDJWK
             .resolve(did_uri, &ResolutionInputMetadata::default())
             .await;

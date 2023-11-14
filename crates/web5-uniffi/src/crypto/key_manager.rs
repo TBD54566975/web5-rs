@@ -1,5 +1,5 @@
 use crate::crypto::key::{KeyAlgorithm, PrivateKey, PublicKey};
-use crate::error::Web5Error;
+use crate::Web5Result;
 use ssi_jwk::JWK;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -30,7 +30,7 @@ impl KeyManager {
         Arc::new(Self { key_store })
     }
 
-    pub fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Result<String, Web5Error> {
+    pub fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Web5Result<String> {
         let jwk = match key_algorithm {
             KeyAlgorithm::Secp256k1 => JWK::generate_secp256k1()?,
             KeyAlgorithm::Secp256r1 => JWK::generate_p256()?,
@@ -41,7 +41,7 @@ impl KeyManager {
         Ok(key_alias)
     }
 
-    pub fn get_public_key(&self, key_alias: String) -> Result<Option<Arc<PublicKey>>, Web5Error> {
+    pub fn get_public_key(&self, key_alias: String) -> Web5Result<Option<Arc<PublicKey>>> {
         // TODO: Don't love the ending clone. Can/Should get take &str?
         let private_key = self.key_store.get(key_alias.clone())?;
 

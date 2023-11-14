@@ -1,6 +1,6 @@
 use crate::did_jwk::DidJwkResolver;
 use crate::did_key::DidKeyResolver;
-use crate::error::Web5Error;
+use crate::{Web5Error, Web5Result};
 use async_trait::async_trait;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -20,7 +20,7 @@ pub(crate) trait DidResolver: Sync + Send {
     fn method_name() -> &'static str
     where
         Self: Sized;
-    async fn resolve(&self, did_uri: &str) -> Result<DidResolutionResult, Web5Error>;
+    async fn resolve(&self, did_uri: &str) -> Web5Result<DidResolutionResult>;
 }
 
 type BoxedResolver = Arc<dyn DidResolver>;
@@ -33,10 +33,11 @@ fn create_resolvers_map() -> HashMap<&'static str, BoxedResolver> {
 }
 
 #[uniffi::export]
-async fn resolve(did_uri: String) -> Result<DidResolutionResult, Web5Error> {
+async fn resolve(did_uri: String) -> Web5Result<DidResolutionResult> {
     let did_method = parse_did_method(&did_uri)?;
     let resolvers = create_resolvers_map();
 
+    // TODO: amika - Address this
     if let Some(resolver) = resolvers.get(did_method.as_str()) {
         resolver.resolve(&did_uri).await
     } else {
@@ -44,7 +45,7 @@ async fn resolve(did_uri: String) -> Result<DidResolutionResult, Web5Error> {
     }
 }
 
-fn parse_did_method(did: &str) -> Result<String, Web5Error> {
+fn parse_did_method(did: &str) -> Web5Result<String> {
     let parts: Vec<&str> = did.splitn(3, ':').collect();
     if parts.len() == 3 && parts[0] == "did" {
         return Ok(parts[1].to_string());
