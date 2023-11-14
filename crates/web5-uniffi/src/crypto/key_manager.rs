@@ -5,11 +5,17 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
+#[derive(uniffi::Error, thiserror::Error, Debug)]
+pub enum KeyStoreError {
+    #[error("An unknown error occurred")]
+    Unknown,
+}
+
 #[uniffi::export]
 pub trait KeyStore: Send + Sync {
-    fn get(&self, key: String) -> Result<Option<Arc<PrivateKey>>, Web5Error>;
-    fn insert(&self, value: Arc<PrivateKey>) -> Result<String, Web5Error>;
-    fn dump(&self) -> Result<Vec<Arc<PrivateKey>>, Web5Error>;
+    fn get(&self, key: String) -> Result<Option<Arc<PrivateKey>>, KeyStoreError>;
+    fn insert(&self, value: Arc<PrivateKey>) -> Result<String, KeyStoreError>;
+    fn dump(&self) -> Result<Vec<Arc<PrivateKey>>, KeyStoreError>;
 }
 
 #[derive(uniffi::Object)]
@@ -26,9 +32,9 @@ impl KeyManager {
 
     pub fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Result<String, Web5Error> {
         let jwk = match key_algorithm {
-            KeyAlgorithm::Secp256k1 => JWK::generate_secp256k1().map_err(|_| Web5Error::Unknown)?,
-            KeyAlgorithm::Secp256r1 => JWK::generate_p256().map_err(|_| Web5Error::Unknown)?,
-            KeyAlgorithm::Ed25519 => JWK::generate_ed25519().map_err(|_| Web5Error::Unknown)?,
+            KeyAlgorithm::Secp256k1 => JWK::generate_secp256k1()?,
+            KeyAlgorithm::Secp256r1 => JWK::generate_p256()?,
+            KeyAlgorithm::Ed25519 => JWK::generate_ed25519()?,
         };
 
         let key_alias = self.key_store.insert(Arc::new(PrivateKey(jwk.clone())))?;
@@ -37,12 +43,14 @@ impl KeyManager {
 
     pub fn get_public_key(&self, key_alias: String) -> Result<Option<Arc<PublicKey>>, Web5Error> {
         // TODO: Don't love the ending clone. Can/Should get take &str?
-        let private_key = self
-            .key_store
-            .get(key_alias.clone())?
-            .expect("Couldn't generate public key");
+        let private_key = self.key_store.get(key_alias.clone())?;
 
-        Ok(Some(private_key.to_public_key()))
+        // TODO: is there a more "rusty" way to do this?
+        if let Some(private_key) = private_key {
+            Ok(Some(private_key.to_public_key()))
+        } else {
+            Ok(None)
+        }
     }
 
     pub fn sign(&self, key_alias: String, payload: &Vec<u8>) -> Vec<u8> {
@@ -81,17 +89,17 @@ impl InMemoryKeyStore {
 
 #[uniffi::export]
 impl KeyStore for InMemoryKeyStore {
-    fn get(&self, key: String) -> Result<Option<Arc<PrivateKey>>, Web5Error> {
+    fn get(&self, key: String) -> Result<Option<Arc<PrivateKey>>, KeyStoreError> {
         Ok(self.map.read().unwrap().get(&key).cloned())
     }
 
-    fn insert(&self, value: Arc<PrivateKey>) -> Result<String, Web5Error> {
+    fn insert(&self, value: Arc<PrivateKey>) -> Result<String, KeyStoreError> {
         let key = value.0.thumbprint().unwrap();
         self.map.write().unwrap().insert(key.clone(), value);
         Ok(key)
     }
 
-    fn dump(&self) -> Result<Vec<Arc<PrivateKey>>, Web5Error> {
+    fn dump(&self) -> Result<Vec<Arc<PrivateKey>>, KeyStoreError> {
         Ok(self.map.read().unwrap().values().cloned().collect())
     }
 }

@@ -19,11 +19,11 @@ impl DidJwk {
     pub fn new(key_algorithm: KeyAlgorithm, key_manager: Arc<KeyManager>) -> Arc<Self> {
         // TODO: handle the error properly
         let key_alias = key_manager.generate_private_key(key_algorithm).unwrap();
-        let private_key = key_manager
+        let public_key = key_manager
             .get_public_key(key_alias)
             .unwrap()
             .expect("public key not found immediately after creating the private key");
-        let uri = DIDJWK.generate(&Source::Key(&private_key.0)).unwrap();
+        let uri = DIDJWK.generate(&Source::Key(&public_key.0)).unwrap();
 
         Self { uri }.into()
     }
@@ -47,13 +47,14 @@ impl DidResolver for DidJwkResolver {
             .await;
 
         if let Some(error_message) = resolution_metadata.error {
-            // TODO: forward this error message into an error type
-            println!("Error resolving DIDDocument: {}", error_message);
-            return Err(Web5Error::Unknown);
+            return Err(Web5Error::DidResolveError(
+                format!("Error resolving DIDDocument {}", error_message).to_string(),
+            ));
         }
 
-        // TODO: Proper error here
-        let did_document = did_document.ok_or(Web5Error::Unknown)?;
+        let did_document = did_document.ok_or(Web5Error::DidResolveError(
+            "DIDDocument not found".to_string(),
+        ))?;
 
         // TODO: Handle errors here
         Ok(DidResolutionResult {
