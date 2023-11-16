@@ -10,9 +10,7 @@ enum KeyAlgorithm {
 
 [Error]
 interface KeyStoreError {
-    KeyNotFound(string key_alias);
-    UnexpectedReadError(string message);
-    UnexpectedWriteError(string message);
+    InternalKeyStoreError(string message);
 };
 
 [Trait]

@@ -6,9 +6,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum KeyStoreError {
     #[error("{message}")]
-    UnexpectedReadError { message: String },
-    #[error("{message}")]
-    UnexpectedWriteError { message: String },
+    InternalKeyStoreError { message: String },
 }
 
 pub trait KeyStore: Send + Sync {

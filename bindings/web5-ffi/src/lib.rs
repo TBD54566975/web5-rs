@@ -22,7 +22,7 @@ pub use web5::crypto::key_manager::{KeyManager, KeyManagerError};
 //
 // :shrug: Tradeoffs :shrug:
 
-pub use web5::crypto::key_store::{KeyStore as RustKeyStore, KeyStoreError};
+pub use web5::crypto::key_store::KeyStore as RustKeyStore;
 
 pub trait KeyStore: Send + Sync {
     fn get_private_key(&self, key_alias: String) -> Result<Option<Arc<PrivateKey>>, KeyStoreError>;
@@ -36,8 +36,11 @@ pub trait KeyStore: Send + Sync {
 pub struct KeyStoreWrapper(Arc<dyn KeyStore>);
 
 impl RustKeyStore for KeyStoreWrapper {
-    fn get(&self, key_alias: &str) -> Result<Option<PrivateKey>, KeyStoreError> {
-        let private_key = self.0.get_private_key(key_alias.to_string())?;
+    fn get(&self, key_alias: &str) -> Result<Option<PrivateKey>, RustKeyStoreError> {
+        let private_key = self
+            .0
+            .get_private_key(key_alias.to_string())
+            .map_err(|e| e.into())?;
 
         if let Some(private_key) = private_key {
             Ok(Some((*private_key).clone()))
@@ -46,10 +49,12 @@ impl RustKeyStore for KeyStoreWrapper {
         }
     }
 
-    fn insert(&self, key_alias: &str, private_key: PrivateKey) -> Result<(), KeyStoreError> {
+    fn insert(&self, key_alias: &str, private_key: PrivateKey) -> Result<(), RustKeyStoreError> {
         let key_alias = key_alias.to_string();
         let private_key = Arc::new(private_key);
-        self.0.insert_private_key(key_alias, private_key)
+        self.0
+            .insert_private_key(key_alias, private_key)
+            .map_err(|e| e.into())
     }
 }
 
@@ -59,4 +64,39 @@ pub fn local_key_manager(key_store: Arc<dyn KeyStore>) -> Arc<LocalKeyManager> {
     let wrapper = KeyStoreWrapper(key_store);
     let local_key_manager = LocalKeyManager::new(Arc::new(wrapper));
     Arc::new(local_key_manager)
+}
+
+// Foreign languages can throw any arbitrary error. We need handle those!
+// In order to do this, the Error type exposed to foreign languages must implement
+// From<uniffi::UnexpectedUniFFICallbackError>. Unfortunately, we can't directly
+// do this for RustKeyStoreError, because it's defined in an external crate.
+//
+// So, in order to support this, we define our own KeyStoreError, which DOES implement
+// the required trait. Then, we implement Into<RustKeyStoreError> for our KeyStoreError
+// to get BACK into pure-Rust land, with an error that it understand.
+
+pub use web5::crypto::key_store::KeyStoreError as RustKeyStoreError;
+
+#[derive(thiserror::Error, Debug)]
+pub enum KeyStoreError {
+    #[error("{message}")]
+    InternalKeyStoreError { message: String },
+}
+
+impl From<uniffi::UnexpectedUniFFICallbackError> for KeyStoreError {
+    fn from(value: uniffi::UnexpectedUniFFICallbackError) -> Self {
+        Self::InternalKeyStoreError {
+            message: value.reason,
+        }
+    }
+}
+
+impl Into<RustKeyStoreError> for KeyStoreError {
+    fn into(self) -> RustKeyStoreError {
+        match self {
+            KeyStoreError::InternalKeyStoreError { message } => {
+                RustKeyStoreError::InternalKeyStoreError { message }
+            }
+        }
+    }
 }

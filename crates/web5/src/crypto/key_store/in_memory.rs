@@ -20,8 +20,11 @@ impl KeyStore for InMemoryKeyStore {
         let readable_map = self
             .map
             .read()
-            .map_err(|e| KeyStoreError::UnexpectedReadError {
-                message: format!("Unable to acquire RwLockReadGuard: {}", e),
+            .map_err(|e| KeyStoreError::InternalKeyStoreError {
+                message: format!(
+                    "InMemoryKeyStore - Unable to acquire RwLockReadGuard: {}",
+                    e
+                ),
             })?;
 
         if let Some(private_key) = readable_map.get(key_alias) {
@@ -35,8 +38,11 @@ impl KeyStore for InMemoryKeyStore {
         let mut writable_map =
             self.map
                 .write()
-                .map_err(|e| KeyStoreError::UnexpectedWriteError {
-                    message: format!("Unable to acquire RwLockWriteGuard: {}", e),
+                .map_err(|e| KeyStoreError::InternalKeyStoreError {
+                    message: format!(
+                        "InMemoryKeyStore - Unable to acquire RwLockWriteGuard: {}",
+                        e
+                    ),
                 })?;
 
         writable_map.insert(key_alias.to_string(), private_key);
