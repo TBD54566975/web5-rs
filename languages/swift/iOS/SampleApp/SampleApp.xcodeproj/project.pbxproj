@@ -11,9 +11,9 @@
 		A45A0D0C2AFECEE7004B8889 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45A0D0B2AFECEE7004B8889 /* ContentView.swift */; };
 		A45A0D0E2AFECEE9004B8889 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A45A0D0D2AFECEE9004B8889 /* Assets.xcassets */; };
 		A45A0D112AFECEE9004B8889 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A45A0D102AFECEE9004B8889 /* Preview Assets.xcassets */; };
-		A45A0D182AFED695004B8889 /* web5_uniffi.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45A0D172AFED695004B8889 /* web5_uniffi.swift */; };
-		A45A0D1B2AFED6AF004B8889 /* web5_uniffi_framework.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A45A0D1A2AFED6AF004B8889 /* web5_uniffi_framework.xcframework */; };
-		A45A0D1C2AFED6AF004B8889 /* web5_uniffi_framework.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A45A0D1A2AFED6AF004B8889 /* web5_uniffi_framework.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A48F60452B05F80300CD7686 /* web5_ffi.swift in Sources */ = {isa = PBXBuildFile; fileRef = A48F60442B05F80300CD7686 /* web5_ffi.swift */; };
+		A48F60472B05F82000CD7686 /* web5_ffi_framework.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A48F60462B05F82000CD7686 /* web5_ffi_framework.xcframework */; };
+		A48F60482B05F82000CD7686 /* web5_ffi_framework.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A48F60462B05F82000CD7686 /* web5_ffi_framework.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,7 +23,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				A45A0D1C2AFED6AF004B8889 /* web5_uniffi_framework.xcframework in Embed Frameworks */,
+				A48F60482B05F82000CD7686 /* web5_ffi_framework.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -36,8 +36,8 @@
 		A45A0D0B2AFECEE7004B8889 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A45A0D0D2AFECEE9004B8889 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A45A0D102AFECEE9004B8889 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		A45A0D172AFED695004B8889 /* web5_uniffi.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = web5_uniffi.swift; path = ../../../bindings/web5_uniffi.swift; sourceTree = "<group>"; };
-		A45A0D1A2AFED6AF004B8889 /* web5_uniffi_framework.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = web5_uniffi_framework.xcframework; path = ../../framework/web5_uniffi_framework.xcframework; sourceTree = "<group>"; };
+		A48F60442B05F80300CD7686 /* web5_ffi.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = web5_ffi.swift; path = ../../../bindings/web5_ffi.swift; sourceTree = "<group>"; };
+		A48F60462B05F82000CD7686 /* web5_ffi_framework.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = web5_ffi_framework.xcframework; path = ../../framework/web5_ffi_framework.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,7 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A45A0D1B2AFED6AF004B8889 /* web5_uniffi_framework.xcframework in Frameworks */,
+				A48F60472B05F82000CD7686 /* web5_ffi_framework.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,7 +72,7 @@
 		A45A0D082AFECEE7004B8889 /* SampleApp */ = {
 			isa = PBXGroup;
 			children = (
-				A45A0D172AFED695004B8889 /* web5_uniffi.swift */,
+				A48F60442B05F80300CD7686 /* web5_ffi.swift */,
 				A45A0D092AFECEE7004B8889 /* SampleAppApp.swift */,
 				A45A0D0B2AFECEE7004B8889 /* ContentView.swift */,
 				A45A0D0D2AFECEE9004B8889 /* Assets.xcassets */,
@@ -92,7 +92,7 @@
 		A45A0D192AFED6AF004B8889 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				A45A0D1A2AFED6AF004B8889 /* web5_uniffi_framework.xcframework */,
+				A48F60462B05F82000CD7686 /* web5_ffi_framework.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -168,8 +168,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A48F60452B05F80300CD7686 /* web5_ffi.swift in Sources */,
 				A45A0D0C2AFECEE7004B8889 /* ContentView.swift in Sources */,
-				A45A0D182AFED695004B8889 /* web5_uniffi.swift in Sources */,
 				A45A0D0A2AFECEE7004B8889 /* SampleAppApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -16,7 +16,7 @@ impl InMemoryKeyStore {
 }
 
 impl KeyStore for InMemoryKeyStore {
-    fn get(&self, key_alias: &str) -> Result<PrivateKey, KeyStoreError> {
+    fn get(&self, key_alias: &str) -> Result<Option<PrivateKey>, KeyStoreError> {
         let readable_map = self
             .map
             .read()
@@ -25,11 +25,9 @@ impl KeyStore for InMemoryKeyStore {
             })?;
 
         if let Some(private_key) = readable_map.get(key_alias) {
-            Ok(private_key.clone())
+            Ok(Some(private_key.clone()))
         } else {
-            Err(KeyStoreError::KeyNotFound {
-                key_alias: key_alias.to_string(),
-            })
+            Ok(None)
         }
     }
 

@@ -1,7 +1,7 @@
 THIS_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cd $THIS_DIR/../..
 
-NAME="web5_uniffi"
+NAME="web5_ffi"
 BINDINGS_DIR="languages/swift/bindings"
 FRAMEWORK_DIR="languages/swift/framework"
 TEMP_HEADER_DIR="${BINDINGS_DIR}/include"
@@ -17,7 +17,7 @@ rm -rf "${FRAMEWORK_DIR}"
 # Build library for each target architecture
 for arch in "${TARGET_ARCHES[@]}"; do
     rustup target add "$arch"
-    cargo build --target "$arch" --release
+    cargo build -p web5-ffi --target "$arch" --release
 done
 
 # Generate Swift bindings

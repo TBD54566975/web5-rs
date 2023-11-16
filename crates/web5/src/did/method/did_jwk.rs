@@ -1,8 +1,14 @@
+use crate::crypto::key_manager::KeyManager;
+use crate::did::parse::Did;
 use crate::did::resolver::{DidResolutionError, DidResolutionResult, DidResolver};
 use async_trait::async_trait;
 use ssi_dids::did_resolve::DIDResolver;
+use std::sync::Arc;
 
-pub struct DidJwk {}
+pub struct DidJwk {
+    did: Did,
+    key_manager: Arc<dyn KeyManager>,
+}
 
 #[async_trait]
 impl DidResolver for DidJwk {

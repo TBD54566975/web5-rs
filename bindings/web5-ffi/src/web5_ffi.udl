@@ -1,4 +1,6 @@
-namespace web5_ffi {};
+namespace web5_ffi {
+    LocalKeyManager local_key_manager(KeyStore key_store);
+};
 
 enum KeyAlgorithm {
     "Secp256k1",
@@ -16,9 +18,19 @@ interface KeyStoreError {
 [Trait]
 interface KeyStore {
     [Throws=KeyStoreError]
-    PrivateKey get(string key_alias);
+    PrivateKey? get_private_key(string key_alias);
     [Throws=KeyStoreError]
-    void insert(string key_alias, PrivateKey private_key);
+    void insert_private_key(string key_alias, PrivateKey private_key);
+};
+
+[Error]
+interface KeyManagerError {
+    Generic(string message);
+};
+
+interface LocalKeyManager{
+    [Throws=KeyManagerError]
+    string generate_private_key(KeyAlgorithm key_algorithm);
 };
 
 
