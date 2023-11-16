@@ -1,4 +1,4 @@
-use crate::crypto::key::{Key, PrivateKey};
+use crate::crypto::key::PrivateKey;
 use crate::crypto::key_store::{KeyStore, KeyStoreError};
 use std::collections::HashMap;
 use std::sync::RwLock;
@@ -7,6 +7,7 @@ pub struct InMemoryKeyStore {
     map: RwLock<HashMap<String, PrivateKey>>,
 }
 
+#[allow(dead_code)] // TODO: obviously remove this
 impl InMemoryKeyStore {
     pub fn new() -> Self {
         let map = RwLock::new(HashMap::new());

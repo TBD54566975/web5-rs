@@ -1,3 +1,3 @@
-mod key;
-mod key_manager;
-mod key_store;
+pub mod key;
+pub mod key_manager;
+pub mod key_store;

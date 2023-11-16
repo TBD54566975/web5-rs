@@ -8,9 +8,9 @@ use thiserror::Error;
 pub enum KeyStoreError {
     #[error("Key not found for alias: {key_alias}")]
     KeyNotFound { key_alias: String },
-    #[error("UnexpectedReadError: {message}")]
+    #[error("{message}")]
     UnexpectedReadError { message: String },
-    #[error("UnexpectedWriteError: {message}")]
+    #[error("{message}")]
     UnexpectedWriteError { message: String },
 }
 

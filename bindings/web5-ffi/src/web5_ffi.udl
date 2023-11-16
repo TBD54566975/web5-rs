@@ -1,1 +1,27 @@
 namespace web5_ffi {};
+
+enum KeyAlgorithm {
+    "Secp256k1",
+    "Secp256r1",
+    "Ed25519",
+};
+
+[Error]
+interface KeyStoreError {
+    KeyNotFound(string key_alias);
+    UnexpectedReadError(string message);
+    UnexpectedWriteError(string message);
+};
+
+[Trait]
+interface KeyStore {
+    [Throws=KeyStoreError]
+    PrivateKey get(string key_alias);
+    [Throws=KeyStoreError]
+    void insert(string key_alias, PrivateKey private_key);
+};
+
+
+interface PrivateKey {
+
+};
