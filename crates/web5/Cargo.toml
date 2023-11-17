@@ -16,3 +16,6 @@ ssi-jwk = "0.1.2"
 ssi-jws = "0.1.1"
 thiserror = "1.0.50"
 serde = { version = "1.0.192", features = ["derive"] }
+
+[dev-dependencies]
+tokio = { version = "1.34.0", features = ["macros", "test-util"] }

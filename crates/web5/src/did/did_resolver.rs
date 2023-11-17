@@ -6,22 +6,22 @@ use ssi_dids::{
     Document as DidDocument,
 };
 use std::str::FromStr;
+use thiserror::Error;
 
 #[async_trait]
 pub trait DidResolver {
     async fn resolve(did_uri: &str) -> Result<DidResolutionResult, DidResolutionError>;
 }
 
+#[derive(Debug)]
 pub struct DidResolutionResult {
     pub resolution_metadata: ResolutionMetadata,
     pub did_document: DidDocument,
     pub did_document_metadata: Option<DidDocumentMetadata>,
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, PartialEq)]
 pub enum DidResolutionError {
-    #[error("Provided Did URI is invalid")]
-    InvalidDidUri,
     #[error("Unsupported DID did_method")]
     UnsupportedDidMethod,
     #[error("DID document not found")]
@@ -36,5 +36,68 @@ pub async fn resolve(did_uri: &str) -> Result<DidResolutionResult, DidResolution
     match parsed_did.method {
         DidMethod::Jwk => DidJwk::resolve(did_uri).await,
         DidMethod::Key => DidKey::resolve(did_uri).await,
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum Error1 {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::crypto::key::KeyAlgorithm;
+    use crate::crypto::key_manager::local_key_manager::LocalKeyManager;
+    use crate::crypto::key_store::in_memory::InMemoryKeyStore;
+    use crate::did::did_method::did_jwk::{DidJwk, DidJwkCreateOptions};
+    use crate::did::did_method::did_key::{DidKey, DidKeyCreateOptions};
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_resolve_did_jwk() {
+        let in_memory_key_store = InMemoryKeyStore::new();
+        let local_key_manager = LocalKeyManager::new(Arc::new(in_memory_key_store));
+
+        let did_jwk = DidJwk::new(
+            Arc::new(local_key_manager),
+            DidJwkCreateOptions {
+                key_algorithm: KeyAlgorithm::Ed25519,
+            },
+        )
+        .expect("DidJwk initialization failed");
+
+        let resolution_result = resolve(&did_jwk.uri).await.expect("Failed to resolve DID");
+        assert_eq!(resolution_result.did_document.id, did_jwk.uri);
+    }
+
+    #[tokio::test]
+    async fn test_resolve_did_key() {
+        let in_memory_key_store = InMemoryKeyStore::new();
+        let local_key_manager = LocalKeyManager::new(Arc::new(in_memory_key_store));
+
+        let did_key = DidKey::new(
+            Arc::new(local_key_manager),
+            DidKeyCreateOptions {
+                key_algorithm: KeyAlgorithm::Ed25519,
+            },
+        )
+        .expect("DidKey initialization failed");
+
+        let resolution_result = resolve(&did_key.uri).await.expect("Failed to resolve DID");
+        assert_eq!(resolution_result.did_document.id, did_key.uri);
+    }
+
+    #[tokio::test]
+    async fn test_resolve_unsupported_did_method() {
+        let did_uri = "did:unsupported:123123";
+        let resolve_result = resolve(did_uri).await;
+        assert!(resolve_result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_resolve_invalid_did_uri() {
+        let invalid_did_uri = "wrong:did:key:123123";
+        let resolve_result = resolve(invalid_did_uri).await;
+        assert!(resolve_result.is_err());
     }
 }
