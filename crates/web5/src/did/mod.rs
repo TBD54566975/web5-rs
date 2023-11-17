@@ -5,7 +5,13 @@ pub mod resolver;
 use crate::crypto::key_manager::KeyManager;
 use std::sync::Arc;
 
-pub trait Did {
-    fn uri(&self) -> &str;
-    fn key_manager(&self) -> &Arc<dyn KeyManager>;
+// pub trait Did {
+//     fn uri(&self) -> &str;
+//     fn key_manager(&self) -> &Arc<dyn KeyManager>;
+// }
+
+pub struct Did<T> {
+    pub uri: String,
+    pub key_manager: Arc<dyn KeyManager>,
+    pub method_data: T,
 }

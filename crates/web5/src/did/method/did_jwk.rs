@@ -13,20 +13,9 @@ pub struct DidJwkCreateOptions {
     pub key_algorithm: KeyAlgorithm,
 }
 
-pub struct DidJwk {
-    uri: String,
-    key_manager: Arc<dyn KeyManager>,
-}
+pub struct DidJwkData {}
 
-impl Did for DidJwk {
-    fn uri(&self) -> &str {
-        &self.uri
-    }
-
-    fn key_manager(&self) -> &Arc<dyn KeyManager> {
-        &self.key_manager
-    }
-}
+pub type DidJwk = Did<DidJwkData>;
 
 impl DidJwk {
     pub fn new(key_manager: Arc<dyn KeyManager>, options: DidJwkCreateOptions) -> Web5Result<Self> {
@@ -43,7 +32,13 @@ impl DidJwk {
             .generate(&Source::Key(&public_key.inner))
             .expect("DidJwk initialization failed");
 
-        Ok(Self { uri, key_manager })
+        let method_data = DidJwkData {};
+
+        Ok(Self {
+            uri,
+            key_manager,
+            method_data,
+        })
     }
 }
 

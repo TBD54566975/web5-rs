@@ -25,15 +25,12 @@ struct ContentView: View {
           print("didJwk uri: \(didJwk.uri())")
         }
       }
-//      Button("Generate did:key") {
-//        Task {
-//          let did = try! DidKey(keyAlgorithm: .secp256r1, keyManager: keyManager)
-//          print("Generated did:key: \(did.getUri())")
-//          let resolution = try! await resolve(didUri: did.getUri())
-//          print("Resolved DIDDocument: \(resolution.didDocument)")
-//        }
-//
-//      }
+      Button("Generate did:key") {
+        Task {
+          let didKey = try! DidKey(keyManager: keyManager, options: .init(keyAlgorithm: .secp256k1))
+          print("didKey uri: \(didKey.uri())")
+        }
+      }
 //      Button("Sign & Verify with new Key") {
 //        let keyAlias = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
 //

@@ -8,6 +8,7 @@ pub use web5::crypto::key::PublicKey;
 pub use web5::crypto::key_store::in_memory::InMemoryKeyStore;
 pub use web5::did::Did;
 pub use web5::error::Web5Error;
+use web5::result::Web5Result;
 
 // Super hacky way to get pure Rust trait exposed as a foreign implementation trait.
 // I have tried multiple other ways, with no success. I would love if someone could
@@ -138,10 +139,10 @@ impl RustKeyManager for KeyManager {
 // DID JWK
 // Reasons I need to do the below:
 // 1. key_manager comes in as an Arc from uniffi
-// 2. uri needs to return a new String, not a string slice
+// 2. the key manager from uniffi is NOT the RustKeyManager
+// 3. uri needs to return a new String, not a string slice
 
 pub use web5::did::method::did_jwk::{DidJwk as RustDidJwk, DidJwkCreateOptions};
-use web5::result::Web5Result;
 
 pub struct DidJwk {
     inner: RustDidJwk,
@@ -154,6 +155,29 @@ impl DidJwk {
     }
 
     fn uri(&self) -> String {
-        self.inner.uri().to_string()
+        self.inner.uri.to_string()
+    }
+}
+
+// DID Key
+// Reasons I need to do the below:
+// 1. key_manager comes in as an Arc from uniffi
+// 2. the key manager from uniffi is NOT the RustKeyManager
+// 3. uri needs to return a new String, not a string slice
+
+pub use web5::did::method::did_key::{DidKey as RustDidKey, DidKeyCreateOptions};
+
+pub struct DidKey {
+    inner: RustDidKey,
+}
+
+impl DidKey {
+    fn new(key_manager: Arc<KeyManager>, options: DidKeyCreateOptions) -> Web5Result<Self> {
+        let inner = RustDidKey::new(key_manager.0.clone(), options)?;
+        Ok(Self { inner })
+    }
+
+    fn uri(&self) -> String {
+        self.inner.uri.to_string()
     }
 }

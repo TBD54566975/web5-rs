@@ -1,9 +1,44 @@
+use crate::crypto::key::KeyAlgorithm;
+use crate::crypto::key_manager::{KeyManager, KeyManagerError};
 use crate::did::resolver::{DidResolutionError, DidResolutionResult, DidResolver};
+use crate::did::Did;
+use crate::result::Web5Result;
 use async_trait::async_trait;
 use did_method_key::DIDKey;
 use ssi_dids::did_resolve::DIDResolver;
+use ssi_dids::{DIDMethod, Source};
+use std::sync::Arc;
 
-pub struct DidKey {}
+pub struct DidKeyCreateOptions {
+    pub key_algorithm: KeyAlgorithm,
+}
+
+pub struct DidKeyData {}
+
+pub type DidKey = Did<DidKeyData>;
+
+impl DidKey {
+    pub fn new(key_manager: Arc<dyn KeyManager>, options: DidKeyCreateOptions) -> Web5Result<Self> {
+        let key_alias = key_manager.generate_private_key(options.key_algorithm)?;
+        let public_key =
+            key_manager
+                .get_public_key(&key_alias)?
+                .ok_or(KeyManagerError::Generic {
+                    message: "Public key not found immediately after creating private key"
+                        .to_string(),
+                })?;
+
+        let uri = DIDKey
+            .generate(&Source::Key(&public_key.inner))
+            .expect("DidKey initialization failed");
+
+        Ok(Self {
+            uri,
+            key_manager,
+            method_data: DidKeyData {},
+        })
+    }
+}
 
 #[async_trait]
 impl DidResolver for DidKey {

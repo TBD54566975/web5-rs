@@ -35,10 +35,19 @@ dictionary DidJwkCreateOptions {
     KeyAlgorithm key_algorithm;
 };
 
-
 interface DidJwk {
     [Throws=Web5Error]
     constructor(KeyManager key_manager, DidJwkCreateOptions options);
+    string uri();
+};
+
+dictionary DidKeyCreateOptions {
+    KeyAlgorithm key_algorithm;
+};
+
+interface DidKey {
+    [Throws=Web5Error]
+    constructor(KeyManager key_manager, DidKeyCreateOptions options);
     string uri();
 };
 
