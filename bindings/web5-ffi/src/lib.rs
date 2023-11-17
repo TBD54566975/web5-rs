@@ -4,9 +4,10 @@ use std::sync::Arc;
 
 pub use web5::crypto::key::KeyAlgorithm;
 pub use web5::crypto::key::PrivateKey;
-use web5::crypto::key::PublicKey;
+pub use web5::crypto::key::PublicKey;
 pub use web5::crypto::key_store::in_memory::InMemoryKeyStore;
-use web5::did::Did;
+pub use web5::did::Did;
+pub use web5::error::Web5Error;
 
 // Super hacky way to get pure Rust trait exposed as a foreign implementation trait.
 // I have tried multiple other ways, with no success. I would love if someone could
@@ -135,17 +136,21 @@ impl RustKeyManager for KeyManager {
 }
 
 // DID JWK
+// Reasons I need to do the below:
+// 1. key_manager comes in as an Arc from uniffi
+// 2. uri needs to return a new String, not a string slice
 
 pub use web5::did::method::did_jwk::{DidJwk as RustDidJwk, DidJwkCreateOptions};
+use web5::result::Web5Result;
 
 pub struct DidJwk {
     inner: RustDidJwk,
 }
 
 impl DidJwk {
-    fn new(key_manager: Arc<KeyManager>, options: DidJwkCreateOptions) -> Self {
-        let inner = RustDidJwk::new(key_manager.0.clone(), options);
-        Self { inner }
+    fn new(key_manager: Arc<KeyManager>, options: DidJwkCreateOptions) -> Web5Result<Self> {
+        let inner = RustDidJwk::new(key_manager.0.clone(), options)?;
+        Ok(Self { inner })
     }
 
     fn uri(&self) -> String {

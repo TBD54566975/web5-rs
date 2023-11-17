@@ -7,6 +7,11 @@ enum KeyAlgorithm {
 };
 
 [Error]
+interface Web5Error {
+    InternalError(string message);
+};
+
+[Error]
 interface KeyStoreError {
     InternalKeyStoreError(string message);
 };
@@ -30,7 +35,9 @@ dictionary DidJwkCreateOptions {
     KeyAlgorithm key_algorithm;
 };
 
+
 interface DidJwk {
+    [Throws=Web5Error]
     constructor(KeyManager key_manager, DidJwkCreateOptions options);
     string uri();
 };

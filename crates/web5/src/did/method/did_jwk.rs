@@ -2,6 +2,7 @@ use crate::crypto::key::KeyAlgorithm;
 use crate::crypto::key_manager::{KeyManager, KeyManagerError};
 use crate::did::resolver::{DidResolutionError, DidResolutionResult, DidResolver};
 use crate::did::Did;
+use crate::result::Web5Result;
 use async_trait::async_trait;
 use did_jwk::DIDJWK;
 use ssi_dids::did_resolve::DIDResolver;
@@ -28,20 +29,21 @@ impl Did for DidJwk {
 }
 
 impl DidJwk {
-    pub fn new(key_manager: Arc<dyn KeyManager>, options: DidJwkCreateOptions) -> Self {
-        let key_alias = key_manager
-            .generate_private_key(options.key_algorithm)
-            .expect("Failed to generate private key");
-        let public_key = key_manager
-            .get_public_key(&key_alias)
-            .expect("Failed to get public key")
-            .unwrap();
+    pub fn new(key_manager: Arc<dyn KeyManager>, options: DidJwkCreateOptions) -> Web5Result<Self> {
+        let key_alias = key_manager.generate_private_key(options.key_algorithm)?;
+        let public_key =
+            key_manager
+                .get_public_key(&key_alias)?
+                .ok_or(KeyManagerError::Generic {
+                    message: "Public key not found immediately after creating private key"
+                        .to_string(),
+                })?;
 
         let uri = DIDJWK
             .generate(&Source::Key(&public_key.inner))
             .expect("DidJwk initialization failed");
 
-        Self { uri, key_manager }
+        Ok(Self { uri, key_manager })
     }
 }
 

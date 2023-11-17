@@ -21,7 +21,7 @@ struct ContentView: View {
 //      }
       Button("Generate did:jwk") {
         Task {
-          let didJwk = DidJwk(keyManager: keyManager, options: .init(keyAlgorithm: .ed25519))
+          let didJwk = try! DidJwk(keyManager: keyManager, options: .init(keyAlgorithm: .ed25519))
           print("didJwk uri: \(didJwk.uri())")
         }
       }
