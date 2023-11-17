@@ -6,6 +6,7 @@ pub use web5::crypto::key::KeyAlgorithm;
 pub use web5::crypto::key::PrivateKey;
 use web5::crypto::key::PublicKey;
 pub use web5::crypto::key_store::in_memory::InMemoryKeyStore;
+pub use web5::did::method::did_jwk::{DidJwk, DidJwkCreateOptions};
 
 // Super hacky way to get pure Rust trait exposed as a foreign implementation trait.
 // I have tried multiple other ways, with no success. I would love if someone could

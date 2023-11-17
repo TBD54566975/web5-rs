@@ -27,6 +27,15 @@ interface KeyManager {
     void do_thing();
 };
 
+dictionary DidJwkCreateOptions {
+    KeyAlgorithm key_algorithm;
+};
+
+interface DidJwk {
+    constructor(KeyManager key_manager, DidJwkCreateOptions options);
+    string uri();
+};
+
 interface PrivateKey {
 
 };

@@ -51,7 +51,7 @@ impl Key for PrivateKey {
 }
 
 pub struct PublicKey {
-    inner: SpruceJwk,
+    pub(crate) inner: SpruceJwk,
 }
 
 impl PublicKey {
