@@ -1,4 +1,4 @@
-use crate::did::method::{did_jwk::DidJwk, did_key::DidKey, DidMethod};
+use crate::did::did_method::{did_jwk::DidJwk, did_key::DidKey, DidMethod};
 use crate::did::parsed_did::{ParsedDid, ParsedDidError};
 use async_trait::async_trait;
 use ssi_dids::{
@@ -22,7 +22,7 @@ pub struct DidResolutionResult {
 pub enum DidResolutionError {
     #[error("Provided Did URI is invalid")]
     InvalidDidUri,
-    #[error("Unsupported DID method")]
+    #[error("Unsupported DID did_method")]
     UnsupportedDidMethod,
     #[error("DID document not found")]
     DidDocumentNotFound,

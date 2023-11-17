@@ -1,8 +1,3 @@
-mod did;
-pub mod did_method;
-pub mod did_resolver;
-mod parsed_did;
-
 use crate::crypto::key_manager::KeyManager;
 use std::sync::Arc;
 

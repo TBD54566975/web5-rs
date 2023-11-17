@@ -9,7 +9,7 @@ pub enum DidMethod {
 
 #[derive(thiserror::Error, PartialEq, Debug)]
 pub enum DidMethodError {
-    #[error("Unsupported DID method")]
+    #[error("Unsupported DID did_method")]
     UnsupportedDidMethod,
 }
 

@@ -1,4 +1,4 @@
-use crate::did::method::{DidMethod, DidMethodError}; // TODO: move this to mod?
+use crate::did::did_method::{DidMethod, DidMethodError}; // TODO: move this to mod?
 use std::str::FromStr;
 
 #[derive(Debug)]
