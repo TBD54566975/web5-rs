@@ -1,4 +1,4 @@
-use crate::crypto::key::KeyAlgorithm;
+use crate::crypto::key::{Key, KeyAlgorithm};
 use crate::crypto::key_manager::{KeyManager, KeyManagerError};
 use crate::did::did::Did;
 use crate::did::did_resolver::{DidResolutionError, DidResolutionResult, DidResolver};
@@ -29,7 +29,7 @@ impl DidJwk {
                 })?;
 
         let uri = DIDJWK
-            .generate(&Source::Key(&public_key.inner))
+            .generate(&Source::Key(&public_key.jwk()))
             .expect("DidJwk initialization failed");
 
         let method_data = DidJwkData {};
@@ -81,6 +81,6 @@ mod tests {
         )
         .expect("DidJwk initialization failed");
 
-        assert!(did.uri.starts_with("did:jwk:"));
+        assert!(did.uri.starts_with("did:key:"));
     }
 }

@@ -1,8 +1,11 @@
-pub mod private_key;
-pub mod public_key;
+mod private;
+mod public;
 
-use ssi_jwk::Error as SpruceJwkError;
-use ssi_jws::Error as SpruceJwsError;
+pub use private::*;
+pub use public::*;
+
+use ssi_jwk::{Error as JwkError, JWK as Jwk};
+use ssi_jws::Error as JwsError;
 
 pub enum KeyAlgorithm {
     Secp256k1,
@@ -13,13 +16,16 @@ pub enum KeyAlgorithm {
 #[derive(thiserror::Error, Debug)]
 pub enum KeyError {
     #[error(transparent)]
-    JwkError(#[from] SpruceJwkError),
+    JwkError(#[from] JwkError),
     #[error(transparent)]
-    JwsError(#[from] SpruceJwsError),
-    #[error("Algorithm not found")]
+    JwsError(#[from] JwsError),
+    #[error("Algorithm not found on JWK")]
     AlgorithmNotFound,
 }
 
 pub trait Key {
-    fn alias(&self) -> Result<String, KeyError>;
+    fn jwk(&self) -> &Jwk;
+    fn alias(&self) -> Result<String, KeyError> {
+        Ok(self.jwk().thumbprint()?)
+    }
 }

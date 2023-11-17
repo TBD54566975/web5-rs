@@ -1,9 +1,5 @@
-use crate::crypto::key::private_key::PrivateKey;
-use crate::crypto::key::public_key::PublicKey;
-use crate::crypto::key::KeyAlgorithm;
-use crate::crypto::key::{Key, KeyError};
+use crate::crypto::key::{Key, KeyAlgorithm, PrivateKey, PublicKey};
 use crate::crypto::key_manager::{KeyManager, KeyManagerError};
-use crate::crypto::key_store::in_memory::InMemoryKeyStore;
 use crate::crypto::key_store::KeyStore;
 use std::sync::Arc;
 
@@ -19,9 +15,10 @@ impl LocalKeyManager {
 
 impl KeyManager for LocalKeyManager {
     fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Result<String, KeyManagerError> {
-        let private_key = PrivateKey::new(key_algorithm).map_err(|e| KeyManagerError::Generic {
-            message: e.to_string(),
-        })?;
+        let private_key =
+            PrivateKey::generate(key_algorithm).map_err(|e| KeyManagerError::Generic {
+                message: e.to_string(),
+            })?;
         let key_alias = private_key.alias().map_err(|e| KeyManagerError::Generic {
             message: e.to_string(),
         })?;

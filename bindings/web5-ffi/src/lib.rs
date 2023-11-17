@@ -2,9 +2,8 @@ uniffi::include_scaffolding!("web5_ffi");
 
 use std::sync::Arc;
 
-pub use web5::crypto::key::private_key::PrivateKey;
-pub use web5::crypto::key::public_key::PublicKey;
 pub use web5::crypto::key::KeyAlgorithm;
+pub use web5::crypto::key::{PrivateKey, PublicKey};
 pub use web5::crypto::key_store::in_memory::InMemoryKeyStore;
 pub use web5::did::did::Did;
 pub use web5::error::Web5Error;

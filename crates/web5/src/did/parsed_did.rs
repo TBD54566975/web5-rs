@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn test_did_jwk_parsing() {
-        let did_uri = "did:jwk:123123";
+        let did_uri = "did:key:123123";
         let parsed_did = ParsedDid::from_str(did_uri).expect("Failed to parse DID");
 
         assert_eq!(parsed_did.uri, did_uri);
