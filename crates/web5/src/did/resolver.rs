@@ -1,5 +1,5 @@
 use crate::did::method::{did_jwk::DidJwk, did_key::DidKey, DidMethod};
-use crate::did::parse::{Did, DidError};
+use crate::did::parsed_did::{ParsedDid, ParsedDidError};
 use async_trait::async_trait;
 use ssi_dids::{
     did_resolve::{DocumentMetadata as DidDocumentMetadata, ResolutionMetadata},
@@ -27,13 +27,13 @@ pub enum DidResolutionError {
     #[error("DID document not found")]
     DidDocumentNotFound,
     #[error(transparent)]
-    DidError(#[from] DidError),
+    ParsedDidError(#[from] ParsedDidError),
 }
 
 pub async fn resolve(did_uri: &str) -> Result<DidResolutionResult, DidResolutionError> {
-    let did = Did::from_str(did_uri)?;
+    let parsed_did = ParsedDid::from_str(did_uri)?;
 
-    match did.method {
+    match parsed_did.method {
         DidMethod::Jwk => DidJwk::resolve(did_uri).await,
         DidMethod::Key => DidKey::resolve(did_uri).await,
     }

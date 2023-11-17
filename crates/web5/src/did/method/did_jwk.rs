@@ -76,11 +76,11 @@ mod tests {
         let did = DidJwk::new(
             key_manager,
             DidJwkCreateOptions {
-                algorithm: KeyAlgorithm::Ed25519,
+                key_algorithm: KeyAlgorithm::Ed25519,
             },
         )
         .expect("DidJwk initialization failed");
 
-        assert!(did.uri().starts_with("did:jwk:"));
+        assert!(did.uri.starts_with("did:jwk:"));
     }
 }
