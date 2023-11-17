@@ -1,6 +1,7 @@
 pub mod local_key_manager;
 
-use crate::crypto::key::{KeyAlgorithm, KeyError, PublicKey};
+use crate::crypto::key::public_key::PublicKey;
+use crate::crypto::key::{KeyAlgorithm, KeyError};
 use crate::crypto::key_store::KeyStoreError;
 use thiserror::Error;
 

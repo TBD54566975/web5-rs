@@ -1,6 +1,6 @@
 pub mod in_memory;
 
-use crate::crypto::key::PrivateKey;
+use crate::crypto::key::private_key::PrivateKey;
 use thiserror::Error;
 
 #[derive(Error, Debug)]

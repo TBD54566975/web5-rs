@@ -1,4 +1,4 @@
-use crate::crypto::key::PrivateKey;
+use crate::crypto::key::private_key::PrivateKey;
 use crate::crypto::key_store::{KeyStore, KeyStoreError};
 use std::collections::HashMap;
 use std::sync::RwLock;

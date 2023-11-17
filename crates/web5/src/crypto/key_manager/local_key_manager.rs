@@ -1,5 +1,7 @@
+use crate::crypto::key::private_key::PrivateKey;
+use crate::crypto::key::public_key::PublicKey;
+use crate::crypto::key::KeyAlgorithm;
 use crate::crypto::key::{Key, KeyError};
-use crate::crypto::key::{KeyAlgorithm, PrivateKey, PublicKey};
 use crate::crypto::key_manager::{KeyManager, KeyManagerError};
 use crate::crypto::key_store::in_memory::InMemoryKeyStore;
 use crate::crypto::key_store::KeyStore;
