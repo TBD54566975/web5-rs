@@ -6,7 +6,7 @@ pub use web5::crypto::key::KeyAlgorithm;
 pub use web5::crypto::key::PrivateKey;
 use web5::crypto::key::PublicKey;
 pub use web5::crypto::key_store::in_memory::InMemoryKeyStore;
-pub use web5::did::method::did_jwk::{DidJwk, DidJwkCreateOptions};
+use web5::did::Did;
 
 // Super hacky way to get pure Rust trait exposed as a foreign implementation trait.
 // I have tried multiple other ways, with no success. I would love if someone could
@@ -100,25 +100,19 @@ use web5::crypto::key_manager::local_key_manager::LocalKeyManager;
 pub use web5::crypto::key_manager::KeyManager as RustKeyManager;
 use web5::crypto::key_manager::KeyManagerError;
 
-pub struct KeyManager(Box<dyn RustKeyManager>);
+pub struct KeyManager(Arc<dyn RustKeyManager>);
 
 impl KeyManager {
     pub fn in_memory() -> Self {
         let key_store = InMemoryKeyStore::new();
         let key_manager = LocalKeyManager::new(Arc::new(key_store));
-        Self(Box::new(key_manager))
+        Self(Arc::new(key_manager))
     }
 
     pub fn key_store(key_store: Arc<dyn KeyStore>) -> Self {
         let wrapper = KeyStoreWrapper(key_store);
         let key_manager = LocalKeyManager::new(Arc::new(wrapper));
-        Self(Box::new(key_manager))
-    }
-
-    pub fn do_thing(&self) {
-        self.0
-            .generate_private_key(KeyAlgorithm::Ed25519)
-            .expect("TODO: panic message");
+        Self(Arc::new(key_manager))
     }
 }
 
@@ -137,5 +131,24 @@ impl RustKeyManager for KeyManager {
 
     fn get_deterministic_alias(&self, public_key: PublicKey) -> Result<String, KeyManagerError> {
         self.0.get_deterministic_alias(public_key)
+    }
+}
+
+// DID JWK
+
+pub use web5::did::method::did_jwk::{DidJwk as RustDidJwk, DidJwkCreateOptions};
+
+pub struct DidJwk {
+    inner: RustDidJwk,
+}
+
+impl DidJwk {
+    fn new(key_manager: Arc<KeyManager>, options: DidJwkCreateOptions) -> Self {
+        let inner = RustDidJwk::new(key_manager.0.clone(), options);
+        Self { inner }
+    }
+
+    fn uri(&self) -> String {
+        self.inner.uri().to_string()
     }
 }

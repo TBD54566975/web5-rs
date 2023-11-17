@@ -24,7 +24,6 @@ interface KeyManager {
     constructor();
     [Name=key_store]
     constructor(KeyStore key_store);
-    void do_thing();
 };
 
 dictionary DidJwkCreateOptions {

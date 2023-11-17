@@ -11,23 +11,20 @@ var keyManager = createKeyManager()
 struct ContentView: View {
   var body: some View {
     VStack(spacing: 10) {
-      Button("Generate a private key") {
-        keyManager.doThing()
+//      Button("Generate a private key") {
 //        let _ = try! keyManager.generatePrivateKey(keyAlgorithm: .secp256k1)
-      }
+//      }
 //      Button("Generate Key Only") {
 //        let keyAlias = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
 //        let key = try! keyManager.getPublicKey(keyAlias: keyAlias)
 //        print("Generated Key: \(key!.toJson())")
 //      }
-//      Button("Generate did:jwk") {
-//        Task {
-//          let did = try! DidJwk(keyAlgorithm: .secp256k1, keyManager: keyManager)
-//          print("Generated did:jwk: \(did.getUri())")
-//          let resolution = try! await resolve(didUri: did.getUri())
-//          print("Resolved DIDDocument: \(resolution.didDocument)")
-//        }
-//      }
+      Button("Generate did:jwk") {
+        Task {
+          let didJwk = DidJwk(keyManager: keyManager, options: .init(keyAlgorithm: .ed25519))
+          print("didJwk uri: \(didJwk.uri())")
+        }
+      }
 //      Button("Generate did:key") {
 //        Task {
 //          let did = try! DidKey(keyAlgorithm: .secp256r1, keyManager: keyManager)

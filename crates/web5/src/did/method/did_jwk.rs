@@ -28,24 +28,20 @@ impl Did for DidJwk {
 }
 
 impl DidJwk {
-    pub fn new(
-        key_manager: Arc<dyn KeyManager>,
-        options: DidJwkCreateOptions,
-    ) -> Result<Self, KeyManagerError> {
-        let key_alias = key_manager.generate_private_key(options.key_algorithm)?;
-        let public_key =
-            key_manager
-                .get_public_key(&key_alias)?
-                .ok_or(KeyManagerError::Generic {
-                    message: "Public key not found immediately after creating the private key"
-                        .to_string(),
-                })?;
+    pub fn new(key_manager: Arc<dyn KeyManager>, options: DidJwkCreateOptions) -> Self {
+        let key_alias = key_manager
+            .generate_private_key(options.key_algorithm)
+            .expect("Failed to generate private key");
+        let public_key = key_manager
+            .get_public_key(&key_alias)
+            .expect("Failed to get public key")
+            .unwrap();
 
         let uri = DIDJWK
             .generate(&Source::Key(&public_key.inner))
             .expect("DidJwk initialization failed");
 
-        Ok(Self { uri, key_manager })
+        Self { uri, key_manager }
     }
 }
 
