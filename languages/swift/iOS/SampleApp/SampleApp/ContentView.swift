@@ -1,8 +1,9 @@
 import SwiftUI
 import web5_ffiFFI;
 
-func createKeyManager() -> LocalKeyManager {
-  return localKeyManager(keyStore: SwiftKeyStore())
+func createKeyManager() -> KeyManager {
+//  return KeyManager.inMemory()
+  return KeyManager.keyStore(keyStore: SwiftKeyStore())
 }
 
 var keyManager = createKeyManager()
@@ -11,7 +12,8 @@ struct ContentView: View {
   var body: some View {
     VStack(spacing: 10) {
       Button("Generate a private key") {
-        let _ = try! keyManager.generatePrivateKey(keyAlgorithm: .secp256k1)
+        keyManager.doThing()
+//        let _ = try! keyManager.generatePrivateKey(keyAlgorithm: .secp256k1)
       }
 //      Button("Generate Key Only") {
 //        let keyAlias = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
@@ -97,7 +99,7 @@ struct ContentView: View {
 class SwiftKeyStore: KeyStore {
   var map = [String: PrivateKey]()
 
-  func getPrivateKey(keyAlias: String) throws -> PrivateKey {
+  func getPrivateKey(keyAlias: String) throws -> PrivateKey? {
     return self.map[keyAlias]!
   }
   

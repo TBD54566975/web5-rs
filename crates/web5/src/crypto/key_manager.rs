@@ -14,7 +14,7 @@ pub enum KeyManagerError {
     // KeyStoreError(#[from] KeyStoreError),
 }
 
-pub trait KeyManager {
+pub trait KeyManager: Send + Sync {
     fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Result<String, KeyManagerError>;
     fn get_public_key(&self, key_alias: &str) -> Result<Option<PublicKey>, KeyManagerError>;
 

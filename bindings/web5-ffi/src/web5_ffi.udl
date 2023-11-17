@@ -1,6 +1,4 @@
-namespace web5_ffi {
-    LocalKeyManager local_key_manager(KeyStore key_store);
-};
+namespace web5_ffi {};
 
 enum KeyAlgorithm {
     "Secp256k1",
@@ -21,16 +19,13 @@ interface KeyStore {
     void insert_private_key(string key_alias, PrivateKey private_key);
 };
 
-[Error]
-interface KeyManagerError {
-    Generic(string message);
+interface KeyManager {
+    [Name=in_memory]
+    constructor();
+    [Name=key_store]
+    constructor(KeyStore key_store);
+    void do_thing();
 };
-
-interface LocalKeyManager{
-    [Throws=KeyManagerError]
-    string generate_private_key(KeyAlgorithm key_algorithm);
-};
-
 
 interface PrivateKey {
 

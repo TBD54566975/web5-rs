@@ -10,6 +10,7 @@ pub struct InMemoryKeyStore {
 #[allow(dead_code)] // TODO: obviously remove this
 impl InMemoryKeyStore {
     pub fn new() -> Self {
+        println!("Making a new InMemoryKeyStore!");
         let map = RwLock::new(HashMap::new());
         Self { map }
     }
@@ -46,6 +47,7 @@ impl KeyStore for InMemoryKeyStore {
                 })?;
 
         writable_map.insert(key_alias.to_string(), private_key);
+        println!("InMemory inserted private_key: {}", key_alias);
         Ok(())
     }
 }

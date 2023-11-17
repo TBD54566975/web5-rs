@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 pub use web5::crypto::key::KeyAlgorithm;
 pub use web5::crypto::key::PrivateKey;
-pub use web5::crypto::key_manager::local_key_manager::LocalKeyManager;
-pub use web5::crypto::key_manager::{KeyManager, KeyManagerError};
+use web5::crypto::key::PublicKey;
+pub use web5::crypto::key_store::in_memory::InMemoryKeyStore;
 
 // Super hacky way to get pure Rust trait exposed as a foreign implementation trait.
 // I have tried multiple other ways, with no success. I would love if someone could
@@ -58,14 +58,6 @@ impl RustKeyStore for KeyStoreWrapper {
     }
 }
 
-// Expose a constructor for LocalKeyManager
-
-pub fn local_key_manager(key_store: Arc<dyn KeyStore>) -> Arc<LocalKeyManager> {
-    let wrapper = KeyStoreWrapper(key_store);
-    let local_key_manager = LocalKeyManager::new(Arc::new(wrapper));
-    Arc::new(local_key_manager)
-}
-
 // Foreign languages can throw any arbitrary error. We need handle those!
 // In order to do this, the Error type exposed to foreign languages must implement
 // From<uniffi::UnexpectedUniFFICallbackError>. Unfortunately, we can't directly
@@ -98,5 +90,51 @@ impl Into<RustKeyStoreError> for KeyStoreError {
                 RustKeyStoreError::InternalKeyStoreError { message }
             }
         }
+    }
+}
+
+// Cleaner KeyManager interface to foreign languages
+
+use web5::crypto::key_manager::local_key_manager::LocalKeyManager;
+pub use web5::crypto::key_manager::KeyManager as RustKeyManager;
+use web5::crypto::key_manager::KeyManagerError;
+
+pub struct KeyManager(Box<dyn RustKeyManager>);
+
+impl KeyManager {
+    pub fn in_memory() -> Self {
+        let key_store = InMemoryKeyStore::new();
+        let key_manager = LocalKeyManager::new(Arc::new(key_store));
+        Self(Box::new(key_manager))
+    }
+
+    pub fn key_store(key_store: Arc<dyn KeyStore>) -> Self {
+        let wrapper = KeyStoreWrapper(key_store);
+        let key_manager = LocalKeyManager::new(Arc::new(wrapper));
+        Self(Box::new(key_manager))
+    }
+
+    pub fn do_thing(&self) {
+        self.0
+            .generate_private_key(KeyAlgorithm::Ed25519)
+            .expect("TODO: panic message");
+    }
+}
+
+impl RustKeyManager for KeyManager {
+    fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Result<String, KeyManagerError> {
+        self.0.generate_private_key(key_algorithm)
+    }
+
+    fn get_public_key(&self, key_alias: &str) -> Result<Option<PublicKey>, KeyManagerError> {
+        self.0.get_public_key(key_alias)
+    }
+
+    fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError> {
+        self.0.sign(key_alias, payload)
+    }
+
+    fn get_deterministic_alias(&self, public_key: PublicKey) -> Result<String, KeyManagerError> {
+        self.0.get_deterministic_alias(public_key)
     }
 }

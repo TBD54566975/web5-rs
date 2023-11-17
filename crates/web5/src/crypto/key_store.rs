@@ -1,4 +1,4 @@
-mod in_memory;
+pub mod in_memory;
 
 use crate::crypto::key::PrivateKey;
 use thiserror::Error;
