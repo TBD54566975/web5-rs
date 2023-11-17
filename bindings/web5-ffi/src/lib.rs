@@ -6,7 +6,7 @@ pub use web5::crypto::key::KeyAlgorithm;
 pub use web5::crypto::key::PrivateKey;
 pub use web5::crypto::key::PublicKey;
 pub use web5::crypto::key_store::in_memory::InMemoryKeyStore;
-pub use web5::did::Did;
+pub use web5::did::did::Did;
 pub use web5::error::Web5Error;
 use web5::result::Web5Result;
 
