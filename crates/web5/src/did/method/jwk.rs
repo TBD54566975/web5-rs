@@ -1,5 +1,5 @@
 use crate::crypto::key::{Key, KeyAlgorithm};
-use crate::crypto::key_manager::{KeyManager, KeyManagerError};
+use crate::crypto::key_manager::KeyManager;
 use crate::did::resolver::{DidResolutionError, DidResolutionResponse, DidResolver};
 use crate::did::Did;
 use crate::result::Web5Result;

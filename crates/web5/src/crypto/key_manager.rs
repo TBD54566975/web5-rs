@@ -1,7 +1,7 @@
 pub mod local;
 
 use crate::crypto::key::{KeyAlgorithm, KeyAlias, KeyError, PublicKey};
-use crate::crypto::key_manager::local::key_store::{KeyStore, KeyStoreError};
+use crate::crypto::key_manager::local::key_store::KeyStoreError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
