@@ -1,5 +1,8 @@
-pub mod did_jwk;
-pub mod did_key;
+mod did_jwk;
+mod did_key;
+
+pub use did_jwk::*;
+pub use did_key::*;
 
 #[derive(PartialEq, Debug)]
 pub enum DidMethod {

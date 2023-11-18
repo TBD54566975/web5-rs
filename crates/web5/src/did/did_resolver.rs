@@ -1,4 +1,4 @@
-use crate::did::did_method::{did_jwk::DidJwk, did_key::DidKey, DidMethod};
+use crate::did::did_method::{DidJwk, DidKey, DidMethod};
 use crate::did::parsed_did::{ParsedDid, ParsedDidError};
 use async_trait::async_trait;
 use ssi_dids::{
@@ -49,8 +49,7 @@ mod tests {
     use crate::crypto::key::KeyAlgorithm;
     use crate::crypto::key_manager::LocalKeyManager;
     use crate::crypto::key_store::InMemoryKeyStore;
-    use crate::did::did_method::did_jwk::{DidJwk, DidJwkCreateOptions};
-    use crate::did::did_method::did_key::{DidKey, DidKeyCreateOptions};
+    use crate::did::did_method::{DidJwk, DidJwkCreateOptions, DidKey, DidKeyCreateOptions};
     use std::sync::Arc;
 
     #[tokio::test]

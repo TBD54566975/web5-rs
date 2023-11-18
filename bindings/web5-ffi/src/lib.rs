@@ -141,7 +141,7 @@ impl RustKeyManager for KeyManager {
 // 2. the key manager from uniffi is NOT the RustKeyManager
 // 3. uri needs to return a new String, not a string slice
 
-pub use web5::did::did_method::did_jwk::{DidJwk as RustDidJwk, DidJwkCreateOptions};
+pub use web5::did::did_method::{DidJwk as RustDidJwk, DidJwkCreateOptions};
 
 pub struct DidJwk {
     inner: RustDidJwk,
@@ -164,7 +164,7 @@ impl DidJwk {
 // 2. the key manager from uniffi is NOT the RustKeyManager
 // 3. uri needs to return a new String, not a string slice
 
-pub use web5::did::did_method::did_key::{DidKey as RustDidKey, DidKeyCreateOptions};
+pub use web5::did::did_method::{DidKey as RustDidKey, DidKeyCreateOptions};
 
 pub struct DidKey {
     inner: RustDidKey,
