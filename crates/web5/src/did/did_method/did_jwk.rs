@@ -81,6 +81,6 @@ mod tests {
         )
         .expect("DidJwk initialization failed");
 
-        assert!(did.uri.starts_with("did:key:"));
+        assert!(did.uri.starts_with("did:jwk:"));
     }
 }

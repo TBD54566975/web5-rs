@@ -21,7 +21,7 @@ impl std::str::FromStr for DidMethod {
 
     fn from_str(s: &str) -> Result<Self, DidMethodError> {
         match s {
-            "key" => Ok(DidMethod::Jwk),
+            "jwk" => Ok(DidMethod::Jwk),
             "key" => Ok(DidMethod::Key),
             _ => Err(DidMethodError::UnsupportedDidMethod),
         }
@@ -36,7 +36,7 @@ mod tests {
 
     #[test]
     fn test_jwk_method_parsing() {
-        assert_eq!(DidMethod::from_str("key"), Ok(DidMethod::Jwk));
+        assert_eq!(DidMethod::from_str("jwk"), Ok(DidMethod::Jwk));
     }
 
     #[test]
