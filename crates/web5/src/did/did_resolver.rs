@@ -48,7 +48,7 @@ mod tests {
 
     use crate::crypto::key::KeyAlgorithm;
     use crate::crypto::key_manager::LocalKeyManager;
-    use crate::crypto::key_store::in_memory::InMemoryKeyStore;
+    use crate::crypto::key_store::InMemoryKeyStore;
     use crate::did::did_method::did_jwk::{DidJwk, DidJwkCreateOptions};
     use crate::did::did_method::did_key::{DidKey, DidKeyCreateOptions};
     use std::sync::Arc;

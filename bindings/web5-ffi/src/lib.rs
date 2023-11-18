@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 pub use web5::crypto::key::KeyAlgorithm;
 pub use web5::crypto::key::{PrivateKey, PublicKey};
-pub use web5::crypto::key_store::in_memory::InMemoryKeyStore;
+pub use web5::crypto::key_store::InMemoryKeyStore;
 pub use web5::did::did::Did;
 pub use web5::error::Web5Error;
 use web5::result::Web5Result;
