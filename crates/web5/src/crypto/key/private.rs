@@ -1,4 +1,4 @@
-use crate::crypto::key::{Key, KeyAlgorithm, KeyError};
+use crate::crypto::key::{Key, KeyAlgorithm, KeyError, PublicKey};
 use ssi_jwk::JWK as Jwk;
 use ssi_jws::sign_bytes;
 
@@ -14,6 +14,10 @@ impl PrivateKey {
         };
 
         Ok(Self(jwk))
+    }
+
+    pub fn to_public(&self) -> PublicKey {
+        PublicKey(self.0.to_public())
     }
 
     pub fn sign(&self, payload: &Vec<u8>) -> Result<Vec<u8>, KeyError> {

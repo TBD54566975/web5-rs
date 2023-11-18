@@ -1,5 +1,5 @@
 use crate::crypto::key::{Key, KeyAlgorithm, PrivateKey, PublicKey};
-use crate::crypto::key_manager::{KeyManager, KeyManagerError};
+use crate::crypto::key_manager::{GeneratePrivateKeyResponse, KeyManager, KeyManagerError};
 use crate::crypto::key_store::KeyStore;
 use std::sync::Arc;
 
@@ -14,31 +14,23 @@ impl LocalKeyManager {
 }
 
 impl KeyManager for LocalKeyManager {
-    fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Result<String, KeyManagerError> {
-        let private_key =
-            PrivateKey::generate(key_algorithm).map_err(|e| KeyManagerError::Generic {
-                message: e.to_string(),
-            })?;
-        let key_alias = private_key.alias().map_err(|e| KeyManagerError::Generic {
-            message: e.to_string(),
-        })?;
+    fn generate_private_key(
+        &self,
+        key_algorithm: KeyAlgorithm,
+    ) -> Result<GeneratePrivateKeyResponse, KeyManagerError> {
+        let private_key = PrivateKey::generate(key_algorithm)?;
+        let key_alias = private_key.alias()?;
+        let public_key = private_key.to_public();
 
-        self.key_store
-            .insert(&key_alias, private_key)
-            .map_err(|e| KeyManagerError::Generic {
-                message: e.to_string(),
-            })?;
-        Ok(key_alias)
+        self.key_store.insert(&key_alias, private_key)?;
+        Ok(GeneratePrivateKeyResponse {
+            key_alias,
+            public_key,
+        })
     }
 
     fn get_public_key(&self, key_alias: &str) -> Result<Option<PublicKey>, KeyManagerError> {
-        if let Some(private_key) =
-            self.key_store
-                .get(key_alias)
-                .map_err(|e| KeyManagerError::Generic {
-                    message: e.to_string(),
-                })?
-        {
+        if let Some(private_key) = self.key_store.get(key_alias)? {
             Ok(Some(PublicKey::from(private_key)))
         } else {
             Ok(None)
@@ -48,28 +40,15 @@ impl KeyManager for LocalKeyManager {
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError> {
         let private_key = self
             .key_store
-            .get(key_alias)
-            .map_err(|e| KeyManagerError::Generic {
-                message: e.to_string(),
-            })?;
+            .get(key_alias)?
+            .ok_or(KeyManagerError::SigningKeyNotFound)?;
 
-        let private_key = private_key.ok_or(KeyManagerError::Generic {
-            message: "Key not found".to_string(),
-        })?;
-
-        let signed_payload =
-            private_key
-                .sign(&payload.to_vec())
-                .map_err(|e| KeyManagerError::Generic {
-                    message: e.to_string(),
-                })?;
+        let signed_payload = private_key.sign(&payload.to_vec())?;
 
         Ok(signed_payload)
     }
 
     fn get_deterministic_alias(&self, public_key: PublicKey) -> Result<String, KeyManagerError> {
-        Ok(public_key.alias().map_err(|e| KeyManagerError::Generic {
-            message: e.to_string(),
-        })?)
+        Ok(public_key.alias()?)
     }
 }

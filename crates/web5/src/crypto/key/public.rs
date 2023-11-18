@@ -2,7 +2,7 @@ use crate::crypto::key::{Key, KeyAlgorithm, KeyError, PrivateKey};
 use ssi_jwk::JWK as Jwk;
 use ssi_jws::{verify_bytes_warnable, VerificationWarnings};
 
-pub struct PublicKey(Jwk);
+pub struct PublicKey(pub(crate) Jwk);
 
 impl PublicKey {
     pub fn generate(key_algorithm: KeyAlgorithm) -> Result<Self, KeyError> {

@@ -98,8 +98,8 @@ impl Into<RustKeyStoreError> for KeyStoreError {
 // Cleaner KeyManager interface to foreign languages
 
 pub use web5::crypto::key_manager::KeyManager as RustKeyManager;
-use web5::crypto::key_manager::KeyManagerError;
 use web5::crypto::key_manager::LocalKeyManager;
+use web5::crypto::key_manager::{GeneratePrivateKeyResponse, KeyManagerError};
 
 pub struct KeyManager(Arc<dyn RustKeyManager>);
 
@@ -118,7 +118,10 @@ impl KeyManager {
 }
 
 impl RustKeyManager for KeyManager {
-    fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Result<String, KeyManagerError> {
+    fn generate_private_key(
+        &self,
+        key_algorithm: KeyAlgorithm,
+    ) -> Result<GeneratePrivateKeyResponse, KeyManagerError> {
         self.0.generate_private_key(key_algorithm)
     }
 

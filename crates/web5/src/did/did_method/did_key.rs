@@ -19,17 +19,10 @@ pub type DidKey = Did<DidKeyData>;
 
 impl DidKey {
     pub fn new(key_manager: Arc<dyn KeyManager>, options: DidKeyCreateOptions) -> Web5Result<Self> {
-        let key_alias = key_manager.generate_private_key(options.key_algorithm)?;
-        let public_key =
-            key_manager
-                .get_public_key(&key_alias)?
-                .ok_or(KeyManagerError::Generic {
-                    message: "Public key not found immediately after creating private key"
-                        .to_string(),
-                })?;
+        let response = key_manager.generate_private_key(options.key_algorithm)?;
 
         let uri = DIDKey
-            .generate(&Source::Key(&public_key.jwk()))
+            .generate(&Source::Key(&response.public_key.jwk()))
             .expect("DidKey initialization failed");
 
         Ok(Self {
