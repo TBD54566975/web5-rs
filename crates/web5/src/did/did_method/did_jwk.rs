@@ -65,7 +65,7 @@ impl DidResolver for DidJwk {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::key_manager::local_key_manager::LocalKeyManager;
+    use crate::crypto::key_manager::LocalKeyManager;
     use crate::crypto::key_store::in_memory::InMemoryKeyStore;
 
     #[test]

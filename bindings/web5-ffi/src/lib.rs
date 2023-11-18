@@ -97,9 +97,9 @@ impl Into<RustKeyStoreError> for KeyStoreError {
 
 // Cleaner KeyManager interface to foreign languages
 
-use web5::crypto::key_manager::local_key_manager::LocalKeyManager;
 pub use web5::crypto::key_manager::KeyManager as RustKeyManager;
 use web5::crypto::key_manager::KeyManagerError;
+use web5::crypto::key_manager::LocalKeyManager;
 
 pub struct KeyManager(Arc<dyn RustKeyManager>);
 

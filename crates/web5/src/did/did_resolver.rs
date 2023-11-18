@@ -47,7 +47,7 @@ mod tests {
     use super::*;
 
     use crate::crypto::key::KeyAlgorithm;
-    use crate::crypto::key_manager::local_key_manager::LocalKeyManager;
+    use crate::crypto::key_manager::LocalKeyManager;
     use crate::crypto::key_store::in_memory::InMemoryKeyStore;
     use crate::did::did_method::did_jwk::{DidJwk, DidJwkCreateOptions};
     use crate::did::did_method::did_key::{DidKey, DidKeyCreateOptions};

@@ -1,4 +1,5 @@
-pub mod local_key_manager;
+mod local_key_manager;
+pub use local_key_manager::*;
 
 use crate::crypto::key::{KeyAlgorithm, PublicKey};
 use thiserror::Error;
@@ -6,11 +7,11 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum KeyManagerError {
     #[error("{message}")]
-    Generic { message: String },
-    // #[error(transparent)]
-    // KeyError(#[from] KeyError),
-    // #[error(transparent)]
-    // KeyStoreError(#[from] KeyStoreError),
+    Generic { message: String }, // TODO: Fix this
+                                 // #[error(transparent)]
+                                 // KeyError(#[from] KeyError),
+                                 // #[error(transparent)]
+                                 // KeyStoreError(#[from] KeyStoreError),
 }
 
 pub trait KeyManager: Send + Sync {
