@@ -10,11 +10,11 @@ use thiserror::Error;
 
 #[async_trait]
 pub trait DidResolver {
-    async fn resolve(did_uri: &str) -> Result<DidResolutionResult, DidResolutionError>;
+    async fn resolve(did_uri: &str) -> Result<DidResolutionResponse, DidResolutionError>;
 }
 
 #[derive(Debug)]
-pub struct DidResolutionResult {
+pub struct DidResolutionResponse {
     pub resolution_metadata: ResolutionMetadata,
     pub did_document: DidDocument,
     pub did_document_metadata: Option<DidDocumentMetadata>,
@@ -30,7 +30,7 @@ pub enum DidResolutionError {
     ParsedDidError(#[from] ParsedDidError),
 }
 
-pub async fn resolve(did_uri: &str) -> Result<DidResolutionResult, DidResolutionError> {
+pub async fn resolve(did_uri: &str) -> Result<DidResolutionResponse, DidResolutionError> {
     let parsed_did = ParsedDid::from_str(did_uri)?;
 
     match parsed_did.method {

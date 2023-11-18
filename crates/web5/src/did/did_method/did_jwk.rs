@@ -1,7 +1,7 @@
 use crate::crypto::key::{Key, KeyAlgorithm};
 use crate::crypto::key_manager::{KeyManager, KeyManagerError};
 use crate::did::did::Did;
-use crate::did::did_resolver::{DidResolutionError, DidResolutionResult, DidResolver};
+use crate::did::did_resolver::{DidResolutionError, DidResolutionResponse, DidResolver};
 use crate::result::Web5Result;
 use async_trait::async_trait;
 use did_jwk::DIDJWK;
@@ -37,7 +37,7 @@ impl DidJwk {
 
 #[async_trait]
 impl DidResolver for DidJwk {
-    async fn resolve(did_uri: &str) -> Result<DidResolutionResult, DidResolutionError> {
+    async fn resolve(did_uri: &str) -> Result<DidResolutionResponse, DidResolutionError> {
         let (resolution_metadata, did_document, did_document_metadata) = did_jwk::DIDJWK
             .resolve(
                 did_uri,
@@ -47,7 +47,7 @@ impl DidResolver for DidJwk {
 
         let did_document = did_document.ok_or(DidResolutionError::DidDocumentNotFound)?;
 
-        Ok(DidResolutionResult {
+        Ok(DidResolutionResponse {
             did_document,
             did_document_metadata,
             resolution_metadata,
