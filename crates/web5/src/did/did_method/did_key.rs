@@ -19,10 +19,10 @@ pub type DidKey = Did<DidKeyData>;
 
 impl DidKey {
     pub fn new(key_manager: Arc<dyn KeyManager>, options: DidKeyCreateOptions) -> Web5Result<Self> {
-        let response = key_manager.generate_private_key(options.key_algorithm)?;
+        let (_, public_key) = key_manager.generate_private_key(options.key_algorithm)?;
 
         let uri = DIDKey
-            .generate(&Source::Key(&response.public_key.jwk()))
+            .generate(&Source::Key(&public_key.jwk()))
             .expect("DidKey initialization failed");
 
         Ok(Self {
@@ -45,10 +45,6 @@ impl DidResolver for DidKey {
 
         let did_document = did_document.ok_or(DidResolutionError::DidDocumentNotFound)?;
 
-        Ok(DidResolutionResponse {
-            resolution_metadata,
-            did_document,
-            did_document_metadata,
-        })
+        Ok((resolution_metadata, did_document, did_document_metadata))
     }
 }

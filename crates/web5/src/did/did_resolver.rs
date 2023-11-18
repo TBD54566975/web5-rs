@@ -13,12 +13,7 @@ pub trait DidResolver {
     async fn resolve(did_uri: &str) -> Result<DidResolutionResponse, DidResolutionError>;
 }
 
-#[derive(Debug)]
-pub struct DidResolutionResponse {
-    pub resolution_metadata: ResolutionMetadata,
-    pub did_document: DidDocument,
-    pub did_document_metadata: Option<DidDocumentMetadata>,
-}
+pub type DidResolutionResponse = (ResolutionMetadata, DidDocument, Option<DidDocumentMetadata>);
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum DidResolutionError {
@@ -65,8 +60,8 @@ mod tests {
         )
         .expect("DidJwk initialization failed");
 
-        let resolution_result = resolve(&did_jwk.uri).await.expect("Failed to resolve DID");
-        assert_eq!(resolution_result.did_document.id, did_jwk.uri);
+        let (_, did_document, _) = resolve(&did_jwk.uri).await.expect("Failed to resolve DID");
+        assert_eq!(did_document.id, did_jwk.uri);
     }
 
     #[tokio::test]
@@ -82,8 +77,8 @@ mod tests {
         )
         .expect("DidKey initialization failed");
 
-        let resolution_result = resolve(&did_key.uri).await.expect("Failed to resolve DID");
-        assert_eq!(resolution_result.did_document.id, did_key.uri);
+        let (_, did_document, _) = resolve(&did_key.uri).await.expect("Failed to resolve DID");
+        assert_eq!(did_document.id, did_key.uri);
     }
 
     #[tokio::test]

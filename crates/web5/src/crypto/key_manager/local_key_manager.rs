@@ -1,4 +1,4 @@
-use crate::crypto::key::{Key, KeyAlgorithm, PrivateKey, PublicKey};
+use crate::crypto::key::{Key, KeyAlgorithm, KeyAlias, PrivateKey, PublicKey};
 use crate::crypto::key_manager::{GeneratePrivateKeyResponse, KeyManager, KeyManagerError};
 use crate::crypto::key_store::KeyStore;
 use std::sync::Arc;
@@ -23,10 +23,8 @@ impl KeyManager for LocalKeyManager {
         let public_key = private_key.to_public();
 
         self.key_store.insert(&key_alias, private_key)?;
-        Ok(GeneratePrivateKeyResponse {
-            key_alias,
-            public_key,
-        })
+
+        Ok((key_alias, public_key))
     }
 
     fn get_public_key(&self, key_alias: &str) -> Result<Option<PublicKey>, KeyManagerError> {

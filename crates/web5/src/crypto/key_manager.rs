@@ -2,7 +2,7 @@ mod local_key_manager;
 
 pub use local_key_manager::*;
 
-use crate::crypto::key::{KeyAlgorithm, KeyError, PublicKey};
+use crate::crypto::key::{KeyAlgorithm, KeyAlias, KeyError, PublicKey};
 use crate::crypto::key_store::KeyStoreError;
 use thiserror::Error;
 
@@ -30,7 +30,4 @@ pub trait KeyManager: Send + Sync {
     fn get_deterministic_alias(&self, public_key: PublicKey) -> Result<String, KeyManagerError>;
 }
 
-pub struct GeneratePrivateKeyResponse {
-    pub key_alias: String,
-    pub public_key: PublicKey,
-}
+pub type GeneratePrivateKeyResponse = (KeyAlias, PublicKey);

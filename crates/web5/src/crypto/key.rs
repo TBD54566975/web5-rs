@@ -23,9 +23,11 @@ pub enum KeyError {
     AlgorithmNotFound,
 }
 
+pub type KeyAlias = String;
+
 pub trait Key {
     fn jwk(&self) -> &Jwk;
-    fn alias(&self) -> Result<String, KeyError> {
+    fn alias(&self) -> Result<KeyAlias, KeyError> {
         Ok(self.jwk().thumbprint()?)
     }
 }

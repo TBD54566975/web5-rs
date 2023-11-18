@@ -19,10 +19,10 @@ pub type DidJwk = Did<DidJwkData>;
 
 impl DidJwk {
     pub fn new(key_manager: Arc<dyn KeyManager>, options: DidJwkCreateOptions) -> Web5Result<Self> {
-        let response = key_manager.generate_private_key(options.key_algorithm)?;
+        let (_, public_key) = key_manager.generate_private_key(options.key_algorithm)?;
 
         let uri = DIDJWK
-            .generate(&Source::Key(&response.public_key.jwk()))
+            .generate(&Source::Key(&public_key.jwk()))
             .expect("DidJwk initialization failed");
 
         let method_data = DidJwkData {};
@@ -47,11 +47,7 @@ impl DidResolver for DidJwk {
 
         let did_document = did_document.ok_or(DidResolutionError::DidDocumentNotFound)?;
 
-        Ok(DidResolutionResponse {
-            did_document,
-            did_document_metadata,
-            resolution_metadata,
-        })
+        Ok((resolution_metadata, did_document, did_document_metadata))
     }
 }
 
