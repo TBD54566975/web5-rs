@@ -3,9 +3,8 @@ uniffi::include_scaffolding!("web5_ffi");
 use std::sync::Arc;
 
 pub use web5::crypto::key::KeyAlgorithm;
-use web5::crypto::key::KeyAlias;
 pub use web5::crypto::key::{PrivateKey, PublicKey};
-pub use web5::crypto::key_store::InMemoryKeyStore;
+pub use web5::crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
 pub use web5::did::did::Did;
 pub use web5::error::Web5Error;
 use web5::result::Web5Result;
@@ -25,7 +24,7 @@ use web5::result::Web5Result;
 //
 // :shrug: Tradeoffs :shrug:
 
-pub use web5::crypto::key_store::KeyStore as RustKeyStore;
+pub use web5::crypto::key_manager::local::key_store::KeyStore as RustKeyStore;
 
 pub trait KeyStore: Send + Sync {
     fn get_private_key(&self, key_alias: String) -> Result<Option<Arc<PrivateKey>>, KeyStoreError>;
@@ -70,7 +69,7 @@ impl RustKeyStore for KeyStoreWrapper {
 // the required trait. Then, we implement Into<RustKeyStoreError> for our KeyStoreError
 // to get BACK into pure-Rust land, with an error that it understand.
 
-pub use web5::crypto::key_store::KeyStoreError as RustKeyStoreError;
+pub use web5::crypto::key_manager::local::key_store::KeyStoreError as RustKeyStoreError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum KeyStoreError {
@@ -98,8 +97,8 @@ impl Into<RustKeyStoreError> for KeyStoreError {
 
 // Cleaner KeyManager interface to foreign languages
 
+use web5::crypto::key_manager::local::LocalKeyManager;
 pub use web5::crypto::key_manager::KeyManager as RustKeyManager;
-use web5::crypto::key_manager::LocalKeyManager;
 use web5::crypto::key_manager::{GeneratePrivateKeyResponse, KeyManagerError};
 
 pub struct KeyManager(Arc<dyn RustKeyManager>);
@@ -132,10 +131,6 @@ impl RustKeyManager for KeyManager {
 
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError> {
         self.0.sign(key_alias, payload)
-    }
-
-    fn get_deterministic_alias(&self, public_key: PublicKey) -> Result<String, KeyManagerError> {
-        self.0.get_deterministic_alias(public_key)
     }
 }
 

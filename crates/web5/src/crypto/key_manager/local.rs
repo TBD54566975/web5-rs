@@ -1,6 +1,8 @@
-use crate::crypto::key::{Key, KeyAlgorithm, KeyAlias, PrivateKey, PublicKey};
+pub mod key_store;
+
+use crate::crypto::key::{Key, KeyAlgorithm, PrivateKey, PublicKey};
+use crate::crypto::key_manager::local::key_store::KeyStore;
 use crate::crypto::key_manager::{GeneratePrivateKeyResponse, KeyManager, KeyManagerError};
-use crate::crypto::key_store::KeyStore;
 use std::sync::Arc;
 
 pub struct LocalKeyManager {
@@ -44,9 +46,5 @@ impl KeyManager for LocalKeyManager {
         let signed_payload = private_key.sign(&payload.to_vec())?;
 
         Ok(signed_payload)
-    }
-
-    fn get_deterministic_alias(&self, public_key: PublicKey) -> Result<String, KeyManagerError> {
-        Ok(public_key.alias()?)
     }
 }
