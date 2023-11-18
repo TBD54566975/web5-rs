@@ -1,8 +1,8 @@
-mod did_jwk;
-mod did_key;
+mod jwk;
+mod key;
 
-pub use did_jwk::*;
-pub use did_key::*;
+pub use jwk::*;
+pub use key::*;
 
 #[derive(PartialEq, Debug)]
 pub enum DidMethod {
@@ -12,7 +12,7 @@ pub enum DidMethod {
 
 #[derive(thiserror::Error, PartialEq, Debug)]
 pub enum DidMethodError {
-    #[error("Unsupported DID did_method")]
+    #[error("Unsupported DID method")]
     UnsupportedDidMethod,
 }
 

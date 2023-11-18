@@ -1,7 +1,7 @@
 use crate::crypto::key::{Key, KeyAlgorithm};
 use crate::crypto::key_manager::{KeyManager, KeyManagerError};
-use crate::did::did::Did;
-use crate::did::did_resolver::{DidResolutionError, DidResolutionResponse, DidResolver};
+use crate::did::resolver::{DidResolutionError, DidResolutionResponse, DidResolver};
+use crate::did::Did;
 use crate::result::Web5Result;
 use async_trait::async_trait;
 use did_jwk::DIDJWK;

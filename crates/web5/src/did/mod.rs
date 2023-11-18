@@ -1,4 +1,6 @@
-pub mod did;
-pub mod did_method;
-pub mod did_resolver;
+mod did;
+pub use did::*;
+
+pub mod method;
 mod parsed_did;
+pub mod resolver;

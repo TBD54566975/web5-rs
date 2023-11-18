@@ -1,4 +1,4 @@
-use crate::did::did_method::{DidJwk, DidKey, DidMethod};
+use crate::did::method::{DidJwk, DidKey, DidMethod};
 use crate::did::parsed_did::{ParsedDid, ParsedDidError};
 use async_trait::async_trait;
 use ssi_dids::{
@@ -17,7 +17,7 @@ pub type DidResolutionResponse = (ResolutionMetadata, DidDocument, Option<DidDoc
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum DidResolutionError {
-    #[error("Unsupported DID did_method")]
+    #[error("Unsupported DID method")]
     UnsupportedDidMethod,
     #[error("DID document not found")]
     DidDocumentNotFound,
@@ -44,7 +44,7 @@ mod tests {
     use crate::crypto::key::KeyAlgorithm;
     use crate::crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
     use crate::crypto::key_manager::local::LocalKeyManager;
-    use crate::did::did_method::{DidJwk, DidJwkCreateOptions, DidKey, DidKeyCreateOptions};
+    use crate::did::method::{DidJwk, DidJwkCreateOptions, DidKey, DidKeyCreateOptions};
     use std::sync::Arc;
 
     #[tokio::test]
