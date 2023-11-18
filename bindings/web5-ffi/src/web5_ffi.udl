@@ -1,14 +1,16 @@
 namespace web5_ffi {};
 
+[Error]
+interface Web5Error {
+    InternalError(string message);
+};
+
+// -- Crypto --
+
 enum KeyAlgorithm {
     "Secp256k1",
     "Secp256r1",
     "Ed25519",
-};
-
-[Error]
-interface Web5Error {
-    InternalError(string message);
 };
 
 [Error]
@@ -31,6 +33,12 @@ interface KeyManager {
     constructor(KeyStore key_store);
 };
 
+interface PrivateKey {
+
+};
+
+// -- DID --
+
 dictionary DidJwkCreateOptions {
     KeyAlgorithm key_algorithm;
 };
@@ -49,8 +57,4 @@ interface DidKey {
     [Throws=Web5Error]
     constructor(KeyManager key_manager, DidKeyCreateOptions options);
     string uri();
-};
-
-interface PrivateKey {
-
 };
