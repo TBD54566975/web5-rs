@@ -179,3 +179,8 @@ impl DidKey {
         self.inner.uri.to_string()
     }
 }
+
+#[derive(uniffi::Record)]
+struct Foo {
+    bar: String,
+}
