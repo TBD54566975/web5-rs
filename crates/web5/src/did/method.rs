@@ -1,13 +1,16 @@
 mod jwk;
 mod key;
+mod web;
 
 pub use jwk::*;
 pub use key::*;
+pub use web::*;
 
 #[derive(PartialEq, Debug)]
 pub enum DidMethod {
     Key,
     Jwk,
+    Web,
 }
 
 #[derive(thiserror::Error, PartialEq, Debug)]
@@ -23,6 +26,7 @@ impl std::str::FromStr for DidMethod {
         match s {
             "jwk" => Ok(DidMethod::Jwk),
             "key" => Ok(DidMethod::Key),
+            "web" => Ok(DidMethod::Web),
             _ => Err(DidMethodError::UnsupportedDidMethod),
         }
     }

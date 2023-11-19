@@ -1,4 +1,4 @@
-use crate::did::method::{DidJwk, DidKey, DidMethod};
+use crate::did::method::{DidJwk, DidKey, DidMethod, DidWeb};
 use crate::did::parsed_did::{ParsedDid, ParsedDidError};
 use async_trait::async_trait;
 use ssi_dids::{
@@ -31,6 +31,7 @@ pub async fn resolve(did_uri: &str) -> Result<DidResolutionResponse, DidResoluti
     match parsed_did.method {
         DidMethod::Jwk => DidJwk::resolve(did_uri).await,
         DidMethod::Key => DidKey::resolve(did_uri).await,
+        DidMethod::Web => DidWeb::resolve(did_uri).await,
     }
 }
 
@@ -79,6 +80,13 @@ mod tests {
 
         let (_, did_document, _) = resolve(&did_key.uri).await.expect("Failed to resolve DID");
         assert_eq!(did_document.id, did_key.uri);
+    }
+
+    #[tokio::test]
+    async fn test_resolve_did_web() {
+        let did_web_uri = "did:web:tbd.website";
+        let (_, did_document, _) = resolve(did_web_uri).await.expect("Failed to resolve DID");
+        assert_eq!(did_document.id, did_web_uri);
     }
 
     #[tokio::test]
