@@ -1,4 +1,4 @@
-use crate::key_manager::local::key_store::{KeyStore, KeyStoreWrapper};
+use crate::key_store::{KeyStore, KeyStoreWrapper};
 use crypto::key::{KeyAlgorithm, PublicKey};
 use crypto::key_manager::local::LocalKeyManager as RustLocalKeyManager;
 use crypto::key_manager::{

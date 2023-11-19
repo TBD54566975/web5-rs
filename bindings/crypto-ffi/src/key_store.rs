@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::key::PrivateKey;
+use crate::private_key::PrivateKey;
 use crypto::key::PrivateKey as RustPrivateKey;
 use crypto::key_manager::local::key_store::{
     KeyStore as RustKeyStore, KeyStoreError as RustKeyStoreError,
@@ -8,7 +8,6 @@ use std::sync::Arc;
 
 pub trait KeyStore: Send + Sync {
     fn get_private_key(&self, key_alias: String) -> Result<Option<Arc<PrivateKey>>>;
-    // TODO: can we get rid of Arc by using [ByRef]?
     fn insert_private_key(&self, key_alias: String, private_key: Arc<PrivateKey>) -> Result<()>;
 }
 
