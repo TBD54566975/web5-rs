@@ -1,9 +1,10 @@
 import SwiftUI
-import web5_ffiFFI;
+import crypto_ffiFFI;
+import dids_ffiFFI;
 
 func createKeyManager() -> KeyManager {
-  return KeyManager.inMemory()
-//  return KeyManager.keyStore(keyStore: SwiftKeyStore())
+//  return KeyManager.inMemory()
+  return KeyManager(keyStore: SwiftKeyStore())
 }
 
 var keyManager = createKeyManager()

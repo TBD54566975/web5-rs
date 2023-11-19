@@ -3,7 +3,7 @@ use crate::method::DidCreationError;
 use crate::resolver::{DidResolutionError, DidResolutionResponse, DidResolver};
 use async_trait::async_trait;
 use crypto::key::{Key, KeyAlgorithm};
-use crypto::key_manager::{KeyManager, KeyManagerError};
+use crypto::key_manager::KeyManager;
 use did_jwk::DIDJWK;
 use ssi_dids::did_resolve::DIDResolver;
 use ssi_dids::{DIDMethod, Source};

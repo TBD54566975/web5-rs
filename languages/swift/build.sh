@@ -30,6 +30,18 @@ cargo run -p uniffi-bindgen generate \
 # Move headers and module map into a temp directory, 
 # with proper naming conventions for xcframework
 mkdir -p "${TEMP_HEADER_DIR}"
+
+# Move each header file into the temp directory, with the proper name
+for header_file in "${BINDINGS_DIR}"/*.h; do
+    mv "$header_file" "${TEMP_HEADER_DIR}"
+done
+
+destination_module_map="${TEMP_HEADER_DIR}/module.modulemap"
+for module_map_file in "${BINDINGS_DIR}"/*.modulemap; do
+    cat "$module_map_file" >> "$destination_module_map"
+    echo "\n\n" >> "$destination_module_map"
+done
+
 cp "${BINDINGS_DIR}/${NAME}FFI.h" "${TEMP_HEADER_DIR}/"
 cp "${BINDINGS_DIR}/${NAME}FFI.modulemap" "${TEMP_HEADER_DIR}/module.modulemap"
 
