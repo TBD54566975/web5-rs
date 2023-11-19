@@ -42,10 +42,10 @@ pub enum Error1 {}
 mod tests {
     use super::*;
 
-    use crate::crypto::key::KeyAlgorithm;
-    use crate::crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
-    use crate::crypto::key_manager::local::LocalKeyManager;
-    use crate::did::method::{DidJwk, DidJwkCreateOptions, DidKey, DidKeyCreateOptions};
+    use crate::method::{DidJwk, DidJwkCreateOptions, DidKey, DidKeyCreateOptions};
+    use crypto::key::KeyAlgorithm;
+    use crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
+    use crypto::key_manager::local::LocalKeyManager;
     use std::sync::Arc;
 
     #[tokio::test]

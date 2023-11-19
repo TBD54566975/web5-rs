@@ -57,8 +57,8 @@ impl DidResolver for DidJwk {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
-    use crate::crypto::key_manager::local::LocalKeyManager;
+    use crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
+    use crypto::key_manager::local::LocalKeyManager;
     #[test]
     fn test_constructor() {
         let key_store = Arc::new(InMemoryKeyStore::new());

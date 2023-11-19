@@ -14,6 +14,7 @@ repository = "https://github.com/TBD54566975/web5-rs.git"
 license-file = "LICENSE"
 
 [workspace.dependencies]
+thiserror = "1.0.50"
 # Update to released version once foreign traits are stabilized
 uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "7cd3aac735e905e1725d350a7a82d57aa50caaa1" }
 uniffi_bindgen = { git = "https://github.com/mozilla/uniffi-rs", rev = "7cd3aac735e905e1725d350a7a82d57aa50caaa1" }

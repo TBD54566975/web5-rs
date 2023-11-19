@@ -10,10 +10,10 @@ license-file.workspace = true
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
-thiserror = "1.0.50"
-uniffi = { workspace = true }
-dids = { path = "../../crates/dids" }
 crypto-ffi = { path = "../crypto-ffi" }
+dids = { path = "../../crates/dids" }
+thiserror = { workspace = true }
+uniffi = { workspace = true }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
