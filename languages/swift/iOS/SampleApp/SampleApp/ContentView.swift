@@ -67,30 +67,6 @@ struct ContentView: View {
   }
 }
 
-//extension InMemoryKeyStore: KeyStore {}
-//
-//class SwiftKeyStore: KeyStore {
-//  var map = [String: PrivateKey]()
-//
-//  func get(key: String) throws -> PrivateKey? {
-//    return map[key]
-//  }
-//
-//  func insert(value: PrivateKey) throws -> String {
-//    let key = value.alias()
-//    map[key] = value
-//    return key
-//  }
-//
-//  func dump() throws -> [PrivateKey] {
-//    return Array(map.values)
-//  }
-//
-//  deinit {
-//    print("SwiftKeyStore deallocated!")
-//  }
-//}
-
 class SwiftKeyStore: KeyStore {
   var map = [String: PrivateKey]()
 
