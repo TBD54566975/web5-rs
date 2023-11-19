@@ -1,5 +1,11 @@
 namespace dids_ffi {};
 
+[External="crypto_ffi"]
+typedef extern KeyAlgorithm;
+
+[ExternalInterface="crypto_ffi"]
+typedef extern KeyManager;
+
 [Error]
 interface DidsError {
     InternalError(string message);

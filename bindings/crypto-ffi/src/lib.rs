@@ -1,7 +1,7 @@
-mod error;
-mod key_manager;
-mod key_store;
-mod private_key;
+pub mod error;
+pub mod key_manager;
+pub mod key_store;
+pub mod private_key;
 
 pub use crate::error::CryptoError;
 pub use crate::key_manager::KeyManager;

@@ -2,6 +2,7 @@ mod jwk;
 mod key;
 mod web;
 
+use crypto::key_manager::KeyManagerError;
 pub use jwk::*;
 pub use key::*;
 pub use web::*;
@@ -17,6 +18,14 @@ pub enum DidMethod {
 pub enum DidMethodError {
     #[error("Unsupported DID method")]
     UnsupportedDidMethod,
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum DidCreationError {
+    #[error(transparent)]
+    KeyManagerError(#[from] KeyManagerError),
+    #[error("Did generation failed")]
+    DidGenerationFailed,
 }
 
 impl std::str::FromStr for DidMethod {

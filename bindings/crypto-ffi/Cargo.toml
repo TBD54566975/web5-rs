@@ -1,5 +1,5 @@
 [package]
-name = "crypto-ffi"
+name = "crypto_ffi"
 version = "0.1.0"
 edition = "2021"
 homepage.workspace = true
@@ -7,7 +7,7 @@ repository.workspace = true
 license-file.workspace = true
 
 [lib]
-crate-type = ["cdylib", "staticlib"]
+crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
 thiserror = "1.0.50"

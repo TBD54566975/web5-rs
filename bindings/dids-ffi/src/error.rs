@@ -1,9 +1,10 @@
-use crypto::key_manager::KeyManagerError;
-use dids::method::DidMethodError;
+use dids::method::{DidCreationError, DidMethodError};
 use dids::parsed_did::ParsedDidError;
 use dids::resolver::DidResolutionError;
 use std::fmt::Display;
 use uniffi::UnexpectedUniFFICallbackError;
+
+pub type Result<T, E = DidsError> = std::result::Result<T, E>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum DidsError {
@@ -42,8 +43,8 @@ impl From<ParsedDidError> for DidsError {
     }
 }
 
-impl From<KeyManagerError> for DidsError {
-    fn from(e: KeyManagerError) -> Self {
+impl From<DidCreationError> for DidsError {
+    fn from(e: DidCreationError) -> Self {
         Self::new(e)
     }
 }

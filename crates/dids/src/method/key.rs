@@ -1,8 +1,9 @@
+use crate::method::DidCreationError;
 use crate::resolver::{DidResolutionError, DidResolutionResponse, DidResolver};
 use crate::Did;
 use async_trait::async_trait;
 use crypto::key::{Key, KeyAlgorithm};
-use crypto::key_manager::{KeyManager, KeyManagerError};
+use crypto::key_manager::KeyManager;
 use did_method_key::DIDKey;
 use ssi_dids::did_resolve::DIDResolver;
 use ssi_dids::{DIDMethod, Source};
@@ -20,12 +21,12 @@ impl DidKey {
     pub fn new(
         key_manager: Arc<dyn KeyManager>,
         options: DidKeyCreateOptions,
-    ) -> Result<Self, KeyManagerError> {
+    ) -> Result<Self, DidCreationError> {
         let (_, public_key) = key_manager.generate_private_key(options.key_algorithm)?;
 
         let uri = DIDKey
             .generate(&Source::Key(&public_key.jwk()))
-            .expect("DidKey initialization failed");
+            .ok_or(DidCreationError::DidGenerationFailed)?;
 
         Ok(Self {
             uri,

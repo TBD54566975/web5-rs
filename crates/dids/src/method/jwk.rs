@@ -1,4 +1,5 @@
 use crate::did::Did;
+use crate::method::DidCreationError;
 use crate::resolver::{DidResolutionError, DidResolutionResponse, DidResolver};
 use async_trait::async_trait;
 use crypto::key::{Key, KeyAlgorithm};
@@ -20,12 +21,12 @@ impl DidJwk {
     pub fn new(
         key_manager: Arc<dyn KeyManager>,
         options: DidJwkCreateOptions,
-    ) -> Result<Self, KeyManagerError> {
+    ) -> Result<Self, DidCreationError> {
         let (_, public_key) = key_manager.generate_private_key(options.key_algorithm)?;
 
         let uri = DIDJWK
             .generate(&Source::Key(&public_key.jwk()))
-            .expect("DidJwk initialization failed");
+            .ok_or(DidCreationError::DidGenerationFailed)?;
 
         let method_data = DidJwkData {};
 
