@@ -1,6 +1,7 @@
 pub mod key_store;
 
 use crate::crypto::key::{Key, KeyAlgorithm, PrivateKey, PublicKey};
+use crate::crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
 use crate::crypto::key_manager::local::key_store::KeyStore;
 use crate::crypto::key_manager::{GeneratePrivateKeyResponse, KeyManager, KeyManagerError};
 use std::sync::Arc;
@@ -12,6 +13,12 @@ pub struct LocalKeyManager {
 impl LocalKeyManager {
     pub fn new(key_store: Arc<dyn KeyStore>) -> Self {
         Self { key_store }
+    }
+
+    pub fn new_in_memory() -> Self {
+        Self {
+            key_store: Arc::new(InMemoryKeyStore::new()),
+        }
     }
 }
 
