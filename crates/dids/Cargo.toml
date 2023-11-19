@@ -1,0 +1,23 @@
+[package]
+name = "dids"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+anyhow = "1.0.75"
+async-trait = "0.1.74"
+did-method-key = "0.2.2"
+did-jwk = "0.1.1"
+did-web = "0.2.2"
+ssi-dids = "0.1.1"
+ssi-jwk = "0.1.2"
+ssi-jws = "0.1.1"
+thiserror = "1.0.50"
+serde = { version = "1.0.192", features = ["derive"] }
+crypto = { path = "../crypto" }
+
+[dev-dependencies]
+tokio = { version = "1.34.0", features = ["macros", "test-util"] }

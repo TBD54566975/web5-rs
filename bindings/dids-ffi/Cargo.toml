@@ -1,7 +1,10 @@
 [package]
-name = "web5-ffi"
+name = "dids-ffi"
 version = "0.1.0"
 edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
 
 [lib]
 crate-type = ["cdylib", "staticlib"]
@@ -9,7 +12,6 @@ crate-type = ["cdylib", "staticlib"]
 [dependencies]
 thiserror = "1.0.50"
 uniffi = { workspace = true }
-crypto = { path = "../../crates/crypto"}
 dids = { path = "../../crates/dids"}
 
 [build-dependencies]

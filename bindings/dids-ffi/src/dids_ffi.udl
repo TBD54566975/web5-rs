@@ -1,0 +1,26 @@
+namespace dids_ffi {};
+
+[Error]
+interface DidsError {
+    InternalError(string message);
+};
+
+dictionary DidJwkCreateOptions {
+    KeyAlgorithm key_algorithm;
+};
+
+interface DidJwk {
+    [Throws=DidsError]
+    constructor(KeyManager key_manager, DidJwkCreateOptions options);
+    string uri();
+};
+
+dictionary DidKeyCreateOptions {
+    KeyAlgorithm key_algorithm;
+};
+
+interface DidKey {
+    [Throws=DidsError]
+    constructor(KeyManager key_manager, DidKeyCreateOptions options);
+    string uri();
+};

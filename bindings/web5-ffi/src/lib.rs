@@ -1,13 +1,13 @@
+mod error;
 uniffi::include_scaffolding!("web5_ffi");
 
 use std::sync::Arc;
 
-pub use web5::crypto::key::KeyAlgorithm;
-pub use web5::crypto::key::{PrivateKey, PublicKey};
-pub use web5::crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
-pub use web5::did::Did;
-pub use web5::error::Web5Error;
-use web5::result::Web5Result;
+pub use crate::error::DidsError;
+pub use crypto::key::KeyAlgorithm;
+pub use crypto::key::{PrivateKey, PublicKey};
+pub use crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
+pub use dids::Did;
 
 // Super hacky way to get pure Rust trait exposed as a foreign implementation trait.
 // I have tried multiple other ways, with no success. I would love if someone could
@@ -24,42 +24,6 @@ use web5::result::Web5Result;
 //
 // :shrug: Tradeoffs :shrug:
 
-pub use web5::crypto::key_manager::local::key_store::KeyStore as RustKeyStore;
-
-pub trait KeyStore: Send + Sync {
-    fn get_private_key(&self, key_alias: String) -> Result<Option<Arc<PrivateKey>>, KeyStoreError>;
-    fn insert_private_key(
-        &self,
-        key_alias: String,
-        private_key: Arc<PrivateKey>,
-    ) -> Result<(), KeyStoreError>;
-}
-
-pub struct KeyStoreWrapper(Arc<dyn KeyStore>);
-
-impl RustKeyStore for KeyStoreWrapper {
-    fn get(&self, key_alias: &str) -> Result<Option<PrivateKey>, RustKeyStoreError> {
-        let private_key = self
-            .0
-            .get_private_key(key_alias.to_string())
-            .map_err(|e| e.into())?;
-
-        if let Some(private_key) = private_key {
-            Ok(Some((*private_key).clone()))
-        } else {
-            Ok(None)
-        }
-    }
-
-    fn insert(&self, key_alias: &str, private_key: PrivateKey) -> Result<(), RustKeyStoreError> {
-        let key_alias = key_alias.to_string();
-        let private_key = Arc::new(private_key);
-        self.0
-            .insert_private_key(key_alias, private_key)
-            .map_err(|e| e.into())
-    }
-}
-
 // Foreign languages can throw any arbitrary error. We need handle those!
 // In order to do this, the Error type exposed to foreign languages must implement
 // From<uniffi::UnexpectedUniFFICallbackError>. Unfortunately, we can't directly
@@ -69,7 +33,7 @@ impl RustKeyStore for KeyStoreWrapper {
 // the required trait. Then, we implement Into<RustKeyStoreError> for our KeyStoreError
 // to get BACK into pure-Rust land, with an error that it understand.
 
-pub use web5::crypto::key_manager::local::key_store::KeyStoreError as RustKeyStoreError;
+pub use crypto::key_manager::local::key_store::KeyStoreError as RustKeyStoreError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum KeyStoreError {
@@ -97,9 +61,9 @@ impl Into<RustKeyStoreError> for KeyStoreError {
 
 // Cleaner KeyManager interface to foreign languages
 
-use web5::crypto::key_manager::local::LocalKeyManager;
-pub use web5::crypto::key_manager::KeyManager as RustKeyManager;
-use web5::crypto::key_manager::{GeneratePrivateKeyResponse, KeyManagerError};
+use crypto::key_manager::local::LocalKeyManager;
+pub use crypto::key_manager::KeyManager as RustKeyManager;
+use crypto::key_manager::{GeneratePrivateKeyResponse, KeyManagerError};
 
 pub struct KeyManager(Arc<dyn RustKeyManager>);
 
@@ -140,14 +104,17 @@ impl RustKeyManager for KeyManager {
 // 2. the key manager from uniffi is NOT the RustKeyManager
 // 3. uri needs to return a new String, not a string slice
 
-pub use web5::did::method::{DidJwk as RustDidJwk, DidJwkCreateOptions};
+pub use dids::method::{DidJwk as RustDidJwk, DidJwkCreateOptions};
 
 pub struct DidJwk {
     inner: RustDidJwk,
 }
 
 impl DidJwk {
-    fn new(key_manager: Arc<KeyManager>, options: DidJwkCreateOptions) -> Web5Result<Self> {
+    fn new(
+        key_manager: Arc<KeyManager>,
+        options: DidJwkCreateOptions,
+    ) -> Result<Self, KeyManagerError> {
         let inner = RustDidJwk::new(key_manager.0.clone(), options)?;
         Ok(Self { inner })
     }
@@ -163,14 +130,17 @@ impl DidJwk {
 // 2. the key manager from uniffi is NOT the RustKeyManager
 // 3. uri needs to return a new String, not a string slice
 
-pub use web5::did::method::{DidKey as RustDidKey, DidKeyCreateOptions};
+pub use dids::method::{DidKey as RustDidKey, DidKeyCreateOptions};
 
 pub struct DidKey {
     inner: RustDidKey,
 }
 
 impl DidKey {
-    fn new(key_manager: Arc<KeyManager>, options: DidKeyCreateOptions) -> Web5Result<Self> {
+    fn new(
+        key_manager: Arc<KeyManager>,
+        options: DidKeyCreateOptions,
+    ) -> Result<Self, KeyManagerError> {
         let inner = RustDidKey::new(key_manager.0.clone(), options)?;
         Ok(Self { inner })
     }

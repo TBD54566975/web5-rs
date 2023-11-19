@@ -1,0 +1,30 @@
+namespace crypto_ffi {};
+
+enum KeyAlgorithm {
+    "Secp256k1",
+    "Secp256r1",
+    "Ed25519",
+};
+
+[Error]
+interface CryptoError {
+    Generic(string msg);
+};
+
+interface KeyManager {
+    constructor(KeyStore key_store);
+    [Name=in_memory]
+    constructor();
+};
+
+[Trait]
+interface KeyStore {
+    [Throws=CryptoError]
+    PrivateKey? get_private_key(string key_alias);
+    [Throws=CryptoError]
+    void insert_private_key(string key_alias, PrivateKey private_key);
+};
+
+interface PrivateKey {
+
+};
