@@ -1,5 +1,5 @@
 [package]
-name = "dids_ffi"
+name = "dids-ffi"
 version = "0.1.0"
 edition = "2021"
 homepage.workspace = true
@@ -13,7 +13,7 @@ crate-type = ["lib", "cdylib", "staticlib"]
 thiserror = "1.0.50"
 uniffi = { workspace = true }
 dids = { path = "../../crates/dids" }
-crypto_ffi = { path = "../crypto-ffi" }
+crypto-ffi = { path = "../crypto-ffi" }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
