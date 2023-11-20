@@ -1,34 +1,29 @@
 use crate::key::PrivateKey;
 use crate::key_manager::local::key_store::{KeyStore, KeyStoreError};
 use std::collections::HashMap;
-use std::sync::RwLock;
+use std::sync::Mutex;
 
 pub struct InMemoryKeyStore {
-    map: RwLock<HashMap<String, PrivateKey>>,
+    map: Mutex<HashMap<String, PrivateKey>>,
 }
 
-#[allow(dead_code)] // TODO: obviously remove this
 impl InMemoryKeyStore {
     pub fn new() -> Self {
-        println!("Making a new InMemoryKeyStore!");
-        let map = RwLock::new(HashMap::new());
+        let map = Mutex::new(HashMap::new());
         Self { map }
     }
 }
 
 impl KeyStore for InMemoryKeyStore {
     fn get(&self, key_alias: &str) -> Result<Option<PrivateKey>, KeyStoreError> {
-        let readable_map = self
+        let map_lock = self
             .map
-            .read()
+            .lock()
             .map_err(|e| KeyStoreError::InternalKeyStoreError {
-                message: format!(
-                    "InMemoryKeyStore - Unable to acquire RwLockReadGuard: {}",
-                    e
-                ),
+                message: format!("Unable to acquire Mutex lock: {}", e),
             })?;
 
-        if let Some(private_key) = readable_map.get(key_alias) {
+        if let Some(private_key) = map_lock.get(key_alias) {
             Ok(Some(private_key.clone()))
         } else {
             Ok(None)
@@ -36,18 +31,14 @@ impl KeyStore for InMemoryKeyStore {
     }
 
     fn insert(&self, key_alias: &str, private_key: PrivateKey) -> Result<(), KeyStoreError> {
-        let mut writable_map =
-            self.map
-                .write()
-                .map_err(|e| KeyStoreError::InternalKeyStoreError {
-                    message: format!(
-                        "InMemoryKeyStore - Unable to acquire RwLockWriteGuard: {}",
-                        e
-                    ),
-                })?;
+        let mut map_lock = self
+            .map
+            .lock()
+            .map_err(|e| KeyStoreError::InternalKeyStoreError {
+                message: format!("Unable to acquire Mutex lock: {}", e),
+            })?;
 
-        writable_map.insert(key_alias.to_string(), private_key);
-        println!("InMemory inserted private_key: {}", key_alias);
+        map_lock.insert(key_alias.to_string(), private_key);
         Ok(())
     }
 }
