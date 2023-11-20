@@ -1,7 +1,7 @@
 use crate::error::Result;
 use crate::private_key::PrivateKey;
 use crypto::key::PrivateKey as RustPrivateKey;
-use crypto::key_manager::local::key_store::{
+use crypto::key_manager::key_store::{
     KeyStore as RustKeyStore, KeyStoreError as RustKeyStoreError,
 };
 use std::sync::Arc;

@@ -1,6 +1,6 @@
 use crate::key_store::{KeyStore, KeyStoreWrapper};
 use crypto::key::{KeyAlgorithm, PublicKey};
-use crypto::key_manager::local::LocalKeyManager as RustLocalKeyManager;
+use crypto::key_manager::LocalKeyManager as RustLocalKeyManager;
 use crypto::key_manager::{
     GeneratePrivateKeyResponse, KeyManager as RustKeyManager, KeyManagerError,
 };

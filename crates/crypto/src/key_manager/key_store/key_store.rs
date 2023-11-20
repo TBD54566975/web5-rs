@@ -1,5 +1,3 @@
-pub mod in_memory;
-
 use crate::key::PrivateKey;
 use thiserror::Error;
 

@@ -44,7 +44,7 @@ mod tests {
 
     use crate::method::{DidJwk, DidJwkCreateOptions, DidKey, DidKeyCreateOptions};
     use crypto::key::KeyAlgorithm;
-    use crypto::key_manager::local::LocalKeyManager;
+    use crypto::key_manager::LocalKeyManager;
     use std::sync::Arc;
 
     #[tokio::test]

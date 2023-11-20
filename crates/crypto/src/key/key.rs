@@ -1,9 +1,3 @@
-mod private;
-mod public;
-
-pub use private::*;
-pub use public::*;
-
 use ssi_jwk::{Error as JwkError, JWK as Jwk};
 use ssi_jws::Error as JwsError;
 

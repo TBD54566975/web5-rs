@@ -1,8 +1,5 @@
-pub mod key_store;
-
 use crate::key::{Key, KeyAlgorithm, PrivateKey, PublicKey};
-use crate::key_manager::local::key_store::in_memory::InMemoryKeyStore;
-use crate::key_manager::local::key_store::KeyStore;
+use crate::key_manager::key_store::{InMemoryKeyStore, KeyStore};
 use crate::key_manager::{GeneratePrivateKeyResponse, KeyManager, KeyManagerError};
 use std::sync::Arc;
 

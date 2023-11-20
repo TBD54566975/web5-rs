@@ -1,5 +1,5 @@
 use crate::key::PrivateKey;
-use crate::key_manager::local::key_store::{KeyStore, KeyStoreError};
+use crate::key_manager::key_store::{KeyStore, KeyStoreError};
 use std::collections::HashMap;
 use std::sync::Mutex;
 

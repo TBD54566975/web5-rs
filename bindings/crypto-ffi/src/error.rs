@@ -1,4 +1,4 @@
-use crypto::key_manager::local::key_store::KeyStoreError;
+use crypto::key_manager::key_store::KeyStoreError;
 use std::fmt::Display;
 
 pub type Result<T, E = CryptoError> = std::result::Result<T, E>;
