@@ -44,17 +44,15 @@ mod tests {
 
     use crate::method::{DidJwk, DidJwkCreateOptions, DidKey, DidKeyCreateOptions};
     use crypto::key::KeyAlgorithm;
-    use crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
     use crypto::key_manager::local::LocalKeyManager;
     use std::sync::Arc;
 
     #[tokio::test]
     async fn test_resolve_did_jwk() {
-        let in_memory_key_store = InMemoryKeyStore::new();
-        let local_key_manager = LocalKeyManager::new(Arc::new(in_memory_key_store));
+        let local_key_manager = Arc::new(LocalKeyManager::new_in_memory());
 
         let did_jwk = DidJwk::new(
-            Arc::new(local_key_manager),
+            local_key_manager,
             DidJwkCreateOptions {
                 key_algorithm: KeyAlgorithm::Ed25519,
             },
@@ -67,11 +65,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_did_key() {
-        let in_memory_key_store = InMemoryKeyStore::new();
-        let local_key_manager = LocalKeyManager::new(Arc::new(in_memory_key_store));
+        let local_key_manager = Arc::new(LocalKeyManager::new_in_memory());
 
         let did_key = DidKey::new(
-            Arc::new(local_key_manager),
+            local_key_manager,
             DidKeyCreateOptions {
                 key_algorithm: KeyAlgorithm::Ed25519,
             },

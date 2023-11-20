@@ -57,12 +57,10 @@ impl DidResolver for DidJwk {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crypto::key_manager::local::key_store::in_memory::InMemoryKeyStore;
     use crypto::key_manager::local::LocalKeyManager;
     #[test]
     fn test_constructor() {
-        let key_store = Arc::new(InMemoryKeyStore::new());
-        let key_manager = Arc::new(LocalKeyManager::new(key_store));
+        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
 
         let did = DidJwk::new(
             key_manager,
