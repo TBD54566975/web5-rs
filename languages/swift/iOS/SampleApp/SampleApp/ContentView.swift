@@ -1,6 +1,6 @@
 import SwiftUI
-import crypto_ffiFFI;
-import dids_ffiFFI;
+import crypto_ffiFFI
+import dids_ffiFFI
 
 func createKeyManager() -> KeyManager {
 //  return KeyManager.inMemory()
@@ -22,7 +22,8 @@ struct ContentView: View {
 //      }
       Button("Generate did:jwk") {
         Task {
-          let didJwk = try! DidJwk(keyManager: keyManager, options: .init(keyAlgorithm: .ed25519))
+          let didJwk = try! DidJwk(keyManager: keyManager, options: .init(keyAlgorithm: .secp256k1))
+          didJwk.uri().hasPrefix("did:jwk:")
           print("didJwk uri: \(didJwk.uri())")
         }
       }
@@ -68,19 +69,13 @@ struct ContentView: View {
 }
 
 class SwiftKeyStore: KeyStore {
-  var map = [String: PrivateKey]()
+  public private(set) var map = [String: PrivateKey]()
 
   func getPrivateKey(keyAlias: String) throws -> PrivateKey? {
-    return self.map[keyAlias]!
+    return self.map[keyAlias]
   }
   
   func insertPrivateKey(keyAlias: String, privateKey: PrivateKey) throws {
     self.map[keyAlias] = privateKey
-    print("Map size: \(map.count)")
   }
-
-  deinit {
-    print("Deinit called")
-  }
-
 }

@@ -6,6 +6,9 @@ homepage.workspace = true
 repository.workspace = true
 license-file.workspace = true
 
+[lib]
+crate-type = ["lib", "cdylib"]
+
 [dependencies]
 crypto = { path = "../../crates/crypto"}
 thiserror = { workspace = true }
@@ -13,3 +16,6 @@ uniffi = { workspace = true }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+uniffi = { workspace = true, features = ["bindgen-tests"] }
