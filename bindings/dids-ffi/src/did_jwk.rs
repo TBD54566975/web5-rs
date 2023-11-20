@@ -1,6 +1,6 @@
 use crate::error::Result;
 use crypto_ffi::KeyManager;
-use dids::method::{DidJwk as RustDidJwk, DidJwkCreateOptions};
+use dids::did::{Did, DidJwk as RustDidJwk, DidJwkCreateOptions};
 use std::sync::Arc;
 
 pub struct DidJwk {
@@ -14,6 +14,6 @@ impl DidJwk {
     }
 
     pub fn uri(&self) -> String {
-        self.inner.uri.to_string()
+        self.inner.uri().to_string()
     }
 }

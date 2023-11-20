@@ -1,6 +1,6 @@
 use crate::error::Result;
 use crypto_ffi::KeyManager;
-pub use dids::method::{DidKey as RustDidKey, DidKeyCreateOptions};
+pub use dids::did::{Did, DidKey as RustDidKey, DidKeyCreateOptions};
 use std::sync::Arc;
 
 pub struct DidKey {
@@ -14,6 +14,6 @@ impl DidKey {
     }
 
     pub fn uri(&self) -> String {
-        self.inner.uri.to_string()
+        self.inner.uri().to_string()
     }
 }

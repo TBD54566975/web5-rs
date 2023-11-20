@@ -1,5 +1,4 @@
-use dids::method::{DidCreationError, DidMethodError};
-use dids::parsed_did::ParsedDidError;
+use dids::did::DidError;
 use dids::resolver::DidResolutionError;
 use std::fmt::Display;
 use uniffi::UnexpectedUniFFICallbackError;
@@ -25,26 +24,14 @@ impl From<UnexpectedUniFFICallbackError> for DidsError {
     }
 }
 
-impl From<DidMethodError> for DidsError {
-    fn from(e: DidMethodError) -> Self {
-        Self::new(e)
-    }
-}
-
 impl From<DidResolutionError> for DidsError {
     fn from(e: DidResolutionError) -> Self {
         Self::new(e)
     }
 }
 
-impl From<ParsedDidError> for DidsError {
-    fn from(e: ParsedDidError) -> Self {
-        Self::new(e)
-    }
-}
-
-impl From<DidCreationError> for DidsError {
-    fn from(e: DidCreationError) -> Self {
+impl From<DidError> for DidsError {
+    fn from(e: DidError) -> Self {
         Self::new(e)
     }
 }

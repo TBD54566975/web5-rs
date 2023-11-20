@@ -1,102 +1,86 @@
-use crate::method::{DidJwk, DidKey, DidMethod, DidWeb};
-use crate::parsed_did::{ParsedDid, ParsedDidError};
-use async_trait::async_trait;
-use ssi_dids::{
-    did_resolve::{DocumentMetadata as DidDocumentMetadata, ResolutionMetadata},
-    Document as DidDocument,
+use lazy_static::lazy_static;
+use ssi_dids::did_resolve::{
+    DIDResolver, DocumentMetadata as DidDocumentMetadata, ResolutionInputMetadata,
+    ResolutionMetadata,
 };
-use std::str::FromStr;
-use thiserror::Error;
+use ssi_dids::{DIDMethods, Document as DidDocument};
 
-#[async_trait]
-pub trait DidResolver {
-    async fn resolve(did_uri: &str) -> Result<DidResolutionResponse, DidResolutionError>;
+pub struct DidResolver;
+
+pub struct DidResolutionResponse {
+    pub resolution_metadata: ResolutionMetadata,
+    pub did_document: DidDocument,
+    pub did_document_metadata: Option<DidDocumentMetadata>,
 }
 
-pub type DidResolutionResponse = (ResolutionMetadata, DidDocument, Option<DidDocumentMetadata>);
-
-#[derive(thiserror::Error, Debug, PartialEq)]
+#[derive(thiserror::Error, Debug)]
 pub enum DidResolutionError {
-    #[error("Unsupported DID method")]
-    UnsupportedDidMethod,
-    #[error("DID document not found")]
-    DidDocumentNotFound,
-    #[error(transparent)]
-    ParsedDidError(#[from] ParsedDidError),
+    #[error("DID Document not found for DID {did_uri}")]
+    DidDocumentNotFound { did_uri: String },
+    #[error("Error resolving DID {did_uri}: {msg}")]
+    ResolverError { did_uri: String, msg: String },
 }
 
-pub async fn resolve(did_uri: &str) -> Result<DidResolutionResponse, DidResolutionError> {
-    let parsed_did = ParsedDid::from_str(did_uri)?;
+pub type DidResolutionResult = Result<DidResolutionResponse, DidResolutionError>;
 
-    match parsed_did.method {
-        DidMethod::Jwk => DidJwk::resolve(did_uri).await,
-        DidMethod::Key => DidKey::resolve(did_uri).await,
-        DidMethod::Web => DidWeb::resolve(did_uri).await,
+impl DidResolver {
+    pub async fn resolve(&self, did_uri: &str) -> DidResolutionResult {
+        let input_metadata = &ResolutionInputMetadata::default();
+
+        let (resolution_metadata, did_document, did_document_metadata) =
+            DID_RESOLVER.resolve(did_uri, input_metadata).await;
+
+        if let Some(error_message) = resolution_metadata.error {
+            return Err(DidResolutionError::ResolverError {
+                did_uri: did_uri.to_string(),
+                msg: error_message,
+            });
+        }
+
+        let did_document = did_document.ok_or(DidResolutionError::DidDocumentNotFound {
+            did_uri: did_uri.to_string(),
+        })?;
+
+        Ok(DidResolutionResponse {
+            resolution_metadata,
+            did_document,
+            did_document_metadata,
+        })
     }
 }
 
-#[derive(Error, Debug)]
-pub enum Error1 {}
+lazy_static! {
+    static ref DID_RESOLVER: DIDMethods<'static> = {
+        let mut methods = DIDMethods::default();
+        methods.insert(Box::new(did_method_key::DIDKey));
+        methods.insert(Box::new(did_web::DIDWeb));
+        methods.insert(Box::new(did_jwk::DIDJWK));
+        methods.insert(Box::new(did_ion::DIDION::new(Some(
+            "https://ion.tbddev.org".to_string(),
+        ))));
+        methods
+    };
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    use crate::method::{DidJwk, DidJwkCreateOptions, DidKey, DidKeyCreateOptions};
-    use crypto::key::KeyAlgorithm;
-    use crypto::key_manager::LocalKeyManager;
-    use std::sync::Arc;
-
-    #[tokio::test]
-    async fn test_resolve_did_jwk() {
-        let local_key_manager = Arc::new(LocalKeyManager::new_in_memory());
-
-        let did_jwk = DidJwk::new(
-            local_key_manager,
-            DidJwkCreateOptions {
-                key_algorithm: KeyAlgorithm::Ed25519,
-            },
-        )
-        .expect("DidJwk initialization failed");
-
-        let (_, did_document, _) = resolve(&did_jwk.uri).await.expect("Failed to resolve DID");
-        assert_eq!(did_document.id, did_jwk.uri);
-    }
-
-    #[tokio::test]
-    async fn test_resolve_did_key() {
-        let local_key_manager = Arc::new(LocalKeyManager::new_in_memory());
-
-        let did_key = DidKey::new(
-            local_key_manager,
-            DidKeyCreateOptions {
-                key_algorithm: KeyAlgorithm::Ed25519,
-            },
-        )
-        .expect("DidKey initialization failed");
-
-        let (_, did_document, _) = resolve(&did_key.uri).await.expect("Failed to resolve DID");
-        assert_eq!(did_document.id, did_key.uri);
-    }
-
     #[tokio::test]
     async fn test_resolve_did_web() {
-        let did_web_uri = "did:web:tbd.website";
-        let (_, did_document, _) = resolve(did_web_uri).await.expect("Failed to resolve DID");
-        assert_eq!(did_document.id, did_web_uri);
+        let did_uri = "did:web:tbd.website";
+        let response = DidResolver
+            .resolve(did_uri)
+            .await
+            .expect("Failed to resolve DID");
+        assert_eq!(response.resolution_metadata.error, None);
+        assert_eq!(response.did_document.id, did_uri)
     }
 
     #[tokio::test]
-    async fn test_resolve_unsupported_did_method() {
-        let did_uri = "did:unsupported:123123";
-        let resolve_result = resolve(did_uri).await;
-        assert!(resolve_result.is_err());
-    }
-
-    #[tokio::test]
-    async fn test_resolve_invalid_did_uri() {
-        let invalid_did_uri = "wrong:did:key:123123";
-        let resolve_result = resolve(invalid_did_uri).await;
-        assert!(resolve_result.is_err());
+    async fn test_resolve_unknown_method() {
+        let did_uri = "did:unknown:123";
+        let response = DidResolver.resolve(did_uri).await;
+        assert!(response.is_err());
     }
 }

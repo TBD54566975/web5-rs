@@ -42,9 +42,6 @@ for module_map_file in "${BINDINGS_DIR}"/*.modulemap; do
     echo "\n\n" >> "$destination_module_map"
 done
 
-cp "${BINDINGS_DIR}/${NAME}FFI.h" "${TEMP_HEADER_DIR}/"
-cp "${BINDINGS_DIR}/${NAME}FFI.modulemap" "${TEMP_HEADER_DIR}/module.modulemap"
-
 # Build a new xcframework, with libraries and headers for each target architecture
 XCODE_BUILD_CMD="xcodebuild -create-xcframework"
 for arch in "${TARGET_ARCHES[@]}"; do
