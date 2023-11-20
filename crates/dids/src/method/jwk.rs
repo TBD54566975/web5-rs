@@ -13,7 +13,7 @@ pub struct DidJwkCreateOptions {
     pub key_algorithm: KeyAlgorithm,
 }
 
-pub struct DidJwkData {}
+pub struct DidJwkData;
 
 pub type DidJwk = Did<DidJwkData>;
 

@@ -13,7 +13,7 @@ pub struct DidKeyCreateOptions {
     pub key_algorithm: KeyAlgorithm,
 }
 
-pub struct DidKeyData {}
+pub struct DidKeyData;
 
 pub type DidKey = Did<DidKeyData>;
 
