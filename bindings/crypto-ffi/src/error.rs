@@ -1,4 +1,5 @@
 use crypto::key_manager::key_store::KeyStoreError;
+use crypto::key_manager::KeyManagerError;
 use std::fmt::Display;
 
 pub type Result<T, E = CryptoError> = std::result::Result<T, E>;
@@ -24,8 +25,12 @@ impl From<KeyStoreError> for CryptoError {
 
 impl From<CryptoError> for KeyStoreError {
     fn from(e: CryptoError) -> Self {
-        Self::InternalKeyStoreError {
-            message: e.to_string(),
-        }
+        Self::InternalKeyStoreError(e.to_string())
+    }
+}
+
+impl From<KeyManagerError> for CryptoError {
+    fn from(e: KeyManagerError) -> Self {
+        Self::Generic { msg: e.to_string() }
     }
 }

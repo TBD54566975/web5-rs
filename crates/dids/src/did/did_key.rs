@@ -19,11 +19,17 @@ impl DidKey {
         key_manager: Arc<dyn KeyManager>,
         options: DidKeyCreateOptions,
     ) -> Result<Self, DidError> {
-        let (_, public_key) = key_manager.generate_private_key(options.key_algorithm)?;
+        let key_alias = key_manager.generate_private_key(options.key_algorithm)?;
+        let public_key =
+            key_manager
+                .get_public_key(&key_alias)?
+                .ok_or(DidError::DidCreationFailure(
+                    "PublicKey not found".to_string(),
+                ))?;
 
-        let uri = DIDKey
-            .generate(&Source::Key(&public_key.jwk()))
-            .ok_or(DidError::DidCreationFailed)?;
+        let uri = DIDKey.generate(&Source::Key(&public_key.jwk())).ok_or(
+            DidError::DidCreationFailure("URI not returned by DIDKey.generate".to_string()),
+        )?;
 
         Ok(Self { uri, key_manager })
     }

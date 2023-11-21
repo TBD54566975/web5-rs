@@ -1,20 +1,15 @@
-use crate::key::{Key, KeyAlgorithm, KeyError, PrivateKey};
-use ssi_jwk::JWK as Jwk;
+use crate::key::{Key, KeyError};
+use ssi_jwk::JWK;
 use ssi_jws::{verify_bytes_warnable, VerificationWarnings};
 
-pub struct PublicKey(pub(crate) Jwk);
+#[derive(PartialEq, Debug)]
+pub struct PublicKey(pub(crate) JWK);
 
 impl PublicKey {
-    pub fn generate(key_algorithm: KeyAlgorithm) -> Result<Self, KeyError> {
-        let private_key = PrivateKey::generate(key_algorithm)?;
-        let public_key = private_key.jwk().to_public();
-        Ok(Self(public_key))
-    }
-
     pub fn verify(
         &self,
-        payload: &Vec<u8>,
-        signature: &Vec<u8>,
+        payload: &[u8],
+        signature: &[u8],
     ) -> Result<VerificationWarnings, KeyError> {
         let algorithm = self.0.get_algorithm().ok_or(KeyError::AlgorithmNotFound)?;
 
@@ -26,14 +21,36 @@ impl PublicKey {
 }
 
 impl Key for PublicKey {
-    fn jwk(&self) -> &Jwk {
+    fn jwk(&self) -> &JWK {
         &self.0
     }
 }
 
-impl From<PrivateKey> for PublicKey {
-    fn from(private_key: PrivateKey) -> Self {
-        let inner = private_key.jwk().to_public();
-        Self(inner)
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::key::PrivateKey;
+
+    #[test]
+    fn test_verify() {
+        let private_key = PrivateKey(JWK::generate_secp256k1().unwrap());
+        let payload: &[u8] = b"hello world";
+        let signature = private_key.sign(payload).unwrap();
+
+        let public_key = private_key.to_public();
+        let verification_warnings = public_key.verify(&payload, &signature).unwrap();
+        assert_eq!(verification_warnings.len(), 0);
+    }
+
+    #[test]
+    fn test_verify_failure() {
+        let private_key = PrivateKey(JWK::generate_secp256k1().unwrap());
+        let payload: &[u8] = b"hello world";
+        let signature = private_key.sign(payload).unwrap();
+
+        // public_key is unrelated to the private_key used to sign the payload, so it should fail
+        let public_key = PublicKey(JWK::generate_secp256k1().unwrap());
+        let verification_warnings = public_key.verify(&payload, &signature);
+        assert!(verification_warnings.is_err());
     }
 }

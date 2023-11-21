@@ -7,8 +7,8 @@ use std::sync::Arc;
 pub enum DidError {
     #[error(transparent)]
     KeyManagerError(#[from] KeyManagerError),
-    #[error("DID creation failed")]
-    DidCreationFailed,
+    #[error("Failure creating DID: {0}")]
+    DidCreationFailure(String),
 }
 
 #[async_trait]

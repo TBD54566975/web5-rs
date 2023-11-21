@@ -1,9 +1,8 @@
+use crate::error::Result;
 use crate::key_store::{KeyStore, KeyStoreWrapper};
 use crypto::key::{KeyAlgorithm, PublicKey};
 use crypto::key_manager::LocalKeyManager as RustLocalKeyManager;
-use crypto::key_manager::{
-    GeneratePrivateKeyResponse, KeyManager as RustKeyManager, KeyManagerError,
-};
+use crypto::key_manager::{KeyManager as RustKeyManager, KeyManagerError};
 use std::sync::Arc;
 
 pub struct KeyManager {
@@ -26,10 +25,7 @@ impl KeyManager {
 }
 
 impl RustKeyManager for KeyManager {
-    fn generate_private_key(
-        &self,
-        key_algorithm: KeyAlgorithm,
-    ) -> Result<GeneratePrivateKeyResponse, KeyManagerError> {
+    fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Result<String, KeyManagerError> {
         self.inner.generate_private_key(key_algorithm)
     }
 
@@ -39,5 +35,9 @@ impl RustKeyManager for KeyManager {
 
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError> {
         self.inner.sign(key_alias, payload)
+    }
+
+    fn alias(&self, public_key: &PublicKey) -> std::result::Result<String, KeyManagerError> {
+        self.inner.alias(public_key)
     }
 }
