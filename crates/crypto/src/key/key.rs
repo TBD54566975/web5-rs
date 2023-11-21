@@ -1,8 +1,8 @@
 use ssi_jwk::JWK;
 use ssi_jws::Error as JWSError;
 
-/// Enum defining all supported cryptographic algorithms.
-pub enum KeyAlgorithm {
+/// Enum defining all supported cryptographic key types.
+pub enum KeyType {
     Secp256k1,
     Secp256r1,
     Ed25519,

@@ -1,4 +1,4 @@
-use crate::key::{KeyAlgorithm, PrivateKey, PublicKey};
+use crate::key::{KeyType, PrivateKey, PublicKey};
 use crate::key_manager::key_store::{InMemoryKeyStore, KeyStore};
 use crate::key_manager::{KeyManager, KeyManagerError};
 use ssi_jwk::JWK;
@@ -26,11 +26,11 @@ impl LocalKeyManager {
 }
 
 impl KeyManager for LocalKeyManager {
-    fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Result<String, KeyManagerError> {
-        let jwk = match key_algorithm {
-            KeyAlgorithm::Secp256k1 => JWK::generate_secp256k1(),
-            KeyAlgorithm::Secp256r1 => JWK::generate_p256(),
-            KeyAlgorithm::Ed25519 => JWK::generate_ed25519(),
+    fn generate_private_key(&self, key_type: KeyType) -> Result<String, KeyManagerError> {
+        let jwk = match key_type {
+            KeyType::Secp256k1 => JWK::generate_secp256k1(),
+            KeyType::Secp256r1 => JWK::generate_p256(),
+            KeyType::Ed25519 => JWK::generate_ed25519(),
         }?;
 
         let private_key = PrivateKey(jwk);
@@ -75,15 +75,15 @@ mod tests {
         let key_manager = LocalKeyManager::new_in_memory();
 
         key_manager
-            .generate_private_key(KeyAlgorithm::Ed25519)
+            .generate_private_key(KeyType::Ed25519)
             .expect("Failed to generate Ed25519 key");
 
         key_manager
-            .generate_private_key(KeyAlgorithm::Secp256k1)
+            .generate_private_key(KeyType::Secp256k1)
             .expect("Failed to generate secp256k1 key");
 
         key_manager
-            .generate_private_key(KeyAlgorithm::Secp256r1)
+            .generate_private_key(KeyType::Secp256r1)
             .expect("Failed to generate secp256r1 key");
     }
 
@@ -91,9 +91,7 @@ mod tests {
     fn test_get_public_key() {
         let key_manager = LocalKeyManager::new_in_memory();
 
-        let key_alias = key_manager
-            .generate_private_key(KeyAlgorithm::Ed25519)
-            .unwrap();
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
 
         key_manager
             .get_public_key(&key_alias)
@@ -104,9 +102,7 @@ mod tests {
     #[test]
     fn test_sign() {
         let key_manager = LocalKeyManager::new_in_memory();
-        let key_alias = key_manager
-            .generate_private_key(KeyAlgorithm::Ed25519)
-            .unwrap();
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
 
         // Sign a payload
         let payload: &[u8] = b"hello world";
@@ -121,9 +117,7 @@ mod tests {
     #[test]
     fn test_alias() {
         let key_manager = LocalKeyManager::new_in_memory();
-        let key_alias = key_manager
-            .generate_private_key(KeyAlgorithm::Ed25519)
-            .unwrap();
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
 
         let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
         let alias = key_manager.alias(&public_key).unwrap();
