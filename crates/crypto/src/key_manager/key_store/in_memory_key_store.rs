@@ -1,23 +1,23 @@
 use crate::key::PrivateKey;
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::RwLock;
 
 /// An in-memory implementation of the [`KeyStore`] trait.
 pub struct InMemoryKeyStore {
-    map: Mutex<HashMap<String, PrivateKey>>,
+    map: RwLock<HashMap<String, PrivateKey>>,
 }
 
 impl InMemoryKeyStore {
     pub fn new() -> Self {
-        let map = Mutex::new(HashMap::new());
+        let map = RwLock::new(HashMap::new());
         Self { map }
     }
 }
 
 impl KeyStore for InMemoryKeyStore {
     fn get(&self, key_alias: &str) -> Result<Option<PrivateKey>, KeyStoreError> {
-        let map_lock = self.map.lock().map_err(|e| {
+        let map_lock = self.map.read().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
         })?;
 
@@ -29,7 +29,7 @@ impl KeyStore for InMemoryKeyStore {
     }
 
     fn insert(&self, key_alias: &str, private_key: PrivateKey) -> Result<(), KeyStoreError> {
-        let mut map_lock = self.map.lock().map_err(|e| {
+        let mut map_lock = self.map.write().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
         })?;
 
