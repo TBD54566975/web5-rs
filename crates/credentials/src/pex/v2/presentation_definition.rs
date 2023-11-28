@@ -14,13 +14,13 @@ use std::collections::HashMap;
 /// for more information.
 #[skip_serializing_none]
 #[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
-pub struct PresentationDefinitionV2 {
+pub struct PresentationDefinition {
     pub id: String,
     pub name: Option<String>,
     pub purpose: Option<String>,
     pub format: Option<Format>,
     pub submission_requirements: Option<Vec<SubmissionRequirement>>,
-    pub input_descriptors: Vec<InputDescriptorV2>,
+    pub input_descriptors: Vec<InputDescriptor>,
     pub frame: Option<HashMap<String, JsonValue>>,
 }
 
@@ -30,12 +30,12 @@ pub struct PresentationDefinitionV2 {
 /// for more information.
 #[skip_serializing_none]
 #[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
-pub struct InputDescriptorV2 {
+pub struct InputDescriptor {
     pub id: String,
     pub name: Option<String>,
     pub purpose: Option<String>,
     pub format: Option<Format>,
-    pub constraints: ConstraintsV2,
+    pub constraints: Constraints,
 }
 
 /// Represents constraints for an input descriptor.
@@ -45,8 +45,8 @@ pub struct InputDescriptorV2 {
 /// for more information.
 #[skip_serializing_none]
 #[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
-pub struct ConstraintsV2 {
-    pub fields: Option<Vec<FieldV2>>,
+pub struct Constraints {
+    pub fields: Option<Vec<Field>>,
     pub limit_disclosure: Option<ConformantConsumerDisclosure>,
 }
 
@@ -57,7 +57,7 @@ pub struct ConstraintsV2 {
 /// for more information.
 #[skip_serializing_none]
 #[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
-pub struct FieldV2 {
+pub struct Field {
     pub id: Option<String>,
     pub path: Vec<String>,
     pub purpose: Option<String>,
@@ -67,7 +67,7 @@ pub struct FieldV2 {
     pub optional: Option<bool>,
 }
 
-impl FieldV2 {
+impl Field {
     pub fn filter_schema(&self) -> Option<JSONSchema> {
         self.filter
             .as_ref()
@@ -151,15 +151,15 @@ mod tests {
 
     #[test]
     fn can_serialize() {
-        let pd = PresentationDefinitionV2 {
+        let pd = PresentationDefinition {
             id: "tests-pd-id".to_string(),
             name: "simple PD".to_string().into(),
             purpose: "pd for testing".to_string().into(),
-            input_descriptors: vec![InputDescriptorV2 {
+            input_descriptors: vec![InputDescriptor {
                 id: "whatever".to_string(),
                 purpose: "purpose".to_string().into(),
-                constraints: ConstraintsV2 {
-                    fields: vec![FieldV2 {
+                constraints: Constraints {
+                    fields: vec![Field {
                         id: "field-id".to_string().into(),
                         path: vec!["$.issuer".to_string()],
                         purpose: "purpose".to_string().into(),
@@ -191,16 +191,16 @@ mod tests {
             ..Default::default()
         };
 
-        let expected_input_descriptors = vec![InputDescriptorV2 {
+        let expected_input_descriptors = vec![InputDescriptor {
             id: "7b928839-f0b1-4237-893d-b27124b57952".to_string(),
-            constraints: ConstraintsV2 {
+            constraints: Constraints {
                 fields: Some(vec![
-                    FieldV2 {
+                    Field {
                         path: vec!["$.iss".to_string(), "$.vc.issuer".to_string()],
                         filter: Some(json!({"type": "string", "pattern": "^did:[^:]+:.+"})),
                         ..Default::default()
                     },
-                    FieldV2 {
+                    Field {
                         path: vec!["$.vc.type[*]".to_string(), "$.type[*]".to_string()],
                         filter: Some(json!({"type": "string", "const": "SanctionsCredential"})),
                         ..Default::default()
@@ -212,7 +212,7 @@ mod tests {
         }];
 
         let pd_string = load_json("tests/resources/pd_sanctions.json");
-        let deserialized_pd: PresentationDefinitionV2 = serde_json::from_str(&pd_string).unwrap();
+        let deserialized_pd: PresentationDefinition = serde_json::from_str(&pd_string).unwrap();
 
         assert_eq!(deserialized_pd.id, expected_id);
         assert_eq!(deserialized_pd.format, Some(expected_format));
