@@ -10,7 +10,7 @@ use std::collections::HashMap;
 /// can use to articulate proof requirements, and a Presentation Submission data format Holders can
 /// use to describe proofs submitted in accordance with them.
 ///
-/// See [Presentation Definition](https://identity.foundation/presentation-exchange/#presentation-definition)
+/// See [Presentation Definition](https://identity.foundation/presentation-exchange/spec/v2.0.0/#presentation-definition)
 /// for more information.
 #[skip_serializing_none]
 #[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
@@ -26,7 +26,7 @@ pub struct PresentationDefinition {
 
 /// Represents an input descriptor in a presentation definition.
 ///
-/// See [Input Descriptor](https://identity.foundation/presentation-exchange/#input-descriptor-object)
+/// See [Input Descriptor](https://identity.foundation/presentation-exchange/spec/v2.0.0/#input-descriptor-object)
 /// for more information.
 #[skip_serializing_none]
 #[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
@@ -41,7 +41,7 @@ pub struct InputDescriptor {
 /// Represents constraints for an input descriptor.
 ///
 /// See 'constraints object' defined in
-/// [Input Descriptor](https://identity.foundation/presentation-exchange/#input-descriptor-object)
+/// [Input Descriptor](https://identity.foundation/presentation-exchange/spec/v2.0.0/#input-descriptor-object)
 /// for more information.
 #[skip_serializing_none]
 #[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
@@ -53,7 +53,7 @@ pub struct Constraints {
 /// Represents a field in a presentation input descriptor.
 ///
 /// See 'fields object' as defined in
-/// [Input Descriptor](https://identity.foundation/presentation-exchange/#input-descriptor-object)
+/// [Input Descriptor](https://identity.foundation/presentation-exchange/spec/v2.0.0/#input-descriptor-object)
 /// for more information.
 #[skip_serializing_none]
 #[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
@@ -84,7 +84,7 @@ impl Field {
 /// Enumeration representing consumer disclosure options.
 ///
 /// Represents the possible values of `limit_disclosure' property as defined in
-// [Input Descriptor](https://identity.foundation/presentation-exchange/#input-descriptor-object)
+// [Input Descriptor](https://identity.foundation/presentation-exchange/spec/v2.0.0/#input-descriptor-object)
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ConformantConsumerDisclosure {
@@ -95,7 +95,7 @@ pub enum ConformantConsumerDisclosure {
 /// Represents the format of a presentation definition
 ///
 /// See `format` as defined in
-/// [Input Descriptor](https://identity.foundation/presentation-exchange/#input-descriptor-object)
+/// [Input Descriptor](https://identity.foundation/presentation-exchange/spec/v2.0.0/#input-descriptor-object)
 /// and [Registry](https://identity.foundation/claim-format-registry/#registry)
 #[skip_serializing_none]
 #[derive(Debug, Default, Deserialize, PartialEq, Serialize)]
