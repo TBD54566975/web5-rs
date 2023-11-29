@@ -145,9 +145,11 @@ pub enum Optionality {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
+    use serde_json::{json, Value};
     use std::fs;
     use std::path::Path;
+    use serde_json::Serializer;
+    use serde_canonical_json::CanonicalFormatter;
 
     #[test]
     fn can_serialize() {
@@ -181,45 +183,19 @@ mod tests {
     }
 
     #[test]
-    fn can_deserialize() {
-        let expected_id = "ec11a434-fe24-479b-aae0-511428b37e4f";
+    fn serialized_and_deserialized_is_idempotent() {
+        let mut ser = Serializer::with_formatter(Vec::new(), CanonicalFormatter::new());
+        let raw_string = load_json("tests/resources/pd_sanctions.json");
+        let deserialized_value: Value = serde_json::from_str(&raw_string).unwrap();
+        deserialized_value.serialize(&mut ser).unwrap();
+        let json_value = String::from_utf8(ser.into_inner()).unwrap();
 
-        let expected_format = Format {
-            jwt_vc: Some(JwtObject {
-                alg: vec!["ES256K".to_string(), "EdDSA".to_string()],
-            }),
-            ..Default::default()
-        };
+        let mut ser = Serializer::with_formatter(Vec::new(), CanonicalFormatter::new());
+        let deserialized_with_type: PresentationDefinition = serde_json::from_str(&raw_string).unwrap();
+        deserialized_with_type.serialize(&mut ser).unwrap();
+        let json_serialized_from_type = String::from_utf8(ser.into_inner()).unwrap();
 
-        let expected_input_descriptors = vec![InputDescriptor {
-            id: "7b928839-f0b1-4237-893d-b27124b57952".to_string(),
-            constraints: Constraints {
-                fields: Some(vec![
-                    Field {
-                        path: vec!["$.iss".to_string(), "$.vc.issuer".to_string()],
-                        filter: Some(json!({"type": "string", "pattern": "^did:[^:]+:.+"})),
-                        ..Default::default()
-                    },
-                    Field {
-                        path: vec!["$.vc.type[*]".to_string(), "$.type[*]".to_string()],
-                        filter: Some(json!({"type": "string", "const": "SanctionsCredential"})),
-                        ..Default::default()
-                    },
-                ]),
-                ..Default::default()
-            },
-            ..Default::default()
-        }];
-
-        let pd_string = load_json("tests/resources/pd_sanctions.json");
-        let deserialized_pd: PresentationDefinition = serde_json::from_str(&pd_string).unwrap();
-
-        assert_eq!(deserialized_pd.id, expected_id);
-        assert_eq!(deserialized_pd.format, Some(expected_format));
-        assert_eq!(
-            deserialized_pd.input_descriptors,
-            expected_input_descriptors
-        );
+        assert_eq!(json_value, json_serialized_from_type);
     }
 
     fn load_json(path: &str) -> String {
