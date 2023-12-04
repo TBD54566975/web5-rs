@@ -145,11 +145,11 @@ pub enum Optionality {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_canonical_json::CanonicalFormatter;
+    use serde_json::Serializer;
     use serde_json::{json, Value};
     use std::fs;
     use std::path::Path;
-    use serde_json::Serializer;
-    use serde_canonical_json::CanonicalFormatter;
 
     #[test]
     fn can_serialize() {
@@ -191,7 +191,8 @@ mod tests {
         let json_value = String::from_utf8(ser.into_inner()).unwrap();
 
         let mut ser = Serializer::with_formatter(Vec::new(), CanonicalFormatter::new());
-        let deserialized_with_type: PresentationDefinition = serde_json::from_str(&raw_string).unwrap();
+        let deserialized_with_type: PresentationDefinition =
+            serde_json::from_str(&raw_string).unwrap();
         deserialized_with_type.serialize(&mut ser).unwrap();
         let json_serialized_from_type = String::from_utf8(ser.into_inner()).unwrap();
 
