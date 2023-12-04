@@ -14,6 +14,7 @@ repository = "https://github.com/TBD54566975/web5-rs.git"
 license-file = "LICENSE"
 
 [workspace.dependencies]
+bincode = "1.3.3"
 thiserror = "1.0.50"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"

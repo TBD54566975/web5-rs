@@ -16,6 +16,8 @@ pub enum KeyManagerError {
     KeyError(#[from] KeyError),
     #[error(transparent)]
     KeyStoreError(#[from] KeyStoreError),
+    #[error("{0}")]
+    InternalKeyManagerError(String),
 }
 
 /// A key management trait for generating, storing, and utilizing keys private keys and their
