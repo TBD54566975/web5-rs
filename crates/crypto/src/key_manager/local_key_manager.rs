@@ -91,7 +91,9 @@ mod tests {
     fn test_get_public_key() {
         let key_manager = LocalKeyManager::new_in_memory();
 
-        let key_alias = key_manager.generate_private_key(KeyAlgorithm::Ed25519).unwrap();
+        let key_alias = key_manager
+            .generate_private_key(KeyAlgorithm::Ed25519)
+            .unwrap();
 
         key_manager
             .get_public_key(&key_alias)
@@ -102,7 +104,9 @@ mod tests {
     #[test]
     fn test_sign() {
         let key_manager = LocalKeyManager::new_in_memory();
-        let key_alias = key_manager.generate_private_key(KeyAlgorithm::Ed25519).unwrap();
+        let key_alias = key_manager
+            .generate_private_key(KeyAlgorithm::Ed25519)
+            .unwrap();
 
         // Sign a payload
         let payload: &[u8] = b"hello world";
@@ -117,7 +121,9 @@ mod tests {
     #[test]
     fn test_alias() {
         let key_manager = LocalKeyManager::new_in_memory();
-        let key_alias = key_manager.generate_private_key(KeyAlgorithm::Ed25519).unwrap();
+        let key_alias = key_manager
+            .generate_private_key(KeyAlgorithm::Ed25519)
+            .unwrap();
 
         let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
         let alias = key_manager.alias(&public_key).unwrap();

@@ -1,4 +1,4 @@
-use crate::key::{KeyError, KeyAlgorithm, PublicKey};
+use crate::key::{KeyAlgorithm, KeyError, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
 use ssi_jwk::Error as JWKError;
 
