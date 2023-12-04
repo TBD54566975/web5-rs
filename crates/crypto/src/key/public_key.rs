@@ -14,8 +14,7 @@ impl PublicKey {
     ) -> Result<VerificationWarnings, KeyError> {
         let algorithm = self.0.get_algorithm().ok_or(KeyError::AlgorithmNotFound)?;
 
-        let verification_warnings =
-            verify_bytes_warnable(algorithm, payload, &self.0, signature)?;
+        let verification_warnings = verify_bytes_warnable(algorithm, payload, &self.0, signature)?;
 
         Ok(verification_warnings)
     }
