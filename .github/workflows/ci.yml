@@ -14,7 +14,7 @@ env:
   RUSTFLAGS: "-Dwarnings"
 
 jobs:
-  clippy_check:
+  clippy:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Run Clippy
-        run: cargo clippy --all-targets --all-features
+        run: cargo clippy --workspace
   test:
     name: cargo test
     strategy:
