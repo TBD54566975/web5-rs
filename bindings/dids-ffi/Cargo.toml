@@ -1,0 +1,16 @@
+[package]
+name = "dids-ffi"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+crypto-ffi = { path = "../crypto-ffi" }
+dids = { path = "../../crates/dids" }
+thiserror = { workspace = true }
+uniffi = { workspace = true }
+
+[build-dependencies]
+uniffi = { workspace = true, features = ["build"] }

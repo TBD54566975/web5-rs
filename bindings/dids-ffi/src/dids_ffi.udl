@@ -1,0 +1,32 @@
+namespace dids_ffi {};
+
+[External="crypto_ffi"]
+typedef extern KeyType;
+
+[ExternalInterface="crypto_ffi"]
+typedef extern KeyManager;
+
+[Error]
+interface DidsError {
+    InternalError(string message);
+};
+
+dictionary DidJwkCreateOptions {
+    KeyType key_type;
+};
+
+interface DidJwk {
+    [Throws=DidsError]
+    constructor(KeyManager key_manager, DidJwkCreateOptions options);
+    string uri();
+};
+
+dictionary DidKeyCreateOptions {
+    KeyType key_type;
+};
+
+interface DidKey {
+    [Throws=DidsError]
+    constructor(KeyManager key_manager, DidKeyCreateOptions options);
+    string uri();
+};

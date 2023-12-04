@@ -1,0 +1,20 @@
+[package]
+name = "web5-ffi"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[dependencies]
+crypto-ffi = { path = "../crypto-ffi" }
+dids = { path = "../../crates/dids" }
+dids-ffi = { path = "../dids-ffi" }
+thiserror = { workspace = true }
+uniffi = { workspace = true }
+
+[build-dependencies]
+uniffi = { workspace = true, features = ["build"] }
