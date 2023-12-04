@@ -8,6 +8,12 @@ pub struct InMemoryKeyStore {
     map: RwLock<HashMap<String, PrivateKey>>,
 }
 
+impl Default for InMemoryKeyStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InMemoryKeyStore {
     pub fn new() -> Self {
         let map = RwLock::new(HashMap::new());

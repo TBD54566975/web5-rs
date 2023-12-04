@@ -15,7 +15,7 @@ impl PublicKey {
         let algorithm = self.0.get_algorithm().ok_or(KeyError::AlgorithmNotFound)?;
 
         let verification_warnings =
-            verify_bytes_warnable(algorithm, &payload, &self.0, &signature)?;
+            verify_bytes_warnable(algorithm, payload, &self.0, signature)?;
 
         Ok(verification_warnings)
     }
@@ -39,7 +39,7 @@ mod tests {
         let signature = private_key.sign(payload).unwrap();
 
         let public_key = private_key.to_public();
-        let verification_warnings = public_key.verify(&payload, &signature).unwrap();
+        let verification_warnings = public_key.verify(payload, &signature).unwrap();
         assert_eq!(verification_warnings.len(), 0);
     }
 
@@ -51,7 +51,7 @@ mod tests {
 
         // public_key is unrelated to the private_key used to sign the payload, so it should fail
         let public_key = PublicKey(JWK::generate_secp256k1().unwrap());
-        let verification_warnings = public_key.verify(&payload, &signature);
+        let verification_warnings = public_key.verify(payload, &signature);
         assert!(verification_warnings.is_err());
     }
 }

@@ -56,7 +56,7 @@ impl KeyManager for LocalKeyManager {
             .get(key_alias)?
             .ok_or(KeyManagerError::SigningKeyNotFound)?;
 
-        let signed_payload = private_key.sign(&payload.to_vec())?;
+        let signed_payload = private_key.sign(payload)?;
 
         Ok(signed_payload)
     }

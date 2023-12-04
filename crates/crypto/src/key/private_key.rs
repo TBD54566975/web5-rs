@@ -14,7 +14,7 @@ impl PrivateKey {
     /// Sign a payload using the target [`PrivateKey`].
     pub fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyError> {
         let algorithm = self.0.get_algorithm().ok_or(KeyError::AlgorithmNotFound)?;
-        let signed_bytes = sign_bytes(algorithm, &payload, &self.0)?;
+        let signed_bytes = sign_bytes(algorithm, payload, &self.0)?;
 
         Ok(signed_bytes)
     }
