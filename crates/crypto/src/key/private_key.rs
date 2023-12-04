@@ -1,4 +1,5 @@
-use crate::key::{Key, KeyError, PublicKey};
+use crate::key::public_key::PublicKey;
+use crate::key::{Key, KeyError};
 use ssi_jwk::JWK;
 use ssi_jws::sign_bytes;
 

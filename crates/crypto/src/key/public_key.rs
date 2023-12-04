@@ -29,7 +29,7 @@ impl Key for PublicKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::key::PrivateKey;
+    use crate::key::private_key::PrivateKey;
 
     #[test]
     fn test_verify() {

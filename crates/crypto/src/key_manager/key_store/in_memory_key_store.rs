@@ -1,4 +1,4 @@
-use crate::key::PrivateKey;
+use crate::key::private_key::PrivateKey;
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
 use std::collections::HashMap;
 use std::sync::RwLock;
@@ -47,7 +47,7 @@ impl KeyStore for InMemoryKeyStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::key::PrivateKey;
+    use crate::key::private_key::PrivateKey;
     use ssi_jwk::JWK;
 
     fn new_private_key() -> PrivateKey {
