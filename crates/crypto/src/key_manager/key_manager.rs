@@ -1,4 +1,4 @@
-use crate::key::{KeyError, KeyType, PublicKey};
+use crate::key::{KeyError, KeyAlgorithm, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
 use ssi_jwk::Error as JWKError;
 
@@ -21,10 +21,10 @@ pub enum KeyManagerError {
 /// Systems (KMS), such as AWS KMS, Google Cloud KMD, Hardware Security Modules (HSM), or simple
 /// in-memory storage, each adhering to the same consistent API for usage within applications.
 pub trait KeyManager: Send + Sync {
-    /// Generates and securely stores a private key based on the provided `key_type`,
+    /// Generates and securely stores a private key based on the provided `key_algorithm`,
     /// returning a unique alias that can be utilized to reference the generated key for future
     /// operations.
-    fn generate_private_key(&self, key_type: KeyType) -> Result<String, KeyManagerError>;
+    fn generate_private_key(&self, key_algorithm: KeyAlgorithm) -> Result<String, KeyManagerError>;
 
     /// Returns the public key associated with the provided `key_alias`, if one exists.
     fn get_public_key(&self, key_alias: &str) -> Result<Option<PublicKey>, KeyManagerError>;
