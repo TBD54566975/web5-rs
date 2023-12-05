@@ -47,7 +47,7 @@ impl DidMethod<DidJwk, DidJwkCreateOptions> for DidJwk {
                 ))?;
 
         let uri = SpruceDidJwkMethod
-            .generate(&Source::Key(&public_key.jwk()))
+            .generate(&Source::Key(public_key.jwk()))
             .ok_or(DidMethodError::DidCreationFailure(
                 "Failed to generate did:jwk".to_string(),
             ))?;

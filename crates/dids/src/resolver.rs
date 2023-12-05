@@ -20,7 +20,7 @@ impl DidResolver {
         match method_name {
             DidJwk::NAME => DidJwk::resolve_uri(did_uri).await,
             DidWeb::NAME => DidWeb::resolve_uri(did_uri).await,
-            _ => return DidResolutionResult::from_error(ERROR_METHOD_NOT_SUPPORTED),
+            _ => DidResolutionResult::from_error(ERROR_METHOD_NOT_SUPPORTED),
         }
     }
 
