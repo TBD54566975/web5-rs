@@ -73,24 +73,29 @@ mod tests {
     use crypto::key_manager::local_key_manager::LocalKeyManager;
     use ssi_dids::did_resolve::ERROR_INVALID_DID;
 
-    fn create_did_key() -> DidKey {
+    fn create_did_key(key_type: KeyType) -> DidKey {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());
-        let options = DidKeyCreateOptions {
-            key_type: KeyType::Ed25519,
-        };
 
-        DidKey::create(key_manager, options).expect("DidKey creation failed")
+        DidKey::create(key_manager, DidKeyCreateOptions { key_type })
+            .expect("DidKey creation failed")
     }
 
     #[test]
     fn create_produces_correct_uri() {
-        let did = create_did_key();
+        let did = create_did_key(KeyType::Ed25519);
         assert!(did.uri.starts_with("did:key:"));
+    }
+
+    #[test]
+    fn create_each_key_type() {
+        create_did_key(KeyType::Ed25519);
+        create_did_key(KeyType::Secp256k1);
+        create_did_key(KeyType::Secp256r1);
     }
 
     #[tokio::test]
     async fn instance_resolve() {
-        let did = create_did_key();
+        let did = create_did_key(KeyType::Ed25519);
         let result = did.resolve().await;
         assert!(result.did_resolution_metadata.error.is_none());
 
@@ -100,7 +105,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_uri_success() {
-        let did = create_did_key();
+        let did = create_did_key(KeyType::Ed25519);
         let result = DidKey::resolve_uri(&did.uri).await;
         assert!(result.did_resolution_metadata.error.is_none());
 
