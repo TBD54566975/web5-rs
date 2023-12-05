@@ -1,4 +1,5 @@
-use crate::key::{Key, KeyError, PublicKey};
+use crate::key::public_key::PublicKey;
+use crate::key::{Key, KeyError};
 use ssi_jwk::JWK;
 use ssi_jws::sign_bytes;
 
@@ -14,7 +15,7 @@ impl PrivateKey {
     /// Sign a payload using the target [`PrivateKey`].
     pub fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyError> {
         let algorithm = self.0.get_algorithm().ok_or(KeyError::AlgorithmNotFound)?;
-        let signed_bytes = sign_bytes(algorithm, &payload, &self.0)?;
+        let signed_bytes = sign_bytes(algorithm, payload, &self.0)?;
 
         Ok(signed_bytes)
     }

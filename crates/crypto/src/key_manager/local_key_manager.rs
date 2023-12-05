@@ -1,5 +1,8 @@
-use crate::key::{KeyType, PrivateKey, PublicKey};
-use crate::key_manager::key_store::{InMemoryKeyStore, KeyStore};
+use crate::key::private_key::PrivateKey;
+use crate::key::public_key::PublicKey;
+use crate::key::KeyType;
+use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
+use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
 use ssi_jwk::JWK;
 use std::sync::Arc;
@@ -56,7 +59,7 @@ impl KeyManager for LocalKeyManager {
             .get(key_alias)?
             .ok_or(KeyManagerError::SigningKeyNotFound)?;
 
-        let signed_payload = private_key.sign(&payload.to_vec())?;
+        let signed_payload = private_key.sign(payload)?;
 
         Ok(signed_payload)
     }

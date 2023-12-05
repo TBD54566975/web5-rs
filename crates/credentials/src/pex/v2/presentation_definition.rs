@@ -69,15 +69,12 @@ pub struct Field {
 
 impl Field {
     pub fn filter_schema(&self) -> Option<JSONSchema> {
-        self.filter
-            .as_ref()
-            .map(|json| {
-                JSONSchema::options()
-                    .with_draft(Draft::Draft7)
-                    .compile(json)
-                    .ok()
-            })
-            .flatten()
+        self.filter.as_ref().and_then(|json| {
+            JSONSchema::options()
+                .with_draft(Draft::Draft7)
+                .compile(json)
+                .ok()
+        })
     }
 }
 
@@ -201,7 +198,7 @@ mod tests {
 
     fn load_json(path: &str) -> String {
         let path = Path::new(path);
-        let json = fs::read_to_string(path).expect("Unable to load json file");
-        json
+
+        fs::read_to_string(path).expect("Unable to load json file")
     }
 }
