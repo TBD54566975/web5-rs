@@ -1,4 +1,5 @@
 pub mod jwk;
+pub mod web;
 
 use crate::did::Did;
 use crate::resolver::DidResolutionResult;
