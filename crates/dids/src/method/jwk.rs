@@ -47,7 +47,7 @@ impl DidMethod<DidJwk, DidJwkCreateOptions> for DidJwk {
                 ))?;
 
         let uri = SpruceDidJwkMethod
-            .generate(&Source::Key(&public_key.jwk()))
+            .generate(&Source::Key(public_key.jwk()))
             .ok_or(DidMethodError::DidCreationFailure(
                 "Failed to generate did:jwk".to_string(),
             ))?;
@@ -72,10 +72,11 @@ impl DidMethod<DidJwk, DidJwkCreateOptions> for DidJwk {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crypto::key_manager::local_key_manager::LocalKeyManager;
     use ssi_dids::did_resolve::ERROR_INVALID_DID;
 
     fn create_did_jwk() -> DidJwk {
-        let key_manager = Arc::new(crypto::key_manager::LocalKeyManager::new_in_memory());
+        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
             key_type: KeyType::Ed25519,
         };
