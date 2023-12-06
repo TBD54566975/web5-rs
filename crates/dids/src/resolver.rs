@@ -1,4 +1,5 @@
 use crate::method::jwk::DidJwk;
+use crate::method::key::DidKey;
 use crate::method::web::DidWeb;
 use crate::method::DidMethod;
 use serde::{Deserialize, Serialize};
@@ -19,6 +20,7 @@ impl DidResolver {
 
         match method_name {
             DidJwk::NAME => DidJwk::resolve_uri(did_uri).await,
+            DidKey::NAME => DidKey::resolve_uri(did_uri).await,
             DidWeb::NAME => DidWeb::resolve_uri(did_uri).await,
             _ => DidResolutionResult::from_error(ERROR_METHOD_NOT_SUPPORTED),
         }
@@ -82,6 +84,16 @@ mod tests {
     #[tokio::test]
     async fn resolve_did_jwk() {
         let did_uri = "did:jwk:eyJjcnYiOiJQLTI1NiIsImt0eSI6IkVDIiwieCI6ImFjYklRaXVNczNpOF91c3pFakoydHBUdFJNNEVVM3l6OTFQSDZDZEgyVjAiLCJ5IjoiX0tjeUxqOXZXTXB0bm1LdG00NkdxRHo4d2Y3NEk1TEtncmwyR3pIM25TRSJ9";
+        let result = DidResolver::resolve_uri(did_uri).await;
+        assert!(result.did_resolution_metadata.error.is_none());
+
+        let did_document = result.did_document.unwrap();
+        assert_eq!(did_document.id, did_uri);
+    }
+
+    #[tokio::test]
+    async fn resolve_did_key() {
+        let did_uri = "did:key:zQ3shokFTS3brHcDQrn82RUDfCZESWL1ZdCEJwekUDPQiYBme";
         let result = DidResolver::resolve_uri(did_uri).await;
         assert!(result.did_resolution_metadata.error.is_none());
 

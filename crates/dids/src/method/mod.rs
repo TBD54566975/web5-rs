@@ -1,4 +1,5 @@
 pub mod jwk;
+pub mod key;
 pub mod web;
 
 use crate::did::Did;

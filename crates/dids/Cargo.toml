@@ -10,6 +10,7 @@ license-file.workspace = true
 async-trait = "0.1.74"
 crypto = { path = "../crypto" }
 did-jwk = "0.1.1"
+did-method-key = "0.2.2"
 did-web = "0.2.2"
 serde = { workspace = true }
 serde_json = { workspace = true }
