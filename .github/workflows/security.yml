@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - main
-      - leordev/* # todo: remove this line before merging
 
   # Run every day at 5am UTC
   schedule:
