@@ -12,7 +12,7 @@ crate-type = ["lib", "cdylib", "staticlib"]
 [dependencies]
 crypto-ffi = { path = "../crypto-ffi" }
 dids = { path = "../../crates/dids" }
-#dids-ffi = { path = "../dids-ffi" }
+dids-ffi = { path = "../dids-ffi" }
 thiserror = { workspace = true }
 uniffi = { workspace = true }
 

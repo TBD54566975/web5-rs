@@ -1,10 +1,10 @@
 import SwiftUI
 import crypto_ffiFFI
-//import dids_ffiFFI
+import dids_ffiFFI
 
 func createKeyManager() -> KeyManager {
-  let keyStore = KeyStore.inMemory()
-  let keyManager = KeyManager.withKeyStore(keyStore: keyStore)
+  let keyStore = KeyStore.newInMemory()
+  let keyManager = KeyManager.newWithKeyStore(keyStore: keyStore)
   return keyManager
 }
 
@@ -13,21 +13,17 @@ var keyManager = createKeyManager()
 struct ContentView: View {
   var body: some View {
     VStack(spacing: 10) {
-//      Button("Generate did:jwk") {
-//        Task {
-//          let didJwk = try! DidJwk(keyManager: keyManager, options: .init(keyAlgorithm: .secp256k1))
-//          didJwk.uri().hasPrefix("did:jwk:")
-//          print("didJwk uri: \(didJwk.uri())")
-//        }
-//      }
-//      Button("Generate did:key") {
-//        Task {
-//          let didKey = try! DidKey(keyManager: keyManager, options: .init(keyAlgorithm: .secp256k1))
-//          print("didKey uri: \(didKey.uri())")
-//        }
-//      }
-      Button("Test") {
-        print("testing: \(keyManager.test())")
+      Button("Generate did:jwk") {
+        Task {
+          let didJwk = try! DidJwk(keyManager: keyManager, options: .init(keyType: .secp256k1))
+          print("didJwk uri: \(didJwk.uri())")
+        }
+      }
+      Button("Generate did:key") {
+        Task {
+          let didKey = try! DidKey(keyManager: keyManager, options: .init(keyType: .secp256k1))
+          print("didKey uri: \(didKey.uri())")
+        }
       }
       Button("Reset KeyManager") {
         keyManager = createKeyManager()

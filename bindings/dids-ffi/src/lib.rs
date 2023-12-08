@@ -2,10 +2,11 @@ mod did_jwk;
 mod did_key;
 mod error;
 
-pub use crate::did_jwk::DidJwk;
-pub use crate::did_key::DidKey;
-pub use crate::error::DidsError;
-pub use crypto_ffi::{KeyManager, KeyType};
-pub use dids::did::{DidJwkCreateOptions, DidKeyCreateOptions};
+use crate::did_jwk::DidJwk;
+use crate::did_key::DidKey;
+use crate::error::DidsError;
+use crypto_ffi::{KeyManager, KeyType};
+use dids::method::jwk::DidJwkCreateOptions;
+use dids::method::key::DidKeyCreateOptions;
 
 uniffi::include_scaffolding!("dids_ffi");
