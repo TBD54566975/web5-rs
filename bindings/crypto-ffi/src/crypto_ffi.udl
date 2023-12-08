@@ -1,4 +1,6 @@
-namespace crypto_ffi {};
+namespace crypto_ffi {
+
+};
 
 enum KeyType {
     "Secp256k1",
@@ -12,7 +14,7 @@ interface CryptoError {
 };
 
 [Trait]
-interface KeyManagerTrait {
+interface CustomKeyManager {
     [Throws=CryptoError]
     string generate_private_key(KeyType key_type);
     [Throws=CryptoError]
@@ -24,15 +26,22 @@ interface KeyManagerTrait {
 };
 
 [Trait]
-interface KeyStoreTrait {
+interface CustomKeyStore {
     [Throws=CryptoError]
     PrivateKey? get(string key_alias);
     [Throws=CryptoError]
     void insert(string key_alias, PrivateKey private_key);
 };
 
+interface KeyManager {
+    [Name=with_key_store]
+    constructor(KeyStore key_store);
+};
+
 interface KeyStore {
-    constructor(KeyStoreTrait trait);
+    constructor(CustomKeyStore custom_key_store);
+    [Name=in_memory]
+    constructor();
 };
 
 interface PrivateKey {

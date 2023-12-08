@@ -1,21 +1,19 @@
-use crate::error::Result;
-use crate::key::private_key::PrivateKey;
-use crypto::key::private_key::PrivateKey as CryptoPrivateKey;
-use crypto::key_manager::key_store::{
-    KeyStore as CryptoKeyStore, KeyStoreError as CryptoKeyStoreError,
-};
+pub mod custom_key_store;
+
+use crypto::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
+use crypto::key_manager::key_store::KeyStore as CryptoKeyStore;
+use custom_key_store::{CustomKeyStore, CustomKeyStoreAdapter};
 use std::sync::Arc;
 
-pub trait KeyStoreTrait: Send + Sync {
-    fn get(&self, key_alias: String) -> Result<Option<Arc<PrivateKey>>>;
-    fn insert(&self, key_alias: String, private_key: Arc<PrivateKey>) -> Result<()>;
-}
-
-pub struct KeyStore(Arc<dyn KeyStoreTrait>);
+pub struct KeyStore(pub(crate) Box<dyn CryptoKeyStore>);
 
 impl KeyStore {
-    pub fn new(key_store: Arc<dyn KeyStoreTrait>) -> Self {
-        Self(key_store)
+    pub fn new(custom_key_store: Arc<dyn CustomKeyStore>) -> Self {
+        Self(Box::new(CustomKeyStoreAdapter(custom_key_store)))
+    }
+
+    pub fn in_memory() -> Self {
+        Self(Box::new(InMemoryKeyStore::new()))
     }
 }
 
@@ -23,18 +21,18 @@ impl CryptoKeyStore for KeyStore {
     fn get(
         &self,
         key_alias: &str,
-    ) -> std::result::Result<Option<CryptoPrivateKey>, CryptoKeyStoreError> {
-        let private_key = self.0.get(key_alias.to_string())?;
-        Ok(private_key.map(|k| k.0.clone()))
+    ) -> Result<
+        Option<crypto::key::private_key::PrivateKey>,
+        crypto::key_manager::key_store::KeyStoreError,
+    > {
+        Ok(self.0.get(key_alias)?)
     }
 
     fn insert(
         &self,
         key_alias: &str,
-        private_key: CryptoPrivateKey,
-    ) -> std::result::Result<(), CryptoKeyStoreError> {
-        self.0
-            .insert(key_alias.to_string(), Arc::new(private_key.into()))?;
-        Ok(())
+        private_key: crypto::key::private_key::PrivateKey,
+    ) -> Result<(), crypto::key_manager::key_store::KeyStoreError> {
+        Ok(self.0.insert(key_alias, private_key)?)
     }
 }
