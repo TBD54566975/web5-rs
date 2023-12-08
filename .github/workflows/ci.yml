@@ -29,9 +29,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/audit-check@v1.4.1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run audit
+        run: cargo audit
   test:
     name: cargo test
     strategy:
