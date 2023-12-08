@@ -4,7 +4,7 @@ use crypto::key::private_key::PrivateKey as CryptoPrivateKey;
 pub struct PrivateKey(pub(crate) CryptoPrivateKey);
 
 impl PrivateKey {
-    pub fn new(bytes: Vec<u8>) -> Result<Self> {
+    pub fn new(bytes: &[u8]) -> Result<Self> {
         Ok(Self(bincode::deserialize(&bytes)?))
     }
 

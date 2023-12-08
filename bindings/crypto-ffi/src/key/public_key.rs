@@ -4,7 +4,7 @@ use crypto::key::public_key::PublicKey as CryptoPublicKey;
 pub struct PublicKey(pub(crate) CryptoPublicKey);
 
 impl PublicKey {
-    pub fn new(bytes: Vec<u8>) -> Result<Self> {
+    pub fn new(bytes: &[u8]) -> Result<Self> {
         Ok(Self(bincode::deserialize(&bytes)?))
     }
 

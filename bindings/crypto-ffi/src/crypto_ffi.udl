@@ -45,14 +45,14 @@ interface KeyStore {
 
 interface PrivateKey {
     [Throws=CryptoError]
-    constructor(bytes bytes);
+    constructor([ByRef] bytes bytes);
     [Throws=CryptoError]
     bytes to_bytes();
 };
 
 interface PublicKey {
     [Throws=CryptoError]
-    constructor(bytes bytes);
+    constructor([ByRef] bytes bytes);
     [Throws=CryptoError]
     bytes to_bytes();
 };
