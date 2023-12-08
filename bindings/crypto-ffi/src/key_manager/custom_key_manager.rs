@@ -1,6 +1,10 @@
 use crate::error::Result;
 use crate::key::public_key::PublicKey;
+use crypto::key::public_key::PublicKey as CryptoPublicKey;
 use crypto::key::KeyType;
+use crypto::key_manager::{
+    KeyManager as CryptoKeyManager, KeyManagerError as CryptoKeyManagerError,
+};
 use std::sync::Arc;
 
 /// A trait for foreign languages to implement their own custom key manager logic.
@@ -15,31 +19,29 @@ pub trait CustomKeyManager: Send + Sync {
     fn alias(&self, public_key: Arc<PublicKey>) -> Result<String>;
 }
 
-// Accidental implementation from KeyStore. Can be re-used with some finagling.
-// struct CustomKeyStoreAdapter(dyn CustomKeyStore);
-//
-// impl CryptoKeyManager for CustomKeyStoreAdapter {
-//     fn generate_private_key(&self, key_type: KeyType) -> Result<String, CryptoKeyManagerError> {
-//         Ok(self.0.generate_private_key(key_type)?)
-//     }
-//
-//     fn get_public_key(
-//         &self,
-//         key_alias: &str,
-//     ) -> Result<Option<CryptoPublicKey>, CryptoKeyManagerError> {
-//         let public_key = self.0.get(key_alias.to_string())?;
-//         Ok(public_key.map(|k| k.0.clone()))
-//     }
-//
-//     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, CryptoKeyManagerError> {
-//         Ok(self.0.sign(key_alias.to_string(), payload.to_vec())?)
-//     }
-//
-//     fn alias(
-//         &self,
-//         public_key: &crypto::key::public_key::PublicKey,
-//     ) -> Result<String, CryptoKeyManagerError> {
-//         let public_key = crypto::key::public_key::PublicKey(public_key.clone());
-//         Ok(self.0.alias(Arc::new(public_key))?)
-//     }
-// }
+pub(crate) struct CustomKeyManagerAdapter(pub(crate) Arc<dyn CustomKeyManager>);
+
+impl CryptoKeyManager for CustomKeyManagerAdapter {
+    fn generate_private_key(&self, key_type: KeyType) -> Result<String, CryptoKeyManagerError> {
+        Ok(self.0.generate_private_key(key_type)?)
+    }
+
+    fn get_public_key(
+        &self,
+        key_alias: &str,
+    ) -> Result<Option<CryptoPublicKey>, CryptoKeyManagerError> {
+        Ok(self
+            .0
+            .get_public_key(key_alias.to_string())?
+            .map(|pk| pk.0.clone()))
+    }
+
+    fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, CryptoKeyManagerError> {
+        Ok(self.0.sign(key_alias.to_string(), payload.to_vec())?)
+    }
+    fn alias(&self, public_key: &CryptoPublicKey) -> Result<String, CryptoKeyManagerError> {
+        Ok(self
+            .0
+            .alias(Arc::new(PublicKey::from(public_key.clone())))?)
+    }
+}

@@ -1,10 +1,11 @@
 import SwiftUI
 import crypto_ffiFFI
-import dids_ffiFFI
+//import dids_ffiFFI
 
 func createKeyManager() -> KeyManager {
-//  return KeyManager.inMemory()
-  return KeyManager(keyStore: SwiftKeyStore())
+  let keyStore = KeyStore.inMemory()
+  let keyManager = KeyManager.withKeyStore(keyStore: keyStore)
+  return keyManager
 }
 
 var keyManager = createKeyManager()
@@ -12,54 +13,22 @@ var keyManager = createKeyManager()
 struct ContentView: View {
   var body: some View {
     VStack(spacing: 10) {
-//      Button("Generate a private key") {
-//        let _ = try! keyManager.generatePrivateKey(keyAlgorithm: .secp256k1)
-//      }
-//      Button("Generate Key Only") {
-//        let keyAlias = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
-//        let key = try! keyManager.getPublicKey(keyAlias: keyAlias)
-//        print("Generated Key: \(key!.toJson())")
-//      }
-      Button("Generate did:jwk") {
-        Task {
-          let didJwk = try! DidJwk(keyManager: keyManager, options: .init(keyAlgorithm: .secp256k1))
-          didJwk.uri().hasPrefix("did:jwk:")
-          print("didJwk uri: \(didJwk.uri())")
-        }
-      }
-      Button("Generate did:key") {
-        Task {
-          let didKey = try! DidKey(keyManager: keyManager, options: .init(keyAlgorithm: .secp256k1))
-          print("didKey uri: \(didKey.uri())")
-        }
-      }
-//      Button("Sign & Verify with new Key") {
-//        let keyAlias = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
-//
-//        let payload = "Hello, world!".data(using: .utf8)!
-//        let signature = keyManager.sign(keyAlias: keyAlias, payload: payload)
-//
-//        let publicKey = try! keyManager.getPublicKey(keyAlias: keyAlias)!;
-//        let result = publicKey.verify(payload: payload, signature: signature)
-//        print("Verification Result: \(result)")
-//      }
-//      Button("Sign & Verify with new different keys") {
-//        let keyAlias = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
-//        let payload = "Hello, world!".data(using: .utf8)!
-//        let signature = keyManager.sign(keyAlias: keyAlias, payload: payload)
-//
-//        let keyAlias2 = try! keyManager.generatePrivateKey(keyAlgorithm: .ed25519)
-//        let publicKey2 = try! keyManager.getPublicKey(keyAlias: keyAlias2)!;
-//        let result = publicKey2.verify(payload: payload, signature: signature)
-//        print("Verification Result: \(result)")
-//      }
-//      Button("Print KeyStore keys") {
-//        let allPrivateKeys = try! keyManager.getKeyStore().dump()
-//        for pk in allPrivateKeys {
-//          print("Key: \(pk.toJson())")
+//      Button("Generate did:jwk") {
+//        Task {
+//          let didJwk = try! DidJwk(keyManager: keyManager, options: .init(keyAlgorithm: .secp256k1))
+//          didJwk.uri().hasPrefix("did:jwk:")
+//          print("didJwk uri: \(didJwk.uri())")
 //        }
-//        print("Total key count: \(allPrivateKeys.count)")
 //      }
+//      Button("Generate did:key") {
+//        Task {
+//          let didKey = try! DidKey(keyManager: keyManager, options: .init(keyAlgorithm: .secp256k1))
+//          print("didKey uri: \(didKey.uri())")
+//        }
+//      }
+      Button("Test") {
+        print("testing: \(keyManager.test())")
+      }
       Button("Reset KeyManager") {
         keyManager = createKeyManager()
       }

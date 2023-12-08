@@ -1,6 +1,4 @@
-namespace crypto_ffi {
-
-};
+namespace crypto_ffi {};
 
 enum KeyType {
     "Secp256k1",
@@ -34,13 +32,14 @@ interface CustomKeyStore {
 };
 
 interface KeyManager {
-    [Name=with_key_store]
+    constructor(CustomKeyManager custom);
+    [Name=new_with_key_store]
     constructor(KeyStore key_store);
 };
 
 interface KeyStore {
-    constructor(CustomKeyStore custom_key_store);
-    [Name=in_memory]
+    constructor(CustomKeyStore custom);
+    [Name=new_in_memory]
     constructor();
 };
 
