@@ -12,6 +12,13 @@ use crypto::key_manager::{
 use custom_key_manager::CustomKeyManagerAdapter;
 use std::sync::Arc;
 
+/// Concrete `KeyManager` struct, exposed to foreign languages.
+///
+/// This struct is a new type around the [`crypto::key_manager::KeyManager`] trait, which is not
+/// exposed to foreign languages because it is incompatible with FFI. However, the
+/// [`crypto::key_manager::KeyManager`] trait is used as a parameter for various other areas
+/// within the `web5-rs` codebase (e.g. creating a DID). This struct allows foreign languages to
+/// instantiate one of those trait objects, and then use it in those various other areas.
 pub struct KeyManager(Box<dyn CryptoKeyManager>);
 
 impl KeyManager {

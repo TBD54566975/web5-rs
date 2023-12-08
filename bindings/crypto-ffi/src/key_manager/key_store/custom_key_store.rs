@@ -16,7 +16,7 @@ pub trait CustomKeyStore: Send + Sync {
     fn insert(&self, key_alias: String, private_key: Arc<PrivateKey>) -> Result<()>;
 }
 
-// An adapter allows a [`CustomKeyStore`] to be used as a [`CryptoKeyStore`].
+// An adapter which allows a [`CustomKeyStore`] to be used as a [`CryptoKeyStore`].
 //
 // Foreign languages can implement their own custom key store logic by implementing the
 // [`CustomKeyStore`] trait. However, [`CustomKeyStore`] is not compatible with the Rust

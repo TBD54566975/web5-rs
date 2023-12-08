@@ -1,6 +1,7 @@
 use crate::error::Result;
 use crypto::key::public_key::PublicKey as CryptoPublicKey;
 
+/// Public key struct, exposed to foreign languages.
 pub struct PublicKey(pub(crate) CryptoPublicKey);
 
 impl PublicKey {

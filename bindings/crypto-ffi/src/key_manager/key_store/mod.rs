@@ -8,6 +8,12 @@ use crypto::key_manager::key_store::{
 use custom_key_store::{CustomKeyStore, CustomKeyStoreAdapter};
 use std::sync::Arc;
 
+/// Concrete `KeyStore` struct, exposed to foreign languages.
+///
+/// This struct is a new type around the [`crypto::key_manager::key_store::KeyStore`] trait, which
+/// is not exposed to foreign languages because it is incompatible with FFI. This struct allows
+/// foreign languages to create and manage their own instance of a KeyStore, without the need of
+/// exposing the underlying trait directly.
 pub struct KeyStore(pub(crate) Box<dyn CryptoKeyStore>);
 
 impl KeyStore {

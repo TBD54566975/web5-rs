@@ -1,6 +1,7 @@
 use crate::error::Result;
 use crypto::key::private_key::PrivateKey as CryptoPrivateKey;
 
+/// Private key struct, exposed to foreign languages.
 pub struct PrivateKey(pub(crate) CryptoPrivateKey);
 
 impl PrivateKey {

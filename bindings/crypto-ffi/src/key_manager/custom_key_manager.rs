@@ -19,6 +19,14 @@ pub trait CustomKeyManager: Send + Sync {
     fn alias(&self, public_key: Arc<PublicKey>) -> Result<String>;
 }
 
+// An adapter which allows a [`CustomKeyManager`] to be used as a [`CryptoKeyManager`].
+//
+// Foreign languages can implement their own custom key manager logic by implementing the
+// [`CustomKeyManager`] trait. However, [`CustomKeyManager`] is not compatible with the Rust
+// library's [`KeyManager`] trait, as the fields & return types are different.
+//
+// This adapter does all the necessary bridging between the two traits, allowing the
+// [`CustomKeyManager`] to be used as a [`CryptoKeyManager`] within the larger Rust codebase.
 pub(crate) struct CustomKeyManagerAdapter(pub(crate) Arc<dyn CustomKeyManager>);
 
 impl CryptoKeyManager for CustomKeyManagerAdapter {
