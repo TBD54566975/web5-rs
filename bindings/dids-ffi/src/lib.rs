@@ -1,10 +1,9 @@
-mod did_jwk;
-mod did_key;
 mod error;
+mod method;
 
-use crate::did_jwk::DidJwk;
-use crate::did_key::DidKey;
 use crate::error::DidsError;
+use crate::method::jwk::DidJwk;
+use crate::method::key::DidKey;
 use crypto_ffi::{KeyManager, KeyType};
 use dids::method::jwk::DidJwkCreateOptions;
 use dids::method::key::DidKeyCreateOptions;
