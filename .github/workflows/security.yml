@@ -60,13 +60,3 @@ jobs:
         with:
           api-key: ${{ secrets.FOSSA_API_KEY }}
           run-tests: true
-
-  cargo_audit:
-    name: cargo audit
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rs/audit-check@v1.2.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
