@@ -17,6 +17,17 @@ on:
   workflow_dispatch:
 
 jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Run Cargo Audit
+        run: cargo audit
   # Snyk does not support rustlang yet
   # snyk:
   #   runs-on: ubuntu-latest
