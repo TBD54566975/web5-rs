@@ -61,7 +61,7 @@ jobs:
           api-key: ${{ secrets.FOSSA_API_KEY }}
           run-tests: true
 
-  audit:
+  cargo_audit:
     name: cargo audit
     runs-on: ubuntu-latest
 
