@@ -8,12 +8,12 @@ pub type Result<T, E = CryptoError> = std::result::Result<T, E>;
 #[derive(thiserror::Error, Debug)]
 pub enum CryptoError {
     #[error("{msg}")]
-    Generic { msg: String },
+    InternalError { msg: String },
 }
 
 impl CryptoError {
     pub fn new<E: Display>(error: E) -> Self {
-        Self::Generic {
+        Self::InternalError {
             msg: error.to_string(),
         }
     }

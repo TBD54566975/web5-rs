@@ -8,7 +8,7 @@ enum KeyType {
 
 [Error]
 interface CryptoError {
-    Generic(string msg);
+    InternalError(string msg);
 };
 
 [Trait]
