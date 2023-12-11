@@ -11,36 +11,18 @@ interface CryptoError {
     InternalError(string msg);
 };
 
-[Trait]
-interface CustomKeyManager {
-    [Throws=CryptoError]
-    string generate_private_key(KeyType key_type);
-    [Throws=CryptoError]
-    PublicKey? get_public_key(string key_alias);
-    [Throws=CryptoError]
-    bytes sign(string key_alias, bytes payload);
-    [Throws=CryptoError]
-    string alias(PublicKey public_key);
-};
-
-[Trait]
-interface CustomKeyStore {
-    [Throws=CryptoError]
-    PrivateKey? get(string key_alias);
-    [Throws=CryptoError]
-    void insert(string key_alias, PrivateKey private_key);
-};
-
 interface KeyManager {
-    constructor(CustomKeyManager custom);
-    [Name=new_with_key_store]
     constructor(KeyStore key_store);
 };
 
 interface KeyStore {
-    constructor(CustomKeyStore custom);
     [Name=new_in_memory]
     constructor();
+};
+
+interface PublicKey {
+    [Throws=CryptoError]
+    sequence<string> verify([ByRef] bytes payload, [ByRef] bytes signature);
 };
 
 interface PrivateKey {
@@ -48,11 +30,7 @@ interface PrivateKey {
     constructor([ByRef] bytes bytes);
     [Throws=CryptoError]
     bytes to_bytes();
-};
 
-interface PublicKey {
     [Throws=CryptoError]
-    constructor([ByRef] bytes bytes);
-    [Throws=CryptoError]
-    bytes to_bytes();
+    bytes sign([ByRef] bytes payload);
 };

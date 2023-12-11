@@ -1,21 +1,17 @@
 use crate::error::Result;
-use crypto::key::public_key::PublicKey as CryptoPublicKey;
+use crypto::key::public_key::PublicKey;
 
 /// Public key struct, exposed to foreign languages.
-pub struct PublicKey(pub(crate) CryptoPublicKey);
+pub struct PublicKeyFfi(pub(crate) PublicKey);
 
-impl PublicKey {
-    pub fn new(bytes: &[u8]) -> Result<Self> {
-        Ok(Self(bincode::deserialize(&bytes)?))
-    }
-
-    pub fn to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(bincode::serialize(&self.0)?)
+impl PublicKeyFfi {
+    pub fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<Vec<String>> {
+        Ok(self.0.verify(payload, signature)?)
     }
 }
 
-impl From<CryptoPublicKey> for PublicKey {
-    fn from(inner: CryptoPublicKey) -> Self {
+impl From<PublicKey> for PublicKeyFfi {
+    fn from(inner: PublicKey) -> Self {
         Self(inner)
     }
 }
