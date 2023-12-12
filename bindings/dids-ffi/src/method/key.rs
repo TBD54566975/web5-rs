@@ -1,15 +1,15 @@
 use crate::error::Result;
 use crypto_ffi::KeyManager;
 use dids::did::Did;
-use dids::method::key::{DidKey as DidsDidKey, DidKeyCreateOptions};
+use dids::method::key::{DidKey, DidKeyCreateOptions};
 use dids::method::DidMethod;
 use std::sync::Arc;
 
-pub struct DidKey(DidsDidKey);
+pub struct DidKeyFfi(DidKey);
 
-impl DidKey {
+impl DidKeyFfi {
     pub fn new(key_manager: Arc<KeyManager>, options: DidKeyCreateOptions) -> Result<Self> {
-        let inner = DidsDidKey::create(key_manager.clone(), options)?;
+        let inner = DidKey::create(key_manager.clone(), options)?;
         Ok(Self(inner))
     }
 

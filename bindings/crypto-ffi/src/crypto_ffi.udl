@@ -13,11 +13,29 @@ interface CryptoError {
 
 interface KeyManager {
     constructor(KeyStore key_store);
-};
 
-interface KeyStore {
     [Name=new_in_memory]
     constructor();
+
+    [Throws=CryptoError]
+    string generate_private_key(KeyType key_type);
+
+    [Throws=CryptoError]
+    PublicKey? get_public_key([ByRef] string key_alias);
+
+    [Throws=CryptoError]
+    bytes sign([ByRef] string key_alias, [ByRef] bytes payload);
+
+    [Throws=CryptoError]
+    string alias([ByRef] PublicKey public_key);
+};
+
+[Trait]
+interface KeyStore {
+    [Throws=CryptoError]
+    PrivateKey? get(string key_alias);
+    [Throws=CryptoError]
+    void insert(string key_alias, PrivateKey private_key);
 };
 
 interface PublicKey {

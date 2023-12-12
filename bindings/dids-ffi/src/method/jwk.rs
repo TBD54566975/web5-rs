@@ -1,15 +1,15 @@
 use crate::error::Result;
 use crypto_ffi::KeyManager;
 use dids::did::Did;
-use dids::method::jwk::{DidJwk as DidsDidJwk, DidJwkCreateOptions};
+use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
 use dids::method::DidMethod;
 use std::sync::Arc;
 
-pub struct DidJwk(DidsDidJwk);
+pub struct DidJwkFfi(DidJwk);
 
-impl DidJwk {
+impl DidJwkFfi {
     pub fn new(key_manager: Arc<KeyManager>, options: DidJwkCreateOptions) -> Result<Self> {
-        let inner = DidsDidJwk::create(key_manager.clone(), options)?;
+        let inner = DidJwk::create(key_manager.clone(), options)?;
         Ok(Self(inner))
     }
 

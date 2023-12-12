@@ -1,6 +1,4 @@
-#if canImport(crypto_ffi)
-    import crypto_ffi
-#endif
+import crypto_ffi
 
 //class SwiftKeyStore: KeyStoreTrait {
 //  public private(set) var map = [String: PrivateKey]()

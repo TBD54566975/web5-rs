@@ -3,8 +3,12 @@ import crypto_ffiFFI
 import dids_ffiFFI
 
 func createKeyManager() -> KeyManager {
-  let keyStore = KeyStore.newInMemory()
-  let keyManager = KeyManager.newWithKeyStore(keyStore: keyStore)
+  let keyManager = KeyManager.newInMemory();
+  return keyManager
+}
+
+func createCustomKeyManager() -> KeyManager {
+  let keyManager = KeyManager(keyStore: SwiftKeyStore())
   return keyManager
 }
 
@@ -25,8 +29,17 @@ struct ContentView: View {
           print("didKey uri: \(didKey.uri())")
         }
       }
-      Button("Reset KeyManager") {
+      Button("Generate privateKey") {
+        Task {
+          let key_alias = try! keyManager.generatePrivateKey(keyType: .ed25519);
+          print("generated private key with alias: \(key_alias)")
+        }
+      }
+      Button("New In-Memory KeyManager") {
         keyManager = createKeyManager()
+      }
+      Button("New Custom Key Manager") {
+        keyManager = createCustomKeyManager()
       }
     }
     .padding()
@@ -36,11 +49,12 @@ struct ContentView: View {
 class SwiftKeyStore: KeyStore {
   public private(set) var map = [String: PrivateKey]()
 
-  func getPrivateKey(keyAlias: String) throws -> PrivateKey? {
+  func get(keyAlias: String) throws -> PrivateKey? {
     return self.map[keyAlias]
   }
-  
-  func insertPrivateKey(keyAlias: String, privateKey: PrivateKey) throws {
+
+  func insert(keyAlias: String, privateKey: PrivateKey) throws {
     self.map[keyAlias] = privateKey
+    print("Inserted. Map now: \(self.map)")
   }
 }
