@@ -10,7 +10,7 @@ impl PrivateKeyFfi {
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(bincode::serialize(&self.0)?)
+        Ok(vec![66, 66, 66])
     }
 
     pub fn sign(&self, payload: &[u8]) -> Result<Vec<u8>> {

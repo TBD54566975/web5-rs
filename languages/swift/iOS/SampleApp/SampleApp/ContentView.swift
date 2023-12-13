@@ -2,6 +2,10 @@ import SwiftUI
 import crypto_ffiFFI
 import dids_ffiFFI
 
+// I'm clicking "New custom key manager"
+// then clicking "Generate privateKey"
+// and it's successfully printing out the hardcoded byte 66
+
 func createKeyManager() -> KeyManager {
   let keyManager = KeyManager.newInMemory();
   return keyManager
@@ -39,7 +43,9 @@ struct ContentView: View {
         keyManager = createKeyManager()
       }
       Button("New Custom Key Manager") {
-        keyManager = createCustomKeyManager()
+          keyManager = createCustomKeyManager();
+          print("created custom keymanager")
+
       }
     }
     .padding()
@@ -54,6 +60,9 @@ class SwiftKeyStore: KeyStore {
   }
 
   func insert(keyAlias: String, privateKey: PrivateKey) throws {
+    let some_bytes = try privateKey.toBytes();
+      print("We got some bytes from the private key: \(some_bytes[0])") // should print 66 because I hardcoded that in to_bytes() on the rust side
+
     self.map[keyAlias] = privateKey
     print("Inserted. Map now: \(self.map)")
   }
