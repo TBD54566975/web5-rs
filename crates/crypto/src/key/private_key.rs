@@ -58,4 +58,12 @@ mod tests {
 
         assert_ne!(payload, &signature)
     }
+
+    #[test]
+    fn can_serialize() {
+        let private_key = new_private_key();
+        let serializedd = bincode::serialize(&private_key).expect("Failed to serialize private key");
+        let deserializedd: PrivateKey = bincode::deserialize(&serializedd).unwrap();
+        assert_eq!(private_key, deserializedd);
+    }
 }
