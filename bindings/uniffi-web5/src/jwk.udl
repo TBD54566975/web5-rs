@@ -1,4 +1,4 @@
-namespace jwk;
+namespace jwk {};
 
 dictionary JWK {
     string? alg;
@@ -10,9 +10,6 @@ dictionary JWK {
 };
 
 interface JWKInterface {
-    // Assuming there's a need to explicitly create a new JWK instance through the interface.
-    // This method is now a static method rather than a constructor.
-    static JWK new(string? alg, string? kty, string? crv, string? d, string? x, string? y);
-
+    constructor(string? alg, string? kty, string? crv, string? d, string? x, string? y);
     string compute_thumbprint(JWK jwk);
 };

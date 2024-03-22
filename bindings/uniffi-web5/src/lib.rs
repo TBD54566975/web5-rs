@@ -1,7 +1,4 @@
 use jwk::jwk::JWK as InnerJWK;
-use uniffi::prelude::*; // Use alias to differentiate from the UDL definition
-
-include_scaffolding!("jwk");
 
 // You may need to adjust the struct and method signatures to match the UDL and your original Rust code.
 
