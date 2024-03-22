@@ -1,0 +1,7 @@
+namespace jwk {};
+
+interface JWK {
+    constructor();
+
+    string compute_thumbprint();
+};

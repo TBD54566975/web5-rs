@@ -19,6 +19,17 @@ pub struct JWK {
 }
 
 impl JWK {
+    pub fn new() -> Self {
+        JWK {
+            alg: None,
+            kty: None,
+            crv: None,
+            d: None,
+            x: None,
+            y: None,
+        }
+    }
+
     pub fn compute_thumbprint(&self) -> Result<String, serde_json::Error> {
         let mut thumbprint_payload = serde_json::Map::new();
         if let Some(crv) = &self.crv {

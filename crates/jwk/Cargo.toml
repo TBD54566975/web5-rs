@@ -13,3 +13,16 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = "0.10"
 base64 = "0.13"
+uniffi = { version = "0.26.0", features = [ "cli" ] }
+
+[build-dependencies]
+uniffi = { version = "0.26.0", features = [ "build" ] }
+
+[lib]
+crate-type = ["cdylib"]
+name = "jwk"
+
+[[bin]]
+# This can be whatever name makes sense for your project, but the rest of this tutorial assumes uniffi-bindgen.
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
