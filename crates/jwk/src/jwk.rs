@@ -5,17 +5,17 @@ use sha2::{Digest, Sha256};
 #[derive(Serialize, Deserialize)]
 pub struct JWK {
     #[serde(rename = "alg", skip_serializing_if = "Option::is_none")]
-    alg: Option<String>,
+    pub alg: Option<String>,
     #[serde(rename = "kty", skip_serializing_if = "Option::is_none")]
-    kty: Option<String>,
+    pub kty: Option<String>,
     #[serde(rename = "crv", skip_serializing_if = "Option::is_none")]
-    crv: Option<String>,
+    pub crv: Option<String>,
     #[serde(rename = "d", skip_serializing_if = "Option::is_none")]
-    d: Option<String>,
+    pub d: Option<String>,
     #[serde(rename = "x", skip_serializing_if = "Option::is_none")]
-    x: Option<String>,
+    pub x: Option<String>,
     #[serde(rename = "y", skip_serializing_if = "Option::is_none")]
-    y: Option<String>,
+    pub y: Option<String>,
 }
 
 impl JWK {
