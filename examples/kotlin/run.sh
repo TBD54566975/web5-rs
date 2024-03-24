@@ -1,6 +1,10 @@
 #!/bin/bash
 
-(mvn clean compile;
-  mvn package;
-  cd target/classes/; 
-  java -cp .:/Users/kendallw/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.6.10/kotlin-stdlib-1.6.10.jar com.example.HelloWorldKt)
+sudo cp ../../target/release/libjwk.dylib /Users/kendallw/Library/Java/JavaVirtualMachines/jdk-17.0.8_7.jdk/Contents/Home/bin
+
+mvn clean compile
+mvn package
+mvn dependency:copy-dependencies
+
+# Ensure this runs from the project root directory
+java -cp "target/classes/:target/dependency/*" com.example.HelloWorldKt

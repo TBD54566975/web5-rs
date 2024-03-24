@@ -7,6 +7,7 @@ object LibraryLoader {
       val libraryName = "libjwk.dylib"
       val resourcePath = "/natives/$libraryName"
       val input = LibraryLoader::class.java.getResourceAsStream(resourcePath)
+      println("Loading library from: $resourcePath, found: ${input != null}")
       input?.let {
           val tempFile = File.createTempFile("libprefix-", "-libsuffix.dylib")
           tempFile.deleteOnExit()
