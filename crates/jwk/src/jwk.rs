@@ -76,9 +76,7 @@ mod tests {
         };
 
         let expected_thumbprint = "bgEObpJ1QzKa0jhWUkMSQKDOSDKEmwIw77ewaYpyduk";
-        let computed_thumbprint = jwk
-            .compute_thumbprint()
-            .expect("Failed to compute thumbprint");
+        let computed_thumbprint = jwk.compute_thumbprint();
 
         assert_eq!(
             computed_thumbprint, expected_thumbprint,
