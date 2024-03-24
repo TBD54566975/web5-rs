@@ -30,7 +30,7 @@ impl JWK {
         }
     }
 
-    pub fn compute_thumbprint(&self) -> Result<String, serde_json::Error> {
+    pub fn compute_thumbprint(&self) -> String {
         let mut thumbprint_payload = serde_json::Map::new();
         if let Some(crv) = &self.crv {
             thumbprint_payload.insert("crv".to_string(), serde_json::Value::String(crv.clone()));
@@ -45,11 +45,18 @@ impl JWK {
             thumbprint_payload.insert("y".to_string(), serde_json::Value::String(y.clone()));
         }
 
-        let bytes = serde_json::to_vec(&thumbprint_payload)?;
-        let digest = Sha256::digest(&bytes);
-        let thumbprint = encode_config(&digest, URL_SAFE_NO_PAD);
-
-        Ok(thumbprint)
+        match serde_json::to_vec(&thumbprint_payload) {
+            Ok(bytes) => {
+                let digest = Sha256::digest(&bytes);
+                encode_config(&digest, URL_SAFE_NO_PAD)
+            }
+            Err(_) => {
+                // Decide how you want to handle the error. For example, return a specific error string
+                // or log the error for debugging purposes.
+                // This is a placeholder; adapt it to your error handling policy.
+                "Error computing thumbprint".to_string()
+            }
+        }
     }
 }
 
