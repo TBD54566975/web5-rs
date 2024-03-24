@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package uniffi.jwk;
+package com.example;
 
 // Common helper code.
 //
