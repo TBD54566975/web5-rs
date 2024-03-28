@@ -5,13 +5,13 @@ use std::fmt;
 
 #[derive(Debug, uniffi::Error)]
 pub enum JWKError {
-    SerializationError { error_message: String },
+    SerializationError { details: String },
 }
 
 impl fmt::Display for JWKError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            JWKError::SerializationError { error_message } => write!(f, "Serialization error: {}", error_message),
+            JWKError::SerializationError { details } => write!(f, "Serialization error: {}", details),
         }
     }
 }
@@ -70,7 +70,7 @@ fn compute_thumbprint(jwk: &JWK) -> Result<String, JWKError> {
     }
 
     let bytes = serde_json::to_vec(&thumbprint_payload)
-        .map_err(|err| JWKError::SerializationError { error_message: format!("Failed to serialize thumbprint payload: {}", err) })?;
+        .map_err(|err| JWKError::SerializationError { details: format!("Failed to serialize thumbprint payload: {}", err) })?;
 
     let mut hasher = Sha256::new();
     hasher.update(&bytes);

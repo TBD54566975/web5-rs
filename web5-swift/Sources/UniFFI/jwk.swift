@@ -513,7 +513,7 @@ public enum JwkError {
 
     
     
-    case SerializationError(errorMessage: String
+    case SerializationError(details: String
     )
 }
 
@@ -529,7 +529,7 @@ public struct FfiConverterTypeJWKError: FfiConverterRustBuffer {
 
         
         case 1: return .SerializationError(
-            errorMessage: try FfiConverterString.read(from: &buf)
+            details: try FfiConverterString.read(from: &buf)
             )
 
          default: throw UniffiInternalError.unexpectedEnumCase
@@ -543,9 +543,9 @@ public struct FfiConverterTypeJWKError: FfiConverterRustBuffer {
 
         
         
-        case let .SerializationError(errorMessage):
+        case let .SerializationError(details):
             writeInt(&buf, Int32(1))
-            FfiConverterString.write(errorMessage, into: &buf)
+            FfiConverterString.write(details, into: &buf)
             
         }
     }
