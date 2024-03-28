@@ -13,17 +13,17 @@ let package = Package(
     targets: [
         .binaryTarget(
           name: "Web5CoreRS",
-          path: "web5-swift/libweb5-rs.xcframework"
+          path: "libweb5-rs.xcframework"
         ),
         .target(
             name: "Web5",
             dependencies: [.target(name: "UniFFI")],
-            path: "web5-swift/Sources/Web5"
+            path: "Sources/Web5"
         ),
         .target(
             name: "UniFFI",
             dependencies: [.target(name: "Web5CoreRS")],
-            path: "web5-swift/Sources/UniFFI"
+            path: "Sources/UniFFI"
         ),
     ]
 )
