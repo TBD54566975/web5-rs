@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package com.example;
+package web5.sdk;
 
 // Common helper code.
 //
@@ -999,10 +999,10 @@ sealed class JwkException: Exception() {
     
     class SerializationException(
         
-        val `errorMessage`: kotlin.String
+        val `details`: kotlin.String
         ) : JwkException() {
         override val message
-            get() = "errorMessage=${ `errorMessage` }"
+            get() = "details=${ `details` }"
     }
     
 
@@ -1030,7 +1030,7 @@ public object FfiConverterTypeJWKError : FfiConverterRustBuffer<JwkException> {
             is JwkException.SerializationException -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
-                + FfiConverterString.allocationSize(value.`errorMessage`)
+                + FfiConverterString.allocationSize(value.`details`)
             )
         }
     }
@@ -1039,7 +1039,7 @@ public object FfiConverterTypeJWKError : FfiConverterRustBuffer<JwkException> {
         when(value) {
             is JwkException.SerializationException -> {
                 buf.putInt(1)
-                FfiConverterString.write(value.`errorMessage`, buf)
+                FfiConverterString.write(value.`details`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }

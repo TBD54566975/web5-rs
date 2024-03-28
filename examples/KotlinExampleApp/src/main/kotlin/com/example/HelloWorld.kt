@@ -1,25 +1,10 @@
 package com.example
 
-import java.io.File
-
-object LibraryLoader {
-  init {
-      val libraryName = "libjwk.dylib"
-      val resourcePath = "/natives/$libraryName"
-      val input = LibraryLoader::class.java.getResourceAsStream(resourcePath)
-      println("Loading library from: $resourcePath, found: ${input != null}")
-      input?.let {
-          val tempFile = File.createTempFile("libprefix-", "-libsuffix.dylib")
-          tempFile.deleteOnExit()
-          tempFile.outputStream().use { output -> input.copyTo(output) }
-          System.load(tempFile.absolutePath)
-      } ?: throw UnsatisfiedLinkError("Could not load native library $libraryName")
-  }
-}
+import web5.sdk.Jwk
+import web5.sdk.computeThumbprint
 
 fun main(args: Array<String>) {
     println("Hello, World!")
-    LibraryLoader // Ensures the native library is loaded
     val jwk = Jwk("", "EC", "secp256k1", "", "IP76NWyz81Bk1Zfsbk_ZgTJ57nTMIGM_YKdUlAUKbeY", "UefbWznggYPo3S17R9hcW5wAmwYoyfFw9xeBbQOacaA")
     val thumbprint = computeThumbprint(jwk)
     println("Computed thumbprint: $thumbprint")
