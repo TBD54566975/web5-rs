@@ -583,12 +583,6 @@ public func computeThumbprint(jwk: Jwk)throws  -> String {
     )
 })
 }
-public func newJwk() -> Jwk {
-    return try!  FfiConverterTypeJWK.lift(try! rustCall() {
-    uniffi_jwk_fn_func_new_jwk($0
-    )
-})
-}
 
 private enum InitializationResult {
     case ok
@@ -606,9 +600,6 @@ private var initializationResult: InitializationResult {
         return InitializationResult.contractVersionMismatch
     }
     if (uniffi_jwk_checksum_func_compute_thumbprint() != 35047) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_jwk_checksum_func_new_jwk() != 9378) {
         return InitializationResult.apiChecksumMismatch
     }
 

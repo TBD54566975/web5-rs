@@ -46,18 +46,6 @@ pub struct JWK {
 }
 
 #[uniffi::export]
-fn new_jwk() -> JWK {
-    JWK {
-        alg: None,
-        kty: None,
-        crv: None,
-        d: None,
-        x: None,
-        y: None,
-    }
-}
-
-#[uniffi::export]
 fn compute_thumbprint(jwk: &JWK) -> Result<String, JWKError> {
     let mut thumbprint_payload = serde_json::json!({
         "crv": jwk.crv,

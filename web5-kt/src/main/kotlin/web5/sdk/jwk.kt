@@ -692,8 +692,6 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -710,8 +708,6 @@ internal interface UniffiLib : Library {
     }
 
     fun uniffi_jwk_fn_func_compute_thumbprint(`jwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_jwk_fn_func_new_jwk(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_jwk_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -827,8 +823,6 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_jwk_checksum_func_compute_thumbprint(
     ): Short
-    fun uniffi_jwk_checksum_func_new_jwk(
-    ): Short
     fun ffi_jwk_uniffi_contract_version(
     ): Int
     
@@ -847,9 +841,6 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_jwk_checksum_func_compute_thumbprint() != 35047.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_jwk_checksum_func_new_jwk() != 9378.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1080,15 +1071,6 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
     uniffiRustCallWithError(JwkException) { _status ->
     UniffiLib.INSTANCE.uniffi_jwk_fn_func_compute_thumbprint(
         FfiConverterTypeJWK.lower(`jwk`),_status)
-}
-    )
-    }
-    
- fun `newJwk`(): Jwk {
-            return FfiConverterTypeJWK.lift(
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_jwk_fn_func_new_jwk(
-        _status)
 }
     )
     }
