@@ -256,12 +256,6 @@ typedef void (*UniffiForeignFutureCompleteVoid)(uint64_t, UniffiForeignFutureStr
 RustBuffer uniffi_jwk_fn_func_compute_thumbprint(RustBuffer jwk, RustCallStatus *_Nonnull out_status
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_JWK_FN_FUNC_NEW_JWK
-#define UNIFFI_FFIDEF_UNIFFI_JWK_FN_FUNC_NEW_JWK
-RustBuffer uniffi_jwk_fn_func_new_jwk(RustCallStatus *_Nonnull out_status
-    
-);
-#endif
 #ifndef UNIFFI_FFIDEF_FFI_JWK_RUSTBUFFER_ALLOC
 #define UNIFFI_FFIDEF_FFI_JWK_RUSTBUFFER_ALLOC
 RustBuffer ffi_jwk_rustbuffer_alloc(uint64_t size, RustCallStatus *_Nonnull out_status
@@ -545,12 +539,6 @@ void ffi_jwk_rust_future_complete_void(uint64_t handle, RustCallStatus *_Nonnull
 #ifndef UNIFFI_FFIDEF_UNIFFI_JWK_CHECKSUM_FUNC_COMPUTE_THUMBPRINT
 #define UNIFFI_FFIDEF_UNIFFI_JWK_CHECKSUM_FUNC_COMPUTE_THUMBPRINT
 uint16_t uniffi_jwk_checksum_func_compute_thumbprint(void
-    
-);
-#endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_JWK_CHECKSUM_FUNC_NEW_JWK
-#define UNIFFI_FFIDEF_UNIFFI_JWK_CHECKSUM_FUNC_NEW_JWK
-uint16_t uniffi_jwk_checksum_func_new_jwk(void
     
 );
 #endif
