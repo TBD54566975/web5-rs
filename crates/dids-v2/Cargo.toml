@@ -1,5 +1,5 @@
 [package]
-name = "crypto"
+name = "dids-v2"
 version = "0.1.0"
 edition = "2021"
 homepage.workspace = true
@@ -7,7 +7,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-ssi-jwk = "0.1.2"
-ssi-jws = "0.1.1"
-thiserror = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
+jwk = { path = "../jwk" }

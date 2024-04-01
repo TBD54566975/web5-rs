@@ -1,8 +1,9 @@
 use crate::key::{Key, KeyError};
+use serde::{Deserialize, Serialize};
 use ssi_jwk::JWK;
 use ssi_jws::{verify_bytes_warnable, VerificationWarnings};
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
 pub struct PublicKey(pub(crate) JWK);
 
 impl PublicKey {
