@@ -4,12 +4,12 @@ use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct JWK {
-    alg: Option<String>,
-    kty: Option<String>,
-    crv: Option<String>,
-    d: Option<String>,
-    x: Option<String>,
-    y: Option<String>,
+    pub alg: Option<String>,
+    pub kty: Option<String>,
+    pub crv: Option<String>,
+    pub d: Option<String>,
+    pub x: Option<String>,
+    pub y: Option<String>,
 }
 
 impl JWK {
