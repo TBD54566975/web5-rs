@@ -1,7 +1,7 @@
 use jwk::jwk::JWK;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Purpose {
     AssertionMethod,
     Authentication,
@@ -67,51 +67,10 @@ pub struct Document {
     pub service: Option<Vec<Service>>,
 }
 
-pub trait VMSelector {
-    fn select(&self, doc: &Document) -> Result<String, String>;
-}
-
-impl VMSelector for Purpose {
-    fn select(&self, doc: &Document) -> Result<String, String> {
-        match self {
-            Purpose::AssertionMethod => doc
-                .assertion_method
-                .as_ref()
-                .and_then(|v| v.first())
-                .map(|x| x.to_string())
-                .ok_or_else(|| format!("no verification method found for purpose: {:?}", self)),
-            Purpose::Authentication => doc
-                .authentication
-                .as_ref()
-                .and_then(|v| v.first())
-                .map(|x| x.to_string())
-                .ok_or_else(|| format!("no {:?} verification method found", self)),
-            Purpose::CapabilityDelegation => doc
-                .capability_delegation
-                .as_ref()
-                .and_then(|v| v.first())
-                .map(|x| x.to_string())
-                .ok_or_else(|| format!("no {:?} verification method found", self)),
-            Purpose::CapabilityInvocation => doc
-                .capability_invocation
-                .as_ref()
-                .and_then(|v| v.first())
-                .map(|x| x.to_string())
-                .ok_or_else(|| format!("no {:?} verification method found", self)),
-            Purpose::KeyAgreement => doc
-                .key_agreement
-                .as_ref()
-                .and_then(|v| v.first())
-                .map(|x| x.to_string())
-                .ok_or_else(|| format!("no {:?} verification method found", self)),
-        }
-    }
-}
-
-impl VMSelector for &str {
-    fn select(&self, _doc: &Document) -> Result<String, String> {
-        Ok(self.to_string())
-    }
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum VerificationMethodSelector {
+    ID(String),
+    Purpose(Purpose),
 }
 
 impl Document {
@@ -151,22 +110,80 @@ impl Document {
 
     pub fn select_verification_method(
         &self,
-        selector: Option<&dyn VMSelector>,
+        selector: Option<VerificationMethodSelector>,
     ) -> Result<VerificationMethod, String> {
         if self.verification_method.is_empty() {
             return Err("no verification methods found".to_string());
         }
 
-        if let Some(selector) = selector {
-            let vm_id = selector.select(self)?;
-
-            self.verification_method
+        match selector {
+            Some(VerificationMethodSelector::ID(id)) => self
+                .verification_method
                 .iter()
-                .find(|vm| vm.id == vm_id)
+                .find(|vm| vm.id == id)
                 .cloned()
-                .ok_or_else(|| format!("no verification method found for id: {}", vm_id))
+                .ok_or_else(|| format!("no verification method found for id: {}", id)),
+            Some(VerificationMethodSelector::Purpose(purpose)) => {
+                let vm_id = match purpose {
+                    Purpose::AssertionMethod => self
+                        .assertion_method
+                        .as_ref()
+                        .and_then(|v| v.first())
+                        .map(|x| x.to_string()),
+                    Purpose::Authentication => self
+                        .authentication
+                        .as_ref()
+                        .and_then(|v| v.first())
+                        .map(|x| x.to_string()),
+                    Purpose::CapabilityDelegation => self
+                        .capability_delegation
+                        .as_ref()
+                        .and_then(|v| v.first())
+                        .map(|x| x.to_string()),
+                    Purpose::CapabilityInvocation => self
+                        .capability_invocation
+                        .as_ref()
+                        .and_then(|v| v.first())
+                        .map(|x| x.to_string()),
+                    Purpose::KeyAgreement => self
+                        .key_agreement
+                        .as_ref()
+                        .and_then(|v| v.first())
+                        .map(|x| x.to_string()),
+                };
+
+                match vm_id {
+                    Some(id) => self
+                        .verification_method
+                        .iter()
+                        .find(|vm| vm.id == id)
+                        .cloned()
+                        .ok_or_else(|| {
+                            format!("no verification method found for purpose: {:?}", purpose)
+                        }),
+                    None => Err(format!(
+                        "no verification method found for purpose: {:?}",
+                        purpose
+                    )),
+                }
+            }
+            None => Ok(self.verification_method[0].clone()),
+        }
+    }
+
+    pub fn add_service(&mut self, service: Service) {
+        if let Some(services) = &mut self.service {
+            services.push(service);
         } else {
-            Ok(self.verification_method[0].clone())
+            self.service = Some(vec![service]);
+        }
+    }
+
+    pub fn get_absolute_resource_id(&self, id: &str) -> String {
+        if id.starts_with('#') {
+            format!("{}{}", self.id, id)
+        } else {
+            id.to_string()
         }
     }
 }
@@ -188,18 +205,14 @@ mod tests {
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
             public_key_jwk: JWK {
-                alg: Some("".to_string()),
-                kty: Some("EC".to_string()),
-                crv: Some("secp256k1".to_string()),
-                d: Some("".to_string()),
-                x: Some("IP76NWyz81Bk1Zfsbk_ZgTJ57nTMIGM_YKdUlAUKbeY".to_string()),
-                y: Some("UefbWznggYPo3S17R9hcW5wAmwYoyfFw9xeBbQOacaA".to_string()),
+                ..Default::default()
             },
         };
 
-        let purposes = &[Purpose::AssertionMethod, Purpose::Authentication];
-
-        doc.add_verification_method(method.clone(), purposes);
+        doc.add_verification_method(
+            method.clone(),
+            &[Purpose::AssertionMethod, Purpose::Authentication],
+        );
 
         assert_eq!(doc.verification_method.len(), 1);
         assert_eq!(doc.verification_method[0], method);
@@ -224,12 +237,7 @@ mod tests {
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
             public_key_jwk: JWK {
-                alg: Some("".to_string()),
-                kty: Some("EC".to_string()),
-                crv: Some("secp256k1".to_string()),
-                d: Some("".to_string()),
-                x: Some("IP76NWyz81Bk1Zfsbk_ZgTJ57nTMIGM_YKdUlAUKbeY".to_string()),
-                y: Some("UefbWznggYPo3S17R9hcW5wAmwYoyfFw9xeBbQOacaA".to_string()),
+              ..Default::default()
             },
         };
 
@@ -238,12 +246,7 @@ mod tests {
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
             public_key_jwk: JWK {
-                alg: Some("".to_string()),
-                kty: Some("EC".to_string()),
-                crv: Some("secp256k1".to_string()),
-                d: Some("".to_string()),
-                x: Some("IP76NWyz81Bk1Zfsbk_ZgTJ57nTMIGM_YKdUlAUKbeY".to_string()),
-                y: Some("UefbWznggYPo3S17R9hcW5wAmwYoyfFw9xeBbQOacaA".to_string()),
+              ..Default::default()
             },
         };
 
@@ -256,20 +259,17 @@ mod tests {
         };
 
         // Test selecting a verification method by ID
-        let selected_method = doc
-            .select_verification_method(Some(&"did:example:123#key1"))
-            .unwrap();
+        let selector = VerificationMethodSelector::ID("did:example:123#key1".to_string());
+        let selected_method = doc.select_verification_method(Some(selector)).unwrap();
         assert_eq!(selected_method, method1);
 
         // Test selecting a verification method by Purpose
-        let selected_method = doc
-            .select_verification_method(Some(&Purpose::AssertionMethod))
-            .unwrap();
+        let selector = VerificationMethodSelector::Purpose(Purpose::AssertionMethod);
+        let selected_method = doc.select_verification_method(Some(selector)).unwrap();
         assert_eq!(selected_method, method1);
 
-        let selected_method = doc
-            .select_verification_method(Some(&Purpose::Authentication))
-            .unwrap();
+        let selector = VerificationMethodSelector::Purpose(Purpose::Authentication);
+        let selected_method = doc.select_verification_method(Some(selector)).unwrap();
         assert_eq!(selected_method, method2);
 
         // Test selecting the first verification method when no selector is provided
@@ -277,7 +277,8 @@ mod tests {
         assert_eq!(selected_method, method1);
 
         // Test selecting a non-existent verification method
-        let result = doc.select_verification_method(Some(&"did:example:123#key3"));
+        let selector = VerificationMethodSelector::ID("did:example:123#key3".to_string());
+        let result = doc.select_verification_method(Some(selector));
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err(),
@@ -285,11 +286,64 @@ mod tests {
         );
 
         // Test selecting a verification method for a non-existent purpose
-        let result = doc.select_verification_method(Some(&Purpose::KeyAgreement));
+        let selector = VerificationMethodSelector::Purpose(Purpose::KeyAgreement);
+        let result = doc.select_verification_method(Some(selector));
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err(),
-            "no KeyAgreement verification method found"
+            "no verification method found for purpose: KeyAgreement"
         );
+    }
+
+    #[test]
+    fn test_add_service() {
+        let mut doc = Document {
+            id: "did:example:123".to_string(),
+            service: None,
+            ..Default::default()
+        };
+
+        let service1 = Service {
+            id: "did:example:123#service1".to_string(),
+            r#type: "ExampleService".to_string(),
+            service_endpoint: "https://example.com/service1".to_string(),
+        };
+
+        let service2 = Service {
+            id: "did:example:123#service2".to_string(),
+            r#type: "AnotherService".to_string(),
+            service_endpoint: "https://example.com/service2".to_string(),
+        };
+
+        // Add service1 to the document
+        doc.add_service(service1.clone());
+        assert!(doc.service.is_some());
+        assert_eq!(doc.service.as_ref().unwrap().len(), 1);
+        assert_eq!(doc.service.as_ref().unwrap()[0], service1);
+
+        // Add service2 to the document
+        doc.add_service(service2.clone());
+        assert!(doc.service.is_some());
+        assert_eq!(doc.service.as_ref().unwrap().len(), 2);
+        assert_eq!(doc.service.as_ref().unwrap()[0], service1);
+        assert_eq!(doc.service.as_ref().unwrap()[1], service2);
+    }
+
+    #[test]
+    fn test_get_absolute_resource_id() {
+        let doc = Document {
+            id: "did:example:123".to_string(),
+            ..Default::default()
+        };
+
+        // Test with a relative DID URL
+        let relative_id = "#key1";
+        let absolute_id = doc.get_absolute_resource_id(relative_id);
+        assert_eq!(absolute_id, "did:example:123#key1");
+
+        // Test with an absolute DID URL
+        let absolute_id = "did:example:456#key2";
+        let result = doc.get_absolute_resource_id(absolute_id);
+        assert_eq!(result, "did:example:456#key2");
     }
 }
