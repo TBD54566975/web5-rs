@@ -1,30 +1,6 @@
 use jwk::jwk::JWK;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum Purpose {
-    AssertionMethod,
-    Authentication,
-    CapabilityDelegation,
-    CapabilityInvocation,
-    KeyAgreement,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct VerificationMethod {
-    pub id: String,
-    pub r#type: String,
-    pub controller: String,
-    pub public_key_jwk: JWK,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Service {
-    pub id: String,
-    pub r#type: String,
-    pub service_endpoint: String,
-}
-
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Document {
     pub id: String,
@@ -67,38 +43,66 @@ pub struct Document {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct VerificationMethod {
+    pub id: String,
+    pub r#type: String,
+    pub controller: String,
+    pub public_key_jwk: JWK,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum VerificationRelationship {
+    AssertionMethod,
+    Authentication,
+    CapabilityDelegation,
+    CapabilityInvocation,
+    KeyAgreement,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Service {
+    pub id: String,
+    pub r#type: String,
+    pub service_endpoint: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum VerificationMethodSelector {
     ID(String),
-    Purpose(Purpose),
+    Relationship(VerificationRelationship),
 }
 
 impl Document {
-    pub fn add_verification_method(&mut self, method: VerificationMethod, purposes: &[Purpose]) {
+    pub fn add_verification_method(
+        &mut self,
+        method: VerificationMethod,
+        relationships: &[VerificationRelationship],
+    ) {
         self.verification_method.push(method.clone());
 
-        for purpose in purposes {
-            match purpose {
-                Purpose::AssertionMethod => {
+        for relationship in relationships {
+            match relationship {
+                VerificationRelationship::AssertionMethod => {
                     self.assertion_method
                         .get_or_insert_with(Vec::new)
                         .push(method.id.clone());
                 }
-                Purpose::Authentication => {
+                VerificationRelationship::Authentication => {
                     self.authentication
                         .get_or_insert_with(Vec::new)
                         .push(method.id.clone());
                 }
-                Purpose::KeyAgreement => {
+                VerificationRelationship::KeyAgreement => {
                     self.key_agreement
                         .get_or_insert_with(Vec::new)
                         .push(method.id.clone());
                 }
-                Purpose::CapabilityDelegation => {
+                VerificationRelationship::CapabilityDelegation => {
                     self.capability_delegation
                         .get_or_insert_with(Vec::new)
                         .push(method.id.clone());
                 }
-                Purpose::CapabilityInvocation => {
+                VerificationRelationship::CapabilityInvocation => {
                     self.capability_invocation
                         .get_or_insert_with(Vec::new)
                         .push(method.id.clone());
@@ -122,29 +126,29 @@ impl Document {
                 .find(|vm| vm.id == id)
                 .cloned()
                 .ok_or_else(|| format!("no verification method found for id: {}", id)),
-            Some(VerificationMethodSelector::Purpose(purpose)) => {
-                let vm_id = match purpose {
-                    Purpose::AssertionMethod => self
+            Some(VerificationMethodSelector::Relationship(relationship)) => {
+                let vm_id = match relationship {
+                    VerificationRelationship::AssertionMethod => self
                         .assertion_method
                         .as_ref()
                         .and_then(|v| v.first())
                         .map(|x| x.to_string()),
-                    Purpose::Authentication => self
+                    VerificationRelationship::Authentication => self
                         .authentication
                         .as_ref()
                         .and_then(|v| v.first())
                         .map(|x| x.to_string()),
-                    Purpose::CapabilityDelegation => self
+                    VerificationRelationship::CapabilityDelegation => self
                         .capability_delegation
                         .as_ref()
                         .and_then(|v| v.first())
                         .map(|x| x.to_string()),
-                    Purpose::CapabilityInvocation => self
+                    VerificationRelationship::CapabilityInvocation => self
                         .capability_invocation
                         .as_ref()
                         .and_then(|v| v.first())
                         .map(|x| x.to_string()),
-                    Purpose::KeyAgreement => self
+                    VerificationRelationship::KeyAgreement => self
                         .key_agreement
                         .as_ref()
                         .and_then(|v| v.first())
@@ -158,11 +162,14 @@ impl Document {
                         .find(|vm| vm.id == id)
                         .cloned()
                         .ok_or_else(|| {
-                            format!("no verification method found for purpose: {:?}", purpose)
+                            format!(
+                                "no verification method found for verification relationship: {:?}",
+                                relationship
+                            )
                         }),
                     None => Err(format!(
-                        "no verification method found for purpose: {:?}",
-                        purpose
+                        "no verification method found for verification relationship: {:?}",
+                        relationship
                     )),
                 }
             }
@@ -210,7 +217,10 @@ mod tests {
 
         doc.add_verification_method(
             method.clone(),
-            &[Purpose::AssertionMethod, Purpose::Authentication],
+            &[
+                VerificationRelationship::AssertionMethod,
+                VerificationRelationship::Authentication,
+            ],
         );
 
         assert_eq!(doc.verification_method.len(), 1);
@@ -261,11 +271,13 @@ mod tests {
         let selected_method = doc.select_verification_method(Some(selector)).unwrap();
         assert_eq!(selected_method, method1);
 
-        let selector = VerificationMethodSelector::Purpose(Purpose::AssertionMethod);
+        let selector =
+            VerificationMethodSelector::Relationship(VerificationRelationship::AssertionMethod);
         let selected_method = doc.select_verification_method(Some(selector)).unwrap();
         assert_eq!(selected_method, method1);
 
-        let selector = VerificationMethodSelector::Purpose(Purpose::Authentication);
+        let selector =
+            VerificationMethodSelector::Relationship(VerificationRelationship::Authentication);
         let selected_method = doc.select_verification_method(Some(selector)).unwrap();
         assert_eq!(selected_method, method2);
 
@@ -280,12 +292,13 @@ mod tests {
             "no verification method found for id: did:example:123#key3"
         );
 
-        let selector = VerificationMethodSelector::Purpose(Purpose::KeyAgreement);
+        let selector =
+            VerificationMethodSelector::Relationship(VerificationRelationship::KeyAgreement);
         let result = doc.select_verification_method(Some(selector));
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err(),
-            "no verification method found for purpose: KeyAgreement"
+            "no verification method found for verification relationship: KeyAgreement"
         );
     }
 
