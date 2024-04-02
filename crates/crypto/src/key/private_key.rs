@@ -1,9 +1,10 @@
 use crate::key::public_key::PublicKey;
 use crate::key::{Key, KeyError};
+use serde::{Deserialize, Serialize};
 use ssi_jwk::JWK;
 use ssi_jws::sign_bytes;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Deserialize, Serialize)]
 pub struct PrivateKey(pub(crate) JWK);
 
 impl PrivateKey {

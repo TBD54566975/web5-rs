@@ -7,7 +7,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-serde = { workspace = true }
-serde_json = { workspace = true }
-jwk = { path = "../jwk" }
+crypto = { path = "../crypto" }
 regex = "1.10.4"
+serde = { workspace = true }

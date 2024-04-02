@@ -1,6 +1,7 @@
 pub mod key_store;
 pub mod local_key_manager;
 
+use crate::key::private_key::PrivateKey;
 use crate::key::public_key::PublicKey;
 use crate::key::{KeyError, KeyType};
 use crate::key_manager::key_store::KeyStoreError;
@@ -16,6 +17,10 @@ pub enum KeyManagerError {
     KeyError(#[from] KeyError),
     #[error(transparent)]
     KeyStoreError(#[from] KeyStoreError),
+    #[error("Key export is not supported in this implementation")]
+    ExportNotSupported,
+    #[error("Key import is not supported in this implementation")]
+    ImportNotSupported,
 }
 
 /// A key management trait for generating, storing, and utilizing keys private keys and their
@@ -38,4 +43,12 @@ pub trait KeyManager: Send + Sync {
 
     /// Returns the key alias of a public key, as was originally returned by `generate_private_key`.
     fn alias(&self, public_key: &PublicKey) -> Result<String, KeyManagerError>;
+
+    fn export_private_keys(&self) -> Result<Vec<PrivateKey>, KeyManagerError> {
+        Err(KeyManagerError::ExportNotSupported)
+    }
+
+    fn import_private_keys(&self, _private_keys: Vec<PrivateKey>) -> Result<(), KeyManagerError> {
+        Err(KeyManagerError::ImportNotSupported)
+    }
 }

@@ -7,6 +7,7 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
+serde = { workspace = true }
 ssi-jwk = "0.1.2"
 ssi-jws = "0.1.1"
 thiserror = { workspace = true }

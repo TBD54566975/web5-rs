@@ -1,43 +1,33 @@
-use jwk::jwk::JWK;
+use crypto::key::public_key::PublicKey;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Document {
     pub id: String,
-
     #[serde(rename = "@context")]
     pub context: Option<Vec<String>>,
-
     #[serde(skip_serializing_if = "Option::is_none")]
     pub controller: Option<Vec<String>>,
-
     #[serde(rename = "alsoKnownAs", skip_serializing_if = "Option::is_none")]
     pub also_known_as: Option<Vec<String>>,
-
-    #[serde(rename = "verificationMethod", skip_serializing_if = "Vec::is_empty")]
+    #[serde(rename = "verificationMethod")]
     pub verification_method: Vec<VerificationMethod>,
-
     #[serde(skip_serializing_if = "Option::is_none")]
     pub authentication: Option<Vec<String>>,
-
     #[serde(rename = "assertionMethod", skip_serializing_if = "Option::is_none")]
     pub assertion_method: Option<Vec<String>>,
-
     #[serde(rename = "keyAgreement", skip_serializing_if = "Option::is_none")]
     pub key_agreement: Option<Vec<String>>,
-
     #[serde(
         rename = "capabilityInvocation",
         skip_serializing_if = "Option::is_none"
     )]
     pub capability_invocation: Option<Vec<String>>,
-
     #[serde(
         rename = "capabilityDelegation",
         skip_serializing_if = "Option::is_none"
     )]
     pub capability_delegation: Option<Vec<String>>,
-
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service: Option<Vec<Service>>,
 }
@@ -45,9 +35,11 @@ pub struct Document {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct VerificationMethod {
     pub id: String,
+    #[serde(rename = "type")]
     pub r#type: String,
     pub controller: String,
-    pub public_key_jwk: JWK,
+    #[serde(rename = "publicKeyJwk")]
+    pub public_key_jwk: PublicKey,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -62,7 +54,9 @@ pub enum VerificationRelationship {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Service {
     pub id: String,
+    #[serde(rename = "type")]
     pub r#type: String,
+    #[serde(rename = "serviceEndpoint")]
     pub service_endpoint: String,
 }
 
@@ -197,6 +191,8 @@ impl Document {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crypto::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
+    use crypto::key_manager::KeyManager;
 
     #[test]
     fn test_add_verification_method() {
@@ -206,13 +202,18 @@ mod tests {
             ..Default::default()
         };
 
+        let key_manager = LocalKeyManager::new_in_memory();
+        let key_alias = key_manager.generate_private_key(KeyType::Secp256k1).unwrap();
+        let public_key = key_manager
+            .get_public_key(&key_alias)
+            .expect("KeyManagerError occurred")
+            .expect("PublicKey not found");
+
         let method = VerificationMethod {
             id: "did:example:123#key1".to_string(),
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
-            public_key_jwk: JWK {
-                ..Default::default()
-            },
+            public_key_jwk: public_key,
         };
 
         doc.add_verification_method(
@@ -241,22 +242,30 @@ mod tests {
 
     #[test]
     fn test_select_verification_method() {
+        let key_manager = LocalKeyManager::new_in_memory();
+        let key_alias = key_manager.generate_private_key(KeyType::Secp256k1).unwrap();
+        let public_key = key_manager
+            .get_public_key(&key_alias)
+            .expect("KeyManagerError occurred")
+            .expect("PublicKey not found");
         let method1 = VerificationMethod {
             id: "did:example:123#key1".to_string(),
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
-            public_key_jwk: JWK {
-                ..Default::default()
-            },
+            public_key_jwk: public_key,
         };
 
+        let key_manager = LocalKeyManager::new_in_memory();
+        let key_alias = key_manager.generate_private_key(KeyType::Secp256k1).unwrap();
+        let public_key = key_manager
+            .get_public_key(&key_alias)
+            .expect("KeyManagerError occurred")
+            .expect("PublicKey not found");
         let method2 = VerificationMethod {
             id: "did:example:123#key2".to_string(),
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
-            public_key_jwk: JWK {
-                ..Default::default()
-            },
+            public_key_jwk: public_key,
         };
 
         let doc = Document {
