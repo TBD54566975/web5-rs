@@ -1,4 +1,4 @@
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::collections::HashMap;
 
@@ -42,30 +42,31 @@ pub struct DID {
 }
 
 // relevant ABNF rules: https://www.w3.org/TR/did-core/#did-syntax
-lazy_static! {
-    static ref PCT_ENCODED_PATTERN: &'static str = r"(?:%[0-9a-fA-F]{2})";
-    static ref ID_CHAR_PATTERN: String = format!(r"(?:[a-zA-Z0-9._-]|{})", *PCT_ENCODED_PATTERN);
-    static ref METHOD_PATTERN: &'static str = r"([a-z0-9]+)";
-    static ref METHOD_ID_PATTERN: String =
-        format!(r"((?:{}*:)*({}+))", *ID_CHAR_PATTERN, *ID_CHAR_PATTERN);
-    static ref PARAM_CHAR_PATTERN: &'static str = r"[a-zA-Z0-9_.:%-]";
-    static ref PARAM_PATTERN: String =
-        format!(r";{}+={}*", *PARAM_CHAR_PATTERN, *PARAM_CHAR_PATTERN);
-    static ref PARAMS_PATTERN: String = format!(r"(({})*)", *PARAM_PATTERN);
-    static ref PATH_PATTERN: &'static str = r"(/[^#?]*)?";
-    static ref QUERY_PATTERN: &'static str = r"(\?[^\#]*)?";
-    static ref FRAGMENT_PATTERN: &'static str = r"(\#.*)?";
-    static ref DID_URI_PATTERN: Regex = Regex::new(&format!(
+static PCT_ENCODED_PATTERN: &str = r"(?:%[0-9a-fA-F]{2})";
+static ID_CHAR_PATTERN: Lazy<String> =
+    Lazy::new(|| format!(r"(?:[a-zA-Z0-9._-]|{})", PCT_ENCODED_PATTERN));
+static METHOD_PATTERN: &str = r"([a-z0-9]+)";
+static METHOD_ID_PATTERN: Lazy<String> =
+    Lazy::new(|| format!(r"((?:{}*:)*({}+))", *ID_CHAR_PATTERN, *ID_CHAR_PATTERN));
+static PARAM_CHAR_PATTERN: &str = r"[a-zA-Z0-9_.:%-]";
+static PARAM_PATTERN: Lazy<String> =
+    Lazy::new(|| format!(r";{}+={}*", PARAM_CHAR_PATTERN, PARAM_CHAR_PATTERN));
+static PARAMS_PATTERN: Lazy<String> = Lazy::new(|| format!(r"(({})*)", *PARAM_PATTERN));
+static PATH_PATTERN: &str = r"(/[^#?]*)?";
+static QUERY_PATTERN: &str = r"(\?[^\#]*)?";
+static FRAGMENT_PATTERN: &str = r"(\#.*)?";
+static DID_URI_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(&format!(
         r"^did:{}:{}{}{}{}{}$",
-        *METHOD_PATTERN,
+        METHOD_PATTERN,
         *METHOD_ID_PATTERN,
         *PARAMS_PATTERN,
-        *PATH_PATTERN,
-        *QUERY_PATTERN,
-        *FRAGMENT_PATTERN
+        PATH_PATTERN,
+        QUERY_PATTERN,
+        FRAGMENT_PATTERN
     ))
-    .unwrap();
-}
+    .unwrap()
+});
 
 // Parse parses a DID URI in accordance to the ABNF rules specified in the
 // specification here: https://www.w3.org/TR/did-core/#did-syntax. Returns
