@@ -10,3 +10,4 @@ license-file.workspace = true
 serde = { workspace = true }
 serde_json = { workspace = true }
 jwk = { path = "../jwk" }
+regex = "1.10.4"
