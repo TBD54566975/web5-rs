@@ -7,6 +7,9 @@
       "path": "crates/crypto"
     },
     {
+      "path": "crates/crypto-v2"
+    },
+    {
       "path": "crates/dids"
     },
     {
@@ -33,6 +36,7 @@
       "**/go.work.sum": true,
       ".hermit": true,
       "**/*.zip": true,
-    }
+    },
+    "rust-analyzer.showUnlinkedFileNotification": false
   }
 }
