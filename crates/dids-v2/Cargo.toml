@@ -8,6 +8,5 @@ license-file.workspace = true
 
 [dependencies]
 crypto = { path = "../crypto" }
-jwk = { path = "../jwk" }
 regex = "1.10.4"
 serde = { workspace = true }

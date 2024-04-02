@@ -203,7 +203,7 @@ mod tests {
         };
 
         let key_manager = LocalKeyManager::new_in_memory();
-        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+        let key_alias = key_manager.generate_private_key(KeyType::Secp256k1).unwrap();
         let public_key = key_manager
             .get_public_key(&key_alias)
             .expect("KeyManagerError occurred")
@@ -243,7 +243,7 @@ mod tests {
     #[test]
     fn test_select_verification_method() {
         let key_manager = LocalKeyManager::new_in_memory();
-        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+        let key_alias = key_manager.generate_private_key(KeyType::Secp256k1).unwrap();
         let public_key = key_manager
             .get_public_key(&key_alias)
             .expect("KeyManagerError occurred")
@@ -256,7 +256,7 @@ mod tests {
         };
 
         let key_manager = LocalKeyManager::new_in_memory();
-        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+        let key_alias = key_manager.generate_private_key(KeyType::Secp256k1).unwrap();
         let public_key = key_manager
             .get_public_key(&key_alias)
             .expect("KeyManagerError occurred")
