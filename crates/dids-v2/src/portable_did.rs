@@ -5,10 +5,10 @@ use crate::document::Document;
 
 #[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
 pub struct PortableDID {
-    uri: String,
+    pub uri: String,
 
     #[serde(rename = "privateKeys")]
-    private_keys: Vec<PrivateKey>,
+    pub private_keys: Vec<PrivateKey>,
 
-    document: Document,
+    pub document: Document,
 }

@@ -14,14 +14,24 @@ pub struct BearerDID<T: KeyManager> {
 }
 
 impl<T: KeyManager> BearerDID<T> {
-    pub fn to_portable_did() -> Result<PortableDID, String> {
+    pub fn from_portable_did() -> Result<Self, String> {
         // TODO: Implement the logic to convert BearerDID to PortableDID
         unimplemented!()
     }
 
-    pub fn from_portable_did() -> Result<Self, String> {
-        // TODO: Implement the logic to convert BearerDID to PortableDID
-        unimplemented!()
+    pub fn to_portable_did(&self) -> Result<PortableDID, String> {
+        let private_keys = self
+            .key_manager
+            .export_private_keys()
+            .expect("failed to export private keys");
+
+        let portable_did = PortableDID {
+            uri: self.did.uri.clone(),
+            private_keys: private_keys,
+            document: self.document.clone(),
+        };
+
+        Ok(portable_did)
     }
 
     pub fn get_signer<'a>(
@@ -48,8 +58,31 @@ impl<T: KeyManager> BearerDID<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crypto::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
     use crate::{did::parse, document::VerificationMethod};
+    use crypto::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
+
+    #[test]
+    fn test_to_portable_did() {
+        let document = Document {
+            id: "did:example:123".to_string(),
+            ..Default::default()
+        };
+        let did = parse(&document.id).unwrap();
+        let key_manager = LocalKeyManager::new_in_memory();
+        let _ = key_manager.generate_private_key(KeyType::Secp256k1).unwrap();
+
+        let bearer_did = BearerDID {
+            document: document.clone(),
+            did: did.clone(),
+            key_manager,
+        };
+
+        let portable_did = bearer_did.to_portable_did().unwrap();
+
+        assert_eq!(portable_did.uri, did.uri.clone());
+        assert_eq!(portable_did.private_keys.len(), 1);
+        assert_eq!(portable_did.document, document);
+    }
 
     #[test]
     fn test_get_signer() {

@@ -14,4 +14,5 @@ pub enum KeyStoreError {
 pub trait KeyStore: Send + Sync {
     fn get(&self, key_alias: &str) -> Result<Option<PrivateKey>, KeyStoreError>;
     fn insert(&self, key_alias: &str, private_key: PrivateKey) -> Result<(), KeyStoreError>;
+    fn get_all(&self) -> Result<Vec<PrivateKey>, KeyStoreError>;
 }

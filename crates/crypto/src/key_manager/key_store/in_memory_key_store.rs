@@ -42,6 +42,15 @@ impl KeyStore for InMemoryKeyStore {
         map_lock.insert(key_alias.to_string(), private_key);
         Ok(())
     }
+
+    fn get_all(&self) -> Result<Vec<PrivateKey>, KeyStoreError> {
+        let map_lock = self.map.read().map_err(|e| {
+            KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
+        })?;
+
+        let private_keys: Vec<PrivateKey> = map_lock.values().cloned().collect();
+        Ok(private_keys)
+    }
 }
 
 #[cfg(test)]
