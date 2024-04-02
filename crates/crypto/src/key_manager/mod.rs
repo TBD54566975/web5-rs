@@ -19,6 +19,8 @@ pub enum KeyManagerError {
     KeyStoreError(#[from] KeyStoreError),
     #[error("Key export is not supported in this implementation")]
     ExportNotSupported,
+    #[error("Key import is not supported in this implementation")]
+    ImportNotSupported,
 }
 
 /// A key management trait for generating, storing, and utilizing keys private keys and their
@@ -44,5 +46,9 @@ pub trait KeyManager: Send + Sync {
 
     fn export_private_keys(&self) -> Result<Vec<PrivateKey>, KeyManagerError> {
         Err(KeyManagerError::ExportNotSupported)
+    }
+
+    fn import_private_keys(&self, _private_keys: Vec<PrivateKey>) -> Result<(), KeyManagerError> {
+        Err(KeyManagerError::ImportNotSupported)
     }
 }

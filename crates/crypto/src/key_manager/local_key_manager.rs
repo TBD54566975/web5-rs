@@ -73,6 +73,14 @@ impl KeyManager for LocalKeyManager {
             .get_all()
             .map_err(KeyManagerError::KeyStoreError)
     }
+
+    fn import_private_keys(&self, private_keys: Vec<PrivateKey>) -> Result<(), KeyManagerError> {
+        for private_key in private_keys {
+            let key_alias = self.alias(&private_key.to_public())?;
+            self.key_store.insert(&key_alias, private_key)?;
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
