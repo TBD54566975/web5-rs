@@ -25,7 +25,6 @@ pub struct Service {
     pub service_endpoint: String,
 }
 
-// https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Document {
     pub id: String,
@@ -237,7 +236,7 @@ mod tests {
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
             public_key_jwk: JWK {
-              ..Default::default()
+                ..Default::default()
             },
         };
 
@@ -246,7 +245,7 @@ mod tests {
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
             public_key_jwk: JWK {
-              ..Default::default()
+                ..Default::default()
             },
         };
 
@@ -258,12 +257,10 @@ mod tests {
             ..Default::default()
         };
 
-        // Test selecting a verification method by ID
         let selector = VerificationMethodSelector::ID("did:example:123#key1".to_string());
         let selected_method = doc.select_verification_method(Some(selector)).unwrap();
         assert_eq!(selected_method, method1);
 
-        // Test selecting a verification method by Purpose
         let selector = VerificationMethodSelector::Purpose(Purpose::AssertionMethod);
         let selected_method = doc.select_verification_method(Some(selector)).unwrap();
         assert_eq!(selected_method, method1);
@@ -272,11 +269,9 @@ mod tests {
         let selected_method = doc.select_verification_method(Some(selector)).unwrap();
         assert_eq!(selected_method, method2);
 
-        // Test selecting the first verification method when no selector is provided
         let selected_method = doc.select_verification_method(None).unwrap();
         assert_eq!(selected_method, method1);
 
-        // Test selecting a non-existent verification method
         let selector = VerificationMethodSelector::ID("did:example:123#key3".to_string());
         let result = doc.select_verification_method(Some(selector));
         assert!(result.is_err());
@@ -285,7 +280,6 @@ mod tests {
             "no verification method found for id: did:example:123#key3"
         );
 
-        // Test selecting a verification method for a non-existent purpose
         let selector = VerificationMethodSelector::Purpose(Purpose::KeyAgreement);
         let result = doc.select_verification_method(Some(selector));
         assert!(result.is_err());
@@ -315,13 +309,11 @@ mod tests {
             service_endpoint: "https://example.com/service2".to_string(),
         };
 
-        // Add service1 to the document
         doc.add_service(service1.clone());
         assert!(doc.service.is_some());
         assert_eq!(doc.service.as_ref().unwrap().len(), 1);
         assert_eq!(doc.service.as_ref().unwrap()[0], service1);
 
-        // Add service2 to the document
         doc.add_service(service2.clone());
         assert!(doc.service.is_some());
         assert_eq!(doc.service.as_ref().unwrap().len(), 2);
@@ -336,12 +328,10 @@ mod tests {
             ..Default::default()
         };
 
-        // Test with a relative DID URL
         let relative_id = "#key1";
         let absolute_id = doc.get_absolute_resource_id(relative_id);
         assert_eq!(absolute_id, "did:example:123#key1");
 
-        // Test with an absolute DID URL
         let absolute_id = "did:example:456#key2";
         let result = doc.get_absolute_resource_id(absolute_id);
         assert_eq!(result, "did:example:456#key2");
