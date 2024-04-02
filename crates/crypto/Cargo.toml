@@ -10,4 +10,3 @@ license-file.workspace = true
 ssi-jwk = "0.1.2"
 ssi-jws = "0.1.1"
 thiserror = { workspace = true }
-serde = { workspace = true }
