@@ -190,9 +190,9 @@ impl Document {
 
 #[cfg(test)]
 mod tests {
-    use crypto::key::public_key::new_public_key;
-
     use super::*;
+    use crypto::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
+    use crypto::key_manager::KeyManager;
 
     #[test]
     fn test_add_verification_method() {
@@ -202,11 +202,18 @@ mod tests {
             ..Default::default()
         };
 
+        let key_manager = LocalKeyManager::new_in_memory();
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+        let public_key = key_manager
+            .get_public_key(&key_alias)
+            .expect("KeyManagerError occurred")
+            .expect("PublicKey not found");
+
         let method = VerificationMethod {
             id: "did:example:123#key1".to_string(),
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
-            public_key_jwk: new_public_key(),
+            public_key_jwk: public_key,
         };
 
         doc.add_verification_method(
@@ -235,18 +242,30 @@ mod tests {
 
     #[test]
     fn test_select_verification_method() {
+        let key_manager = LocalKeyManager::new_in_memory();
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+        let public_key = key_manager
+            .get_public_key(&key_alias)
+            .expect("KeyManagerError occurred")
+            .expect("PublicKey not found");
         let method1 = VerificationMethod {
             id: "did:example:123#key1".to_string(),
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
-            public_key_jwk: new_public_key(),
+            public_key_jwk: public_key,
         };
 
+        let key_manager = LocalKeyManager::new_in_memory();
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+        let public_key = key_manager
+            .get_public_key(&key_alias)
+            .expect("KeyManagerError occurred")
+            .expect("PublicKey not found");
         let method2 = VerificationMethod {
             id: "did:example:123#key2".to_string(),
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
-            public_key_jwk: new_public_key(),
+            public_key_jwk: public_key,
         };
 
         let doc = Document {

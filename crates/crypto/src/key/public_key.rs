@@ -27,10 +27,6 @@ impl Key for PublicKey {
     }
 }
 
-pub fn new_public_key() -> PublicKey {
-    PublicKey(JWK::generate_secp256k1().unwrap())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

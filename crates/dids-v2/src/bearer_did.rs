@@ -49,7 +49,6 @@ impl<T: KeyManager> BearerDID<T> {
 mod tests {
     use super::*;
     use crypto::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
-
     use crate::{did::parse, document::VerificationMethod};
 
     #[test]
