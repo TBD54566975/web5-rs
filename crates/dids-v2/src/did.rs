@@ -1,6 +1,6 @@
-use once_cell::sync::Lazy;
 use regex::Regex;
 use std::collections::HashMap;
+use std::sync::OnceLock;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct DID {
@@ -41,38 +41,38 @@ pub struct DID {
     fragment: Option<String>,
 }
 
-// relevant ABNF rules: https://www.w3.org/TR/did-core/#did-syntax
-static PCT_ENCODED_PATTERN: &str = r"(?:%[0-9a-fA-F]{2})";
-static ID_CHAR_PATTERN: Lazy<String> =
-    Lazy::new(|| format!(r"(?:[a-zA-Z0-9._-]|{})", PCT_ENCODED_PATTERN));
-static METHOD_PATTERN: &str = r"([a-z0-9]+)";
-static METHOD_ID_PATTERN: Lazy<String> =
-    Lazy::new(|| format!(r"((?:{}*:)*({}+))", *ID_CHAR_PATTERN, *ID_CHAR_PATTERN));
-static PARAM_CHAR_PATTERN: &str = r"[a-zA-Z0-9_.:%-]";
-static PARAM_PATTERN: Lazy<String> =
-    Lazy::new(|| format!(r";{}+={}*", PARAM_CHAR_PATTERN, PARAM_CHAR_PATTERN));
-static PARAMS_PATTERN: Lazy<String> = Lazy::new(|| format!(r"(({})*)", *PARAM_PATTERN));
-static PATH_PATTERN: &str = r"(/[^#?]*)?";
-static QUERY_PATTERN: &str = r"(\?[^\#]*)?";
-static FRAGMENT_PATTERN: &str = r"(\#.*)?";
-static DID_URI_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(&format!(
-        r"^did:{}:{}{}{}{}{}$",
-        METHOD_PATTERN,
-        *METHOD_ID_PATTERN,
-        *PARAMS_PATTERN,
-        PATH_PATTERN,
-        QUERY_PATTERN,
-        FRAGMENT_PATTERN
-    ))
-    .unwrap()
-});
+static DID_URL_PATTERN: OnceLock<Regex> = OnceLock::new();
 
 // Parse parses a DID URI in accordance to the ABNF rules specified in the
 // specification here: https://www.w3.org/TR/did-core/#did-syntax. Returns
 // a DIDURI instance if parsing is successful. Otherwise, returns an error.
 pub fn parse(input: &str) -> Result<DID, String> {
-    if let Some(captures) = DID_URI_PATTERN.captures(input) {
+    let pattern = DID_URL_PATTERN.get_or_init(|| {
+        // relevant ABNF rules: https://www.w3.org/TR/did-core/#did-syntax
+        let pct_encoded_pattern: &str = r"(?:%[0-9a-fA-F]{2})";
+        let method_pattern: &str = r"([a-z0-9]+)";
+        let param_char_pattern: &str = r"[a-zA-Z0-9_.:%-]";
+        let path_pattern: &str = r"(/[^#?]*)?";
+        let query_pattern: &str = r"(\?[^\#]*)?";
+        let fragment_pattern: &str = r"(\#.*)?";
+        let id_char_pattern = format!(r"(?:[a-zA-Z0-9._-]|{})", pct_encoded_pattern);
+        let method_id_pattern = format!(r"((?:{}*:)*({}+))", id_char_pattern, id_char_pattern);
+        let param_pattern = format!(r";{}+={}*", param_char_pattern, param_char_pattern);
+        let params_pattern = format!(r"(({})*)", param_pattern);
+
+        Regex::new(&format!(
+            r"^did:{}:{}{}{}{}{}$",
+            method_pattern,
+            method_id_pattern,
+            params_pattern,
+            path_pattern,
+            query_pattern,
+            fragment_pattern
+        ))
+        .expect("Failed to compile DID_URL_PATTERN Regex")
+    });
+
+    if let Some(captures) = pattern.captures(input) {
         let mut did = DID {
             uri: format!("did:{}:{}", &captures[1], &captures[2]),
             url: input.to_string(),
