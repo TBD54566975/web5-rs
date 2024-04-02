@@ -10,6 +10,9 @@
       "path": "crates/dids"
     },
     {
+      "path": "crates/dids-v2"
+    },
+    {
       "path": "crates/jwk"
     },
     {

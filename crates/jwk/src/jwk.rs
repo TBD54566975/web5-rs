@@ -2,14 +2,14 @@ use base64::{engine::general_purpose, Engine};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct JWK {
-    alg: Option<String>,
-    kty: Option<String>,
-    crv: Option<String>,
-    d: Option<String>,
-    x: Option<String>,
-    y: Option<String>,
+    pub alg: Option<String>,
+    pub kty: Option<String>,
+    pub crv: Option<String>,
+    pub d: Option<String>,
+    pub x: Option<String>,
+    pub y: Option<String>,
 }
 
 impl JWK {
@@ -32,7 +32,7 @@ impl JWK {
 
 #[cfg(test)]
 mod tests {
-    use super::*; // Adjust this line if your JWK struct and impl are in a different module
+    use super::*;
 
     #[test]
     fn test_compute_thumbprint() {
