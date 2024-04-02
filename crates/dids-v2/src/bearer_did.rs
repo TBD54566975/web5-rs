@@ -97,7 +97,10 @@ mod tests {
 
         assert_eq!(bearer_did.did, did);
         assert_eq!(bearer_did.document, document);
-        assert_eq!(bearer_did.key_manager.export_private_keys().unwrap(), private_keys);
+        assert_eq!(
+            bearer_did.key_manager.export_private_keys().unwrap(),
+            private_keys
+        );
     }
 
     #[test]
