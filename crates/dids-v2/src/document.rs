@@ -1,43 +1,33 @@
-use jwk::jwk::JWK;
+use crypto::key::public_key::PublicKey;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Document {
     pub id: String,
-
     #[serde(rename = "@context")]
     pub context: Option<Vec<String>>,
-
     #[serde(skip_serializing_if = "Option::is_none")]
     pub controller: Option<Vec<String>>,
-
     #[serde(rename = "alsoKnownAs", skip_serializing_if = "Option::is_none")]
     pub also_known_as: Option<Vec<String>>,
-
     #[serde(rename = "verificationMethod", skip_serializing_if = "Vec::is_empty")]
     pub verification_method: Vec<VerificationMethod>,
-
     #[serde(skip_serializing_if = "Option::is_none")]
     pub authentication: Option<Vec<String>>,
-
     #[serde(rename = "assertionMethod", skip_serializing_if = "Option::is_none")]
     pub assertion_method: Option<Vec<String>>,
-
     #[serde(rename = "keyAgreement", skip_serializing_if = "Option::is_none")]
     pub key_agreement: Option<Vec<String>>,
-
     #[serde(
         rename = "capabilityInvocation",
         skip_serializing_if = "Option::is_none"
     )]
     pub capability_invocation: Option<Vec<String>>,
-
     #[serde(
         rename = "capabilityDelegation",
         skip_serializing_if = "Option::is_none"
     )]
     pub capability_delegation: Option<Vec<String>>,
-
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service: Option<Vec<Service>>,
 }
@@ -45,9 +35,11 @@ pub struct Document {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct VerificationMethod {
     pub id: String,
+    #[serde(rename = "type")]
     pub r#type: String,
     pub controller: String,
-    pub public_key_jwk: JWK,
+    #[serde(rename = "publicKeyJwk")]
+    pub public_key_jwk: PublicKey,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -62,7 +54,9 @@ pub enum VerificationRelationship {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Service {
     pub id: String,
+    #[serde(rename = "type")]
     pub r#type: String,
+    #[serde(rename = "serviceEndpoint")]
     pub service_endpoint: String,
 }
 
@@ -196,6 +190,8 @@ impl Document {
 
 #[cfg(test)]
 mod tests {
+    use crypto::key::public_key::new_public_key;
+
     use super::*;
 
     #[test]
@@ -210,9 +206,7 @@ mod tests {
             id: "did:example:123#key1".to_string(),
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
-            public_key_jwk: JWK {
-                ..Default::default()
-            },
+            public_key_jwk: new_public_key(),
         };
 
         doc.add_verification_method(
@@ -245,18 +239,14 @@ mod tests {
             id: "did:example:123#key1".to_string(),
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
-            public_key_jwk: JWK {
-                ..Default::default()
-            },
+            public_key_jwk: new_public_key(),
         };
 
         let method2 = VerificationMethod {
             id: "did:example:123#key2".to_string(),
             controller: "did:example:123".to_string(),
             r#type: "JsonWebKey".to_string(),
-            public_key_jwk: JWK {
-                ..Default::default()
-            },
+            public_key_jwk: new_public_key(),
         };
 
         let doc = Document {

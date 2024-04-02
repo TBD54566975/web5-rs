@@ -1,8 +1,9 @@
 use crate::key::{Key, KeyError};
+use serde::{Deserialize, Serialize};
 use ssi_jwk::JWK;
 use ssi_jws::{verify_bytes_warnable, VerificationWarnings};
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Deserialize, Serialize)]
 pub struct PublicKey(pub(crate) JWK);
 
 impl PublicKey {
@@ -24,6 +25,10 @@ impl Key for PublicKey {
     fn jwk(&self) -> &JWK {
         &self.0
     }
+}
+
+pub fn new_public_key() -> PublicKey {
+    PublicKey(JWK::generate_secp256k1().unwrap())
 }
 
 #[cfg(test)]

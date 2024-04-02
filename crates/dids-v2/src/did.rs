@@ -1,44 +1,51 @@
 use regex::Regex;
 use std::collections::HashMap;
 use std::sync::OnceLock;
+use std::fmt;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct DID {
     // URI represents the complete Decentralized Identifier (DID) URI.
     // Spec: https://www.w3.org/TR/did-core/#did-syntax
-    uri: String,
+    pub uri: String,
 
     // URL represents the DID URI + A network location identifier for a specific resource
     // Spec: https://www.w3.org/TR/did-core/#did-url-syntax
-    url: String,
+    pub url: String,
 
     // Method specifies the DID method in the URI, which indicates the underlying
     // method-specific identifier scheme (e.g., jwk, dht, key, etc.).
     // Spec: https://www.w3.org/TR/did-core/#method-schemes
-    method: String,
+    pub method: String,
 
     // ID is the method-specific identifier in the DID URI.
     // Spec: https://www.w3.org/TR/did-core/#method-specific-id
-    id: String,
+    pub id: String,
 
     // Params is a map containing optional parameters present in the DID URI.
     // These parameters are method-specific.
     // Spec: https://www.w3.org/TR/did-core/#did-parameters
-    params: Option<HashMap<String, String>>,
+    pub params: Option<HashMap<String, String>>,
 
     // Path is an optional path component in the DID URI.
     // Spec: https://www.w3.org/TR/did-core/#path
-    path: Option<String>,
+    pub path: Option<String>,
 
     // Query is an optional query component in the DID URI, used to express a request
     // for a specific representation or resource related to the DID.
     // Spec: https://www.w3.org/TR/did-core/#query
-    query: Option<String>,
+    pub query: Option<String>,
 
     // Fragment is an optional fragment component in the DID URI, used to reference
     // a specific part of a DID document.
     // Spec: https://www.w3.org/TR/did-core/#fragment
-    fragment: Option<String>,
+    pub fragment: Option<String>,
+}
+
+impl fmt::Display for DID {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.uri)
+    }
 }
 
 static DID_URL_PATTERN: OnceLock<Regex> = OnceLock::new();
