@@ -1,10 +1,9 @@
-use crypto::key_manager::{local_key_manager::LocalKeyManager, KeyManager};
-
 use crate::{
     did::Did,
     document::{Document, VerificationMethodSelector},
     portable_did::PortableDid,
 };
+use crypto::key_manager::{local_key_manager::LocalKeyManager, KeyManager};
 
 #[derive(Debug)]
 pub struct BearerDid<T: KeyManager> {
@@ -132,7 +131,9 @@ mod tests {
     fn test_get_signer() {
         let key_manager = LocalKeyManager::new_in_memory();
         let did = Did::parse("did:example:123").unwrap();
-        let key_alias = key_manager.generate_private_key(KeyType::Secp256k1).unwrap();
+        let key_alias = key_manager
+            .generate_private_key(KeyType::Secp256k1)
+            .unwrap();
 
         let public_key = key_manager
             .get_public_key(&key_alias)

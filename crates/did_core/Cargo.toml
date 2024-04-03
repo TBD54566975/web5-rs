@@ -1,0 +1,12 @@
+[package]
+name = "did_core"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+crypto = { path = "../crypto" }
+regex = "1.10.4"
+serde = { workspace = true }

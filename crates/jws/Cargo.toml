@@ -1,5 +1,5 @@
 [package]
-name = "did-core"
+name = "jws"
 version = "0.1.0"
 edition = "2021"
 homepage.workspace = true
@@ -8,5 +8,7 @@ license-file.workspace = true
 
 [dependencies]
 crypto = { path = "../crypto" }
-regex = "1.10.4"
+did_core = { path = "../did_core" }
 serde = { workspace = true }
+serde_json = { workspace = true }
+base64 = { workspace = true }

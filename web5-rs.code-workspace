@@ -4,7 +4,10 @@
       "path": "crates/crypto"
     },
     {
-      "path": "crates/did-core"
+      "path": "crates/did_core"
+    },
+    {
+      "path": "crates/jws"
     },
     {
       "path": "."
