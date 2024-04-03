@@ -1,22 +1,10 @@
 {
   "folders": [
     {
-      "path": "crates/credentials"
-    },
-    {
       "path": "crates/crypto"
     },
     {
-      "path": "crates/crypto-v2"
-    },
-    {
-      "path": "crates/dids"
-    },
-    {
-      "path": "crates/dids-v2"
-    },
-    {
-      "path": "crates/jwk"
+      "path": "crates/did-core"
     },
     {
       "path": "."
