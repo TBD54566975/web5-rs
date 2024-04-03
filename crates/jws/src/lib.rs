@@ -95,7 +95,6 @@ impl Decoded {
         };
 
         // TODO resolve did doc
-        // TODO extend key manager to perform verification
 
         // let resolution_result = dids::resolve(&did.uri)?;
         // if resolution_result.is_err() {
@@ -110,14 +109,7 @@ impl Decoded {
 
         // let to_verify = format!("{}.{}", self.parts[0], self.parts[1]);
 
-        // let verified = dsa::verify(to_verify.as_bytes(), &self.signature, &verification_method.public_key_jwk)?;
-        // if verified.is_err() {
-        //     return Err(format!("failed to verify signature: {}", verified.unwrap_err()).into());
-        // }
-
-        // if !verified.unwrap() {
-        //     return Err("invalid signature".into());
-        // }
+        // TODO use PublicKey.verify() method to verify
 
         Ok(())
     }
