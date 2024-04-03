@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::document::Document;
 
 #[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
-pub struct PortableDID {
+pub struct PortableDid {
     pub uri: String,
 
     #[serde(rename = "privateKeys")]

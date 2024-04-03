@@ -1,28 +1,28 @@
 use crypto::key_manager::{local_key_manager::LocalKeyManager, KeyManager};
 
 use crate::{
-    did::DID,
+    did::Did,
     document::{Document, VerificationMethodSelector},
-    portable_did::PortableDID,
+    portable_did::PortableDid,
 };
 
 #[derive(Debug)]
-pub struct BearerDID<T: KeyManager> {
-    pub did: DID,
+pub struct BearerDid<T: KeyManager> {
+    pub did: Did,
     pub key_manager: T,
     pub document: Document,
 }
 
-pub fn from_portable_did(portable_did: PortableDID) -> Result<BearerDID<LocalKeyManager>, String> {
+pub fn from_portable_did(portable_did: PortableDid) -> Result<BearerDid<LocalKeyManager>, String> {
     let key_manager = LocalKeyManager::new_in_memory();
 
     key_manager
         .import_private_keys(portable_did.private_keys)
         .map_err(|e| format!("Failed to import private keys: {:?}", e))?;
 
-    let did = DID::parse(&portable_did.uri).map_err(|e| format!("Failed to parse DID: {:?}", e))?;
+    let did = Did::parse(&portable_did.uri).map_err(|e| format!("Failed to parse DID: {:?}", e))?;
 
-    let bearer_did = BearerDID {
+    let bearer_did = BearerDid {
         did,
         key_manager,
         document: portable_did.document.clone(),
@@ -31,14 +31,14 @@ pub fn from_portable_did(portable_did: PortableDID) -> Result<BearerDID<LocalKey
     Ok(bearer_did)
 }
 
-impl<T: KeyManager> BearerDID<T> {
-    pub fn to_portable_did(&self) -> Result<PortableDID, String> {
+impl<T: KeyManager> BearerDid<T> {
+    pub fn to_portable_did(&self) -> Result<PortableDid, String> {
         let private_keys = self
             .key_manager
             .export_private_keys()
             .expect("failed to export private keys");
 
-        let portable_did = PortableDID {
+        let portable_did = PortableDid {
             uri: self.did.uri.clone(),
             private_keys: private_keys,
             document: self.document.clone(),
@@ -80,14 +80,14 @@ mod tests {
             id: "did:example:123".to_string(),
             ..Default::default()
         };
-        let did = DID::parse(&document.id).unwrap();
+        let did = Did::parse(&document.id).unwrap();
         let key_manager = LocalKeyManager::new_in_memory();
         let _ = key_manager
             .generate_private_key(KeyType::Secp256k1)
             .unwrap();
         let private_keys = key_manager.export_private_keys().unwrap();
 
-        let portable_did = PortableDID {
+        let portable_did = PortableDid {
             uri: did.clone().uri,
             private_keys: private_keys.clone(),
             document: document.clone(),
@@ -109,13 +109,13 @@ mod tests {
             id: "did:example:123".to_string(),
             ..Default::default()
         };
-        let did = DID::parse(&document.id).unwrap();
+        let did = Did::parse(&document.id).unwrap();
         let key_manager = LocalKeyManager::new_in_memory();
         let _ = key_manager
             .generate_private_key(KeyType::Secp256k1)
             .unwrap();
 
-        let bearer_did = BearerDID {
+        let bearer_did = BearerDid {
             document: document.clone(),
             did: did.clone(),
             key_manager,
@@ -131,7 +131,7 @@ mod tests {
     #[test]
     fn test_get_signer() {
         let key_manager = LocalKeyManager::new_in_memory();
-        let did = DID::parse("did:example:123").unwrap();
+        let did = Did::parse("did:example:123").unwrap();
         let key_alias = key_manager.generate_private_key(KeyType::Secp256k1).unwrap();
 
         let public_key = key_manager
@@ -161,7 +161,7 @@ mod tests {
             ..Default::default()
         };
 
-        let bearer_did = BearerDID {
+        let bearer_did = BearerDid {
             did: did.clone(),
             key_manager,
             document,
