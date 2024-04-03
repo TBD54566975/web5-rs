@@ -4,7 +4,7 @@ use std::fmt;
 use std::sync::OnceLock;
 
 #[derive(Debug, Default, Clone, PartialEq)]
-pub struct DID {
+pub struct Did {
     // URI represents the complete Decentralized Identifier (DID) URI.
     // Spec: https://www.w3.org/TR/did-core/#did-syntax
     pub uri: String,
@@ -42,7 +42,7 @@ pub struct DID {
     pub fragment: Option<String>,
 }
 
-impl fmt::Display for DID {
+impl fmt::Display for Did {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.uri)
     }
@@ -50,11 +50,11 @@ impl fmt::Display for DID {
 
 static DID_URL_PATTERN: OnceLock<Regex> = OnceLock::new();
 
-impl DID {
+impl Did {
     // Parse parses a DID URI in accordance to the ABNF rules specified in the
     // specification here: https://www.w3.org/TR/did-core/#did-syntax. Returns
     // a DIDURI instance if parsing is successful. Otherwise, returns an error.
-    pub fn parse(input: &str) -> Result<DID, String> {
+    pub fn parse(input: &str) -> Result<Did, String> {
         let pattern = DID_URL_PATTERN.get_or_init(|| {
             // relevant ABNF rules: https://www.w3.org/TR/did-core/#did-syntax
             let pct_encoded_pattern: &str = r"(?:%[0-9a-fA-F]{2})";
@@ -81,7 +81,7 @@ impl DID {
         });
 
         if let Some(captures) = pattern.captures(input) {
-            let mut did = DID {
+            let mut did = Did {
                 uri: format!("did:{}:{}", &captures[1], &captures[2]),
                 url: input.to_string(),
                 method: captures[1].to_string(),
@@ -139,7 +139,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi",
                 false,
-                Some(DID {
+                Some(Did {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi".to_string(),
                     method: "example".to_string(),
@@ -150,7 +150,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi;foo=bar;baz=qux",
                 false,
-                Some(DID {
+                Some(Did {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi;foo=bar;baz=qux".to_string(),
                     method: "example".to_string(),
@@ -170,7 +170,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi?foo=bar&baz=qux",
                 false,
-                Some(DID {
+                Some(Did {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi?foo=bar&baz=qux".to_string(),
                     method: "example".to_string(),
@@ -182,7 +182,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi#keys-1",
                 false,
-                Some(DID {
+                Some(Did {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi#keys-1".to_string(),
                     method: "example".to_string(),
@@ -194,7 +194,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi?foo=bar&baz=qux#keys-1",
                 false,
-                Some(DID {
+                Some(Did {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi?foo=bar&baz=qux#keys-1".to_string(),
                     method: "example".to_string(),
@@ -207,7 +207,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1",
                 false,
-                Some(DID {
+                Some(Did {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1"
                         .to_string(),
@@ -230,7 +230,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi/path/to/resource",
                 false,
-                Some(DID {
+                Some(Did {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi/path/to/resource".to_string(),
                     method: "example".to_string(),
@@ -242,7 +242,7 @@ mod tests {
         ];
 
         for (input, error, expected) in test_cases {
-            match DID::parse(input) {
+            match Did::parse(input) {
                 Ok(did) => {
                     assert!(!error, "Expected error for input: {}", input);
                     assert_eq!(
