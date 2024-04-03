@@ -1,6 +1,6 @@
 use base64::{engine::general_purpose, Engine};
 use crypto::key_manager::KeyManager;
-use did_core::{bearer_did::BearerDid, document::VerificationMethodSelector};
+use did_core::{bearer_did::BearerDid, did::Did, document::VerificationMethodSelector};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
@@ -74,6 +74,53 @@ pub fn decode_header(encoded_header: &str) -> Result<Header, String> {
         .map_err(|e| format!("Failed to decode header: {}", e))?;
     serde_json::from_slice::<Header>(&decoded_bytes)
         .map_err(|e| format!("Failed to parse header: {}", e))
+}
+
+pub fn verify(jws: &str, options: DecodeOptions) -> Result<Decoded, String> {
+    let decoded =
+        decode(jws, options).map_err(|e| format!("Unable to acquire Mutex lock: {}", e))?;
+
+    Ok(decoded)
+}
+
+impl Decoded {
+    pub fn verify(&self) -> Result<(), String> {
+        if self.header.alg.is_none() {
+            return Err("alg is required".into());
+        }
+
+        let did = match &self.header.kid {
+            Some(kid) => Did::parse(kid),
+            None => return Err("kid is required".into())
+        };
+
+        // TODO resolve did doc
+        // TODO extend key manager to perform verification
+
+        // let resolution_result = dids::resolve(&did.uri)?;
+        // if resolution_result.is_err() {
+        //     return Err(format!("failed to resolve DID: {}", resolution_result.unwrap_err()).into());
+        // }
+
+        // let vm_selector = didcore::ID(did.url);
+        // let verification_method = resolution_result.document.select_verification_method(vm_selector)?;
+        // if verification_method.is_err() {
+        //     return Err(format!("kid does not match any verification method {}", verification_method.unwrap_err()).into());
+        // }
+
+        // let to_verify = format!("{}.{}", self.parts[0], self.parts[1]);
+
+        // let verified = dsa::verify(to_verify.as_bytes(), &self.signature, &verification_method.public_key_jwk)?;
+        // if verified.is_err() {
+        //     return Err(format!("failed to verify signature: {}", verified.unwrap_err()).into());
+        // }
+
+        // if !verified.unwrap() {
+        //     return Err("invalid signature".into());
+        // }
+
+        Ok(())
+    }
 }
 
 #[derive(Default)]
