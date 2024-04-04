@@ -57,6 +57,13 @@ impl fmt::Display for Identifier {
     }
 }
 
+static METHOD_INDEX: usize = 1;
+static METHOD_ID_INDEX: usize = 2;
+static PARAMS_INDEX: usize = 4;
+static PATH_INDEX: usize = 6;
+static QUERY_INDEX: usize = 7;
+static FRAGMENT_INDEX: usize = 8;
+
 static DID_URL_PATTERN: OnceLock<Result<Regex, IdentifierError>> = OnceLock::new();
 
 fn regex_pattern() -> &'static Result<Regex, IdentifierError> {
@@ -98,7 +105,7 @@ impl Identifier {
             .ok_or(IdentifierError::ParseFailure(uri.to_string()))?;
 
         let params = captures
-            .get(4)
+            .get(PARAMS_INDEX)
             .filter(|params_match| !params_match.as_str().is_empty())
             .map(|params_match| {
                 let params_str = params_match.as_str();
@@ -112,20 +119,23 @@ impl Identifier {
             });
 
         let path = captures
-            .get(6)
+            .get(PATH_INDEX)
             .map(|path_match| path_match.as_str().to_string());
         let query = captures
-            .get(7)
+            .get(QUERY_INDEX)
             .map(|query_match| query_match.as_str()[1..].to_string());
         let fragment = captures
-            .get(8)
+            .get(FRAGMENT_INDEX)
             .map(|fragment_match| fragment_match.as_str()[1..].to_string());
 
         let identifier = Identifier {
-            uri: format!("did:{}:{}", &captures[1], &captures[2]),
+            uri: format!(
+                "did:{}:{}",
+                &captures[METHOD_INDEX], &captures[METHOD_ID_INDEX]
+            ),
             url: uri.to_string(),
-            method: captures[1].to_string(),
-            id: captures[2].to_string(),
+            method: captures[METHOD_INDEX].to_string(),
+            id: captures[METHOD_ID_INDEX].to_string(),
             params,
             path,
             query,
