@@ -97,39 +97,40 @@ impl Identifier {
             .captures(uri)
             .ok_or(IdentifierError::ParseFailure(uri.to_string()))?;
 
-        let mut identifier = Identifier {
-            uri: format!("did:{}:{}", &captures[1], &captures[2]),
-            url: uri.to_string(),
-            method: captures[1].to_string(),
-            id: captures[2].to_string(),
-            ..Default::default()
-        };
-
-        captures
+        let params = captures
             .get(4)
             .filter(|params_match| !params_match.as_str().is_empty())
             .map(|params_match| {
                 let params_str = params_match.as_str();
                 let params = params_str[1..].split(';');
-                let mut parsed_params = HashMap::new();
-                for p in params {
-                    let kv: Vec<&str> = p.split('=').collect();
-                    parsed_params.insert(kv[0].to_string(), kv[1].to_string());
-                }
-                identifier.params = Some(parsed_params);
+                params
+                    .map(|p| {
+                        let kv: Vec<&str> = p.split('=').collect();
+                        (kv[0].to_string(), kv[1].to_string())
+                    })
+                    .collect::<HashMap<_, _>>()
             });
 
-        identifier.path = captures
+        let path = captures
             .get(6)
             .map(|path_match| path_match.as_str().to_string());
-
-        identifier.query = captures
+        let query = captures
             .get(7)
             .map(|query_match| query_match.as_str()[1..].to_string());
-
-        identifier.fragment = captures
+        let fragment = captures
             .get(8)
             .map(|fragment_match| fragment_match.as_str()[1..].to_string());
+
+        let identifier = Identifier {
+            uri: format!("did:{}:{}", &captures[1], &captures[2]),
+            url: uri.to_string(),
+            method: captures[1].to_string(),
+            id: captures[2].to_string(),
+            params,
+            path,
+            query,
+            fragment,
+        };
 
         Ok(identifier)
     }
