@@ -1,5 +1,4 @@
-use crate::did::Did;
-use crate::method::{DidMethod, DidMethodError, DidResolutionResult};
+use crate::{bearer::BearerDid, method::{DidMethod, DidMethodError, DidResolutionResult}};
 use async_trait::async_trait;
 use crypto::key_manager::KeyManager;
 use did_web::DIDWeb as SpruceDidWebMethod;
@@ -7,33 +6,20 @@ use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 use std::sync::Arc;
 
 /// Concrete implementation for a did:web DID
-pub struct DidWeb {
-    uri: String,
-    key_manager: Arc<dyn KeyManager>,
-}
-
-impl Did for DidWeb {
-    fn uri(&self) -> &str {
-        &self.uri
-    }
-
-    fn key_manager(&self) -> &Arc<dyn KeyManager> {
-        &self.key_manager
-    }
-}
+pub struct DidWeb {}
 
 /// Options that can be used to create a did:web DID.
 /// This is currently a unit struct because did:web does not support key creation.
 pub struct DidWebCreateOptions;
 
 #[async_trait]
-impl DidMethod<DidWeb, DidWebCreateOptions> for DidWeb {
+impl DidMethod<DidWebCreateOptions> for DidWeb {
     const NAME: &'static str = "web";
 
-    fn create(
-        _key_manager: Arc<dyn KeyManager>,
+    fn create<T: KeyManager>(
+        _key_manager: Arc<T>,
         _options: DidWebCreateOptions,
-    ) -> Result<DidWeb, DidMethodError> {
+    ) -> Result<BearerDid<T>, DidMethodError> {
         Err(DidMethodError::DidCreationFailure(
             "create operation not supported for did:web".to_string(),
         ))

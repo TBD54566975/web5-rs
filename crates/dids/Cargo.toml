@@ -11,6 +11,7 @@ async-trait = "0.1.74"
 crypto = { path = "../crypto" }
 did-jwk = "0.1.1"
 did-web = "0.2.2"
+regex = "1.10.4"
 serde = { workspace = true }
 serde_json = { workspace = true }
 ssi-dids = "0.1.1"

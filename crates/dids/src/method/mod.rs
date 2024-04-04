@@ -1,7 +1,7 @@
 pub mod jwk;
 pub mod web;
 
-use crate::did::Did;
+use crate::bearer::BearerDid;
 use crate::resolver::DidResolutionResult;
 use async_trait::async_trait;
 use crypto::key_manager::{KeyManager, KeyManagerError};
@@ -18,7 +18,7 @@ pub enum DidMethodError {
 
 /// A trait with common behavior across all DID methods.
 #[async_trait]
-pub trait DidMethod<T: Did, CreateOptions> {
+pub trait DidMethod<CreateOptions> {
     /// The name of the implemented DID method (e.g. `jwk`).
     ///
     /// This is used to identify the [`DidMethod`] responsible for creating/resolving an arbitrary
@@ -31,10 +31,10 @@ pub trait DidMethod<T: Did, CreateOptions> {
     const NAME: &'static str;
 
     /// Create a new DID instance.
-    fn create(
-        key_manager: Arc<dyn KeyManager>,
+    fn create<T: KeyManager>(
+        key_manager: Arc<T>,
         options: CreateOptions,
-    ) -> Result<T, DidMethodError>;
+    ) -> Result<BearerDid<T>, DidMethodError>;
 
     /// Resolve a DID URI to a [`DidResolutionResult`], as specified in
     /// [Resolving a DID](https://w3c-ccg.github.io/did-resolution/#resolving).

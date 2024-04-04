@@ -1,4 +1,6 @@
-use crate::did::Did;
+use crate::bearer::BearerDid;
+use crate::document::Document;
+use crate::identifier::Identifier;
 use crate::method::{DidMethod, DidMethodError};
 use crate::resolver::DidResolutionResult;
 use async_trait::async_trait;
@@ -10,20 +12,7 @@ use ssi_dids::{DIDMethod, Source};
 use std::sync::Arc;
 
 /// Concrete implementation for a did:jwk DID
-pub struct DidJwk {
-    uri: String,
-    key_manager: Arc<dyn KeyManager>,
-}
-
-impl Did for DidJwk {
-    fn uri(&self) -> &str {
-        &self.uri
-    }
-
-    fn key_manager(&self) -> &Arc<dyn KeyManager> {
-        &self.key_manager
-    }
-}
+pub struct DidJwk;
 
 /// Options that can be used to create a did:jwk DID
 pub struct DidJwkCreateOptions {
@@ -31,13 +20,13 @@ pub struct DidJwkCreateOptions {
 }
 
 #[async_trait]
-impl DidMethod<DidJwk, DidJwkCreateOptions> for DidJwk {
+impl DidMethod<DidJwkCreateOptions> for DidJwk {
     const NAME: &'static str = "jwk";
 
-    fn create(
-        key_manager: Arc<dyn KeyManager>,
+    fn create<T: KeyManager>(
+        key_manager: Arc<T>,
         options: DidJwkCreateOptions,
-    ) -> Result<DidJwk, DidMethodError> {
+    ) -> Result<BearerDid<T>, DidMethodError> {
         let key_alias = key_manager.generate_private_key(options.key_type)?;
         let public_key =
             key_manager
@@ -52,7 +41,20 @@ impl DidMethod<DidJwk, DidJwkCreateOptions> for DidJwk {
                 "Failed to generate did:jwk".to_string(),
             ))?;
 
-        Ok(DidJwk { uri, key_manager })
+        let identifier = Identifier::parse(&uri).map_err(|e| {
+            DidMethodError::DidCreationFailure(format!("Failed to parse did:jwk uri {} {}", uri, e))
+        })?;
+
+        let bearer_did = BearerDid {
+            identifier,
+            key_manager,
+            document: Document {
+                // todo
+                ..Default::default()
+            },
+        };
+
+        Ok(bearer_did)
     }
 
     async fn resolve_uri(did_uri: &str) -> DidResolutionResult {
@@ -75,7 +77,7 @@ mod tests {
     use crypto::key_manager::local_key_manager::LocalKeyManager;
     use ssi_dids::did_resolve::ERROR_INVALID_DID;
 
-    fn create_did_jwk() -> DidJwk {
+    fn create_did_jwk() -> BearerDid<LocalKeyManager> {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
             key_type: KeyType::Ed25519,
@@ -86,28 +88,28 @@ mod tests {
 
     #[test]
     fn create_produces_correct_uri() {
-        let did = create_did_jwk();
-        assert!(did.uri.starts_with("did:jwk:"));
+        let bearer_did = create_did_jwk();
+        assert!(bearer_did.identifier.uri.starts_with("did:jwk:"));
     }
 
-    #[tokio::test]
-    async fn instance_resolve() {
-        let did = create_did_jwk();
-        let result = did.resolve().await;
-        assert!(result.did_resolution_metadata.error.is_none());
+    // #[tokio::test]
+    // async fn instance_resolve() {
+    //     let did = create_did_jwk();
+    //     let result = did.resolve().await;
+    //     assert!(result.did_resolution_metadata.error.is_none());
 
-        let did_document = result.did_document.unwrap();
-        assert_eq!(did_document.id, did.uri);
-    }
+    //     let did_document = result.did_document.unwrap();
+    //     assert_eq!(did_document.id, did.uri);
+    // }
 
     #[tokio::test]
     async fn resolve_uri_success() {
-        let did = create_did_jwk();
-        let result = DidJwk::resolve_uri(&did.uri).await;
+        let bearer_did = create_did_jwk();
+        let result = DidJwk::resolve_uri(&bearer_did.identifier.uri).await;
         assert!(result.did_resolution_metadata.error.is_none());
 
         let did_document = result.did_document.unwrap();
-        assert_eq!(did_document.id, did.uri);
+        assert_eq!(did_document.id, bearer_did.identifier.uri);
     }
 
     #[tokio::test]
