@@ -1,38 +1,37 @@
+use crate::document::DidDocument;
+use crate::identifier::DidIdentifier;
 use crate::method::jwk::DidJwk;
 use crate::method::web::DidWeb;
 use crate::method::DidMethod;
 use serde::{Deserialize, Serialize};
-use ssi_dids::did_resolve::{
-    DocumentMetadata as DidDocumentMetadata, ResolutionMetadata as DidResolutionMetadata,
-};
-use ssi_dids::Document as DidDocument;
+use ssi_dids::did_resolve::DocumentMetadata as DidDocumentMetadata;
 
 pub struct DidResolver;
 
 impl DidResolver {
     /// Resolves a DID URI, using the appropriate DID method, to a DID Document.
     pub async fn resolve_uri(did_uri: &str) -> DidResolutionResult {
-        let method_name = match DidResolver::method_name(did_uri) {
-            Some(method_name) => method_name,
-            None => return DidResolutionResult::from_error(ERROR_INVALID_DID),
+        let identifier = match DidIdentifier::parse(did_uri) {
+            Ok(identifier) => identifier,
+            Err(_) => return DidResolutionResult::from_error(DidResolutionError::InvalidDid),
         };
 
-        match method_name {
+        match identifier.method.as_str() {
             DidJwk::NAME => DidJwk::resolve_uri(did_uri).await,
             DidWeb::NAME => DidWeb::resolve_uri(did_uri).await,
-            _ => DidResolutionResult::from_error(ERROR_METHOD_NOT_SUPPORTED),
+            _ => DidResolutionResult::from_error(DidResolutionError::MethodNotSupported),
         }
     }
+}
 
-    /// Returns the method name of a DID URI, if the provided DID URI is valid, `None` otherwise.
-    fn method_name(did_uri: &str) -> Option<&str> {
-        let parts: Vec<&str> = did_uri.split(':').collect();
-        if parts.len() < 3 || parts[0] != "did" {
-            return None;
-        };
-
-        Some(parts[1])
-    }
+/// Result metadata of a DID resolution.
+///
+/// See [DID Resolution Metadata](https://www.w3.org/TR/did-core/#did-resolution-metadata) for more information
+/// See [web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model)
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct DidResolutionMetadata {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<DidResolutionError>,
 }
 
 /// Result of a DID resolution.
@@ -50,9 +49,35 @@ pub struct DidResolutionResult {
     pub did_document_metadata: Option<DidDocumentMetadata>,
 }
 
+// todo remove?
 const DID_RESOLUTION_V1_CONTEXT: &str = "https://w3id.org/did-resolution/v1";
-const ERROR_METHOD_NOT_SUPPORTED: &str = "methodNotSupported";
-const ERROR_INVALID_DID: &str = "invalidDid";
+
+/// Errors that can occur during DID resolution
+/// https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-error-types
+#[derive(thiserror::Error, Debug, Serialize, Deserialize)]
+pub enum DidResolutionError {
+    #[error("The requested DID was not valid and resolution could not proceed.")]
+    #[serde(rename = "invalidDid")]
+    InvalidDid,
+    #[error("The requested DID was not found.")]
+    #[serde(rename = "notFound")]
+    NotFound,
+    #[error("The requested representation of the DID payload is not supported by the resolver.")]
+    #[serde(rename = "representationNotSupported")]
+    RepresentationNotSupported,
+    #[error("The requested DID method is not supported by the resolver.")]
+    #[serde(rename = "methodNotSupported")]
+    MethodNotSupported,
+    #[error("The DID Document was found but did not represent a conformant document.")]
+    #[serde(rename = "invalidDidDocument")]
+    InvalidDidDocument,
+    #[error("The size of the DID Document was not within the method's acceptable limit.")]
+    #[serde(rename = "invalidDidDocumentLength")]
+    InvalidDidDocumentLength,
+    #[error("Something went wrong during DID resolution.")]
+    #[serde(rename = "internalError")]
+    InternalError,
+}
 
 impl Default for DidResolutionResult {
     fn default() -> Self {
@@ -67,11 +92,18 @@ impl Default for DidResolutionResult {
 
 impl DidResolutionResult {
     /// Convenience method for creating a DidResolutionResult with an error.
-    pub fn from_error(err: &str) -> Self {
+    pub fn from_error(err: DidResolutionError) -> Self {
         Self {
             did_resolution_metadata: DidResolutionMetadata::from_error(err),
             ..Default::default()
         }
+    }
+}
+
+impl DidResolutionMetadata {
+    /// Convenience method for creating a DidResolutionResult with an error.
+    pub fn from_error(err: DidResolutionError) -> Self {
+        Self { error: Some(err) }
     }
 }
 
@@ -105,7 +137,7 @@ mod tests {
         let result = DidResolver::resolve_uri(did_uri).await;
         assert_eq!(
             result.did_resolution_metadata.error,
-            Some(ERROR_INVALID_DID.to_string())
+            Some(DidResolutionError::InvalidDid.to_string())
         );
     }
 
@@ -115,7 +147,7 @@ mod tests {
         let result = DidResolver::resolve_uri(did_uri).await;
         assert_eq!(
             result.did_resolution_metadata.error,
-            Some(ERROR_METHOD_NOT_SUPPORTED.to_string())
+            Some(DidResolutionError::MethodNotSupported.to_string())
         );
     }
 }

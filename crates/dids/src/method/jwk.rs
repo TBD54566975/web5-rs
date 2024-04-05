@@ -1,14 +1,14 @@
 use crate::bearer::BearerDid;
-use crate::document::Document;
-use crate::identifier::Identifier;
+use crate::document::{DidDocument, VerificationMethod};
+use crate::identifier::DidIdentifier;
 use crate::method::{DidMethod, DidMethodError};
-use crate::resolver::DidResolutionResult;
+use crate::resolver::{DidResolutionError, DidResolutionResult};
 use async_trait::async_trait;
-use crypto::key::{Key, KeyType};
+use base64::{engine::general_purpose, Engine};
+use crypto::key::public_key::PublicKey;
+use crypto::key::KeyType;
 use crypto::key_manager::KeyManager;
-use did_jwk::DIDJWK as SpruceDidJwkMethod;
-use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
-use ssi_dids::{DIDMethod, Source};
+use serde_json::{from_str, to_string};
 use std::sync::Arc;
 
 /// Concrete implementation for a did:jwk DID
@@ -35,21 +35,30 @@ impl DidMethod<DidJwkCreateOptions> for DidJwk {
                     "PublicKey not found".to_string(),
                 ))?;
 
-        let uri = SpruceDidJwkMethod
-            .generate(&Source::Key(public_key.jwk()))
-            .ok_or(DidMethodError::DidCreationFailure(
-                "Failed to generate did:jwk".to_string(),
-            ))?;
+        let serialized = to_string(&public_key).map_err(|e| {
+            DidMethodError::DidCreationFailure(format!("Failed to serialize {}", e))
+        })?;
+        let encoded_id = general_purpose::URL_SAFE_NO_PAD.encode(&serialized);
+        let uri = format!("did:jwk:{}", encoded_id);
 
-        let identifier = Identifier::parse(&uri).map_err(|e| {
-            DidMethodError::DidCreationFailure(format!("Failed to parse did:jwk uri {} {}", uri, e))
+        let identifier = DidIdentifier::parse(&uri).map_err(|e| {
+            DidMethodError::DidCreationFailure(format!(
+                "Failed to parse did:jwk uri {} {}",
+                &uri, e
+            ))
         })?;
 
         let bearer_did = BearerDid {
             identifier,
             key_manager,
-            document: Document {
-                // todo
+            document: DidDocument {
+                id: uri.clone(),
+                verification_method: vec![VerificationMethod {
+                    id: format!("{}#{}", uri, "0"),
+                    r#type: "JsonWebKey".to_string(),
+                    controller: uri,
+                    public_key_jwk: public_key,
+                }],
                 ..Default::default()
             },
         };
@@ -58,14 +67,41 @@ impl DidMethod<DidJwkCreateOptions> for DidJwk {
     }
 
     async fn resolve_uri(did_uri: &str) -> DidResolutionResult {
-        let input_metadata = ResolutionInputMetadata::default();
-        let (did_resolution_metadata, did_document, did_document_metadata) =
-            SpruceDidJwkMethod.resolve(did_uri, &input_metadata).await;
+        let identifier = match DidIdentifier::parse(did_uri) {
+            Ok(identifier) => identifier,
+            Err(_) => return DidResolutionResult::from_error(DidResolutionError::InvalidDid),
+        };
+
+        if identifier.method != Self::NAME {
+            return DidResolutionResult::from_error(DidResolutionError::MethodNotSupported);
+        }
+
+        let decoded_id = match general_purpose::URL_SAFE_NO_PAD.decode(&identifier.id) {
+            Ok(decoded_id) => decoded_id,
+            Err(_) => return DidResolutionResult::from_error(DidResolutionError::InternalError),
+        };
+
+        let json_str = match String::from_utf8(decoded_id) {
+            Ok(json_str) => json_str,
+            Err(_) => return DidResolutionResult::from_error(DidResolutionError::InternalError),
+        };
+
+        let public_key: PublicKey = match from_str(&json_str) {
+            Ok(public_key) => public_key,
+            Err(_) => return DidResolutionResult::from_error(DidResolutionError::InternalError),
+        };
 
         DidResolutionResult {
-            did_resolution_metadata,
-            did_document,
-            did_document_metadata,
+            did_document: Some(DidDocument {
+                id: identifier.uri.clone(),
+                verification_method: vec![VerificationMethod {
+                    id: format!("{}#{}", identifier.uri, "0"),
+                    r#type: "JsonWebKey".to_string(),
+                    controller: identifier.uri,
+                    public_key_jwk: public_key,
+                }],
+                ..Default::default()
+            }),
             ..Default::default()
         }
     }
