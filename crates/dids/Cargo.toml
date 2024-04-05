@@ -8,10 +8,9 @@ license-file.workspace = true
 
 [dependencies]
 async-trait = "0.1.74"
-base64 = "0.22.0"
 crypto = { path = "../crypto" }
+did-jwk = "0.1.1"
 did-web = "0.2.2"
-multibase = "0.9.1"
 regex = "1.10.4"
 serde = { workspace = true }
 serde_json = { workspace = true }
