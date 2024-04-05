@@ -78,7 +78,7 @@ impl DidMethod<DidJwkCreateOptions> for DidJwk {
 
         let decoded_id = match general_purpose::URL_SAFE_NO_PAD.decode(&identifier.id) {
             Ok(decoded_id) => decoded_id,
-            Err(_) => return DidResolutionResult::from_error(DidResolutionError::InternalError),
+            Err(_) => return DidResolutionResult::from_error(DidResolutionError::InvalidDid),
         };
 
         let json_str = match String::from_utf8(decoded_id) {
@@ -111,7 +111,6 @@ impl DidMethod<DidJwkCreateOptions> for DidJwk {
 mod tests {
     use super::*;
     use crypto::key_manager::local_key_manager::LocalKeyManager;
-    use ssi_dids::did_resolve::ERROR_INVALID_DID;
 
     fn create_did_jwk() -> BearerDid<LocalKeyManager> {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());
@@ -153,7 +152,7 @@ mod tests {
         let result = DidJwk::resolve_uri("did:jwk:does-not-exist").await;
         assert_eq!(
             result.did_resolution_metadata.error,
-            Some(ERROR_INVALID_DID.to_string())
+            Some(DidResolutionError::InvalidDid)
         );
     }
 }

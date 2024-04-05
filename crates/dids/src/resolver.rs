@@ -4,7 +4,6 @@ use crate::method::jwk::DidJwk;
 use crate::method::web::DidWeb;
 use crate::method::DidMethod;
 use serde::{Deserialize, Serialize};
-use ssi_dids::did_resolve::DocumentMetadata as DidDocumentMetadata;
 
 pub struct DidResolver;
 
@@ -54,7 +53,7 @@ const DID_RESOLUTION_V1_CONTEXT: &str = "https://w3id.org/did-resolution/v1";
 
 /// Errors that can occur during DID resolution
 /// https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-error-types
-#[derive(thiserror::Error, Debug, Serialize, Deserialize)]
+#[derive(thiserror::Error, Debug, PartialEq, Serialize, Deserialize)]
 pub enum DidResolutionError {
     #[error("The requested DID was not valid and resolution could not proceed.")]
     #[serde(rename = "invalidDid")]
@@ -77,6 +76,31 @@ pub enum DidResolutionError {
     #[error("Something went wrong during DID resolution.")]
     #[serde(rename = "internalError")]
     InternalError,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct DidDocumentMetadata {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deactivated: Option<bool>,
+    #[serde(rename = "nextUpdate")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_update: Option<String>,
+    #[serde(rename = "versionId")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version_id: Option<String>,
+    #[serde(rename = "nextVersionId")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_version_id: Option<String>,
+    #[serde(rename = "equivalentId")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub equivalent_id: Option<Vec<String>>,
+    #[serde(rename = "canonicalId")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub canonical_id: Option<String>,
 }
 
 impl Default for DidResolutionResult {
@@ -137,7 +161,7 @@ mod tests {
         let result = DidResolver::resolve_uri(did_uri).await;
         assert_eq!(
             result.did_resolution_metadata.error,
-            Some(DidResolutionError::InvalidDid.to_string())
+            Some(DidResolutionError::InvalidDid)
         );
     }
 
@@ -147,7 +171,7 @@ mod tests {
         let result = DidResolver::resolve_uri(did_uri).await;
         assert_eq!(
             result.did_resolution_metadata.error,
-            Some(DidResolutionError::MethodNotSupported.to_string())
+            Some(DidResolutionError::MethodNotSupported)
         );
     }
 }

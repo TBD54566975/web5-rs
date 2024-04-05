@@ -4,7 +4,7 @@ use ssi_jwk::JWK;
 use ssi_jws::{verify_bytes_warnable, VerificationWarnings};
 
 #[derive(PartialEq, Debug, Clone, Deserialize, Serialize)]
-pub struct PublicKey(pub(crate) JWK);
+pub struct PublicKey(pub JWK);
 
 impl PublicKey {
     /// Verifies a payload with a given signature using the target [`PublicKey`].
@@ -24,6 +24,12 @@ impl PublicKey {
 impl Key for PublicKey {
     fn jwk(&self) -> &JWK {
         &self.0
+    }
+}
+
+impl From<JWK> for PublicKey {
+    fn from(jwk: JWK) -> Self {
+        PublicKey(jwk)
     }
 }
 

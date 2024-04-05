@@ -1,4 +1,7 @@
-use crate::{bearer::BearerDid, method::{DidMethod, DidMethodError, DidResolutionResult}};
+use crate::{
+    bearer::BearerDid,
+    method::{DidMethod, DidMethodError, DidResolutionResult},
+};
 use async_trait::async_trait;
 use crypto::key_manager::KeyManager;
 use did_web::DIDWeb as SpruceDidWebMethod;
@@ -27,13 +30,13 @@ impl DidMethod<DidWebCreateOptions> for DidWeb {
 
     async fn resolve_uri(did_uri: &str) -> DidResolutionResult {
         let input_metadata = ResolutionInputMetadata::default();
-        let (did_resolution_metadata, did_document, did_document_metadata) =
+        let (spruce_did_resolution_metadata, spruce_did_document, spruce_did_document_metadata) =
             SpruceDidWebMethod.resolve(did_uri, &input_metadata).await;
 
         DidResolutionResult {
-            did_resolution_metadata,
-            did_document,
-            did_document_metadata,
+            did_resolution_metadata: spruce_did_resolution_metadata.into(),
+            did_document: spruce_did_document.map(|doc| doc.into()),
+            did_document_metadata: spruce_did_document_metadata.map(|metadata| metadata.into()),
             ..Default::default()
         }
     }
