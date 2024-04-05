@@ -2,7 +2,7 @@ use crypto::key::public_key::PublicKey;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
-pub struct DidDocument {
+pub struct Document {
     pub id: String,
     #[serde(rename = "@context")]
     pub context: Option<Vec<String>>,

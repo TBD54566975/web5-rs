@@ -1,24 +1,24 @@
-use crate::document::DidDocument;
-use crate::identifier::DidIdentifier;
+use crate::document::Document;
+use crate::identifier::Identifier;
 use crate::method::jwk::DidJwk;
 use crate::method::web::DidWeb;
-use crate::method::DidMethod;
+use crate::method::Method;
 use serde::{Deserialize, Serialize};
 
-pub struct DidResolver;
+pub struct Resolver;
 
-impl DidResolver {
+impl Resolver {
     /// Resolves a DID URI, using the appropriate DID method, to a DID Document.
-    pub async fn resolve_uri(did_uri: &str) -> DidResolutionResult {
-        let identifier = match DidIdentifier::parse(did_uri) {
+    pub async fn resolve_uri(did_uri: &str) -> ResolutionResult {
+        let identifier = match Identifier::parse(did_uri) {
             Ok(identifier) => identifier,
-            Err(_) => return DidResolutionResult::from_error(DidResolutionError::InvalidDid),
+            Err(_) => return ResolutionResult::from_error(ResolutionError::InvalidDid),
         };
 
         match identifier.method.as_str() {
             DidJwk::NAME => DidJwk::resolve(did_uri).await,
             DidWeb::NAME => DidWeb::resolve(did_uri).await,
-            _ => DidResolutionResult::from_error(DidResolutionError::MethodNotSupported),
+            _ => ResolutionResult::from_error(ResolutionError::MethodNotSupported),
         }
     }
 }
@@ -28,9 +28,9 @@ impl DidResolver {
 /// See [DID Resolution Metadata](https://www.w3.org/TR/did-core/#did-resolution-metadata) for more information
 /// See [web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model)
 #[derive(Debug, Default, Deserialize, Serialize)]
-pub struct DidResolutionMetadata {
+pub struct ResolutionMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<DidResolutionError>,
+    pub error: Option<ResolutionError>,
 }
 
 /// Result of a DID resolution.
@@ -39,13 +39,13 @@ pub struct DidResolutionMetadata {
 /// about the resolution process, and documentation around expected results formats in the case
 /// there was an error resolving the DID.
 #[derive(Debug, Deserialize, Serialize)]
-pub struct DidResolutionResult {
+pub struct ResolutionResult {
     #[serde(rename = "@context")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
-    pub did_resolution_metadata: DidResolutionMetadata,
-    pub did_document: Option<DidDocument>,
-    pub did_document_metadata: Option<DidDocumentMetadata>,
+    pub did_resolution_metadata: ResolutionMetadata,
+    pub did_document: Option<Document>,
+    pub did_document_metadata: Option<DocumentMetadata>,
 }
 
 // todo remove?
@@ -54,7 +54,7 @@ const DID_RESOLUTION_V1_CONTEXT: &str = "https://w3id.org/did-resolution/v1";
 /// Errors that can occur during DID resolution
 /// https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-error-types
 #[derive(thiserror::Error, Debug, PartialEq, Serialize, Deserialize)]
-pub enum DidResolutionError {
+pub enum ResolutionError {
     #[error("The requested DID was not valid and resolution could not proceed.")]
     #[serde(rename = "invalidDid")]
     InvalidDid,
@@ -79,7 +79,7 @@ pub enum DidResolutionError {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct DidDocumentMetadata {
+pub struct DocumentMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -103,30 +103,30 @@ pub struct DidDocumentMetadata {
     pub canonical_id: Option<String>,
 }
 
-impl Default for DidResolutionResult {
+impl Default for ResolutionResult {
     fn default() -> Self {
         Self {
             context: Some(DID_RESOLUTION_V1_CONTEXT.to_string()),
-            did_resolution_metadata: DidResolutionMetadata::default(),
+            did_resolution_metadata: ResolutionMetadata::default(),
             did_document: None,
             did_document_metadata: None,
         }
     }
 }
 
-impl DidResolutionResult {
+impl ResolutionResult {
     /// Convenience method for creating a DidResolutionResult with an error.
-    pub fn from_error(err: DidResolutionError) -> Self {
+    pub fn from_error(err: ResolutionError) -> Self {
         Self {
-            did_resolution_metadata: DidResolutionMetadata::from_error(err),
+            did_resolution_metadata: ResolutionMetadata::from_error(err),
             ..Default::default()
         }
     }
 }
 
-impl DidResolutionMetadata {
+impl ResolutionMetadata {
     /// Convenience method for creating a DidResolutionResult with an error.
-    pub fn from_error(err: DidResolutionError) -> Self {
+    pub fn from_error(err: ResolutionError) -> Self {
         Self { error: Some(err) }
     }
 }
@@ -138,7 +138,7 @@ mod tests {
     #[tokio::test]
     async fn resolve_did_jwk() {
         let did_uri = "did:jwk:eyJjcnYiOiJQLTI1NiIsImt0eSI6IkVDIiwieCI6ImFjYklRaXVNczNpOF91c3pFakoydHBUdFJNNEVVM3l6OTFQSDZDZEgyVjAiLCJ5IjoiX0tjeUxqOXZXTXB0bm1LdG00NkdxRHo4d2Y3NEk1TEtncmwyR3pIM25TRSJ9";
-        let result = DidResolver::resolve_uri(did_uri).await;
+        let result = Resolver::resolve_uri(did_uri).await;
         assert!(result.did_resolution_metadata.error.is_none());
 
         let did_document = result.did_document.unwrap();
@@ -148,7 +148,7 @@ mod tests {
     #[tokio::test]
     async fn resolve_did_web() {
         let did_uri = "did:web:tbd.website";
-        let result = DidResolver::resolve_uri(did_uri).await;
+        let result = Resolver::resolve_uri(did_uri).await;
         assert!(result.did_resolution_metadata.error.is_none());
 
         let did_document = result.did_document.unwrap();
@@ -158,20 +158,20 @@ mod tests {
     #[tokio::test]
     async fn resolve_invalid_did() {
         let did_uri = "did:jwk";
-        let result = DidResolver::resolve_uri(did_uri).await;
+        let result = Resolver::resolve_uri(did_uri).await;
         assert_eq!(
             result.did_resolution_metadata.error,
-            Some(DidResolutionError::InvalidDid)
+            Some(ResolutionError::InvalidDid)
         );
     }
 
     #[tokio::test]
     async fn resolve_unsupported_method() {
         let did_uri = "did:unsupported:1234";
-        let result = DidResolver::resolve_uri(did_uri).await;
+        let result = Resolver::resolve_uri(did_uri).await;
         assert_eq!(
             result.did_resolution_metadata.error,
-            Some(DidResolutionError::MethodNotSupported)
+            Some(ResolutionError::MethodNotSupported)
         );
     }
 }

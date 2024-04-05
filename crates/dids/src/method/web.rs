@@ -1,6 +1,6 @@
 use crate::{
     bearer::BearerDid,
-    method::{DidMethod, DidMethodError, DidResolutionResult},
+    method::{Method, MethodError, ResolutionResult},
 };
 use async_trait::async_trait;
 use crypto::key_manager::KeyManager;
@@ -16,30 +16,30 @@ pub struct DidWeb {}
 pub struct DidWebCreateOptions;
 
 #[async_trait]
-impl DidMethod<DidWebCreateOptions> for DidWeb {
+impl Method<DidWebCreateOptions> for DidWeb {
     const NAME: &'static str = "web";
 
     fn create<T: KeyManager>(
         _key_manager: Arc<T>,
         _options: DidWebCreateOptions,
-    ) -> Result<BearerDid<T>, DidMethodError> {
-        Err(DidMethodError::DidCreationFailure(
+    ) -> Result<BearerDid<T>, MethodError> {
+        Err(MethodError::DidCreationFailure(
             "create operation not supported for did:web".to_string(),
         ))
     }
 
-    async fn resolve(did_uri: &str) -> DidResolutionResult {
+    async fn resolve(did_uri: &str) -> ResolutionResult {
         let input_metadata = ResolutionInputMetadata::default();
         let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
             SpruceDidWebMethod.resolve(did_uri, &input_metadata).await;
 
-        match DidResolutionResult::from_spruce(
+        match ResolutionResult::from_spruce(
             spruce_resolution_metadata,
             spruce_document,
             spruce_document_metadata,
         ) {
             Ok(r) => r,
-            Err(e) => DidResolutionResult::from_error(e),
+            Err(e) => ResolutionResult::from_error(e),
         }
     }
 }

@@ -5,7 +5,7 @@ use std::sync::OnceLock;
 
 /// Errors that can occur when working with DID methods.
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
-pub enum DidIdentifierError {
+pub enum IdentifierError {
     #[error("Failure initializing regex pattern")]
     RegexPatternFailure(String),
     #[error("Failure parsing URI {0}")]
@@ -13,7 +13,7 @@ pub enum DidIdentifierError {
 }
 
 #[derive(Debug, Default, PartialEq)]
-pub struct DidIdentifier {
+pub struct Identifier {
     // URI represents the complete Decentralized Identifier (DID) URI.
     // Spec: https://www.w3.org/TR/did-core/#did-syntax
     pub uri: String,
@@ -51,7 +51,7 @@ pub struct DidIdentifier {
     pub fragment: Option<String>,
 }
 
-impl fmt::Display for DidIdentifier {
+impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.uri)
     }
@@ -64,9 +64,9 @@ static PATH_INDEX: usize = 6;
 static QUERY_INDEX: usize = 7;
 static FRAGMENT_INDEX: usize = 8;
 
-static DID_URL_PATTERN: OnceLock<Result<Regex, DidIdentifierError>> = OnceLock::new();
+static DID_URL_PATTERN: OnceLock<Result<Regex, IdentifierError>> = OnceLock::new();
 
-fn regex_pattern() -> &'static Result<Regex, DidIdentifierError> {
+fn regex_pattern() -> &'static Result<Regex, IdentifierError> {
     DID_URL_PATTERN.get_or_init(|| {
         // relevant ABNF rules: https://www.w3.org/TR/did-core/#did-syntax
         let pct_encoded_pattern: &str = r"(?:%[0-9a-fA-F]{2})";
@@ -89,20 +89,20 @@ fn regex_pattern() -> &'static Result<Regex, DidIdentifierError> {
             query_pattern,
             fragment_pattern
         ))
-        .map_err(|e| DidIdentifierError::RegexPatternFailure(e.to_string()))
+        .map_err(|e| IdentifierError::RegexPatternFailure(e.to_string()))
     })
 }
 
-impl DidIdentifier {
+impl Identifier {
     // Parse parses a DID URI in accordance to the ABNF rules specified in the
     // specification here: https://www.w3.org/TR/did-core/#did-syntax. Returns
     // a DIDURI instance if parsing is successful. Otherwise, returns an error.
-    pub fn parse(uri: &str) -> Result<DidIdentifier, DidIdentifierError> {
+    pub fn parse(uri: &str) -> Result<Identifier, IdentifierError> {
         let pattern = regex_pattern().as_ref().map_err(|e| e.clone())?;
 
         let captures = pattern
             .captures(uri)
-            .ok_or(DidIdentifierError::ParseFailure(uri.to_string()))?;
+            .ok_or(IdentifierError::ParseFailure(uri.to_string()))?;
 
         let params = captures
             .get(PARAMS_INDEX)
@@ -128,7 +128,7 @@ impl DidIdentifier {
             .get(FRAGMENT_INDEX)
             .map(|fragment_match| fragment_match.as_str()[1..].to_string());
 
-        let identifier = DidIdentifier {
+        let identifier = Identifier {
             uri: format!(
                 "did:{}:{}",
                 &captures[METHOD_INDEX], &captures[METHOD_ID_INDEX]
@@ -166,7 +166,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi",
                 false,
-                Some(DidIdentifier {
+                Some(Identifier {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi".to_string(),
                     method: "example".to_string(),
@@ -177,7 +177,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi;foo=bar;baz=qux",
                 false,
-                Some(DidIdentifier {
+                Some(Identifier {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi;foo=bar;baz=qux".to_string(),
                     method: "example".to_string(),
@@ -192,7 +192,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi?foo=bar&baz=qux",
                 false,
-                Some(DidIdentifier {
+                Some(Identifier {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi?foo=bar&baz=qux".to_string(),
                     method: "example".to_string(),
@@ -204,7 +204,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi#keys-1",
                 false,
-                Some(DidIdentifier {
+                Some(Identifier {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi#keys-1".to_string(),
                     method: "example".to_string(),
@@ -216,7 +216,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi?foo=bar&baz=qux#keys-1",
                 false,
-                Some(DidIdentifier {
+                Some(Identifier {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi?foo=bar&baz=qux#keys-1".to_string(),
                     method: "example".to_string(),
@@ -229,7 +229,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1",
                 false,
-                Some(DidIdentifier {
+                Some(Identifier {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1"
                         .to_string(),
@@ -247,7 +247,7 @@ mod tests {
             (
                 "did:example:123456789abcdefghi/path/to/resource",
                 false,
-                Some(DidIdentifier {
+                Some(Identifier {
                     uri: "did:example:123456789abcdefghi".to_string(),
                     url: "did:example:123456789abcdefghi/path/to/resource".to_string(),
                     method: "example".to_string(),
@@ -259,7 +259,7 @@ mod tests {
         ];
 
         for (uri, is_error, expected) in test_cases {
-            match DidIdentifier::parse(uri) {
+            match Identifier::parse(uri) {
                 Ok(did) => {
                     assert!(!is_error, "Expected error for input: {}", uri);
                     assert_eq!(did, expected.unwrap(), "Unexpected result for uri: {}", uri);
@@ -268,7 +268,7 @@ mod tests {
                     assert!(is_error, "Unexpected success for input: {}", uri);
                     assert_eq!(
                         e,
-                        DidIdentifierError::ParseFailure(uri.to_string()),
+                        IdentifierError::ParseFailure(uri.to_string()),
                         "Unexpected error result for uri: {}",
                         uri
                     );

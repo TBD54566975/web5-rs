@@ -1,4 +1,4 @@
-use crate::document::{DidDocument, Service, VerificationMethod};
+use crate::document::{Document, Service, VerificationMethod};
 use crypto::key::public_key::PublicKey;
 use ssi_core::one_or_many::OneOrMany;
 use ssi_dids::{
@@ -7,7 +7,7 @@ use ssi_dids::{
     VerificationMethod as SpruceVerificationMethod,
 };
 
-impl DidDocument {
+impl Document {
     pub fn from_spruce(spruce_document: SpruceDocument) -> Result<Self, String> {
         let context = match spruce_document.context {
             SpruceContexts::One(ctx) => match ctx {
@@ -76,7 +76,7 @@ impl DidDocument {
             })
             .transpose()?; // Use transpose to convert Option<Result<T, E>> to Result<Option<T>, E>
 
-        Ok(DidDocument {
+        Ok(Document {
             id: spruce_document.id,
             context,
             controller: spruce_document

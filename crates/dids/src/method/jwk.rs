@@ -1,8 +1,8 @@
 use crate::bearer::BearerDid;
-use crate::document::{DidDocument, VerificationMethod};
-use crate::identifier::DidIdentifier;
-use crate::method::{DidMethod, DidMethodError};
-use crate::resolver::DidResolutionResult;
+use crate::document::{Document, VerificationMethod};
+use crate::identifier::Identifier;
+use crate::method::{Method, MethodError};
+use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
 use crypto::key::{Key, KeyType};
 use crypto::key_manager::KeyManager;
@@ -20,29 +20,29 @@ pub struct DidJwkCreateOptions {
 }
 
 #[async_trait]
-impl DidMethod<DidJwkCreateOptions> for DidJwk {
+impl Method<DidJwkCreateOptions> for DidJwk {
     const NAME: &'static str = "jwk";
 
     fn create<T: KeyManager>(
         key_manager: Arc<T>,
         options: DidJwkCreateOptions,
-    ) -> Result<BearerDid<T>, DidMethodError> {
+    ) -> Result<BearerDid<T>, MethodError> {
         let key_alias = key_manager.generate_private_key(options.key_type)?;
         let public_key =
             key_manager
                 .get_public_key(&key_alias)?
-                .ok_or(DidMethodError::DidCreationFailure(
+                .ok_or(MethodError::DidCreationFailure(
                     "PublicKey not found".to_string(),
                 ))?;
 
         let uri = SpruceDidJwkMethod
             .generate(&Source::Key(public_key.jwk()))
-            .ok_or(DidMethodError::DidCreationFailure(
+            .ok_or(MethodError::DidCreationFailure(
                 "Failed to generate did:jwk".to_string(),
             ))?;
 
-        let identifier = DidIdentifier::parse(&uri).map_err(|e| {
-            DidMethodError::DidCreationFailure(format!(
+        let identifier = Identifier::parse(&uri).map_err(|e| {
+            MethodError::DidCreationFailure(format!(
                 "Failed to parse did:jwk uri {} {}",
                 &uri, e
             ))
@@ -51,7 +51,7 @@ impl DidMethod<DidJwkCreateOptions> for DidJwk {
         let bearer_did = BearerDid {
             identifier,
             key_manager,
-            document: DidDocument {
+            document: Document {
                 id: uri.clone(),
                 verification_method: vec![VerificationMethod {
                     id: format!("{}#{}", uri, "0"),
@@ -66,25 +66,25 @@ impl DidMethod<DidJwkCreateOptions> for DidJwk {
         Ok(bearer_did)
     }
 
-    async fn resolve(did_uri: &str) -> DidResolutionResult {
+    async fn resolve(did_uri: &str) -> ResolutionResult {
         let input_metadata = ResolutionInputMetadata::default();
         let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
             SpruceDidJwkMethod.resolve(did_uri, &input_metadata).await;
 
-        match DidResolutionResult::from_spruce(
+        match ResolutionResult::from_spruce(
             spruce_resolution_metadata,
             spruce_document,
             spruce_document_metadata,
         ) {
             Ok(r) => r,
-            Err(e) => DidResolutionResult::from_error(e),
+            Err(e) => ResolutionResult::from_error(e),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::resolver::DidResolutionError;
+    use crate::resolver::ResolutionError;
 
     use super::*;
     use crypto::key_manager::local_key_manager::LocalKeyManager;
@@ -129,7 +129,7 @@ mod tests {
         let result = DidJwk::resolve("did:jwk:does-not-exist").await;
         assert_eq!(
             result.did_resolution_metadata.error,
-            Some(DidResolutionError::InvalidDid)
+            Some(ResolutionError::InvalidDid)
         );
     }
 }

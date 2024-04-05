@@ -1,9 +1,9 @@
-use crate::resolver::DidDocumentMetadata;
+use crate::resolver::DocumentMetadata;
 use ssi_dids::did_resolve::DocumentMetadata as SpruceDocumentMetadata;
 
-impl DidDocumentMetadata {
+impl DocumentMetadata {
     pub fn from_spruce(spruce_document_metadata: SpruceDocumentMetadata) -> Result<Self, String> {
-        Ok(DidDocumentMetadata {
+        Ok(DocumentMetadata {
             created: spruce_document_metadata.created.map(|dt| dt.to_rfc3339()),
             updated: spruce_document_metadata.updated.map(|dt| dt.to_rfc3339()),
             deactivated: spruce_document_metadata.deactivated,
