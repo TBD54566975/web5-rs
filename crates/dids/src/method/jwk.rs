@@ -66,7 +66,7 @@ impl DidMethod<DidJwkCreateOptions> for DidJwk {
         Ok(bearer_did)
     }
 
-    async fn resolve_uri(did_uri: &str) -> DidResolutionResult {
+    async fn resolve(did_uri: &str) -> DidResolutionResult {
         let input_metadata = ResolutionInputMetadata::default();
         let (spruce_did_resolution_metadata, spruce_did_document, spruce_did_document_metadata) =
             SpruceDidJwkMethod.resolve(did_uri, &input_metadata).await;
@@ -83,7 +83,7 @@ impl DidMethod<DidJwkCreateOptions> for DidJwk {
 #[cfg(test)]
 mod tests {
     use crate::resolver::DidResolutionError;
-
+    
     use super::*;
     use crypto::key_manager::local_key_manager::LocalKeyManager;
 
@@ -102,20 +102,20 @@ mod tests {
         assert!(bearer_did.identifier.uri.starts_with("did:jwk:"));
     }
 
-    // #[tokio::test]
-    // async fn instance_resolve() {
-    //     let did = create_did_jwk();
-    //     let result = did.resolve().await;
-    //     assert!(result.did_resolution_metadata.error.is_none());
+    #[tokio::test]
+    async fn instance_resolve() {
+        let did = create_did_jwk();
+        let result = DidJwk::resolve(&did.identifier.uri).await;
+        assert!(result.did_resolution_metadata.error.is_none());
 
-    //     let did_document = result.did_document.unwrap();
-    //     assert_eq!(did_document.id, did.uri);
-    // }
+        let did_document = result.did_document.unwrap();
+        assert_eq!(did_document.id, did.identifier.uri);
+    }
 
     #[tokio::test]
     async fn resolve_uri_success() {
         let bearer_did = create_did_jwk();
-        let result = DidJwk::resolve_uri(&bearer_did.identifier.uri).await;
+        let result = DidJwk::resolve(&bearer_did.identifier.uri).await;
         assert!(result.did_resolution_metadata.error.is_none());
 
         let did_document = result.did_document.unwrap();
@@ -124,7 +124,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_uri_failure() {
-        let result = DidJwk::resolve_uri("did:jwk:does-not-exist").await;
+        let result = DidJwk::resolve("did:jwk:does-not-exist").await;
         assert_eq!(
             result.did_resolution_metadata.error,
             Some(DidResolutionError::InvalidDid)

@@ -39,5 +39,5 @@ pub trait DidMethod<CreateOptions> {
 
     /// Resolve a DID URI to a [`DidResolutionResult`], as specified in
     /// [Resolving a DID](https://w3c-ccg.github.io/did-resolution/#resolving).
-    async fn resolve_uri(did_uri: &str) -> DidResolutionResult;
+    async fn resolve(did_uri: &str) -> DidResolutionResult;
 }

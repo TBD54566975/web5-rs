@@ -28,7 +28,7 @@ impl DidMethod<DidWebCreateOptions> for DidWeb {
         ))
     }
 
-    async fn resolve_uri(did_uri: &str) -> DidResolutionResult {
+    async fn resolve(did_uri: &str) -> DidResolutionResult {
         let input_metadata = ResolutionInputMetadata::default();
         let (spruce_did_resolution_metadata, spruce_did_document, spruce_did_document_metadata) =
             SpruceDidWebMethod.resolve(did_uri, &input_metadata).await;
@@ -57,7 +57,7 @@ mod tests {
     #[tokio::test]
     async fn resolution_success() {
         let did_uri = "did:web:tbd.website";
-        let result = DidWeb::resolve_uri(did_uri).await;
+        let result = DidWeb::resolve(did_uri).await;
         assert!(result.did_resolution_metadata.error.is_none());
 
         let did_document = result.did_document.expect("did_document not found");
@@ -66,7 +66,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolution_failure() {
-        let result = DidWeb::resolve_uri("did:web:does-not-exist").await;
+        let result = DidWeb::resolve("did:web:does-not-exist").await;
         assert!(result.did_resolution_metadata.error.is_some());
     }
 }

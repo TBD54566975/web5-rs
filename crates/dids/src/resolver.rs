@@ -16,8 +16,8 @@ impl DidResolver {
         };
 
         match identifier.method.as_str() {
-            DidJwk::NAME => DidJwk::resolve_uri(did_uri).await,
-            DidWeb::NAME => DidWeb::resolve_uri(did_uri).await,
+            DidJwk::NAME => DidJwk::resolve(did_uri).await,
+            DidWeb::NAME => DidWeb::resolve(did_uri).await,
             _ => DidResolutionResult::from_error(DidResolutionError::MethodNotSupported),
         }
     }
