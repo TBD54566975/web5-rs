@@ -1,19 +1,27 @@
 use crate::resolver::{DidResolutionError, DidResolutionMetadata};
+use ssi_dids::did_resolve::ResolutionMetadata as SpruceResolutionMetadata;
 
-impl From<ssi_dids::did_resolve::ResolutionMetadata> for DidResolutionMetadata {
-    fn from(metadata: ssi_dids::did_resolve::ResolutionMetadata) -> Self {
-        DidResolutionMetadata {
-            error: metadata.error.map(|err| match err.as_str() {
-                ssi_dids::did_resolve::ERROR_INVALID_DID => DidResolutionError::InvalidDid,
-                ssi_dids::did_resolve::ERROR_NOT_FOUND => DidResolutionError::NotFound,
+impl DidResolutionMetadata {
+    pub fn from_spruce(
+        spruce_resolution_metadata: SpruceResolutionMetadata,
+    ) -> Result<Self, String> {
+        let error = if let Some(err) = spruce_resolution_metadata.error {
+            let error = match err.as_str() {
+                ssi_dids::did_resolve::ERROR_INVALID_DID => Ok(DidResolutionError::InvalidDid),
+                ssi_dids::did_resolve::ERROR_NOT_FOUND => Ok(DidResolutionError::NotFound),
                 ssi_dids::did_resolve::ERROR_REPRESENTATION_NOT_SUPPORTED => {
-                    DidResolutionError::RepresentationNotSupported
+                    Ok(DidResolutionError::RepresentationNotSupported)
                 }
                 ssi_dids::did_resolve::ERROR_METHOD_NOT_SUPPORTED => {
-                    DidResolutionError::MethodNotSupported
+                    Ok(DidResolutionError::MethodNotSupported)
                 }
-                _ => DidResolutionError::InternalError,
-            }),
-        }
+                _ => Err(format!("Unknown error: {}", err)),
+            }?;
+            Some(error)
+        } else {
+            None
+        };
+
+        Ok(DidResolutionMetadata { error })
     }
 }

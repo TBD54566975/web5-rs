@@ -7,104 +7,149 @@ use ssi_dids::{
     VerificationMethod as SpruceVerificationMethod,
 };
 
-impl From<SpruceDocument> for DidDocument {
-    fn from(ssi_doc: SpruceDocument) -> Self {
-        let id = ssi_doc.id.clone();
-        DidDocument {
-            id: ssi_doc.id,
-            context: match ssi_doc.context {
-                SpruceContexts::One(ctx) => match ctx {
-                    SpruceContext::URI(uri) => Some(vec![uri.to_string()]),
-                    SpruceContext::Object(obj) => {
-                        Some(vec![serde_json::to_string(&obj).unwrap_or_default()])
-                    }
-                },
-                SpruceContexts::Many(ctxs) => Some(
-                    ctxs.into_iter()
-                        .map(|ctx| match ctx {
-                            SpruceContext::URI(uri) => uri.to_string(),
-                            SpruceContext::Object(obj) => {
-                                serde_json::to_string(&obj).unwrap_or_default()
-                            }
-                        })
-                        .collect(),
-                ),
+impl DidDocument {
+    pub fn from_spruce(spruce_document: SpruceDocument) -> Result<Self, String> {
+        let context = match spruce_document.context {
+            SpruceContexts::One(ctx) => match ctx {
+                SpruceContext::URI(uri) => Some(vec![uri.to_string()]),
+                SpruceContext::Object(obj) => {
+                    Some(vec![serde_json::to_string(&obj).unwrap_or_default()])
+                }
             },
-            controller: ssi_doc
+            SpruceContexts::Many(ctxs) => Some(
+                ctxs.into_iter()
+                    .map(|ctx| match ctx {
+                        SpruceContext::URI(uri) => uri.to_string(),
+                        SpruceContext::Object(obj) => {
+                            serde_json::to_string(&obj).unwrap_or_default()
+                        }
+                    })
+                    .collect(),
+            ),
+        };
+
+        let verification_methods = spruce_document
+            .verification_method
+            .unwrap_or_else(Vec::new)
+            .into_iter()
+            .map(VerificationMethod::from_spruce)
+            .collect::<Result<Vec<_>, String>>()?;
+
+        let authentication = spruce_document.authentication.map(|vms| {
+            vms.into_iter()
+                .map(|vm| vm.get_id(&spruce_document.id))
+                .collect::<Vec<_>>()
+        });
+
+        let assertion_method = spruce_document.assertion_method.map(|vms| {
+            vms.into_iter()
+                .map(|vm| vm.get_id(&spruce_document.id))
+                .collect::<Vec<_>>()
+        });
+
+        let key_agreement = spruce_document.key_agreement.map(|vms| {
+            vms.into_iter()
+                .map(|vm| vm.get_id(&spruce_document.id))
+                .collect::<Vec<_>>()
+        });
+
+        let capability_invocation = spruce_document.capability_invocation.map(|vms| {
+            vms.into_iter()
+                .map(|vm| vm.get_id(&spruce_document.id))
+                .collect::<Vec<_>>()
+        });
+
+        let capability_delegation = spruce_document.capability_delegation.map(|vms| {
+            vms.into_iter()
+                .map(|vm| vm.get_id(&spruce_document.id))
+                .collect::<Vec<_>>()
+        });
+
+        // Handle the possible error when converting each `SpruceService` to `Service`
+        let service = spruce_document
+            .service
+            .map(|services| {
+                services
+                    .into_iter()
+                    .map(Service::from_spruce)
+                    .collect::<Result<Vec<_>, String>>()
+            })
+            .transpose()?; // Use transpose to convert Option<Result<T, E>> to Result<Option<T>, E>
+
+        Ok(DidDocument {
+            id: spruce_document.id,
+            context,
+            controller: spruce_document
                 .controller
                 .map(|c| c.into_iter().map(|did| did.to_string()).collect()),
-            also_known_as: ssi_doc
+            also_known_as: spruce_document
                 .also_known_as
                 .map(|aka| aka.into_iter().map(|uri| uri.to_string()).collect()),
-            verification_method: ssi_doc
-                .verification_method
-                .unwrap_or_default()
+            verification_method: verification_methods,
+            authentication,
+            assertion_method,
+            key_agreement,
+            capability_invocation,
+            capability_delegation,
+            service,
+        })
+    }
+}
+
+impl VerificationMethod {
+    pub fn from_spruce(
+        spruce_verification_method: SpruceVerificationMethod,
+    ) -> Result<Self, String> {
+        match spruce_verification_method {
+            SpruceVerificationMethod::Map(ssi_vmm) => {
+                let public_key_jwk = ssi_vmm
+                    .get_jwk()
+                    .map(PublicKey::from)
+                    .map_err(|e| format!("Failed to get JWK: {:?}", e))?;
+                Ok(VerificationMethod {
+                    id: ssi_vmm.id,
+                    r#type: ssi_vmm.type_,
+                    controller: ssi_vmm.controller,
+                    public_key_jwk,
+                })
+            }
+            // Handle other variants or indicate they are unsupported
+            _ => Err("Unsupported SpruceVerificationMethod variant".to_string()),
+        }
+    }
+}
+
+impl Service {
+    pub fn from_spruce(spruce_service: SpruceService) -> Result<Self, String> {
+        let r#type = match spruce_service.type_ {
+            OneOrMany::One(t) => t,
+            OneOrMany::Many(mut t) => t
+                .pop()
+                .ok_or_else(|| "Service type array was empty".to_string())?,
+        };
+
+        let service_endpoint = match spruce_service.service_endpoint {
+            Some(OneOrMany::One(endpoint)) => match endpoint {
+                SpruceServiceEndpoint::URI(uri) => uri,
+                SpruceServiceEndpoint::Map(map) => serde_json::to_string(&map).unwrap_or_default(),
+            },
+            Some(OneOrMany::Many(endpoints)) => endpoints
                 .into_iter()
-                .map(VerificationMethod::from)
-                .collect(),
-            authentication: ssi_doc
-                .authentication
-                .map(|auth| auth.into_iter().map(|vm| vm.get_id(&id)).collect()),
-            assertion_method: ssi_doc
-                .assertion_method
-                .map(|am| am.into_iter().map(|vm| vm.get_id(&id)).collect()),
-            key_agreement: ssi_doc
-                .key_agreement
-                .map(|ka| ka.into_iter().map(|vm| vm.get_id(&id)).collect()),
-            capability_invocation: ssi_doc
-                .capability_invocation
-                .map(|ci| ci.into_iter().map(|vm| vm.get_id(&id)).collect()),
-            capability_delegation: ssi_doc
-                .capability_delegation
-                .map(|cd| cd.into_iter().map(|vm| vm.get_id(&id)).collect()),
-            service: ssi_doc
-                .service
-                .map(|s| s.into_iter().map(Service::from).collect()),
-        }
-    }
-}
-
-impl From<SpruceVerificationMethod> for VerificationMethod {
-    fn from(ssi_vm: SpruceVerificationMethod) -> Self {
-        match ssi_vm {
-            SpruceVerificationMethod::Map(ssi_vmm) => VerificationMethod {
-                id: ssi_vmm.id.clone(),
-                r#type: ssi_vmm.type_.clone(),
-                controller: ssi_vmm.controller.clone(),
-                public_key_jwk: ssi_vmm.get_jwk().map(PublicKey::from).unwrap(),
-            },
-            _ => unimplemented!("Unsupported SsiVerificationMethod variant"),
-        }
-    }
-}
-
-impl From<SpruceService> for Service {
-    fn from(ssi_service: SpruceService) -> Self {
-        Service {
-            id: ssi_service.id,
-            r#type: match ssi_service.type_ {
-                OneOrMany::One(t) => t,
-                OneOrMany::Many(mut t) => t.pop().unwrap_or_default(),
-            },
-            service_endpoint: match ssi_service.service_endpoint {
-                Some(OneOrMany::One(endpoint)) => match endpoint {
+                .last()
+                .map(|endpoint| match endpoint {
                     SpruceServiceEndpoint::URI(uri) => uri,
                     SpruceServiceEndpoint::Map(map) => {
                         serde_json::to_string(&map).unwrap_or_default()
                     }
-                },
-                Some(OneOrMany::Many(endpoints)) => endpoints
-                    .into_iter()
-                    .last()
-                    .map(|endpoint| match endpoint {
-                        SpruceServiceEndpoint::URI(uri) => uri,
-                        SpruceServiceEndpoint::Map(map) => {
-                            serde_json::to_string(&map).unwrap_or_default()
-                        }
-                    })
-                    .unwrap_or_default(),
-                None => "".to_string(),
-            },
-        }
+                })
+                .ok_or_else(|| "Service endpoint array was empty".to_string())?,
+            None => return Err("Service endpoint is missing".to_string()),
+        };
+
+        Ok(Service {
+            id: spruce_service.id,
+            r#type,
+            service_endpoint,
+        })
     }
 }

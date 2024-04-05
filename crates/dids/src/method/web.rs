@@ -30,14 +30,16 @@ impl DidMethod<DidWebCreateOptions> for DidWeb {
 
     async fn resolve(did_uri: &str) -> DidResolutionResult {
         let input_metadata = ResolutionInputMetadata::default();
-        let (spruce_did_resolution_metadata, spruce_did_document, spruce_did_document_metadata) =
+        let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
             SpruceDidWebMethod.resolve(did_uri, &input_metadata).await;
 
-        DidResolutionResult {
-            did_resolution_metadata: spruce_did_resolution_metadata.into(),
-            did_document: spruce_did_document.map(|doc| doc.into()),
-            did_document_metadata: spruce_did_document_metadata.map(|metadata| metadata.into()),
-            ..Default::default()
+        match DidResolutionResult::from_spruce(
+            spruce_resolution_metadata,
+            spruce_document,
+            spruce_document_metadata,
+        ) {
+            Ok(r) => r,
+            Err(e) => DidResolutionResult::from_error(e),
         }
     }
 }
