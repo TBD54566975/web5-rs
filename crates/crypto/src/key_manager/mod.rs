@@ -4,18 +4,20 @@ pub mod local_key_manager;
 use crate::key::public_key::PublicKey;
 use crate::key::{KeyError, KeyType};
 use crate::key_manager::key_store::KeyStoreError;
-use ssi_jwk::Error as JWKError;
+use josekit::JoseError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum KeyManagerError {
     #[error("Signing key not found in KeyManager")]
     SigningKeyNotFound,
     #[error(transparent)]
-    JWKError(#[from] JWKError),
+    JoseError(#[from] JoseError),
     #[error(transparent)]
     KeyError(#[from] KeyError),
     #[error(transparent)]
     KeyStoreError(#[from] KeyStoreError),
+    #[error("Jose error missing key_id")]
+    JoseMissingKeyId,
 }
 
 /// A key management trait for generating, storing, and utilizing keys private keys and their

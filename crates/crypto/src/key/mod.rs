@@ -1,28 +1,24 @@
-pub mod jose_key;
-pub mod jose_private_key;
-pub mod jose_public_key;
 pub mod private_key;
 pub mod public_key;
 
-use ssi_jwk::JWK;
-use ssi_jws::Error as JWSError;
+use josekit::{JoseError, jwk::Jwk};
 
 /// Enum defining all supported cryptographic key types.
 pub enum KeyType {
     Secp256k1,
-    Secp256r1,
+    // Secp256r1,
     Ed25519,
 }
 
 #[derive(thiserror::Error, Debug)]
 pub enum KeyError {
     #[error(transparent)]
-    JWSError(#[from] JWSError),
+    JoseError(#[from] JoseError),
     #[error("Algorithm not found on JWK")]
     AlgorithmNotFound,
 }
 
 /// Trait defining all common behavior for cryptographic keys.
 pub trait Key {
-    fn jwk(&self) -> &JWK;
+    fn jwk(&self) -> &Jwk;
 }
