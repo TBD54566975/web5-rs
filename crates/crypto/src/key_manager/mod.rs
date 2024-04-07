@@ -1,5 +1,6 @@
 pub mod key_store;
 pub mod local_jwk_manager;
+pub mod local_key_manager;
 
 use crate::key::{KeyError, KeyType, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;

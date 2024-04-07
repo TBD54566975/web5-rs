@@ -1,4 +1,5 @@
 pub mod in_memory_jwk_store;
+pub mod in_memory_key_store;
 
 use crate::key::{PrivateKey, PublicKey};
 
