@@ -1,11 +1,11 @@
-use crate::key::private_key::PrivateKey;
+use crate::key::josekit_jwk::private_jwk::PrivateJwk;
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
 use std::collections::HashMap;
 use std::sync::RwLock;
 
 /// An in-memory implementation of the [`KeyStore`] trait.
 pub struct InMemoryKeyStore {
-    map: RwLock<HashMap<String, PrivateKey>>,
+    map: RwLock<HashMap<String, PrivateJwk>>,
 }
 
 impl Default for InMemoryKeyStore {
@@ -21,8 +21,8 @@ impl InMemoryKeyStore {
     }
 }
 
-impl KeyStore for InMemoryKeyStore {
-    fn get(&self, key_alias: &str) -> Result<Option<PrivateKey>, KeyStoreError> {
+impl KeyStore<PrivateJwk> for InMemoryKeyStore {
+    fn get(&self, key_alias: &str) -> Result<Option<PrivateJwk>, KeyStoreError> {
         let map_lock = self.map.read().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
         })?;
@@ -34,7 +34,7 @@ impl KeyStore for InMemoryKeyStore {
         }
     }
 
-    fn insert(&self, key_alias: &str, private_key: PrivateKey) -> Result<(), KeyStoreError> {
+    fn insert(&self, key_alias: &str, private_key: PrivateJwk) -> Result<(), KeyStoreError> {
         let mut map_lock = self.map.write().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
         })?;
@@ -47,11 +47,11 @@ impl KeyStore for InMemoryKeyStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::key::private_key::PrivateKey;
-    use josekit::jwk::{alg::ec::EcCurve, Jwk};
+    use crate::key::josekit_jwk::private_jwk::PrivateJwk;
+    use crate::key::{KeyType, PrivateKey};
 
-    fn new_private_key() -> PrivateKey {
-        PrivateKey(Jwk::generate_ec_key(EcCurve::Secp256k1).unwrap())
+    fn new_private_key() -> PrivateJwk {
+        PrivateJwk::generate(KeyType::Ed25519).unwrap()
     }
 
     #[test]

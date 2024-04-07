@@ -1,27 +1,20 @@
-use crate::key::private_key::PrivateKey;
-use crate::key::public_key::PublicKey;
-use crate::key::KeyType;
+use crate::key::josekit_jwk::private_jwk::PrivateJwk;
+use crate::key::{KeyType, PrivateKey, PublicKey};
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
-use base64::{Engine as _, engine::general_purpose};
-use josekit::jwk::{
-    alg::{ec::EcCurve, ed::EdCurve},
-    Jwk,
-};
-use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
 /// is being run. Key storage is provided by a [`KeyStore`] trait implementation, allowing the keys
 /// to be stored wherever is most appropriate for the application.
 pub struct LocalKeyManager {
-    key_store: Arc<dyn KeyStore>,
+    key_store: Arc<dyn KeyStore<PrivateJwk>>,
 }
 
 impl LocalKeyManager {
     /// Constructs a new `LocalKeyManager` that stores keys in the provided `KeyStore`.
-    pub fn new(key_store: Arc<dyn KeyStore>) -> Self {
+    pub fn new(key_store: Arc<dyn KeyStore<PrivateJwk>>) -> Self {
         Self { key_store }
     }
 
@@ -35,44 +28,22 @@ impl LocalKeyManager {
 
 impl KeyManager for LocalKeyManager {
     fn generate_private_key(&self, key_type: KeyType) -> Result<String, KeyManagerError> {
-        let mut jwk = match key_type {
-            KeyType::Secp256k1 => Jwk::generate_ec_key(EcCurve::Secp256k1),
-            KeyType::Ed25519 => Jwk::generate_ed_key(EdCurve::Ed25519),
-        }?;
-
-        // todo considering proposing adding a thumbprint to the josekit repo
-        let thumbprint_json_string = match key_type {
-            KeyType::Secp256k1 => format!(
-                r#"{{"crv":"{}","kty":"EC","x":"{}","y":"{}"}}"#,
-                jwk.curve().ok_or(KeyManagerError::JoseMissingKeyId)?, // todo different error
-                jwk.parameter("x")
-                    .ok_or(KeyManagerError::JoseMissingKeyId)?,
-                jwk.parameter("y")
-                    .ok_or(KeyManagerError::JoseMissingKeyId)?,
-            ),
-            KeyType::Ed25519 => format!(
-                r#"{{"crv":"{}","kty":"OKP","x":"{}"}}"#,
-                jwk.curve().ok_or(KeyManagerError::JoseMissingKeyId)?, // todo different error
-                jwk.parameter("x")
-                    .ok_or(KeyManagerError::JoseMissingKeyId)?, // todo different error
-            ),
-        };
-        let mut hasher = Sha256::new();
-        hasher.update(thumbprint_json_string);
-        let digest = hasher.finalize();
-        let thumbprint = general_purpose::URL_SAFE_NO_PAD.encode(&digest);
-        let key_alias = thumbprint.clone();
-
-        jwk.set_key_id(&key_alias);
-
-        let private_key = PrivateKey(jwk);
+        let private_key =
+            PrivateJwk::generate(key_type).map_err(|_| KeyManagerError::KeyGenerationFailed)?;
+        let public_key = private_key
+            .to_public()
+            .map_err(|_| KeyManagerError::KeyGenerationFailed)?;
+        let key_alias = self.alias(&public_key)?;
 
         self.key_store.insert(&key_alias, private_key)?;
 
         Ok(key_alias)
     }
 
-    fn get_public_key(&self, key_alias: &str) -> Result<Option<PublicKey>, KeyManagerError> {
+    fn get_public_key(
+        &self,
+        key_alias: &str,
+    ) -> Result<Option<Box<dyn PublicKey>>, KeyManagerError> {
         if let Some(private_key) = self.key_store.get(key_alias)? {
             let public_key = private_key.to_public()?;
             Ok(Some(public_key))
@@ -92,12 +63,9 @@ impl KeyManager for LocalKeyManager {
         Ok(signed_payload)
     }
 
-    fn alias(&self, public_key: &PublicKey) -> Result<String, KeyManagerError> {
-        let key_id = public_key
-            .0
-            .key_id()
-            .ok_or(KeyManagerError::JoseMissingKeyId)?;
-        Ok(key_id.to_string())
+    fn alias(&self, public_key: &Box<dyn PublicKey>) -> Result<String, KeyManagerError> {
+        let alias = public_key.alias().map_err(KeyManagerError::KeyError)?;
+        Ok(alias)
     }
 }
 

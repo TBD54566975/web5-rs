@@ -1,7 +1,6 @@
-pub mod private_key;
-pub mod public_key;
+pub mod josekit_jwk;
 
-use josekit::{JoseError, jwk::Jwk};
+use josekit::JoseError;
 
 /// Enum defining all supported cryptographic key types.
 pub enum KeyType {
@@ -15,9 +14,33 @@ pub enum KeyError {
     JoseError(#[from] JoseError),
     #[error("Algorithm not found on JWK")]
     AlgorithmNotFound,
+    #[error("Key generation failed")]
+    KeyGenerationFailed,
+    #[error("Failed to compute key thumbprint")]
+    ThumprintFailed,
 }
 
-/// Trait defining all common behavior for cryptographic keys.
-pub trait Key {
-    fn jwk(&self) -> &Jwk;
+// TODO not sure this is necessary?
+// /// Trait defining all common behavior for cryptographic keys.
+// pub trait Key {
+//     fn jwk(&self) -> &Jwk;
+// }
+
+// todo assuming only asymmetric encryption currently
+
+pub trait PrivateKey: Sized {
+    fn generate(key_type: KeyType) -> Result<Self, KeyError>;
+
+    /// Derive a [`PublicKey`] from the target [`PrivateKey`].
+    fn to_public(&self) -> Result<Box<dyn PublicKey>, KeyError>;
+
+    /// Sign a payload using the target [`PrivateKey`].
+    fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyError>;
+}
+
+pub trait PublicKey {
+    /// Verifies a payload with a given signature using the target [`PublicKey`].
+    fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<(), KeyError>;
+
+    fn alias(&self) -> Result<String, KeyError>;
 }
