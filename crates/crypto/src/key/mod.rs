@@ -6,7 +6,6 @@ use josekit::{JoseError, jwk::Jwk};
 /// Enum defining all supported cryptographic key types.
 pub enum KeyType {
     Secp256k1,
-    // Secp256r1,
     Ed25519,
 }
 

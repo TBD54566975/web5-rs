@@ -4,10 +4,12 @@ use crate::key::KeyType;
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
+use base64::{Engine as _, engine::general_purpose};
 use josekit::jwk::{
     alg::{ec::EcCurve, ed::EdCurve},
     Jwk,
 };
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
@@ -33,15 +35,37 @@ impl LocalKeyManager {
 
 impl KeyManager for LocalKeyManager {
     fn generate_private_key(&self, key_type: KeyType) -> Result<String, KeyManagerError> {
-        let jwk = match key_type {
+        let mut jwk = match key_type {
             KeyType::Secp256k1 => Jwk::generate_ec_key(EcCurve::Secp256k1),
-            // KeyType::Secp256r1 => JWK::generate_p256(),
             KeyType::Ed25519 => Jwk::generate_ed_key(EdCurve::Ed25519),
         }?;
 
+        // todo considering proposing adding a thumbprint to the josekit repo
+        let thumbprint_json_string = match key_type {
+            KeyType::Secp256k1 => format!(
+                r#"{{"crv":"{}","kty":"EC","x":"{}","y":"{}"}}"#,
+                jwk.curve().ok_or(KeyManagerError::JoseMissingKeyId)?, // todo different error
+                jwk.parameter("x")
+                    .ok_or(KeyManagerError::JoseMissingKeyId)?,
+                jwk.parameter("y")
+                    .ok_or(KeyManagerError::JoseMissingKeyId)?,
+            ),
+            KeyType::Ed25519 => format!(
+                r#"{{"crv":"{}","kty":"OKP","x":"{}"}}"#,
+                jwk.curve().ok_or(KeyManagerError::JoseMissingKeyId)?, // todo different error
+                jwk.parameter("x")
+                    .ok_or(KeyManagerError::JoseMissingKeyId)?, // todo different error
+            ),
+        };
+        let mut hasher = Sha256::new();
+        hasher.update(thumbprint_json_string);
+        let digest = hasher.finalize();
+        let thumbprint = general_purpose::URL_SAFE_NO_PAD.encode(&digest);
+        let key_alias = thumbprint.clone();
+
+        jwk.set_key_id(&key_alias);
+
         let private_key = PrivateKey(jwk);
-        let public_key = private_key.to_public()?;
-        let key_alias = self.alias(&public_key)?;
 
         self.key_store.insert(&key_alias, private_key)?;
 
@@ -77,62 +101,57 @@ impl KeyManager for LocalKeyManager {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-//     #[test]
-//     fn test_generate_private_key() {
-//         let key_manager = LocalKeyManager::new_in_memory();
+    #[test]
+    fn test_generate_private_key() {
+        let key_manager = LocalKeyManager::new_in_memory();
 
-//         key_manager
-//             .generate_private_key(KeyType::Ed25519)
-//             .expect("Failed to generate Ed25519 key");
+        key_manager
+            .generate_private_key(KeyType::Ed25519)
+            .expect("Failed to generate Ed25519 key");
 
-//         key_manager
-//             .generate_private_key(KeyType::Secp256k1)
-//             .expect("Failed to generate secp256k1 key");
+        key_manager
+            .generate_private_key(KeyType::Secp256k1)
+            .expect("Failed to generate secp256k1 key");
+    }
 
-//         key_manager
-//             .generate_private_key(KeyType::Secp256r1)
-//             .expect("Failed to generate secp256r1 key");
-//     }
+    #[test]
+    fn test_get_public_key() {
+        let key_manager = LocalKeyManager::new_in_memory();
 
-//     #[test]
-//     fn test_get_public_key() {
-//         let key_manager = LocalKeyManager::new_in_memory();
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
 
-//         let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+        key_manager
+            .get_public_key(&key_alias)
+            .unwrap()
+            .expect("Public key not found");
+    }
 
-//         key_manager
-//             .get_public_key(&key_alias)
-//             .unwrap()
-//             .expect("Public key not found");
-//     }
+    #[test]
+    fn test_sign() {
+        let key_manager = LocalKeyManager::new_in_memory();
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
 
-//     #[test]
-//     fn test_sign() {
-//         let key_manager = LocalKeyManager::new_in_memory();
-//         let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+        // Sign a payload
+        let payload: &[u8] = b"hello world";
+        let signature = key_manager.sign(&key_alias, payload).unwrap();
 
-//         // Sign a payload
-//         let payload: &[u8] = b"hello world";
-//         let signature = key_manager.sign(&key_alias, payload).unwrap();
+        // Get the public key that was used to sign the payload, and verify with it.
+        let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
+        assert!(public_key.verify(payload, &signature).is_ok());
+    }
 
-//         // Get the public key that was used to sign the payload, and verify with it.
-//         let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
-//         let verification_result = public_key.verify(payload, &signature).unwrap();
-//         assert_eq!(verification_result.len(), 0);
-//     }
+    // #[test]
+    // fn test_alias() {
+    //     let key_manager = LocalKeyManager::new_in_memory();
+    //     let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
 
-//     #[test]
-//     fn test_alias() {
-//         let key_manager = LocalKeyManager::new_in_memory();
-//         let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+    //     let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
+    //     let alias = key_manager.alias(&public_key).unwrap();
 
-//         let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
-//         let alias = key_manager.alias(&public_key).unwrap();
-
-//         assert_eq!(key_alias, alias);
-//     }
-// }
+    //     assert_eq!(key_alias, alias);
+    // }
+}

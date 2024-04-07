@@ -44,34 +44,34 @@ impl KeyStore for InMemoryKeyStore {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use crate::key::private_key::PrivateKey;
-//     use ssi_jwk::JWK;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::key::private_key::PrivateKey;
+    use josekit::jwk::{alg::ec::EcCurve, Jwk};
 
-//     fn new_private_key() -> PrivateKey {
-//         PrivateKey(JWK::generate_secp256k1().unwrap())
-//     }
+    fn new_private_key() -> PrivateKey {
+        PrivateKey(Jwk::generate_ec_key(EcCurve::Secp256k1).unwrap())
+    }
 
-//     #[test]
-//     fn test_insert_get() {
-//         let key_alias = "key-alias";
-//         let private_key = new_private_key();
+    #[test]
+    fn test_insert_get() {
+        let key_alias = "key-alias";
+        let private_key = new_private_key();
 
-//         let key_store = InMemoryKeyStore::new();
-//         key_store.insert(key_alias, private_key.clone()).unwrap();
+        let key_store = InMemoryKeyStore::new();
+        key_store.insert(key_alias, private_key.clone()).unwrap();
 
-//         let retrieved_private_key = key_store.get(key_alias).unwrap().unwrap();
-//         assert_eq!(private_key, retrieved_private_key);
-//     }
+        let retrieved_private_key = key_store.get(key_alias).unwrap().unwrap();
+        assert_eq!(private_key, retrieved_private_key);
+    }
 
-//     #[test]
-//     fn test_get_missing() {
-//         let key_alias = "key-alias";
+    #[test]
+    fn test_get_missing() {
+        let key_alias = "key-alias";
 
-//         let key_store = InMemoryKeyStore::new();
-//         let retrieved_private_key = key_store.get(key_alias).unwrap();
-//         assert!(retrieved_private_key.is_none());
-//     }
-// }
+        let key_store = InMemoryKeyStore::new();
+        let retrieved_private_key = key_store.get(key_alias).unwrap();
+        assert!(retrieved_private_key.is_none());
+    }
+}

@@ -1,5 +1,5 @@
-use crate::key::{Key, KeyError};
 use crate::key::public_key::PublicKey;
+use crate::key::{Key, KeyError};
 use josekit::jwk::Jwk;
 use josekit::jws::alg::ecdsa::EcdsaJwsAlgorithm;
 use josekit::jws::alg::eddsa::EddsaJwsAlgorithm;
@@ -34,34 +34,43 @@ impl Key for PrivateKey {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use ssi_jwk::JWK;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use josekit::jwk::alg::ec::EcCurve;
 
-//     fn new_private_key() -> PrivateKey {
-//         PrivateKey(JWK::generate_secp256k1().unwrap())
-//     }
+    fn new_private_key() -> PrivateKey {
+        PrivateKey(Jwk::generate_ec_key(EcCurve::Secp256k1).unwrap())
+    }
 
-//     #[test]
-//     fn test_to_public() {
-//         let private_key = new_private_key();
-//         let public_key = private_key.to_public();
+    #[test]
+    fn test_to_public() {
+        let private_key = new_private_key();
+        let public_key = private_key.to_public().unwrap();
 
-//         assert_eq!(
-//             private_key.jwk().thumbprint().unwrap(),
-//             public_key.jwk().thumbprint().unwrap()
-//         );
+        assert_eq!(
+            private_key.jwk().parameter("x"),
+            public_key.jwk().parameter("x")
+        );
+        assert_eq!(
+            private_key.jwk().parameter("y"),
+            public_key.jwk().parameter("y")
+        );
 
-//         assert_ne!(private_key.jwk(), public_key.jwk())
-//     }
+        assert!(private_key.jwk().parameter("d").is_some());
+        assert!(public_key.jwk().parameter("d").is_none());
+    }
 
-//     #[test]
-//     fn test_sign() {
-//         let private_key = new_private_key();
-//         let payload: &[u8] = b"hello world";
-//         let signature = private_key.sign(payload).unwrap();
+    #[test]
+    fn test_sign() {
+        let private_key = new_private_key();
+        let payload: &[u8] = b"hello world";
+        let signature = private_key.sign(payload).unwrap();
 
-//         assert_ne!(payload, &signature)
-//     }
-// }
+        let public_key = private_key.to_public().unwrap();
+        let verifier = EcdsaJwsAlgorithm::Es256k
+            .verifier_from_jwk(&public_key.jwk())
+            .unwrap();
+        assert!(verifier.verify(payload, &signature).is_ok());
+    }
+}
