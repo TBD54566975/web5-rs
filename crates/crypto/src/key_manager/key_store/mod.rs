@@ -1,6 +1,6 @@
 pub mod in_memory_key_store;
 
-use crate::key::private_key::PrivateKey;
+use crate::key::PrivateKey;
 
 #[derive(thiserror::Error, Debug)]
 pub enum KeyStoreError {
@@ -12,6 +12,6 @@ pub enum KeyStoreError {
 //
 // Implementations of this trait should be thread-safe and allow for concurrent access.
 pub trait KeyStore: Send + Sync {
-    fn get(&self, key_alias: &str) -> Result<Option<PrivateKey>, KeyStoreError>;
-    fn insert(&self, key_alias: &str, private_key: PrivateKey) -> Result<(), KeyStoreError>;
+    fn get(&self, key_alias: &str) -> Result<Option<Box<dyn PrivateKey>>, KeyStoreError>;
+    fn insert(&self, key_alias: &str, private_key: Box<dyn PrivateKey>) -> Result<(), KeyStoreError>;
 }

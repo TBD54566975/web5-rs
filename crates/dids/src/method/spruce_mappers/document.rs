@@ -1,5 +1,5 @@
 use crate::document::{Document, Service, VerificationMethod};
-use crypto::key::public_key::PublicKey;
+use josekit::jwk::Jwk as JosekitJwk;
 use ssi_core::one_or_many::OneOrMany;
 use ssi_dids::{
     Context as SpruceContext, Contexts as SpruceContexts, Document as SpruceDocument,
@@ -102,18 +102,19 @@ impl VerificationMethod {
     ) -> Result<Self, String> {
         match spruce_verification_method {
             SpruceVerificationMethod::Map(ssi_vmm) => {
-                let public_key_jwk = ssi_vmm
-                    .get_jwk()
-                    .map(PublicKey::from)
-                    .map_err(|e| format!("Failed to get JWK: {:?}", e))?;
+                let spruce_jwk = ssi_vmm.get_jwk()?;
+                let spruce_jwk_bytes =
+                    serde_json::to_vec(&spruce_jwk).map_err(|e| e.to_string())?;
+                let josekit_jwk =
+                    JosekitJwk::from_bytes(spruce_jwk_bytes).map_err(|e| e.to_string())?;
+
                 Ok(VerificationMethod {
                     id: ssi_vmm.id,
                     r#type: ssi_vmm.type_,
                     controller: ssi_vmm.controller,
-                    public_key_jwk,
+                    public_key_jwk: josekit_jwk,
                 })
             }
-            // Handle other variants or indicate they are unsupported
             _ => Err("Unsupported SpruceVerificationMethod variant".to_string()),
         }
     }

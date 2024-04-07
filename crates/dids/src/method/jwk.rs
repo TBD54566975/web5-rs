@@ -4,11 +4,13 @@ use crate::identifier::Identifier;
 use crate::method::{Method, MethodError};
 use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
-use crypto::key::{Key, KeyType};
+use crypto::key::KeyType;
 use crypto::key_manager::KeyManager;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;
+use serde_json::from_str;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 use ssi_dids::{DIDMethod, Source};
+use ssi_jwk::JWK as SpruceJwk;
 use std::sync::Arc;
 
 /// Concrete implementation for a did:jwk DID
@@ -35,17 +37,18 @@ impl Method<DidJwkCreateOptions> for DidJwk {
                     "PublicKey not found".to_string(),
                 ))?;
 
+        let josekit_jwk_string = public_key.jwk().to_string();
+        let spruce_jwk: SpruceJwk = from_str(&josekit_jwk_string)
+            .map_err(|e| MethodError::DidCreationFailure(e.to_string()))?;
+
         let uri = SpruceDidJwkMethod
-            .generate(&Source::Key(public_key.jwk()))
+            .generate(&Source::Key(&spruce_jwk))
             .ok_or(MethodError::DidCreationFailure(
                 "Failed to generate did:jwk".to_string(),
             ))?;
 
         let identifier = Identifier::parse(&uri).map_err(|e| {
-            MethodError::DidCreationFailure(format!(
-                "Failed to parse did:jwk uri {} {}",
-                &uri, e
-            ))
+            MethodError::DidCreationFailure(format!("Failed to parse did:jwk uri {} {}", &uri, e))
         })?;
 
         let bearer_did = BearerDid {
@@ -57,7 +60,7 @@ impl Method<DidJwkCreateOptions> for DidJwk {
                     id: format!("{}#{}", uri, "0"),
                     r#type: "JsonWebKey".to_string(),
                     controller: uri,
-                    public_key_jwk: public_key,
+                    public_key_jwk: public_key.jwk().clone(),
                 }],
                 ..Default::default()
             },
