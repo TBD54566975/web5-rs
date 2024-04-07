@@ -1,15 +1,16 @@
 pub mod jwk;
+pub mod spruce_mappers;
 pub mod web;
 
-use crate::did::Did;
-use crate::resolver::DidResolutionResult;
+use crate::bearer::BearerDid;
+use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
 use crypto::key_manager::{KeyManager, KeyManagerError};
 use std::sync::Arc;
 
 /// Errors that can occur when working with DID methods.
 #[derive(thiserror::Error, Debug)]
-pub enum DidMethodError {
+pub enum MethodError {
     #[error(transparent)]
     KeyManagerError(#[from] KeyManagerError),
     #[error("Failure creating DID: {0}")]
@@ -18,7 +19,7 @@ pub enum DidMethodError {
 
 /// A trait with common behavior across all DID methods.
 #[async_trait]
-pub trait DidMethod<T: Did, CreateOptions> {
+pub trait Method<CreateOptions> {
     /// The name of the implemented DID method (e.g. `jwk`).
     ///
     /// This is used to identify the [`DidMethod`] responsible for creating/resolving an arbitrary
@@ -31,12 +32,12 @@ pub trait DidMethod<T: Did, CreateOptions> {
     const NAME: &'static str;
 
     /// Create a new DID instance.
-    fn create(
-        key_manager: Arc<dyn KeyManager>,
+    fn create<T: KeyManager>(
+        key_manager: Arc<T>,
         options: CreateOptions,
-    ) -> Result<T, DidMethodError>;
+    ) -> Result<BearerDid<T>, MethodError>;
 
     /// Resolve a DID URI to a [`DidResolutionResult`], as specified in
     /// [Resolving a DID](https://w3c-ccg.github.io/did-resolution/#resolving).
-    async fn resolve_uri(did_uri: &str) -> DidResolutionResult;
+    async fn resolve(did_uri: &str) -> ResolutionResult;
 }
