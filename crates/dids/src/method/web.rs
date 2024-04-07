@@ -47,11 +47,11 @@ impl Method<DidWebCreateOptions> for DidWeb {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crypto::key_manager::local_jwk_manager::LocalJwkManager;
+    use crypto::key_manager::local_key_manager::LocalKeyManager;
 
     #[test]
     fn create_fails() {
-        let key_manager = Arc::new(LocalJwkManager::new_in_memory());
+        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let result = DidWeb::create(key_manager, DidWebCreateOptions);
         assert!(result.is_err());
     }

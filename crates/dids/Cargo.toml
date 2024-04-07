@@ -11,11 +11,13 @@ async-trait = "0.1.74"
 crypto = { path = "../crypto" }
 did-jwk = "0.1.1"
 did-web = "0.2.2"
+josekit = "0.8.6"
 regex = "1.10.4"
 serde = { workspace = true }
 serde_json = { workspace = true }
 ssi-core = "0.1.0"
 ssi-dids = "0.1.1"
+ssi-jwk = "0.1.2"
 thiserror = { workspace = true }
 
 [dev-dependencies]

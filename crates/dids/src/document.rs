@@ -1,4 +1,4 @@
-use crypto::key::public_key::PublicKey;
+use josekit::jwk::Jwk;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -39,7 +39,7 @@ pub struct VerificationMethod {
     pub r#type: String,
     pub controller: String,
     #[serde(rename = "publicKeyJwk")]
-    pub public_key_jwk: PublicKey,
+    pub public_key_jwk: Jwk,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
