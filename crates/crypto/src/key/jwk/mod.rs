@@ -4,7 +4,10 @@ pub mod public_jwk;
 use self::private_jwk::PrivateJwk;
 use super::{KeyError, KeyType};
 use base64::{engine::general_purpose, Engine as _};
-use josekit::jwk::{alg::{ec::EcCurve, ed::EdCurve}, Jwk};
+use josekit::jwk::{
+    alg::{ec::EcCurve, ed::EdCurve},
+    Jwk,
+};
 use sha2::{Digest, Sha256};
 
 // todo considering proposing adding a thumbprint to the josekit repo
@@ -31,7 +34,7 @@ fn compute_thumbprint(jwk: &Jwk) -> Result<String, KeyError> {
     Ok(thumbprint)
 }
 
-pub fn generate_private_jwk(key_type: crate::key::KeyType) -> Result<Box<PrivateJwk>, KeyError> {
+pub fn generate_private_jwk(key_type: KeyType) -> Result<Box<PrivateJwk>, KeyError> {
     let mut jwk = match key_type {
         KeyType::Secp256k1 => Jwk::generate_ec_key(EcCurve::Secp256k1),
         KeyType::Ed25519 => Jwk::generate_ed_key(EdCurve::Ed25519),

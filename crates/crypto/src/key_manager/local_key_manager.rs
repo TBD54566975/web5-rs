@@ -5,7 +5,9 @@ use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
 use std::sync::Arc;
 
-/// Generalized implementation of the `KeyManager` trait that can work with any key types.
+/// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
+/// is being run. Key storage is provided by a [`KeyStore`] trait implementation, allowing the keys
+/// to be stored wherever is most appropriate for the application.
 pub struct LocalKeyManager {
     key_store: Arc<dyn KeyStore>,
 }
@@ -63,5 +65,60 @@ impl KeyManager for LocalKeyManager {
     fn alias(&self, public_key: Box<dyn PublicKey>) -> Result<String, KeyManagerError> {
         let alias = public_key.alias().map_err(KeyManagerError::KeyError)?;
         Ok(alias)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_private_key() {
+        let key_manager = LocalKeyManager::new_in_memory();
+
+        key_manager
+            .generate_private_key(KeyType::Ed25519)
+            .expect("Failed to generate Ed25519 key");
+
+        key_manager
+            .generate_private_key(KeyType::Secp256k1)
+            .expect("Failed to generate secp256k1 key");
+    }
+
+    #[test]
+    fn test_get_public_key() {
+        let key_manager = LocalKeyManager::new_in_memory();
+
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+
+        key_manager
+            .get_public_key(&key_alias)
+            .unwrap()
+            .expect("Public key not found");
+    }
+
+    #[test]
+    fn test_sign() {
+        let key_manager = LocalKeyManager::new_in_memory();
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+
+        // Sign a payload
+        let payload: &[u8] = b"hello world";
+        let signature = key_manager.sign(&key_alias, payload).unwrap();
+
+        // Get the public key that was used to sign the payload, and verify with it.
+        let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
+        assert!(!public_key.verify(payload, &signature).is_err());
+    }
+
+    #[test]
+    fn test_alias() {
+        let key_manager = LocalKeyManager::new_in_memory();
+        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+
+        let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
+        let alias = key_manager.alias(public_key).unwrap();
+
+        assert_eq!(key_alias, alias);
     }
 }

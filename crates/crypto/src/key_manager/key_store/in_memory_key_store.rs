@@ -18,7 +18,7 @@ impl InMemoryKeyStore {
 impl KeyStore for InMemoryKeyStore {
     fn get(&self, key_alias: &str) -> Result<Option<Box<dyn PrivateKey>>, KeyStoreError> {
         let map_lock = self.map.read().map_err(|e| {
-            KeyStoreError::InternalKeyStoreError(format!("Unable to acquire read lock: {}", e))
+            KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
         })?;
 
         if let Some(private_key) = map_lock.get(key_alias) {
@@ -30,7 +30,7 @@ impl KeyStore for InMemoryKeyStore {
 
     fn insert(&self, key_alias: &str, private_key: Box<dyn PrivateKey>) -> Result<(), KeyStoreError> {
         let mut map_lock = self.map.write().map_err(|e| {
-            KeyStoreError::InternalKeyStoreError(format!("Unable to acquire write lock: {}", e))
+            KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
         })?;
 
         map_lock.insert(key_alias.to_string(), private_key);
@@ -41,5 +41,33 @@ impl KeyStore for InMemoryKeyStore {
 impl Default for InMemoryKeyStore {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::key::{jwk::generate_private_jwk, Key, KeyType};
+
+
+    #[test]
+    fn test_insert_get() {
+        let key_alias = "key-alias";
+        let private_key = generate_private_jwk(KeyType::Secp256k1).unwrap();
+
+        let key_store = InMemoryKeyStore::new();
+        key_store.insert(key_alias, private_key.clone()).unwrap();
+
+        let retrieved_private_key = key_store.get(key_alias).unwrap().unwrap();
+        assert_eq!(private_key.jwk(), retrieved_private_key.jwk());
+    }
+
+    #[test]
+    fn test_get_missing() {
+        let key_alias = "key-alias";
+
+        let key_store = InMemoryKeyStore::new();
+        let retrieved_private_key = key_store.get(key_alias).unwrap();
+        assert!(retrieved_private_key.is_none());
     }
 }
