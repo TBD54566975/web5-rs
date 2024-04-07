@@ -1,27 +1,28 @@
-use crate::key::josekit_jwk::private_jwk::PrivateJwk;
+use crate::key::jwk::private_jwk::PrivateJwk;
+use crate::key::jwk::public_jwk::PublicJwk;
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
 use std::collections::HashMap;
 use std::sync::RwLock;
 
 /// An in-memory implementation of the [`KeyStore`] trait.
-pub struct InMemoryKeyStore {
+pub struct InMemoryJwkStore {
     map: RwLock<HashMap<String, PrivateJwk>>,
 }
 
-impl Default for InMemoryKeyStore {
+impl Default for InMemoryJwkStore {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl InMemoryKeyStore {
+impl InMemoryJwkStore {
     pub fn new() -> Self {
         let map = RwLock::new(HashMap::new());
         Self { map }
     }
 }
 
-impl KeyStore<PrivateJwk> for InMemoryKeyStore {
+impl KeyStore<PrivateJwk, PublicJwk> for InMemoryJwkStore {
     fn get(&self, key_alias: &str) -> Result<Option<PrivateJwk>, KeyStoreError> {
         let map_lock = self.map.read().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
@@ -47,7 +48,7 @@ impl KeyStore<PrivateJwk> for InMemoryKeyStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::key::josekit_jwk::private_jwk::PrivateJwk;
+    use crate::key::jwk::private_jwk::PrivateJwk;
     use crate::key::{KeyType, PrivateKey};
 
     fn new_private_key() -> PrivateJwk {
@@ -59,7 +60,7 @@ mod tests {
         let key_alias = "key-alias";
         let private_key = new_private_key();
 
-        let key_store = InMemoryKeyStore::new();
+        let key_store = InMemoryJwkStore::new();
         key_store.insert(key_alias, private_key.clone()).unwrap();
 
         let retrieved_private_key = key_store.get(key_alias).unwrap().unwrap();
@@ -70,7 +71,7 @@ mod tests {
     fn test_get_missing() {
         let key_alias = "key-alias";
 
-        let key_store = InMemoryKeyStore::new();
+        let key_store = InMemoryJwkStore::new();
         let retrieved_private_key = key_store.get(key_alias).unwrap();
         assert!(retrieved_private_key.is_none());
     }

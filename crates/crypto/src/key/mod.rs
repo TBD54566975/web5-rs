@@ -1,4 +1,4 @@
-pub mod josekit_jwk;
+pub mod jwk;
 
 use josekit::JoseError;
 
@@ -28,19 +28,19 @@ pub enum KeyError {
 
 // todo assuming only asymmetric encryption currently
 
-pub trait PrivateKey: Sized {
-    fn generate(key_type: KeyType) -> Result<Self, KeyError>;
-
-    /// Derive a [`PublicKey`] from the target [`PrivateKey`].
-    fn to_public(&self) -> Result<Box<dyn PublicKey>, KeyError>;
-
-    /// Sign a payload using the target [`PrivateKey`].
-    fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyError>;
-}
-
 pub trait PublicKey {
     /// Verifies a payload with a given signature using the target [`PublicKey`].
     fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<(), KeyError>;
 
     fn alias(&self) -> Result<String, KeyError>;
+}
+
+pub trait PrivateKey<T: PublicKey>: Sized {
+    fn generate(key_type: KeyType) -> Result<Self, KeyError>;
+
+    /// Derive a [`PublicKey`] from the target [`PrivateKey`].
+    fn to_public(&self) -> Result<T, KeyError>;
+
+    /// Sign a payload using the target [`PrivateKey`].
+    fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyError>;
 }

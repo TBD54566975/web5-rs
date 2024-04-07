@@ -1,6 +1,6 @@
 use super::compute_thumbprint;
-use crate::key::josekit_jwk::public_jwk::PublicJwk;
-use crate::key::{KeyError, KeyType, PrivateKey, PublicKey};
+use crate::key::jwk::public_jwk::PublicJwk;
+use crate::key::{KeyError, KeyType, PrivateKey};
 use josekit::jwk::alg::ec::EcCurve;
 use josekit::jwk::alg::ed::EdCurve;
 use josekit::jwk::Jwk;
@@ -11,7 +11,7 @@ use josekit::jws::JwsSigner;
 #[derive(Clone, PartialEq, Debug)]
 pub struct PrivateJwk(pub(crate) Jwk);
 
-impl PrivateKey for PrivateJwk {
+impl PrivateKey<PublicJwk> for PrivateJwk {
     fn generate(key_type: crate::key::KeyType) -> Result<Self, KeyError> {
         let mut jwk = match key_type {
             KeyType::Secp256k1 => Jwk::generate_ec_key(EcCurve::Secp256k1),
@@ -25,13 +25,13 @@ impl PrivateKey for PrivateJwk {
     }
 
     /// Derive a [`PublicJwk`] from the target [`PrivateKey`].
-    fn to_public(&self) -> Result<Box<dyn PublicKey>, KeyError> {
+    fn to_public(&self) -> Result<PublicJwk, KeyError> {
         let mut public_key = self.0.to_public_key()?;
 
         let key_alias = compute_thumbprint(&public_key)?;
         public_key.set_key_id(&key_alias);
 
-        Ok(Box::from(PublicJwk(public_key)))
+        Ok(PublicJwk(public_key))
     }
 
     /// Sign a payload using the target [`PrivateKey`].

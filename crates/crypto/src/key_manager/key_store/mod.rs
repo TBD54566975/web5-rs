@@ -1,6 +1,6 @@
-pub mod in_memory_key_store;
+pub mod in_memory_jwk_store;
 
-use crate::key::PrivateKey;
+use crate::key::{PrivateKey, PublicKey};
 
 #[derive(thiserror::Error, Debug)]
 pub enum KeyStoreError {
@@ -11,7 +11,11 @@ pub enum KeyStoreError {
 // Trait for storing and retrieving private keys.
 //
 // Implementations of this trait should be thread-safe and allow for concurrent access.
-pub trait KeyStore<T: PrivateKey>: Send + Sync {
+pub trait KeyStore<T, U>: Send + Sync
+where
+    T: PrivateKey<U>,
+    U: PublicKey,
+{
     fn get(&self, key_alias: &str) -> Result<Option<T>, KeyStoreError>;
     fn insert(&self, key_alias: &str, private_key: T) -> Result<(), KeyStoreError>;
 }

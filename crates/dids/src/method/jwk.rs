@@ -87,10 +87,10 @@ mod tests {
     use crate::resolver::ResolutionError;
 
     use super::*;
-    use crypto::key_manager::local_key_manager::LocalKeyManager;
+    use crypto::key_manager::local_jwk_manager::LocalJwkManager;
 
-    fn create_did_jwk() -> BearerDid<LocalKeyManager> {
-        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+    fn create_did_jwk() -> BearerDid<LocalJwkManager> {
+        let key_manager = Arc::new(LocalJwkManager::new_in_memory());
         let options = DidJwkCreateOptions {
             key_type: KeyType::Ed25519,
         };

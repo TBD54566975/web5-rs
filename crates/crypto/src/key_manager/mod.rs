@@ -1,5 +1,5 @@
 pub mod key_store;
-pub mod local_key_manager;
+pub mod local_jwk_manager;
 
 use crate::key::{KeyError, KeyType, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
@@ -22,7 +22,7 @@ pub enum KeyManagerError {
 /// Implementations of this trait might provide key management through various Key Management
 /// Systems (KMS), such as AWS KMS, Google Cloud KMD, Hardware Security Modules (HSM), or simple
 /// in-memory storage, each adhering to the same consistent API for usage within applications.
-pub trait KeyManager: Send + Sync {
+pub trait KeyManager<T: PublicKey>: Send + Sync {
     /// Generates and securely stores a private key based on the provided `key_type`,
     /// returning a unique alias that can be utilized to reference the generated key for future
     /// operations.
@@ -32,11 +32,11 @@ pub trait KeyManager: Send + Sync {
     fn get_public_key(
         &self,
         key_alias: &str,
-    ) -> Result<Option<Box<dyn PublicKey>>, KeyManagerError>;
+    ) -> Result<Option<T>, KeyManagerError>;
 
     /// Signs the provided payload using the private key identified by the provided `key_alias`.
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
 
     /// Returns the key alias of a public key, as was originally returned by `generate_private_key`.
-    fn alias(&self, public_key: &Box<dyn PublicKey>) -> Result<String, KeyManagerError>;
+    fn alias(&self, public_key: &T) -> Result<String, KeyManagerError>;
 }

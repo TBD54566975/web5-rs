@@ -1,6 +1,7 @@
-use crate::key::josekit_jwk::private_jwk::PrivateJwk;
+use crate::key::jwk::private_jwk::PrivateJwk;
+use crate::key::jwk::public_jwk::PublicJwk;
 use crate::key::{KeyType, PrivateKey, PublicKey};
-use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
+use crate::key_manager::key_store::in_memory_jwk_store::InMemoryJwkStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
 use std::sync::Arc;
@@ -8,25 +9,25 @@ use std::sync::Arc;
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
 /// is being run. Key storage is provided by a [`KeyStore`] trait implementation, allowing the keys
 /// to be stored wherever is most appropriate for the application.
-pub struct LocalKeyManager {
-    key_store: Arc<dyn KeyStore<PrivateJwk>>,
+pub struct LocalJwkManager {
+    key_store: Arc<dyn KeyStore<PrivateJwk, PublicJwk>>,
 }
 
-impl LocalKeyManager {
+impl LocalJwkManager {
     /// Constructs a new `LocalKeyManager` that stores keys in the provided `KeyStore`.
-    pub fn new(key_store: Arc<dyn KeyStore<PrivateJwk>>) -> Self {
+    pub fn new(key_store: Arc<dyn KeyStore<PrivateJwk, PublicJwk>>) -> Self {
         Self { key_store }
     }
 
     /// Constructs a new `LocalKeyManager` that stores keys in memory.
     pub fn new_in_memory() -> Self {
         Self {
-            key_store: Arc::new(InMemoryKeyStore::new()),
+            key_store: Arc::new(InMemoryJwkStore::new()),
         }
     }
 }
 
-impl KeyManager for LocalKeyManager {
+impl KeyManager<PublicJwk> for LocalJwkManager {
     fn generate_private_key(&self, key_type: KeyType) -> Result<String, KeyManagerError> {
         let private_key =
             PrivateJwk::generate(key_type).map_err(|_| KeyManagerError::KeyGenerationFailed)?;
@@ -40,10 +41,7 @@ impl KeyManager for LocalKeyManager {
         Ok(key_alias)
     }
 
-    fn get_public_key(
-        &self,
-        key_alias: &str,
-    ) -> Result<Option<Box<dyn PublicKey>>, KeyManagerError> {
+    fn get_public_key(&self, key_alias: &str) -> Result<Option<PublicJwk>, KeyManagerError> {
         if let Some(private_key) = self.key_store.get(key_alias)? {
             let public_key = private_key.to_public()?;
             Ok(Some(public_key))
@@ -63,7 +61,7 @@ impl KeyManager for LocalKeyManager {
         Ok(signed_payload)
     }
 
-    fn alias(&self, public_key: &Box<dyn PublicKey>) -> Result<String, KeyManagerError> {
+    fn alias(&self, public_key: &PublicJwk) -> Result<String, KeyManagerError> {
         let alias = public_key.alias().map_err(KeyManagerError::KeyError)?;
         Ok(alias)
     }
@@ -75,7 +73,7 @@ mod tests {
 
     #[test]
     fn test_generate_private_key() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = LocalJwkManager::new_in_memory();
 
         key_manager
             .generate_private_key(KeyType::Ed25519)
@@ -88,7 +86,7 @@ mod tests {
 
     #[test]
     fn test_get_public_key() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = LocalJwkManager::new_in_memory();
 
         let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
 
@@ -100,7 +98,7 @@ mod tests {
 
     #[test]
     fn test_sign() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = LocalJwkManager::new_in_memory();
         let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
 
         // Sign a payload
