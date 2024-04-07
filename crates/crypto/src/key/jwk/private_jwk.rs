@@ -1,8 +1,6 @@
 use super::compute_thumbprint;
-use crate::key::jwk::public_jwk::PublicJwk;
-use crate::key::{KeyError, KeyType, PrivateKey};
-use josekit::jwk::alg::ec::EcCurve;
-use josekit::jwk::alg::ed::EdCurve;
+use super::public_jwk::PublicJwk;
+use crate::key::{Key, KeyError, PrivateKey, PublicKey};
 use josekit::jwk::Jwk;
 use josekit::jws::alg::ecdsa::EcdsaJwsAlgorithm;
 use josekit::jws::alg::eddsa::EddsaJwsAlgorithm;
@@ -11,27 +9,15 @@ use josekit::jws::JwsSigner;
 #[derive(Clone, PartialEq, Debug)]
 pub struct PrivateJwk(pub(crate) Jwk);
 
-impl PrivateKey<PublicJwk> for PrivateJwk {
-    fn generate(key_type: crate::key::KeyType) -> Result<Self, KeyError> {
-        let mut jwk = match key_type {
-            KeyType::Secp256k1 => Jwk::generate_ec_key(EcCurve::Secp256k1),
-            KeyType::Ed25519 => Jwk::generate_ed_key(EdCurve::Ed25519),
-        }?;
-
-        let key_alias = compute_thumbprint(&jwk)?;
-        jwk.set_key_id(&key_alias);
-
-        Ok(Self(jwk))
-    }
-
-    /// Derive a [`PublicJwk`] from the target [`PrivateKey`].
-    fn to_public(&self) -> Result<PublicJwk, KeyError> {
+impl PrivateKey for PrivateJwk {
+    /// Derive a [`PublicKey`] from the target [`PrivateKey`].
+    fn to_public(&self) -> Result<Box<dyn PublicKey>, KeyError> {
         let mut public_key = self.0.to_public_key()?;
 
         let key_alias = compute_thumbprint(&public_key)?;
         public_key.set_key_id(&key_alias);
 
-        Ok(PublicJwk(public_key))
+        Ok(Box::new(PublicJwk(public_key)))
     }
 
     /// Sign a payload using the target [`PrivateKey`].
@@ -44,45 +30,67 @@ impl PrivateKey<PublicJwk> for PrivateJwk {
 
         signer.sign(payload).map_err(KeyError::from)
     }
+
+    fn clone_box(&self) -> Box<dyn PrivateKey> {
+        Box::new(Clone::clone(self))
+    }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use josekit::jwk::alg::ec::EcCurve;
+impl Key for PrivateJwk {
+    fn jwk(&self) -> &Jwk {
+        &self.0
+    }
+}
 
-//     fn new_private_key() -> PrivateKey {
-//         PrivateKey(Jwk::generate_ec_key(EcCurve::Secp256k1).unwrap())
-//     }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::key::{jwk::generate_private_jwk, KeyType};
 
-//     #[test]
-//     fn test_to_public() {
-//         let private_key = new_private_key();
-//         let public_key = private_key.to_public().unwrap();
+    #[test]
+    fn test_clone() {
+        let private_key = generate_private_jwk(KeyType::Secp256k1).unwrap();
+        let cloned_private_key = private_key.clone_box();
 
-//         assert_eq!(
-//             private_key.jwk().parameter("x"),
-//             public_key.jwk().parameter("x")
-//         );
-//         assert_eq!(
-//             private_key.jwk().parameter("y"),
-//             public_key.jwk().parameter("y")
-//         );
+        assert_eq!(
+            private_key.jwk().parameter("x"),
+            cloned_private_key.jwk().parameter("x")
+        );
+        assert_eq!(
+            private_key.jwk().parameter("y"),
+            cloned_private_key.jwk().parameter("y")
+        );
+        assert_eq!(
+            private_key.jwk().parameter("d"),
+            cloned_private_key.jwk().parameter("d")
+        );
+    }
 
-//         assert!(private_key.jwk().parameter("d").is_some());
-//         assert!(public_key.jwk().parameter("d").is_none());
-//     }
+    #[test]
+    fn test_to_public() {
+        let private_key = generate_private_jwk(KeyType::Secp256k1).unwrap();
+        let public_key = private_key.to_public().unwrap();
 
-//     #[test]
-//     fn test_sign() {
-//         let private_key = new_private_key();
-//         let payload: &[u8] = b"hello world";
-//         let signature = private_key.sign(payload).unwrap();
+        assert_eq!(
+            private_key.jwk().parameter("x"),
+            public_key.jwk().parameter("x")
+        );
+        assert_eq!(
+            private_key.jwk().parameter("y"),
+            public_key.jwk().parameter("y")
+        );
 
-//         let public_key = private_key.to_public().unwrap();
-//         let verifier = EcdsaJwsAlgorithm::Es256k
-//             .verifier_from_jwk(&public_key.jwk())
-//             .unwrap();
-//         assert!(verifier.verify(payload, &signature).is_ok());
-//     }
-// }
+        assert!(private_key.jwk().parameter("d").is_some());
+        assert!(public_key.jwk().parameter("d").is_none());
+    }
+
+    #[test]
+    fn test_sign() {
+        let private_key = generate_private_jwk(KeyType::Secp256k1).unwrap();
+        let payload: &[u8] = b"hello world";
+        let signature = private_key.sign(payload).unwrap();
+
+        let public_key = private_key.to_public().unwrap();
+        assert!(public_key.verify(payload, &signature).is_ok());
+    }
+}

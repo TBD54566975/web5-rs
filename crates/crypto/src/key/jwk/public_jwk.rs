@@ -1,5 +1,5 @@
 use super::compute_thumbprint;
-use crate::key::{KeyError, PublicKey};
+use crate::key::{Key, KeyError, PublicKey};
 use josekit::jwk::Jwk;
 use josekit::jws::alg::{ecdsa::EcdsaJwsAlgorithm, eddsa::EddsaJwsAlgorithm};
 use josekit::jws::JwsVerifier;
@@ -31,34 +31,37 @@ impl PublicKey for PublicJwk {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use crate::key::private_key::PrivateKey;
-//     use josekit::jwk::alg::ec::EcCurve;
+impl Key for PublicJwk {
+    fn jwk(&self) -> &Jwk {
+        &self.0
+    }
+}
 
-//     #[test]
-//     fn test_verify() {
-//         let private_key = PrivateKey(Jwk::generate_ec_key(EcCurve::Secp256k1).unwrap());
-//         let signer = EcdsaJwsAlgorithm::Es256k
-//             .signer_from_jwk(&private_key.jwk())
-//             .unwrap();
-//         let payload = b"hello world";
-//         let signature = signer.sign(payload).unwrap();
+#[cfg(test)]
+mod tests {
+    use crate::key::PrivateKey;
+    use crate::key::{jwk::generate_private_jwk, KeyType};
 
-//         let public_key = private_key.to_public().unwrap();
-//         assert!(public_key.verify(payload, &signature).is_ok());
-//     }
+    #[test]
+    fn test_verify() {
+        let private_key = generate_private_jwk(KeyType::Secp256k1).unwrap();
+        let payload = b"hello world";
+        let signature = private_key.sign(payload).unwrap();
 
-//     #[test]
-//     fn test_verify_failure() {
-//         let private_key = PrivateKey(Jwk::generate_ec_key(EcCurve::Secp256k1).unwrap());
-//         let payload: &[u8] = b"hello world";
-//         let signature = private_key.sign(payload).unwrap();
+        let public_key = private_key.to_public().unwrap();
+        assert!(public_key.verify(payload, &signature).is_ok());
+    }
 
-//         // public_key is unrelated to the private_key used to sign the payload, so it should fail
-//         let public_key = PublicKey(Jwk::generate_ec_key(EcCurve::Secp256k1).unwrap());
-//         let verification_warnings = public_key.verify(payload, &signature);
-//         assert!(verification_warnings.is_err());
-//     }
-// }
+    #[test]
+    fn test_verify_failure() {
+        let private_key = generate_private_jwk(KeyType::Secp256k1).unwrap();
+        let payload: &[u8] = b"hello world";
+        let signature = private_key.sign(payload).unwrap();
+
+        // public_key is unrelated to the private_key used to sign the payload, so it should fail
+        let private_key_2 = generate_private_jwk(KeyType::Secp256k1).unwrap();
+        let public_key = private_key_2.to_public().unwrap();
+        let verification_warnings = public_key.verify(payload, &signature);
+        assert!(verification_warnings.is_err());
+    }
+}

@@ -1,14 +1,14 @@
 pub mod private_jwk;
 pub mod public_jwk;
 
-use super::KeyError;
+use self::private_jwk::PrivateJwk;
+use super::{KeyError, KeyType};
 use base64::{engine::general_purpose, Engine as _};
-use josekit::jwk::Jwk;
+use josekit::jwk::{alg::{ec::EcCurve, ed::EdCurve}, Jwk};
 use sha2::{Digest, Sha256};
 
+// todo considering proposing adding a thumbprint to the josekit repo
 fn compute_thumbprint(jwk: &Jwk) -> Result<String, KeyError> {
-    // todo considering proposing adding a thumbprint to the josekit repo
-
     let thumbprint_json_string = match jwk.key_type() {
         "EC" => format!(
             r#"{{"crv":"{}","kty":"EC","x":"{}","y":"{}"}}"#,
@@ -29,4 +29,16 @@ fn compute_thumbprint(jwk: &Jwk) -> Result<String, KeyError> {
     let thumbprint = general_purpose::URL_SAFE_NO_PAD.encode(&digest);
 
     Ok(thumbprint)
+}
+
+pub fn generate_private_jwk(key_type: crate::key::KeyType) -> Result<Box<PrivateJwk>, KeyError> {
+    let mut jwk = match key_type {
+        KeyType::Secp256k1 => Jwk::generate_ec_key(EcCurve::Secp256k1),
+        KeyType::Ed25519 => Jwk::generate_ed_key(EdCurve::Ed25519),
+    }?;
+
+    let key_alias = compute_thumbprint(&jwk)?;
+    jwk.set_key_id(&key_alias);
+
+    Ok(Box::new(PrivateJwk(jwk)))
 }

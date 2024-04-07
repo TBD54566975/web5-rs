@@ -1,51 +1,34 @@
+use crate::key::PrivateKey;
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
 use std::collections::HashMap;
 use std::sync::RwLock;
-// Assume these traits are defined elsewhere in your crate
-use crate::key::{PrivateKey, PublicKey};
-use std::marker::PhantomData;
 
-pub struct InMemoryKeyStore<T, U>
-where
-    T: PrivateKey<U> + Clone + Send + Sync,
-    U: PublicKey + Send + Sync,
-{
-    map: RwLock<HashMap<String, T>>,
-    _marker: PhantomData<U>,
+pub struct InMemoryKeyStore {
+    map: RwLock<HashMap<String, Box<dyn PrivateKey>>>,
 }
 
-// Add this to your impl block to initialize _marker
-impl<T, U> InMemoryKeyStore<T, U>
-where
-    T: PrivateKey<U> + Clone + Send + Sync,
-    U: PublicKey + Send + Sync,
-{
+impl InMemoryKeyStore {
     pub fn new() -> Self {
         Self {
             map: RwLock::new(HashMap::new()),
-            _marker: PhantomData,
         }
     }
 }
 
-impl<T, U> KeyStore<T, U> for InMemoryKeyStore<T, U>
-where
-    T: PrivateKey<U> + Clone + Send + Sync,
-    U: PublicKey + Send + Sync,
-{
-    fn get(&self, key_alias: &str) -> Result<Option<T>, KeyStoreError> {
+impl KeyStore for InMemoryKeyStore {
+    fn get(&self, key_alias: &str) -> Result<Option<Box<dyn PrivateKey>>, KeyStoreError> {
         let map_lock = self.map.read().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire read lock: {}", e))
         })?;
 
         if let Some(private_key) = map_lock.get(key_alias) {
-            Ok(Some(private_key.clone()))
+            Ok(Some(private_key.clone_box()))
         } else {
             Ok(None)
         }
     }
 
-    fn insert(&self, key_alias: &str, private_key: T) -> Result<(), KeyStoreError> {
+    fn insert(&self, key_alias: &str, private_key: Box<dyn PrivateKey>) -> Result<(), KeyStoreError> {
         let mut map_lock = self.map.write().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire write lock: {}", e))
         })?;
@@ -55,11 +38,7 @@ where
     }
 }
 
-impl<T, U> Default for InMemoryKeyStore<T, U>
-where
-    T: PrivateKey<U> + Clone + Send + Sync,
-    U: PublicKey + Send + Sync,
-{
+impl Default for InMemoryKeyStore {
     fn default() -> Self {
         Self::new()
     }
