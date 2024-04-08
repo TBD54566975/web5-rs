@@ -33,6 +33,7 @@ pub trait PublicKey: Key {
 }
 
 pub trait PrivateKey: Key + Send + Sync {
+
     /// Derive a [`PublicKey`] from the target [`PrivateKey`].
     fn to_public(&self) -> Result<Box<dyn PublicKey>, KeyError>;
 
