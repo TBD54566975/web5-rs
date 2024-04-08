@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use crypto::key::PrivateKey;
+use crypto::key::PrivateKeySigner;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -102,7 +102,9 @@ impl<T: CredentialSubject> DataModel<T> {
         })
     }
 
-    pub fn sign(&self, _private_key: Box<dyn PrivateKey>) -> Result<String, CredentialError> {
+    pub fn sign(&self, _signer: PrivateKeySigner) -> Result<String, CredentialError> {
+      // todo claims, header, 
+
         unimplemented!()
     }
 

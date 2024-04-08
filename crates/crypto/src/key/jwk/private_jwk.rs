@@ -1,6 +1,6 @@
 use super::compute_thumbprint;
 use super::public_jwk::PublicJwk;
-use crate::key::{Key, KeyError, PrivateKey, PublicKey};
+use crate::key::{Key, KeyError, PrivateKey, PrivateKeySigner, PublicKey};
 use josekit::jwk::Jwk;
 use josekit::jws::alg::ecdsa::EcdsaJwsAlgorithm;
 use josekit::jws::alg::eddsa::EddsaJwsAlgorithm;
@@ -22,17 +22,24 @@ impl PrivateKey for PrivateJwk {
 
     /// Sign a payload using the target [`PrivateKey`].
     fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyError> {
+        let signer = self.get_signer()?;
+        signer(payload).map_err(KeyError::from)
+    }
+
+    fn clone_box(&self) -> Box<dyn PrivateKey> {
+        Box::new(Clone::clone(self))
+    }
+
+    fn get_signer(&self) -> Result<PrivateKeySigner, KeyError> {
         let signer: Box<dyn JwsSigner> = match self.0.curve() {
             Some("secp256k1") => Box::new(EcdsaJwsAlgorithm::Es256k.signer_from_jwk(&self.0)?),
             Some("Ed25519") => Box::new(EddsaJwsAlgorithm::Eddsa.signer_from_jwk(&self.0)?),
             _ => return Err(KeyError::AlgorithmNotFound),
         };
 
-        signer.sign(payload).map_err(KeyError::from)
-    }
-
-    fn clone_box(&self) -> Box<dyn PrivateKey> {
-        Box::new(Clone::clone(self))
+        Ok(Box::new(move |payload: &[u8]| {
+            signer.sign(payload).map_err(KeyError::from)
+        }))
     }
 }
 

@@ -32,8 +32,9 @@ pub trait PublicKey: Key {
     fn alias(&self) -> Result<String, KeyError>;
 }
 
-pub trait PrivateKey: Key + Send + Sync {
+pub type PrivateKeySigner = Box<dyn Fn(&[u8]) -> Result<Vec<u8>, KeyError>>;
 
+pub trait PrivateKey: Key + Send + Sync {
     /// Derive a [`PublicKey`] from the target [`PrivateKey`].
     fn to_public(&self) -> Result<Box<dyn PublicKey>, KeyError>;
 
@@ -41,4 +42,6 @@ pub trait PrivateKey: Key + Send + Sync {
     fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyError>;
 
     fn clone_box(&self) -> Box<dyn PrivateKey>;
+
+    fn get_signer(&self) -> Result<PrivateKeySigner, KeyError>;
 }

@@ -1,5 +1,5 @@
 use crate::key::jwk::generate_private_jwk;
-use crate::key::{KeyType, PrivateKey, PublicKey};
+use crate::key::{KeyType, PrivateKey, PrivateKeySigner, PublicKey};
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
@@ -65,6 +65,17 @@ impl KeyManager for LocalKeyManager {
     fn alias(&self, public_key: Box<dyn PublicKey>) -> Result<String, KeyManagerError> {
         let alias = public_key.alias().map_err(KeyManagerError::KeyError)?;
         Ok(alias)
+    }
+
+    fn get_signer(&self, key_alias: &str) -> Result<PrivateKeySigner, KeyManagerError> {
+        let private_key = self
+            .key_store
+            .get(key_alias)?
+            .ok_or(KeyManagerError::SigningKeyNotFound)?;
+
+        let signer = private_key.get_signer()?;
+
+        Ok(signer)
     }
 }
 
