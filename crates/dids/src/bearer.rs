@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{document::Document, identifier::Identifier};
 use anyhow::anyhow;
 use crypto::key_manager::KeyManager;
@@ -10,6 +8,7 @@ use josekit::{
     },
     JoseError,
 };
+use std::sync::Arc;
 
 pub struct BearerDid {
     pub identifier: Identifier,

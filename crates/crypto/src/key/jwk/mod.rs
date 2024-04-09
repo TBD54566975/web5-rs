@@ -12,6 +12,7 @@ use josekit::{
     jws::alg::{ecdsa::EcdsaJwsAlgorithm, eddsa::EddsaJwsAlgorithm},
 };
 use sha2::{Digest, Sha256};
+use std::sync::Arc;
 
 // todo considering proposing adding a thumbprint to the josekit repo
 fn compute_thumbprint(jwk: &Jwk) -> Result<String, KeyError> {
@@ -37,7 +38,7 @@ fn compute_thumbprint(jwk: &Jwk) -> Result<String, KeyError> {
     Ok(thumbprint)
 }
 
-pub fn generate_private_jwk(key_type: KeyType) -> Result<Box<PrivateJwk>, KeyError> {
+pub fn generate_private_jwk(key_type: KeyType) -> Result<Arc<PrivateJwk>, KeyError> {
     let mut jwk = match key_type {
         KeyType::Secp256k1 => Jwk::generate_ec_key(EcCurve::Secp256k1),
         KeyType::Ed25519 => Jwk::generate_ed_key(EdCurve::Ed25519),
@@ -50,5 +51,5 @@ pub fn generate_private_jwk(key_type: KeyType) -> Result<Box<PrivateJwk>, KeyErr
         KeyType::Ed25519 => EddsaJwsAlgorithm::Eddsa.to_string(),
     });
 
-    Ok(Box::new(PrivateJwk(jwk)))
+    Ok(Arc::new(PrivateJwk(jwk)))
 }

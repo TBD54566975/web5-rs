@@ -1,6 +1,7 @@
 pub mod jwk;
 
 use josekit::{jwk::Jwk, JoseError};
+use std::sync::Arc;
 
 /// Enum defining all supported cryptographic key types.
 pub enum KeyType {
@@ -36,10 +37,8 @@ pub trait PublicKey: Key + Send + Sync {
 
 pub trait PrivateKey: Key + Send + Sync {
     /// Derive a [`PublicKey`] from the target [`PrivateKey`].
-    fn to_public(&self) -> Result<Box<dyn PublicKey>, KeyError>;
+    fn to_public(&self) -> Result<Arc<dyn PublicKey>, KeyError>;
 
     /// Sign a payload using the target [`PrivateKey`].
     fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyError>;
-
-    fn clone_box(&self) -> Box<dyn PrivateKey>;
 }
