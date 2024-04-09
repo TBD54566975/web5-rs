@@ -4,9 +4,12 @@ pub mod public_jwk;
 use self::private_jwk::PrivateJwk;
 use super::{KeyError, KeyType};
 use base64::{engine::general_purpose, Engine as _};
-use josekit::jwk::{
-    alg::{ec::EcCurve, ed::EdCurve},
-    Jwk,
+use josekit::{
+    jwk::{
+        alg::{ec::EcCurve, ed::EdCurve},
+        Jwk,
+    },
+    jws::alg::{ecdsa::EcdsaJwsAlgorithm, eddsa::EddsaJwsAlgorithm},
 };
 use sha2::{Digest, Sha256};
 
@@ -42,6 +45,10 @@ pub fn generate_private_jwk(key_type: KeyType) -> Result<Box<PrivateJwk>, KeyErr
 
     let key_alias = compute_thumbprint(&jwk)?;
     jwk.set_key_id(&key_alias);
+    jwk.set_algorithm(match key_type {
+        KeyType::Secp256k1 => EcdsaJwsAlgorithm::Es256k.to_string(),
+        KeyType::Ed25519 => EddsaJwsAlgorithm::Eddsa.to_string(),
+    });
 
     Ok(Box::new(PrivateJwk(jwk)))
 }

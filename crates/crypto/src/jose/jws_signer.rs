@@ -31,6 +31,10 @@ impl JwsSigner for KeyManagerJwsSigner {
         // todo lots of potential panics here hmmm
         // todo resolve by trying to handle gracefully in the new() method
 
+        // let _test = self.key_manager.get_public_key(&self.alias);
+        // let _test2 = _test.ok();
+        // let _test3 = _test2.
+
         let public_key = self
             .key_manager
             .get_public_key(&self.alias)

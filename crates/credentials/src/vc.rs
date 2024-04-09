@@ -1,8 +1,5 @@
 use chrono::{DateTime, Utc};
-use crypto::{
-    jose::jws_signer::KeyManagerJwsSigner,
-    key_manager::{self, KeyManager},
-};
+use crypto::{jose::jws_signer::KeyManagerJwsSigner, key_manager::KeyManager};
 use dids::bearer::{BearerDid, VerificationMethodSelector};
 use josekit::{
     jws::JwsHeader,
@@ -113,12 +110,12 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
     pub fn encode_vcjwt(
         &self,
         bearer_did: BearerDid,
-        _selector: VerificationMethodSelector,
+        selector: VerificationMethodSelector,
     ) -> Result<String, CredentialError> {
         // todo claims, header,
 
         let mut claims = JwtPayload::new();
-        claims.set_issuer(bearer_did.identifier.uri);
+        claims.set_issuer(&bearer_did.identifier.uri);
         claims.set_jwt_id(&self.id);
         claims.set_subject(self.credential_subject.get_id());
         claims.set_not_before(&SystemTime::from(Utc::now()));
@@ -137,14 +134,23 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
         header.set_token_type("JWT");
 
         // todo reconcile arc vs box
+        let vm = bearer_did
+            .select_verification_method(selector)
+            .map_err(|_| CredentialError::SigningFailed)?;
+
+        let parts: Vec<&str> = vm.id.split('#').collect();
+        let fragment_str = parts.get(1).unwrap_or(&""); // `fragment_str` is of type `&&str`
+        let fragment = fragment_str.to_string(); // Convert `&&str` to `String`
+
         let raw_key_manager = Box::into_raw(bearer_did.key_manager);
         let arc_key_manager: Arc<dyn KeyManager> = unsafe { Arc::from_raw(raw_key_manager) };
-        let test = KeyManagerJwsSigner::new(arc_key_manager, "test".to_string());
+        let test = KeyManagerJwsSigner::new(arc_key_manager, fragment);
         let signer = test.unwrap();
 
-        let _result = encode_with_signer(&claims, &header, &signer);
+        let jwt = encode_with_signer(&claims, &header, &signer)
+            .map_err(|_| CredentialError::SigningFailed)?;
 
-        unimplemented!()
+        Ok(jwt)
     }
 
     pub fn from_vcjwt(_vcjwt: &str) -> Result<Self, CredentialError> {
@@ -174,7 +180,7 @@ mod tests {
 
         // Define issuance and expiration dates
         let issuance_date = Utc::now();
-        let expiration_date = Some((Utc::now() + chrono::Duration::days(90)));
+        let expiration_date = Some(Utc::now() + chrono::Duration::days(90));
 
         // Create options for the DataModel
         let options = CreateOptions {

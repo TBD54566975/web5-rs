@@ -16,6 +16,11 @@ impl PrivateKey for PrivateJwk {
 
         let key_alias = compute_thumbprint(&public_key)?;
         public_key.set_key_id(&key_alias);
+        public_key.set_algorithm(match self.0.curve() {
+            Some("secp256k1") => EcdsaJwsAlgorithm::Es256k.to_string(),
+            Some("Ed25519") => EddsaJwsAlgorithm::Eddsa.to_string(),
+            _ => return Err(KeyError::AlgorithmNotFound),
+        });
 
         Ok(Box::new(PublicJwk(public_key)))
     }
