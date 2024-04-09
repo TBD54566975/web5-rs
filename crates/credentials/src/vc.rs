@@ -1,12 +1,11 @@
 use chrono::{DateTime, Utc};
-use crypto::{jose::jws_signer::KeyManagerJwsSigner, key_manager::KeyManager};
-use dids::bearer::{BearerDid, VerificationMethodSelector};
+use dids::bearer::{BearerDid, SignerSelector};
 use josekit::{
     jws::JwsHeader,
     jwt::{encode_with_signer, JwtPayload},
 };
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc, time::SystemTime};
+use std::{collections::HashMap, time::SystemTime};
 use uuid::Uuid;
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
@@ -108,11 +107,11 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
     }
 
     pub fn encode_vcjwt(
-        &self,
+        &mut self,
         bearer_did: BearerDid,
-        selector: VerificationMethodSelector,
+        selector: SignerSelector,
     ) -> Result<String, CredentialError> {
-        // todo claims, header,
+        self.issuer = bearer_did.identifier.uri.clone();
 
         let mut claims = JwtPayload::new();
         claims.set_issuer(&bearer_did.identifier.uri);
@@ -133,19 +132,9 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
         let mut header = JwsHeader::new();
         header.set_token_type("JWT");
 
-        // todo reconcile arc vs box
-        let vm = bearer_did
-            .select_verification_method(selector)
+        let signer = bearer_did
+            .get_signer(selector)
             .map_err(|_| CredentialError::SigningFailed)?;
-
-        let parts: Vec<&str> = vm.id.split('#').collect();
-        let fragment_str = parts.get(1).unwrap_or(&""); // `fragment_str` is of type `&&str`
-        let fragment = fragment_str.to_string(); // Convert `&&str` to `String`
-
-        let raw_key_manager = Box::into_raw(bearer_did.key_manager);
-        let arc_key_manager: Arc<dyn KeyManager> = unsafe { Arc::from_raw(raw_key_manager) };
-        let test = KeyManagerJwsSigner::new(arc_key_manager, fragment);
-        let signer = test.unwrap();
 
         let jwt = encode_with_signer(&claims, &header, &signer)
             .map_err(|_| CredentialError::SigningFailed)?;
@@ -160,6 +149,8 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use crypto::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
     use dids::bearer::VerificationMethodType;
     use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
@@ -169,7 +160,7 @@ mod tests {
 
     #[test]
     fn test_everythang() {
-        let key_manager = Box::new(LocalKeyManager::new_in_memory());
+        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
             key_type: KeyType::Ed25519,
         };
@@ -178,28 +169,13 @@ mod tests {
         let mut claims = Claims::new();
         claims.set_id("subject_id".to_string());
 
-        // Define issuance and expiration dates
-        let issuance_date = Utc::now();
-        let expiration_date = Some(Utc::now() + chrono::Duration::days(90));
+        let mut vc =
+            DataModel::create(claims, "issuer_did", None).expect("Failed to create DataModel");
 
-        // Create options for the DataModel
-        let options = CreateOptions {
-            id: Some("vc_id".to_string()),
-            contexts: Some(vec![BASE_CONTEXT.to_string()]),
-            types: Some(vec![BASE_TYPE.to_string()]),
-            issuance_date: Some(issuance_date),
-            expiration_date: expiration_date,
-        };
-
-        // Create the DataModel instance
-        let vc = DataModel::create(claims, "issuer_did", Some(options))
-            .expect("Failed to create DataModel");
-
-        // Sign the VC, converting it into a JWT
         let signed_jwt = vc
             .encode_vcjwt(
                 bearer_did,
-                VerificationMethodSelector::MethodType(VerificationMethodType::VerificationMethod),
+                SignerSelector::MethodType(VerificationMethodType::VerificationMethod),
             )
             .expect("Failed to sign VC");
 

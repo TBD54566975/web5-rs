@@ -2,6 +2,8 @@ pub mod jwk;
 pub mod spruce_mappers;
 pub mod web;
 
+use std::sync::Arc;
+
 use crate::bearer::BearerDid;
 use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
@@ -32,7 +34,7 @@ pub trait Method<CreateOptions> {
 
     /// Create a new DID instance.
     fn create(
-        key_manager: Box<dyn KeyManager>,
+        key_manager: Arc<dyn KeyManager>,
         options: CreateOptions,
     ) -> Result<BearerDid, MethodError>;
 

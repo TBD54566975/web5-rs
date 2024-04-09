@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     bearer::BearerDid,
     method::{Method, MethodError, ResolutionResult},
@@ -19,7 +21,7 @@ impl Method<DidWebCreateOptions> for DidWeb {
     const NAME: &'static str = "web";
 
     fn create(
-        _key_manager: Box<dyn KeyManager>,
+        _key_manager: Arc<dyn KeyManager>,
         _options: DidWebCreateOptions,
     ) -> Result<BearerDid, MethodError> {
         Err(MethodError::DidCreationFailure(
@@ -50,7 +52,7 @@ mod tests {
 
     #[test]
     fn create_fails() {
-        let key_manager = Box::new(LocalKeyManager::new_in_memory());
+        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let result = DidWeb::create(key_manager, DidWebCreateOptions);
         assert!(result.is_err());
     }

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::bearer::BearerDid;
 use crate::document::{Document, VerificationMethod};
 use crate::identifier::Identifier;
@@ -25,7 +27,7 @@ impl Method<DidJwkCreateOptions> for DidJwk {
     const NAME: &'static str = "jwk";
 
     fn create(
-        key_manager: Box<dyn KeyManager>,
+        key_manager: Arc<dyn KeyManager>,
         options: DidJwkCreateOptions,
     ) -> Result<BearerDid, MethodError> {
         let key_alias = key_manager.generate_private_key(options.key_type)?;
@@ -92,7 +94,7 @@ mod tests {
     use crypto::key_manager::local_key_manager::LocalKeyManager;
 
     fn create_did_jwk() -> BearerDid {
-        let key_manager = Box::new(LocalKeyManager::new_in_memory());
+        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
             key_type: KeyType::Ed25519,
         };
