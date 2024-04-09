@@ -151,10 +151,10 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
 mod tests {
     use std::sync::Arc;
 
-    use keys::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
     use dids::bearer::VerificationMethodType;
     use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
     use dids::method::Method;
+    use keys::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
 
     use super::*;
 
@@ -167,10 +167,10 @@ mod tests {
         let bearer_did = DidJwk::create(key_manager, options).unwrap();
 
         let mut claims = Claims::new();
-        claims.set_id("subject_id".to_string());
+        claims.set_id("subject_id-something-something-testing123".to_string());
 
-        let mut vc =
-            DataModel::create(claims, "issuer_did", None).expect("Failed to create DataModel");
+        let mut vc = DataModel::create(claims, &bearer_did.identifier.uri, None)
+            .expect("Failed to create DataModel");
 
         let signed_jwt = vc
             .encode_vcjwt(

@@ -16,13 +16,6 @@ pub struct BearerDid {
     pub document: Document,
 }
 
-// todo is this necessary?
-// impl std::fmt::Debug for BearerDid {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         f.debug_struct("BearerDid").finish()
-//     }
-// }
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerificationMethodType {
     VerificationMethod,
@@ -164,7 +157,6 @@ impl JwsSigner for BearerDidSigner {
     }
 }
 
-// todo
 impl std::fmt::Debug for BearerDidSigner {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("KeyManagerJwsSigner")
