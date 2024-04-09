@@ -1,14 +1,22 @@
 use chrono::{DateTime, Utc};
+use crypto::{
+    jose::jws_signer::KeyManagerJwsSigner,
+    key_manager::{self, KeyManager},
+};
 use dids::bearer::{BearerDid, VerificationMethodSelector};
+use josekit::{
+    jws::JwsHeader,
+    jwt::{encode_with_signer, JwtPayload},
+};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc, time::SystemTime};
 use uuid::Uuid;
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 const BASE_TYPE: &str = "VerifiableCredential";
 
 #[derive(Serialize, Deserialize)]
-pub struct DataModel<T: CredentialSubject> {
+pub struct DataModel<T: CredentialSubject + Serialize> {
     #[serde(rename = "@context")]
     pub context: Vec<String>,
     pub id: String,
@@ -59,7 +67,7 @@ pub enum CredentialError {
     SigningFailed,
 }
 
-impl<T: CredentialSubject> DataModel<T> {
+impl<T: CredentialSubject + Serialize> DataModel<T> {
     pub fn create(
         credential_subject: T,
         issuer: &str,
@@ -104,15 +112,91 @@ impl<T: CredentialSubject> DataModel<T> {
 
     pub fn encode_vcjwt(
         &self,
-        _bearer_did: BearerDid,
+        bearer_did: BearerDid,
         _selector: VerificationMethodSelector,
     ) -> Result<String, CredentialError> {
         // todo claims, header,
+
+        let mut claims = JwtPayload::new();
+        claims.set_issuer(bearer_did.identifier.uri);
+        claims.set_jwt_id(&self.id);
+        claims.set_subject(self.credential_subject.get_id());
+        claims.set_not_before(&SystemTime::from(Utc::now()));
+        match self.expiration_date {
+            Some(exp) => claims.set_expires_at(&SystemTime::from(exp)),
+            None => (),
+        }
+        claims
+            .set_claim(
+                "vc",
+                Some(serde_json::to_value(self).map_err(|_| CredentialError::SigningFailed)?),
+            )
+            .map_err(|_| CredentialError::SigningFailed)?;
+
+        let mut header = JwsHeader::new();
+        header.set_token_type("JWT");
+
+        // todo reconcile arc vs box
+        let raw_key_manager = Box::into_raw(bearer_did.key_manager);
+        let arc_key_manager: Arc<dyn KeyManager> = unsafe { Arc::from_raw(raw_key_manager) };
+        let test = KeyManagerJwsSigner::new(arc_key_manager, "test".to_string());
+        let signer = test.unwrap();
+
+        let _result = encode_with_signer(&claims, &header, &signer);
 
         unimplemented!()
     }
 
     pub fn from_vcjwt(_vcjwt: &str) -> Result<Self, CredentialError> {
         unimplemented!()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crypto::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
+    use dids::bearer::VerificationMethodType;
+    use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
+    use dids::method::Method;
+
+    use super::*;
+
+    #[test]
+    fn test_everythang() {
+        let key_manager = Box::new(LocalKeyManager::new_in_memory());
+        let options = DidJwkCreateOptions {
+            key_type: KeyType::Ed25519,
+        };
+        let bearer_did = DidJwk::create(key_manager, options).unwrap();
+
+        let mut claims = Claims::new();
+        claims.set_id("subject_id".to_string());
+
+        // Define issuance and expiration dates
+        let issuance_date = Utc::now();
+        let expiration_date = Some((Utc::now() + chrono::Duration::days(90)));
+
+        // Create options for the DataModel
+        let options = CreateOptions {
+            id: Some("vc_id".to_string()),
+            contexts: Some(vec![BASE_CONTEXT.to_string()]),
+            types: Some(vec![BASE_TYPE.to_string()]),
+            issuance_date: Some(issuance_date),
+            expiration_date: expiration_date,
+        };
+
+        // Create the DataModel instance
+        let vc = DataModel::create(claims, "issuer_did", Some(options))
+            .expect("Failed to create DataModel");
+
+        // Sign the VC, converting it into a JWT
+        let signed_jwt = vc
+            .encode_vcjwt(
+                bearer_did,
+                VerificationMethodSelector::MethodType(VerificationMethodType::VerificationMethod),
+            )
+            .expect("Failed to sign VC");
+
+        println!("Signed JWT: {:?}", signed_jwt);
     }
 }
