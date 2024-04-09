@@ -1,1 +1,1 @@
-pub mod jws;
+pub mod jws_signer;

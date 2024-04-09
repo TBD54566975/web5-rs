@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use crypto::key::PrivateKeySigner;
+use dids::bearer::{BearerDid, VerificationMethodSelector};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -102,8 +102,12 @@ impl<T: CredentialSubject> DataModel<T> {
         })
     }
 
-    pub fn sign(&self, _signer: PrivateKeySigner) -> Result<String, CredentialError> {
-      // todo claims, header, 
+    pub fn encode_vcjwt(
+        &self,
+        _bearer_did: BearerDid,
+        _selector: VerificationMethodSelector,
+    ) -> Result<String, CredentialError> {
+        // todo claims, header,
 
         unimplemented!()
     }

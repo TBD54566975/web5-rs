@@ -8,7 +8,6 @@ use std::sync::Arc;
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
 /// is being run. Key storage is provided by a [`KeyStore`] trait implementation, allowing the keys
 /// to be stored wherever is most appropriate for the application.
-#[derive(Clone)]
 pub struct LocalKeyManager {
     key_store: Arc<dyn KeyStore>,
 }

@@ -11,7 +11,6 @@ use serde_json::from_str;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 use ssi_dids::{DIDMethod, Source};
 use ssi_jwk::JWK as SpruceJwk;
-use std::sync::Arc;
 
 /// Concrete implementation for a did:jwk DID
 pub struct DidJwk;
@@ -25,10 +24,10 @@ pub struct DidJwkCreateOptions {
 impl Method<DidJwkCreateOptions> for DidJwk {
     const NAME: &'static str = "jwk";
 
-    fn create<T: KeyManager>(
-        key_manager: Arc<T>,
+    fn create(
+        key_manager: Box<dyn KeyManager>,
         options: DidJwkCreateOptions,
-    ) -> Result<BearerDid<T>, MethodError> {
+    ) -> Result<BearerDid, MethodError> {
         let key_alias = key_manager.generate_private_key(options.key_type)?;
         let public_key =
             key_manager
@@ -92,8 +91,8 @@ mod tests {
     use super::*;
     use crypto::key_manager::local_key_manager::LocalKeyManager;
 
-    fn create_did_jwk() -> BearerDid<LocalKeyManager> {
-        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+    fn create_did_jwk() -> BearerDid {
+        let key_manager = Box::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
             key_type: KeyType::Ed25519,
         };

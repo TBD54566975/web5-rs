@@ -3,7 +3,6 @@ pub mod local_key_manager;
 
 use crate::key::{KeyError, KeyType, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
-use std::fmt::Debug;
 
 #[derive(thiserror::Error, Debug)]
 pub enum KeyManagerError {
