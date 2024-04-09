@@ -29,6 +29,13 @@ impl PublicKey for PublicJwk {
 
         Ok(key_alias.to_string())
     }
+
+    fn algorithm(&self) -> Result<String, KeyError> {
+        match self.0.algorithm() {
+            Some(alg) => Ok(alg.to_string()),
+            None => Err(KeyError::AlgorithmNotFound),
+        }
+    }
 }
 
 impl Key for PublicJwk {

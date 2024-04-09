@@ -1,8 +1,9 @@
 pub mod key_store;
 pub mod local_key_manager;
 
-use crate::key::{KeyError, KeyType, PrivateKeySigner, PublicKey};
+use crate::key::{KeyError, KeyType, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
+use std::fmt::Debug;
 
 #[derive(thiserror::Error, Debug)]
 pub enum KeyManagerError {
@@ -39,6 +40,4 @@ pub trait KeyManager: Send + Sync {
 
     /// Returns the key alias of a public key, as was originally returned by `generate_private_key`.
     fn alias(&self, public_key: Box<dyn PublicKey>) -> Result<String, KeyManagerError>;
-
-    fn get_signer(&self, key_alias: &str) -> Result<PrivateKeySigner, KeyManagerError>;
 }

@@ -25,14 +25,14 @@ pub trait Key {
     fn jwk(&self) -> &Jwk;
 }
 
-pub trait PublicKey: Key {
+pub trait PublicKey: Key + Send + Sync {
     /// Verifies a payload with a given signature using the target [`PublicKey`].
     fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<(), KeyError>;
 
     fn alias(&self) -> Result<String, KeyError>;
-}
 
-pub type PrivateKeySigner = Box<dyn Fn(&[u8]) -> Result<Vec<u8>, KeyError>>;
+    fn algorithm(&self) -> Result<String, KeyError>;
+}
 
 pub trait PrivateKey: Key + Send + Sync {
     /// Derive a [`PublicKey`] from the target [`PrivateKey`].
@@ -42,6 +42,4 @@ pub trait PrivateKey: Key + Send + Sync {
     fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyError>;
 
     fn clone_box(&self) -> Box<dyn PrivateKey>;
-
-    fn get_signer(&self) -> Result<PrivateKeySigner, KeyError>;
 }
