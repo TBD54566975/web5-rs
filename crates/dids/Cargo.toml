@@ -9,7 +9,7 @@ license-file.workspace = true
 [dependencies]
 anyhow = "1.0.81"
 async-trait = "0.1.74"
-crypto = { path = "../crypto" }
+keys = { path = "../keys" }
 did-jwk = "0.1.1"
 did-web = "0.2.2"
 josekit = { workspace = true }

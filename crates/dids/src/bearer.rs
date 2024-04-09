@@ -1,6 +1,6 @@
 use crate::{document::Document, identifier::Identifier};
 use anyhow::anyhow;
-use crypto::key_manager::KeyManager;
+use keys::key_manager::KeyManager;
 use josekit::{
     jws::{
         alg::{ecdsa::EcdsaJwsAlgorithm, eddsa::EddsaJwsAlgorithm},

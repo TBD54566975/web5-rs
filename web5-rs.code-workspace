@@ -4,10 +4,10 @@
       "path": "crates/credentials"
     },
     {
-      "path": "crates/crypto"
+      "path": "crates/dids"
     },
     {
-      "path": "crates/dids"
+      "path": "crates/keys"
     },
     {
       "path": "."

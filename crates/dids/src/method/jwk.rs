@@ -6,9 +6,9 @@ use crate::identifier::Identifier;
 use crate::method::{Method, MethodError};
 use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
-use crypto::key::KeyType;
-use crypto::key_manager::KeyManager;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;
+use keys::key::KeyType;
+use keys::key_manager::KeyManager;
 use serde_json::from_str;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 use ssi_dids::{DIDMethod, Source};
@@ -88,10 +88,9 @@ impl Method<DidJwkCreateOptions> for DidJwk {
 
 #[cfg(test)]
 mod tests {
-    use crate::resolver::ResolutionError;
-
     use super::*;
-    use crypto::key_manager::local_key_manager::LocalKeyManager;
+    use crate::resolver::ResolutionError;
+    use keys::key_manager::local_key_manager::LocalKeyManager;
 
     fn create_did_jwk() -> BearerDid {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());

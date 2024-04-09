@@ -2,12 +2,11 @@ pub mod jwk;
 pub mod spruce_mappers;
 pub mod web;
 
-use std::sync::Arc;
-
 use crate::bearer::BearerDid;
 use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
-use crypto::key_manager::{KeyManager, KeyManagerError};
+use keys::key_manager::{KeyManager, KeyManagerError};
+use std::sync::Arc;
 
 /// Errors that can occur when working with DID methods.
 #[derive(thiserror::Error, Debug)]

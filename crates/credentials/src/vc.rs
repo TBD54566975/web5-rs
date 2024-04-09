@@ -151,7 +151,7 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
 mod tests {
     use std::sync::Arc;
 
-    use crypto::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
+    use keys::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
     use dids::bearer::VerificationMethodType;
     use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
     use dids::method::Method;

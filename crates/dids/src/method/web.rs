@@ -5,7 +5,7 @@ use crate::{
     method::{Method, MethodError, ResolutionResult},
 };
 use async_trait::async_trait;
-use crypto::key_manager::KeyManager;
+use keys::key_manager::KeyManager;
 use did_web::DIDWeb as SpruceDidWebMethod;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 
@@ -48,7 +48,7 @@ impl Method<DidWebCreateOptions> for DidWeb {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crypto::key_manager::local_key_manager::LocalKeyManager;
+    use keys::key_manager::local_key_manager::LocalKeyManager;
 
     #[test]
     fn create_fails() {
