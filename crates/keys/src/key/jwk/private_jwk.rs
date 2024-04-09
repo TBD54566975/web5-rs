@@ -5,19 +5,25 @@ use josekit::jwk::Jwk;
 use josekit::jws::alg::ecdsa::EcdsaJwsAlgorithm;
 use josekit::jws::alg::eddsa::EddsaJwsAlgorithm;
 use josekit::jws::JwsSigner;
+use std::sync::Arc;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct PrivateJwk(pub(crate) Jwk);
 
 impl PrivateKey for PrivateJwk {
     /// Derive a [`PublicKey`] from the target [`PrivateKey`].
-    fn to_public(&self) -> Result<Box<dyn PublicKey>, KeyError> {
+    fn to_public(&self) -> Result<Arc<dyn PublicKey>, KeyError> {
         let mut public_key = self.0.to_public_key()?;
 
         let key_alias = compute_thumbprint(&public_key)?;
         public_key.set_key_id(&key_alias);
+        public_key.set_algorithm(match self.0.curve() {
+            Some("secp256k1") => EcdsaJwsAlgorithm::Es256k.to_string(),
+            Some("Ed25519") => EddsaJwsAlgorithm::Eddsa.to_string(),
+            _ => return Err(KeyError::AlgorithmNotFound),
+        });
 
-        Ok(Box::new(PublicJwk(public_key)))
+        Ok(Arc::new(PublicJwk(public_key)))
     }
 
     /// Sign a payload using the target [`PrivateKey`].
@@ -29,10 +35,6 @@ impl PrivateKey for PrivateJwk {
         };
 
         signer.sign(payload).map_err(KeyError::from)
-    }
-
-    fn clone_box(&self) -> Box<dyn PrivateKey> {
-        Box::new(Clone::clone(self))
     }
 }
 
@@ -46,25 +48,6 @@ impl Key for PrivateJwk {
 mod tests {
     use super::*;
     use crate::key::{jwk::generate_private_jwk, KeyType};
-
-    #[test]
-    fn test_clone() {
-        let private_key = generate_private_jwk(KeyType::Secp256k1).unwrap();
-        let cloned_private_key = private_key.clone_box();
-
-        assert_eq!(
-            private_key.jwk().parameter("x"),
-            cloned_private_key.jwk().parameter("x")
-        );
-        assert_eq!(
-            private_key.jwk().parameter("y"),
-            cloned_private_key.jwk().parameter("y")
-        );
-        assert_eq!(
-            private_key.jwk().parameter("d"),
-            cloned_private_key.jwk().parameter("d")
-        );
-    }
 
     #[test]
     fn test_to_public() {

@@ -42,7 +42,7 @@ impl KeyManager for LocalKeyManager {
     fn get_public_key(
         &self,
         key_alias: &str,
-    ) -> Result<Option<Box<dyn PublicKey>>, KeyManagerError> {
+    ) -> Result<Option<Arc<dyn PublicKey>>, KeyManagerError> {
         if let Some(private_key) = self.key_store.get(key_alias)? {
             let public_key = private_key.to_public()?;
             Ok(Some(public_key))
@@ -62,7 +62,7 @@ impl KeyManager for LocalKeyManager {
         Ok(signed_payload)
     }
 
-    fn alias(&self, public_key: Box<dyn PublicKey>) -> Result<String, KeyManagerError> {
+    fn alias(&self, public_key: Arc<dyn PublicKey>) -> Result<String, KeyManagerError> {
         let alias = public_key.alias().map_err(KeyManagerError::KeyError)?;
         Ok(alias)
     }

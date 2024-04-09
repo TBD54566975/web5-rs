@@ -1,12 +1,13 @@
+use std::sync::Arc;
+
 use crate::{
     bearer::BearerDid,
     method::{Method, MethodError, ResolutionResult},
 };
 use async_trait::async_trait;
-use crypto::key_manager::KeyManager;
+use keys::key_manager::KeyManager;
 use did_web::DIDWeb as SpruceDidWebMethod;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
-use std::sync::Arc;
 
 /// Concrete implementation for a did:web DID
 pub struct DidWeb {}
@@ -19,10 +20,10 @@ pub struct DidWebCreateOptions;
 impl Method<DidWebCreateOptions> for DidWeb {
     const NAME: &'static str = "web";
 
-    fn create<T: KeyManager>(
-        _key_manager: Arc<T>,
+    fn create(
+        _key_manager: Arc<dyn KeyManager>,
         _options: DidWebCreateOptions,
-    ) -> Result<BearerDid<T>, MethodError> {
+    ) -> Result<BearerDid, MethodError> {
         Err(MethodError::DidCreationFailure(
             "create operation not supported for did:web".to_string(),
         ))
@@ -47,7 +48,7 @@ impl Method<DidWebCreateOptions> for DidWeb {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crypto::key_manager::local_key_manager::LocalKeyManager;
+    use keys::key_manager::local_key_manager::LocalKeyManager;
 
     #[test]
     fn create_fails() {

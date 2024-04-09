@@ -1,17 +1,18 @@
+use std::sync::Arc;
+
 use crate::bearer::BearerDid;
 use crate::document::{Document, VerificationMethod};
 use crate::identifier::Identifier;
 use crate::method::{Method, MethodError};
 use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
-use crypto::key::KeyType;
-use crypto::key_manager::KeyManager;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;
+use keys::key::KeyType;
+use keys::key_manager::KeyManager;
 use serde_json::from_str;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 use ssi_dids::{DIDMethod, Source};
 use ssi_jwk::JWK as SpruceJwk;
-use std::sync::Arc;
 
 /// Concrete implementation for a did:jwk DID
 pub struct DidJwk;
@@ -25,10 +26,10 @@ pub struct DidJwkCreateOptions {
 impl Method<DidJwkCreateOptions> for DidJwk {
     const NAME: &'static str = "jwk";
 
-    fn create<T: KeyManager>(
-        key_manager: Arc<T>,
+    fn create(
+        key_manager: Arc<dyn KeyManager>,
         options: DidJwkCreateOptions,
-    ) -> Result<BearerDid<T>, MethodError> {
+    ) -> Result<BearerDid, MethodError> {
         let key_alias = key_manager.generate_private_key(options.key_type)?;
         let public_key =
             key_manager
@@ -57,7 +58,7 @@ impl Method<DidJwkCreateOptions> for DidJwk {
             document: Document {
                 id: uri.clone(),
                 verification_method: vec![VerificationMethod {
-                    id: format!("{}#{}", uri, "0"),
+                    id: format!("{}#{}", uri, key_alias),
                     r#type: "JsonWebKey".to_string(),
                     controller: uri,
                     public_key_jwk: public_key.jwk().clone(),
@@ -87,12 +88,11 @@ impl Method<DidJwkCreateOptions> for DidJwk {
 
 #[cfg(test)]
 mod tests {
-    use crate::resolver::ResolutionError;
-
     use super::*;
-    use crypto::key_manager::local_key_manager::LocalKeyManager;
+    use crate::resolver::ResolutionError;
+    use keys::key_manager::local_key_manager::LocalKeyManager;
 
-    fn create_did_jwk() -> BearerDid<LocalKeyManager> {
+    fn create_did_jwk() -> BearerDid {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
             key_type: KeyType::Ed25519,

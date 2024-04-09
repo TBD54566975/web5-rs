@@ -5,7 +5,7 @@ pub mod web;
 use crate::bearer::BearerDid;
 use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
-use crypto::key_manager::{KeyManager, KeyManagerError};
+use keys::key_manager::{KeyManager, KeyManagerError};
 use std::sync::Arc;
 
 /// Errors that can occur when working with DID methods.
@@ -32,10 +32,10 @@ pub trait Method<CreateOptions> {
     const NAME: &'static str;
 
     /// Create a new DID instance.
-    fn create<T: KeyManager>(
-        key_manager: Arc<T>,
+    fn create(
+        key_manager: Arc<dyn KeyManager>,
         options: CreateOptions,
-    ) -> Result<BearerDid<T>, MethodError>;
+    ) -> Result<BearerDid, MethodError>;
 
     /// Resolve a DID URI to a [`DidResolutionResult`], as specified in
     /// [Resolving a DID](https://w3c-ccg.github.io/did-resolution/#resolving).

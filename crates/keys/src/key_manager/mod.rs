@@ -3,6 +3,7 @@ pub mod local_key_manager;
 
 use crate::key::{KeyError, KeyType, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
+use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug)]
 pub enum KeyManagerError {
@@ -32,11 +33,11 @@ pub trait KeyManager: Send + Sync {
     fn get_public_key(
         &self,
         key_alias: &str,
-    ) -> Result<Option<Box<dyn PublicKey>>, KeyManagerError>;
+    ) -> Result<Option<Arc<dyn PublicKey>>, KeyManagerError>;
 
     /// Signs the provided payload using the private key identified by the provided `key_alias`.
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
 
     /// Returns the key alias of a public key, as was originally returned by `generate_private_key`.
-    fn alias(&self, public_key: Box<dyn PublicKey>) -> Result<String, KeyManagerError>;
+    fn alias(&self, public_key: Arc<dyn PublicKey>) -> Result<String, KeyManagerError>;
 }
