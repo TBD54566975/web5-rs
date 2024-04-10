@@ -1,0 +1,13 @@
+[package]
+name = "jose"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+anyhow = "1.0.81"
+josekit = { workspace = true }
+keys = { path = "../keys" }
+thiserror = { workspace = true }

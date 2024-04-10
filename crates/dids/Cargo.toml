@@ -7,11 +7,11 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-anyhow = "1.0.81"
 async-trait = "0.1.74"
 keys = { path = "../keys" }
 did-jwk = "0.1.1"
 did-web = "0.2.2"
+jose = { path = "../jose" }
 josekit = { workspace = true }
 regex = "1.10.4"
 serde = { workspace = true }
