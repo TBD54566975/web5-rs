@@ -5,7 +5,7 @@ use crate::key::{KeyError, KeyType, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
 use std::sync::Arc;
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Clone)]
 pub enum KeyManagerError {
     #[error("Key generation failed")]
     KeyGenerationFailed,

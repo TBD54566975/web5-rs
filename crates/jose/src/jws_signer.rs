@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use anyhow::anyhow;
 use josekit::{
     jws::{
@@ -11,40 +9,33 @@ use josekit::{
     },
     JoseError as JosekitJoseError,
 };
-use keys::key_manager::KeyManager;
+use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum JwsSignerError {}
 
+// type Signer = fn(key_id: &str, message: &[u8]) -> Result<Vec<u8>, JwsSignerError>;
+type Signer = Arc<dyn Fn(&str, &[u8]) -> Result<Vec<u8>, JwsSignerError> + Send + Sync>;
+
 pub struct JwsSigner {
-    key_manager: Arc<dyn KeyManager>,
-    alias: String,
+    algorithm: String,
+    key_id: String,
+    signer: Signer,
 }
 
 impl JwsSigner {
-    pub fn new(key_manager: Arc<dyn KeyManager>, alias: String) -> Result<Self, JwsSignerError> {
-        // todo
-        // let public_key = key_manager.get_public_key(&alias)?;
-        // if public_key.is_none() {
-        //     return Err(BearerDidError::VerificationMethodNotFound);
-        // }
-
-        Ok(Self { key_manager, alias })
+    pub fn new(algorithm: String, key_id: String, signer: Signer) -> Self {
+        Self {
+            algorithm,
+            key_id,
+            signer,
+        }
     }
 }
 
 impl JosekitJwsSigner for JwsSigner {
     fn algorithm(&self) -> &dyn JosekitJwsAlgorithm {
-        // todo lots of potential panics here hmmm
-        // todo resolve by trying to handle gracefully in the new() method
-        let public_key = self
-            .key_manager
-            .get_public_key(&self.alias)
-            .unwrap()
-            .unwrap();
-        let alg = public_key.algorithm().unwrap();
-
-        match alg.as_str() {
+        match self.algorithm.as_str() {
             "ES256K" => &JosekitEcdsaJwsAlgorithm::Es256k,
             "EdDSA" => &JosekitEddsaJwsAlgorithm::Eddsa,
             _ => panic!("alg not supported"),
@@ -52,7 +43,7 @@ impl JosekitJwsSigner for JwsSigner {
     }
 
     fn key_id(&self) -> Option<&str> {
-        Some(self.alias.as_str())
+        Some(&self.key_id)
     }
 
     fn signature_len(&self) -> usize {
@@ -61,7 +52,7 @@ impl JosekitJwsSigner for JwsSigner {
 
     fn sign(&self, message: &[u8]) -> Result<Vec<u8>, JosekitJoseError> {
         // todo error mapping
-        let signature = self.key_manager.sign(&self.alias, message).map_err(|_| {
+        let signature = (self.signer)(&self.key_id, message).map_err(|_| {
             JosekitJoseError::UnsupportedSignatureAlgorithm(anyhow!("TODO failure case"))
         })?;
         Ok(signature)
@@ -75,7 +66,7 @@ impl JosekitJwsSigner for JwsSigner {
 impl std::fmt::Debug for JwsSigner {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("KeyManagerJwsSigner")
-            .field("alias", &self.alias)
+            .field("alias", &self.key_id)
             .finish()
     }
 }
@@ -83,8 +74,9 @@ impl std::fmt::Debug for JwsSigner {
 impl Clone for JwsSigner {
     fn clone(&self) -> Self {
         Self {
-            key_manager: self.key_manager.clone(),
-            alias: self.alias.clone(),
+            algorithm: self.algorithm.clone(),
+            key_id: self.key_id.clone(),
+            signer: self.signer.clone(),
         }
     }
 }

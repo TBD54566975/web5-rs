@@ -9,10 +9,10 @@ pub enum KeyType {
     Ed25519,
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Clone)]
 pub enum KeyError {
-    #[error(transparent)]
-    JoseError(#[from] JoseError),
+    // #[error(transparent)]
+    // JoseError(#[from] JoseError),
     #[error("Algorithm not found on JWK")]
     AlgorithmNotFound,
     #[error("Key generation failed")]

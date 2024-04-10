@@ -1,6 +1,6 @@
 use crate::{document::Document, identifier::Identifier};
 use jose::jws_signer::{JwsSigner, JwsSignerError};
-use keys::key_manager::KeyManager;
+use keys::key_manager::{KeyManager, KeyManagerError};
 use std::sync::Arc;
 
 pub struct BearerDid {
@@ -32,6 +32,8 @@ pub enum BearerDidError {
     VerificationMethodNotFound,
     #[error(transparent)]
     SignerError(#[from] JwsSignerError),
+    #[error(transparent)]
+    KeyManagerError(#[from] KeyManagerError),
 }
 
 impl BearerDid {
@@ -89,8 +91,20 @@ impl BearerDid {
             .fragment
             .ok_or(BearerDidError::VerificationMethodNotFound)?;
 
-        let signer = JwsSigner::new(self.key_manager.clone(), key_alias)?;
+        let public_key = self
+            .key_manager
+            .get_public_key(&key_alias)?
+            .ok_or(KeyManagerError::SigningKeyNotFound)?;
+        let algorithm = public_key.algorithm()?;
 
-        Ok(signer)
+        Ok(JwsSigner::new(
+            algorithm,
+            key_alias,
+            Arc::new(move |key_id: &str, message: &[u8]| {
+                key_manager_arc
+                    .sign(key_id, message)
+                    .map_err(JwsSignerError::from)
+            }),
+        ))
     }
 }

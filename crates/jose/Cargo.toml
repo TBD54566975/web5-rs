@@ -9,5 +9,4 @@ license-file.workspace = true
 [dependencies]
 anyhow = "1.0.81"
 josekit = { workspace = true }
-keys = { path = "../keys" }
 thiserror = { workspace = true }
