@@ -1,6 +1,7 @@
-pub mod jwk;
+pub mod private_key;
+pub mod public_key;
 
-use josekit::{jwk::Jwk, JoseError};
+use jose::jwk::{Jwk, JwkError};
 use std::sync::Arc;
 
 /// Enum defining all supported cryptographic key types.
@@ -11,8 +12,8 @@ pub enum KeyType {
 
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum KeyError {
-    // #[error(transparent)]
-    // JoseError(#[from] JoseError),
+    #[error(transparent)]
+    JwkError(#[from] JwkError),
     #[error("Algorithm not found on JWK")]
     AlgorithmNotFound,
     #[error("Key generation failed")]

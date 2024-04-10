@@ -1,5 +1,6 @@
-use crate::key::jwk::generate_private_jwk;
-use crate::key::{KeyType, PrivateKey, PublicKey};
+use jose::jwk::{Curve, Jwk};
+
+use crate::key::{KeyType, PublicKey};
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
@@ -25,14 +26,25 @@ impl LocalKeyManager {
     }
 }
 
+impl From<KeyType> for Curve {
+    fn from(key_type: KeyType) -> Self {
+        match key_type {
+            KeyType::Secp256k1 => Curve::Secp256k1,
+            KeyType::Ed25519 => Curve::Ed25519,
+        }
+    }
+}
+
 impl KeyManager for LocalKeyManager {
     fn generate_private_key(&self, key_type: KeyType) -> Result<String, KeyManagerError> {
-        let private_key =
-            generate_private_jwk(key_type).map_err(|_| KeyManagerError::KeyGenerationFailed)?;
+        let private_key = Arc::new(
+            Jwk::generate_private_key(key_type.into())
+                .map_err(|_| KeyManagerError::KeyGenerationFailed)?,
+        );
         let public_key = private_key
             .to_public()
             .map_err(|_| KeyManagerError::KeyGenerationFailed)?;
-        let key_alias = self.alias(public_key)?;
+        let key_alias = public_key.alias()?;
 
         self.key_store.insert(&key_alias, private_key)?;
 
