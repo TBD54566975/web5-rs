@@ -1,11 +1,13 @@
 pub mod key_store;
 pub mod local_key_manager;
 
+use jose::jws_signer::JwsSignerError;
+
 use crate::key::{KeyError, KeyType, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
 use std::sync::Arc;
 
-#[derive(thiserror::Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum KeyManagerError {
     #[error("Key generation failed")]
     KeyGenerationFailed,
@@ -15,6 +17,12 @@ pub enum KeyManagerError {
     KeyError(#[from] KeyError),
     #[error(transparent)]
     KeyStoreError(#[from] KeyStoreError),
+}
+
+impl From<KeyManagerError> for JwsSignerError {
+    fn from(value: KeyManagerError) -> Self {
+        Self::UnknownError(value.to_string())
+    }
 }
 
 /// A key management trait for generating, storing, and utilizing keys private keys and their

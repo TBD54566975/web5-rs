@@ -12,9 +12,11 @@ use josekit::{
 use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
-pub enum JwsSignerError {}
+pub enum JwsSignerError {
+    #[error("unknown error {0}")]
+    UnknownError(String)
+}
 
-// type Signer = fn(key_id: &str, message: &[u8]) -> Result<Vec<u8>, JwsSignerError>;
 type Signer = Arc<dyn Fn(&str, &[u8]) -> Result<Vec<u8>, JwsSignerError> + Send + Sync>;
 
 pub struct JwsSigner {

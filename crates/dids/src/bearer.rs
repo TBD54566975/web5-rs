@@ -1,6 +1,9 @@
 use crate::{document::Document, identifier::Identifier};
 use jose::jws_signer::{JwsSigner, JwsSignerError};
-use keys::key_manager::{KeyManager, KeyManagerError};
+use keys::{
+    key::KeyError,
+    key_manager::{KeyManager, KeyManagerError},
+};
 use std::sync::Arc;
 
 pub struct BearerDid {
@@ -34,6 +37,8 @@ pub enum BearerDidError {
     SignerError(#[from] JwsSignerError),
     #[error(transparent)]
     KeyManagerError(#[from] KeyManagerError),
+    #[error(transparent)]
+    KeyError(#[from] KeyError),
 }
 
 impl BearerDid {
@@ -97,14 +102,13 @@ impl BearerDid {
             .ok_or(KeyManagerError::SigningKeyNotFound)?;
         let algorithm = public_key.algorithm()?;
 
-        Ok(JwsSigner::new(
-            algorithm,
-            key_alias,
-            Arc::new(move |key_id: &str, message: &[u8]| {
-                key_manager_arc
-                    .sign(key_id, message)
-                    .map_err(JwsSignerError::from)
-            }),
-        ))
+        let key_manager_clone = self.key_manager.clone();
+        let signer_func = Arc::new(move |key_id: &str, message: &[u8]| {
+            key_manager_clone
+                .sign(key_id, message)
+                .map_err(JwsSignerError::from)
+        });
+
+        Ok(JwsSigner::new(algorithm, key_alias, signer_func))
     }
 }

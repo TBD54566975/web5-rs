@@ -10,7 +10,7 @@ pub enum KeyType {
     Ed25519,
 }
 
-#[derive(thiserror::Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum KeyError {
     #[error(transparent)]
     JwkError(#[from] JwkError),
@@ -20,6 +20,8 @@ pub enum KeyError {
     KeyGenerationFailed,
     #[error("Failed to compute key thumbprint")]
     ThumprintFailed,
+    #[error("failed to serialize")]
+    SerializationFailed,
 }
 
 /// Trait defining all common behavior for cryptographic keys.
@@ -34,6 +36,8 @@ pub trait PublicKey: Key + Send + Sync {
     fn alias(&self) -> Result<String, KeyError>;
 
     fn algorithm(&self) -> Result<String, KeyError>;
+
+    fn to_string(&self) -> Result<String, KeyError>;
 }
 
 pub trait PrivateKey: Key + Send + Sync {

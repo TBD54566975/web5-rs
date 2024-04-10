@@ -18,6 +18,11 @@ impl PublicKey for Jwk {
         let algorithm = self.algorithm()?;
         Ok(algorithm)
     }
+
+    fn to_string(&self) -> Result<String, KeyError> {
+        let json_str = serde_json::to_string(self).map_err(|_| KeyError::SerializationFailed)?;
+        Ok(json_str)
+    }
 }
 
 #[cfg(test)]

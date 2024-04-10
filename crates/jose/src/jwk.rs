@@ -13,10 +13,11 @@ use josekit::{
     },
     JoseError as JosekitJoseError,
 };
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
-#[derive(thiserror::Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum JwkError {
     #[error("{0}")]
     JoseError(String),
@@ -149,5 +150,32 @@ impl Jwk {
             Some(alg) => Ok(alg.to_string()),
             None => Err(JwkError::AlgorithmNotFound),
         }
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, JwkError> {
+        let josekit_jwk = serde_json::from_slice::<JosekitJwk>(bytes)
+            .map_err(|err| JwkError::JoseError(err.to_string()))?;
+        Ok(Jwk(josekit_jwk))
+    }
+}
+
+impl Serialize for Jwk {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // Directly serialize self.0, which is of type JosekitJwk
+        self.0.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Jwk {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        // Directly deserialize into JosekitJwk and wrap it in Jwk
+        let josekit_jwk = JosekitJwk::deserialize(deserializer)?;
+        Ok(Jwk(josekit_jwk))
     }
 }

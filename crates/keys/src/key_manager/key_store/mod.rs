@@ -3,7 +3,7 @@ pub mod in_memory_key_store;
 use crate::key::PrivateKey;
 use std::sync::Arc;
 
-#[derive(thiserror::Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum KeyStoreError {
     #[error("{0}")]
     InternalKeyStoreError(String),
