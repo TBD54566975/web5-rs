@@ -27,9 +27,8 @@ impl Key for Jwk {
 
 #[cfg(test)]
 mod tests {
-    use crate::key::KeyType;
-
     use super::*;
+    use crate::key::KeyType;
 
     #[test]
     fn test_to_public() {

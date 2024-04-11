@@ -37,7 +37,7 @@ pub trait PublicKey: Key + Send + Sync {
 
     fn algorithm(&self) -> Result<String, KeyError>;
 
-    fn to_string(&self) -> Result<String, KeyError>;
+    fn to_json(&self) -> Result<String, KeyError>;
 }
 
 pub trait PrivateKey: Key + Send + Sync {

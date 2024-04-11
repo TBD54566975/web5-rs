@@ -73,11 +73,6 @@ impl KeyManager for LocalKeyManager {
 
         Ok(signed_payload)
     }
-
-    fn alias(&self, public_key: Arc<dyn PublicKey>) -> Result<String, KeyManagerError> {
-        let alias = public_key.alias().map_err(KeyManagerError::KeyError)?;
-        Ok(alias)
-    }
 }
 
 #[cfg(test)]
@@ -121,16 +116,5 @@ mod tests {
         // Get the public key that was used to sign the payload, and verify with it.
         let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
         assert!(!public_key.verify(payload, &signature).is_err());
-    }
-
-    #[test]
-    fn test_alias() {
-        let key_manager = LocalKeyManager::new_in_memory();
-        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
-
-        let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
-        let alias = key_manager.alias(public_key).unwrap();
-
-        assert_eq!(key_alias, alias);
     }
 }

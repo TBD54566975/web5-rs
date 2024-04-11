@@ -45,7 +45,4 @@ pub trait KeyManager: Send + Sync {
 
     /// Signs the provided payload using the private key identified by the provided `key_alias`.
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
-
-    /// Returns the key alias of a public key, as was originally returned by `generate_private_key`.
-    fn alias(&self, public_key: Arc<dyn PublicKey>) -> Result<String, KeyManagerError>;
 }

@@ -20,3 +20,6 @@ pub trait KeyStore: Send + Sync {
         private_key: Arc<dyn PrivateKey>,
     ) -> Result<(), KeyStoreError>;
 }
+
+// todo I don't think we should enable private keys to ever leave the KeyStore, 
+//      so `get` doesn't make sense and `insert` should be replaced with a `generate()` method
