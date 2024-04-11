@@ -105,13 +105,13 @@ impl VerificationMethod {
                 let spruce_jwk = ssi_vmm.get_jwk()?;
                 let spruce_jwk_bytes =
                     serde_json::to_vec(&spruce_jwk).map_err(|e| e.to_string())?;
-                let josekit_jwk = Jwk::from_bytes(&spruce_jwk_bytes).map_err(|e| e.to_string())?;
+                let jwk = Jwk::from_bytes(&spruce_jwk_bytes).map_err(|e| e.to_string())?;
 
                 Ok(VerificationMethod {
                     id: ssi_vmm.id,
                     r#type: ssi_vmm.type_,
                     controller: ssi_vmm.controller,
-                    public_key_jwk: josekit_jwk,
+                    public_key_jwk: jwk,
                 })
             }
             _ => Err("Unsupported SpruceVerificationMethod variant".to_string()),
