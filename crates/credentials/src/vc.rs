@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use dids::bearer::{BearerDid, SignerSelector};
-use josekit::{
-    jws::JwsHeader,
-    jwt::{encode_with_signer, JwtPayload},
+use jose::{
+    jws::Header,
+    jwt::{sign_jwt, Claims, JwtError},
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::SystemTime};
@@ -32,9 +32,9 @@ pub trait CredentialSubject {
     fn set_id(&mut self, id: String);
 }
 
-pub type Claims = HashMap<String, serde_json::Value>;
+pub type CredentialSubjectClaims = HashMap<String, serde_json::Value>;
 
-impl CredentialSubject for Claims {
+impl CredentialSubject for CredentialSubjectClaims {
     fn get_id(&self) -> String {
         self.get("id")
             .and_then(|v| v.as_str())
@@ -61,6 +61,8 @@ pub enum CredentialError {
     EmptyIssuer,
     #[error("signing failed")]
     SigningFailed,
+    #[error(transparent)]
+    JwtError(#[from] JwtError),
 }
 
 impl<T: CredentialSubject + Serialize> DataModel<T> {
@@ -113,31 +115,28 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
     ) -> Result<String, CredentialError> {
         self.issuer = bearer_did.identifier.uri.clone();
 
-        let mut claims = JwtPayload::new();
-        claims.set_issuer(&bearer_did.identifier.uri);
-        claims.set_jwt_id(&self.id);
-        claims.set_subject(self.credential_subject.get_id());
-        claims.set_not_before(&SystemTime::from(Utc::now()));
-        match self.expiration_date {
-            Some(exp) => claims.set_expires_at(&SystemTime::from(exp)),
-            None => (),
-        }
-        claims
-            .set_claim(
-                "vc",
-                Some(serde_json::to_value(self).map_err(|_| CredentialError::SigningFailed)?),
-            )
-            .map_err(|_| CredentialError::SigningFailed)?;
-
-        let mut header = JwsHeader::new();
-        header.set_token_type("JWT");
-
         let signer = bearer_did
             .get_jws_signer(selector)
             .map_err(|_| CredentialError::SigningFailed)?;
 
-        let jwt = encode_with_signer(&claims, &header, &signer)
-            .map_err(|_| CredentialError::SigningFailed)?;
+        let claims = Claims {
+            issuer: Some(bearer_did.identifier.uri),
+            jwt_id: Some(self.id.clone()),
+            subject: Some(self.credential_subject.get_id()),
+            not_before: Some(SystemTime::from(Utc::now())),
+            expires_at: match self.expiration_date {
+                Some(exp) => Some(SystemTime::from(exp)),
+                None => None,
+            },
+            vc: Some(serde_json::to_value(self).map_err(|_| CredentialError::SigningFailed)?),
+            ..Default::default()
+        };
+
+        let header = Header {
+            r#type: Some("JWT".to_string()),
+        };
+
+        let jwt = sign_jwt(signer, claims, header)?;
 
         Ok(jwt)
     }
@@ -166,7 +165,7 @@ mod tests {
         };
         let bearer_did = DidJwk::create(key_manager, options).unwrap();
 
-        let mut claims = Claims::new();
+        let mut claims = CredentialSubjectClaims::new();
         claims.set_id("subject_id-something-something-testing123".to_string());
 
         let mut vc = DataModel::create(claims, &bearer_did.identifier.uri, None)
