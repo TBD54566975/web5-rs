@@ -133,7 +133,7 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
         header.set_token_type("JWT");
 
         let signer = bearer_did
-            .get_signer(selector)
+            .get_jws_signer(selector)
             .map_err(|_| CredentialError::SigningFailed)?;
 
         let jwt = encode_with_signer(&claims, &header, &signer)

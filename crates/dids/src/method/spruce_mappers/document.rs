@@ -1,5 +1,5 @@
 use crate::document::{Document, Service, VerificationMethod};
-use josekit::jwk::Jwk as JosekitJwk;
+use jose::jwk::Jwk;
 use ssi_core::one_or_many::OneOrMany;
 use ssi_dids::{
     Context as SpruceContext, Contexts as SpruceContexts, Document as SpruceDocument,
@@ -105,8 +105,7 @@ impl VerificationMethod {
                 let spruce_jwk = ssi_vmm.get_jwk()?;
                 let spruce_jwk_bytes =
                     serde_json::to_vec(&spruce_jwk).map_err(|e| e.to_string())?;
-                let josekit_jwk =
-                    JosekitJwk::from_bytes(spruce_jwk_bytes).map_err(|e| e.to_string())?;
+                let josekit_jwk = Jwk::from_bytes(&spruce_jwk_bytes).map_err(|e| e.to_string())?;
 
                 Ok(VerificationMethod {
                     id: ssi_vmm.id,

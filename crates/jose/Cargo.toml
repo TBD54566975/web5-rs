@@ -1,5 +1,5 @@
 [package]
-name = "keys"
+name = "jose"
 version = "0.1.0"
 edition = "2021"
 homepage.workspace = true
@@ -7,7 +7,10 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-jose = { path = "../jose" }
+base64 = "0.22.0"
+anyhow = "1.0.81"
+josekit = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+sha2 = "0.10.8"
 thiserror = { workspace = true }

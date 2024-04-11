@@ -38,7 +38,9 @@ impl Method<DidJwkCreateOptions> for DidJwk {
                     "PublicKey not found".to_string(),
                 ))?;
 
-        let josekit_jwk_string = public_key.jwk().to_string();
+        let josekit_jwk_string = public_key.to_json().map_err(|_| {
+            MethodError::DidCreationFailure("failed to serialize public jwk".to_string())
+        })?;
         let spruce_jwk: SpruceJwk = from_str(&josekit_jwk_string)
             .map_err(|e| MethodError::DidCreationFailure(e.to_string()))?;
 

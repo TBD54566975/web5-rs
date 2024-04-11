@@ -1,11 +1,13 @@
 pub mod key_store;
 pub mod local_key_manager;
 
+use jose::jws_signer::JwsSignerError;
+
 use crate::key::{KeyError, KeyType, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
 use std::sync::Arc;
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum KeyManagerError {
     #[error("Key generation failed")]
     KeyGenerationFailed,
@@ -15,6 +17,12 @@ pub enum KeyManagerError {
     KeyError(#[from] KeyError),
     #[error(transparent)]
     KeyStoreError(#[from] KeyStoreError),
+}
+
+impl From<KeyManagerError> for JwsSignerError {
+    fn from(value: KeyManagerError) -> Self {
+        Self::UnknownError(value.to_string())
+    }
 }
 
 /// A key management trait for generating, storing, and utilizing keys private keys and their
@@ -37,7 +45,4 @@ pub trait KeyManager: Send + Sync {
 
     /// Signs the provided payload using the private key identified by the provided `key_alias`.
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
-
-    /// Returns the key alias of a public key, as was originally returned by `generate_private_key`.
-    fn alias(&self, public_key: Arc<dyn PublicKey>) -> Result<String, KeyManagerError>;
 }
