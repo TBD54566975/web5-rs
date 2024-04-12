@@ -31,12 +31,7 @@ impl Method<DidJwkCreateOptions> for DidJwk {
         options: DidJwkCreateOptions,
     ) -> Result<BearerDid, MethodError> {
         let key_alias = key_manager.generate_private_key(options.curve)?;
-        let public_key =
-            key_manager
-                .get_public_key(&key_alias)?
-                .ok_or(MethodError::DidCreationFailure(
-                    "PublicKey not found".to_string(),
-                ))?;
+        let public_key = key_manager.get_public_key(&key_alias)?;
 
         let jwk_string = public_key.to_json().map_err(|_| {
             MethodError::DidCreationFailure("failed to serialize public jwk".to_string())

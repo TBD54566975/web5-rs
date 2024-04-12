@@ -1,12 +1,8 @@
-use josekit::jws::alg::ecdsa::EcdsaJwsAlgorithm;
-use josekit::jws::alg::eddsa::EddsaJwsAlgorithm;
-use josekit::jws::JwsSigner;
-
-use crate::key::jwk::generate_private_jwk;
-use crate::key::{Curve, KeyError, PrivateKey, PublicKey};
+use crate::key::{Curve, PublicKey};
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
+use josekit::jws::JwsSigner;
 use std::sync::Arc;
 
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
@@ -31,60 +27,22 @@ impl LocalKeyManager {
 
 impl KeyManager for LocalKeyManager {
     fn generate_private_key(&self, curve: Curve) -> Result<String, KeyManagerError> {
-        let private_key = generate_private_jwk(curve)?;
-        let public_key = private_key
-            .to_public()
-            .map_err(|_| KeyManagerError::KeyGenerationFailed)?;
-        let key_alias = public_key.alias()?;
-
-        self.key_store.insert(&key_alias, private_key)?;
-
+        let key_alias = self.key_store.generate_new(curve)?;
         Ok(key_alias)
     }
 
-    fn get_public_key(
-        &self,
-        key_alias: &str,
-    ) -> Result<Option<Arc<dyn PublicKey>>, KeyManagerError> {
-        if let Some(private_key) = self.key_store.get(key_alias)? {
-            let public_key = private_key.to_public()?;
-            Ok(Some(public_key))
-        } else {
-            Ok(None)
-        }
+    fn get_public_key(&self, key_alias: &str) -> Result<Arc<dyn PublicKey>, KeyManagerError> {
+        let public_key = self.key_store.get_public_key(key_alias)?;
+        Ok(public_key)
     }
 
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError> {
-        let private_key = self
-            .key_store
-            .get(key_alias)?
-            .ok_or(KeyManagerError::SigningKeyNotFound)?;
-
-        let signed_payload = private_key.sign(payload)?;
-
+        let signed_payload = self.key_store.sign(key_alias, payload)?;
         Ok(signed_payload)
     }
 
     fn get_jws_signer(&self, key_alias: &str) -> Result<Arc<dyn JwsSigner>, KeyManagerError> {
-        let private_key = self
-            .key_store
-            .get(key_alias)?
-            .ok_or(KeyManagerError::SigningKeyNotFound)?;
-
-        let signer: Arc<dyn JwsSigner> = match private_key.jwk()?.curve() {
-            Some("secp256k1") => Arc::new(
-                EcdsaJwsAlgorithm::Es256k
-                    .signer_from_jwk(&private_key.jwk()?)
-                    .map_err(|e| KeyError::JoseError(e.to_string()))?,
-            ),
-            Some("Ed25519") => Arc::new(
-                EddsaJwsAlgorithm::Eddsa
-                    .signer_from_jwk(&private_key.jwk()?)
-                    .map_err(|e| KeyError::JoseError(e.to_string()))?,
-            ),
-            _ => return Err(KeyManagerError::KeyError(KeyError::CurveNotFound)),
-        };
-
+        let signer = self.key_store.get_jws_signer(key_alias)?;
         Ok(signer)
     }
 }
@@ -114,7 +72,6 @@ mod tests {
 
         key_manager
             .get_public_key(&key_alias)
-            .unwrap()
             .expect("Public key not found");
     }
 
@@ -128,7 +85,7 @@ mod tests {
         let signature = key_manager.sign(&key_alias, payload).unwrap();
 
         // Get the public key that was used to sign the payload, and verify with it.
-        let public_key = key_manager.get_public_key(&key_alias).unwrap().unwrap();
+        let public_key = key_manager.get_public_key(&key_alias).unwrap();
         assert!(!public_key.verify(payload, &signature).is_err());
     }
 }
