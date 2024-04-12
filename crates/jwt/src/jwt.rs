@@ -118,7 +118,7 @@ impl JwtString for String {
 pub fn sign_jwt(
     bearer_did: &BearerDid,
     key_selector: &KeySelector,
-    claims: Claims,
+    claims: &Claims,
     options: Option<JwsSignOptions>,
 ) -> Result<String, JwtError> {
     let encoded_claims = claims.encode()?;
@@ -163,9 +163,10 @@ mod tests {
         let jwt = sign_jwt(
             &bearer_did,
             &KeySelector::MethodType(VerificationMethodType::VerificationMethod),
-            claims,
+            &claims,
             None,
-        ).unwrap();
+        )
+        .unwrap();
 
         println!("Signed JWT: {:?}", jwt);
     }

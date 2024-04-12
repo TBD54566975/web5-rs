@@ -1,7 +1,6 @@
 use chrono::{DateTime, Utc};
 use dids::bearer::{BearerDid, KeySelector};
-use josekit::{jws::JwsHeader, jwt::JwtPayload};
-use jwt::jwt::{encode, JwtError};
+use jwt::jwt::{sign_jwt, Claims, JwtError};
 use keys::key::KeyError;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::SystemTime};
@@ -79,7 +78,7 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
             id: options
                 .as_ref()
                 .and_then(|opts| opts.id.clone())
-                .unwrap_or_else(|| Uuid::new_v4().to_string()),
+                .unwrap_or_else(|| format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string())),
             context: options
                 .as_ref()
                 .and_then(|opts| opts.contexts.clone())
@@ -115,26 +114,21 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
     ) -> Result<String, CredentialError> {
         self.issuer = bearer_did.identifier.uri.clone();
 
-        let mut claims = JwtPayload::new();
-        claims.set_issuer(&bearer_did.identifier.uri);
-        claims.set_jwt_id(&self.id);
-        claims.set_subject(self.credential_subject.get_id());
-        claims.set_not_before(&SystemTime::from(Utc::now()));
-        match self.expiration_date {
-            Some(exp) => claims.set_expires_at(&SystemTime::from(exp)),
-            None => (),
-        }
-        claims
-            .set_claim(
-                "vc",
-                Some(serde_json::to_value(self).map_err(|_| CredentialError::SigningFailed)?),
-            )
-            .map_err(|_| CredentialError::SigningFailed)?;
+        let issuer = &bearer_did.identifier.uri;
+        let claims = Claims {
+            issuer: Some(issuer.clone()),
+            jti: Some(self.id.clone()),
+            subject: Some(self.credential_subject.get_id()),
+            // not_before: Some(SystemTime::from(Utc::now())),
+            // expiration: match self.expiration_date {
+            //     Some(exp) => Some(SystemTime::from(exp)),
+            //     None => None,
+            // },
+            vc: Some(serde_json::to_value(self).map_err(|_| CredentialError::SigningFailed)?),
+            ..Default::default()
+        };
 
-        let mut header = JwsHeader::new();
-        header.set_token_type("JWT");
-
-        let jwt = encode(bearer_did, key_selector, &claims, &mut header)?;
+        let jwt = sign_jwt(&bearer_did, key_selector, &claims, None)?;
         Ok(jwt)
     }
 
@@ -157,7 +151,7 @@ mod tests {
     fn test_everythang() {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
-            curve: Curve::Secp256k1,
+            curve: Curve::Ed25519,
         };
         let bearer_did = DidJwk::create(key_manager, options).unwrap();
 
