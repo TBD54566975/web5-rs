@@ -34,7 +34,7 @@ pub trait KeyManager: Send + Sync {
     fn get_public_key(
         &self,
         key_alias: &str,
-    ) -> Result<Option<Arc<dyn PublicKey>>, KeyManagerError>;
+    ) -> Result<Arc<dyn PublicKey>, KeyManagerError>;
 
     /// Signs the provided payload using the private key identified by the provided `key_alias`.
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;

@@ -1,4 +1,9 @@
-use crate::key::PrivateKey;
+use josekit::jws::alg::ecdsa::EcdsaJwsAlgorithm;
+use josekit::jws::alg::eddsa::EddsaJwsAlgorithm;
+use josekit::jws::JwsSigner;
+
+use crate::key::jwk::generate_private_jwk;
+use crate::key::{Curve, Key, KeyError, PrivateKey, PublicKey};
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -16,61 +21,76 @@ impl InMemoryKeyStore {
 }
 
 impl KeyStore for InMemoryKeyStore {
-    fn get(&self, key_alias: &str) -> Result<Option<Arc<dyn PrivateKey>>, KeyStoreError> {
+    fn generate_new(&self, curve: Curve) -> Result<String, KeyStoreError> {
+        let private_key = generate_private_jwk(curve)?;
+        let key_alias = private_key.alias()?;
+        let mut map_lock = self.map.write().map_err(|e| {
+            KeyStoreError::InternalKeyStoreError(format!("unable to acquire Mutex lock: {}", e))
+        })?;
+        map_lock.insert(key_alias.to_string(), private_key);
+        Ok(key_alias)
+    }
+
+    fn get_all_aliases(&self) -> Result<Vec<String>, KeyStoreError> {
         let map_lock = self.map.read().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
         })?;
-
-        if let Some(private_key) = map_lock.get(key_alias) {
-            Ok(Some(private_key.clone()))
-        } else {
-            Ok(None)
-        }
+        let aliases: Vec<String> = map_lock.keys().cloned().collect();
+        Ok(aliases)
     }
 
-    fn insert(
-        &self,
-        key_alias: &str,
-        private_key: Arc<dyn PrivateKey>,
-    ) -> Result<(), KeyStoreError> {
-        let mut map_lock = self.map.write().map_err(|e| {
+    fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyStoreError> {
+        let map_lock = self.map.read().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
         })?;
+        let private_key = map_lock
+            .get(key_alias)
+            .ok_or(KeyStoreError::KeyNotFound(key_alias.to_string()))?;
 
-        map_lock.insert(key_alias.to_string(), private_key);
-        Ok(())
+        let signed_payload = private_key.sign(payload)?;
+
+        Ok(signed_payload)
+    }
+
+    fn get_public_key(&self, key_alias: &str) -> Result<Arc<dyn PublicKey>, KeyStoreError> {
+        let map_lock = self.map.read().map_err(|e| {
+            KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
+        })?;
+        let private_key = map_lock
+            .get(key_alias)
+            .ok_or(KeyStoreError::KeyNotFound(key_alias.to_string()))?;
+        let public_key = private_key.to_public()?;
+        Ok(public_key)
+    }
+
+    fn get_jws_signer(&self, key_alias: &str) -> Result<Arc<dyn JwsSigner>, KeyStoreError> {
+        let map_lock = self.map.read().map_err(|e| {
+            KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
+        })?;
+        let private_key = map_lock
+            .get(key_alias)
+            .ok_or(KeyStoreError::KeyNotFound(key_alias.to_string()))?;
+
+        let signer: Arc<dyn JwsSigner> = match private_key.jwk()?.curve() {
+            Some("secp256k1") => Arc::new(
+                EcdsaJwsAlgorithm::Es256k
+                    .signer_from_jwk(&private_key.jwk()?)
+                    .map_err(|e| KeyError::JoseError(e.to_string()))?,
+            ),
+            Some("Ed25519") => Arc::new(
+                EddsaJwsAlgorithm::Eddsa
+                    .signer_from_jwk(&private_key.jwk()?)
+                    .map_err(|e| KeyError::JoseError(e.to_string()))?,
+            ),
+            _ => return Err(KeyStoreError::KeyError(KeyError::CurveNotFound)),
+        };
+
+        Ok(signer)
     }
 }
 
 impl Default for InMemoryKeyStore {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::key::{jwk::generate_private_jwk, Curve, Key};
-
-    #[test]
-    fn test_insert_get() {
-        let key_alias = "key-alias";
-        let private_key = generate_private_jwk(Curve::Secp256k1).unwrap();
-
-        let key_store = InMemoryKeyStore::new();
-        key_store.insert(key_alias, private_key.clone()).unwrap();
-
-        let retrieved_private_key = key_store.get(key_alias).unwrap().unwrap();
-        assert_eq!(private_key.alias(), retrieved_private_key.alias());
-    }
-
-    #[test]
-    fn test_get_missing() {
-        let key_alias = "key-alias";
-
-        let key_store = InMemoryKeyStore::new();
-        let retrieved_private_key = key_store.get(key_alias).unwrap();
-        assert!(retrieved_private_key.is_none());
     }
 }
