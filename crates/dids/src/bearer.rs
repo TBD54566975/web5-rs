@@ -1,4 +1,7 @@
-use crate::{document::Document, identifier::Identifier};
+use crate::{
+    document::{Document, VerificationMethod},
+    identifier::Identifier,
+};
 use josekit::jws::JwsSigner;
 use keys::{
     key::KeyError,
@@ -40,15 +43,12 @@ pub enum BearerDidError {
 }
 
 impl BearerDid {
-    // todo 
-    // pub fn get_verification_method(&self, key_selector: KeySelector) -> 
-
-    pub fn get_jws_signer(
+    pub fn get_verification_method(
         &self,
-        key_selector: KeySelector,
-    ) -> Result<Arc<dyn JwsSigner>, BearerDidError> {
+        key_selector: &KeySelector,
+    ) -> Result<VerificationMethod, BearerDidError> {
         let key_id = match key_selector {
-            KeySelector::KeyId(key_id) => key_id,
+            KeySelector::KeyId(key_id) => key_id.clone(),
             KeySelector::MethodType(method_type) => {
                 let get_first_method =
                     |methods: &Option<Vec<String>>| -> Result<String, BearerDidError> {
@@ -56,8 +56,8 @@ impl BearerDid {
                             .as_ref()
                             .ok_or(BearerDidError::VerificationMethodNotFound)?
                             .first()
+                            .cloned()
                             .ok_or(BearerDidError::VerificationMethodNotFound)
-                            .map(|s| s.to_string())
                     };
 
                 match method_type {
@@ -73,18 +73,40 @@ impl BearerDid {
                     VerificationMethodType::CapabilityInvocation => {
                         get_first_method(&self.document.capability_invocation)?
                     }
-                    VerificationMethodType::VerificationMethod => self
-                        .document
-                        .verification_method
-                        .first()
-                        .ok_or(BearerDidError::VerificationMethodNotFound)?
-                        .id
-                        .clone(),
+                    VerificationMethodType::VerificationMethod => {
+                        self.document
+                            .verification_method
+                            .first()
+                            .cloned()
+                            .ok_or(BearerDidError::VerificationMethodNotFound)?
+                            .id
+                    }
                 }
             }
         };
 
-        let signer = self.key_manager.get_jws_signer(&key_id)?;
+        let verification_method = self
+            .document
+            .verification_method
+            .iter()
+            .find(|method| method.id == *key_id)
+            .cloned()
+            .ok_or(BearerDidError::VerificationMethodNotFound)?;
+
+        Ok(verification_method)
+    }
+
+    pub fn get_jws_signer(
+        &self,
+        key_selector: &KeySelector,
+    ) -> Result<Arc<dyn JwsSigner>, BearerDidError> {
+        let verification_method = self.get_verification_method(key_selector)?;
+        let key_id = &verification_method.id;
+
+        let key_alias = key_id
+            .split_once('#')
+            .map_or(&key_id[..], |(_, after)| after);
+        let signer = self.key_manager.get_jws_signer(key_alias)?;
 
         Ok(signer)
     }

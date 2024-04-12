@@ -1,9 +1,8 @@
 use chrono::{DateTime, Utc};
 use dids::bearer::{BearerDid, KeySelector};
-use jose::{
-    jws::Header,
-    jwt::{sign_jwt, Claims, JwtError},
-};
+use josekit::{jws::JwsHeader, jwt::JwtPayload};
+use jwt::jwt::{sign_jwt, JwtError};
+use keys::key::KeyError;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::SystemTime};
 use uuid::Uuid;
@@ -61,6 +60,8 @@ pub enum CredentialError {
     #[error("signing failed")]
     SigningFailed,
     #[error(transparent)]
+    KeyError(#[from] KeyError),
+    #[error(transparent)]
     JwtError(#[from] JwtError),
 }
 
@@ -110,29 +111,30 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
     pub fn encode_vcjwt(
         &mut self,
         bearer_did: BearerDid,
-        selector: KeySelector,
+        key_selector: &KeySelector,
     ) -> Result<String, CredentialError> {
         self.issuer = bearer_did.identifier.uri.clone();
 
-        let signer = bearer_did
-            .get_jws_signer(selector)
+        let mut claims = JwtPayload::new();
+        claims.set_issuer(&bearer_did.identifier.uri);
+        claims.set_jwt_id(&self.id);
+        claims.set_subject(self.credential_subject.get_id());
+        claims.set_not_before(&SystemTime::from(Utc::now()));
+        match self.expiration_date {
+            Some(exp) => claims.set_expires_at(&SystemTime::from(exp)),
+            None => (),
+        }
+        claims
+            .set_claim(
+                "vc",
+                Some(serde_json::to_value(self).map_err(|_| CredentialError::SigningFailed)?),
+            )
             .map_err(|_| CredentialError::SigningFailed)?;
 
-        let claims = Claims {
-            issuer: Some(bearer_did.identifier.uri),
-            jwt_id: Some(self.id.clone()),
-            subject: Some(self.credential_subject.get_id()),
-            not_before: Some(SystemTime::from(Utc::now())),
-            expires_at: self.expiration_date.map(SystemTime::from),
-            vc: Some(serde_json::to_value(self).map_err(|_| CredentialError::SigningFailed)?),
-        };
+        let mut header = JwsHeader::new();
+        header.set_token_type("JWT");
 
-        let header = Header {
-            r#type: Some("JWT".to_string()),
-        };
-
-        let jwt = sign_jwt(signer, claims, header)?;
-
+        let jwt = sign_jwt(bearer_did, key_selector, &claims, &mut header)?;
         Ok(jwt)
     }
 
@@ -148,7 +150,7 @@ mod tests {
     use dids::bearer::VerificationMethodType;
     use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
     use dids::method::Method;
-    use jose::jwk::Curve;
+    use keys::key::Curve;
     use keys::key_manager::local_key_manager::LocalKeyManager;
 
     use super::*;
@@ -170,7 +172,7 @@ mod tests {
         let signed_jwt = vc
             .encode_vcjwt(
                 bearer_did,
-                KeySelector::MethodType(VerificationMethodType::VerificationMethod),
+                &KeySelector::MethodType(VerificationMethodType::VerificationMethod),
             )
             .expect("Failed to sign VC");
 

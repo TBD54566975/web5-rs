@@ -8,7 +8,7 @@ use josekit::jwk::Jwk;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum KeyError {
-    #[error("Key generation failed")]
+    #[error("key generation failed")]
     KeyGenerationFailed,
     #[error("failed to serialize")]
     SerializationFailed,
