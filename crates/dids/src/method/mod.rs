@@ -5,7 +5,7 @@ pub mod web;
 use crate::bearer::BearerDid;
 use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
-use keys::key_manager::{KeyManager, KeyManagerError};
+use keys::{key::KeyError, key_manager::{KeyManager, KeyManagerError}};
 use std::sync::Arc;
 
 /// Errors that can occur when working with DID methods.
@@ -13,6 +13,8 @@ use std::sync::Arc;
 pub enum MethodError {
     #[error(transparent)]
     KeyManagerError(#[from] KeyManagerError),
+    #[error(transparent)]
+    KeyError(#[from] KeyError),
     #[error("Failure creating DID: {0}")]
     DidCreationFailure(String),
 }

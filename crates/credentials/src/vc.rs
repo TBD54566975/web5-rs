@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use dids::bearer::{BearerDid, SignerSelector};
+use dids::bearer::{BearerDid, KeySelector};
 use jose::{
     jws::Header,
     jwt::{sign_jwt, Claims, JwtError},
@@ -110,7 +110,7 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
     pub fn encode_vcjwt(
         &mut self,
         bearer_did: BearerDid,
-        selector: SignerSelector,
+        selector: KeySelector,
     ) -> Result<String, CredentialError> {
         self.issuer = bearer_did.identifier.uri.clone();
 
@@ -170,7 +170,7 @@ mod tests {
         let signed_jwt = vc
             .encode_vcjwt(
                 bearer_did,
-                SignerSelector::MethodType(VerificationMethodType::VerificationMethod),
+                KeySelector::MethodType(VerificationMethodType::VerificationMethod),
             )
             .expect("Failed to sign VC");
 

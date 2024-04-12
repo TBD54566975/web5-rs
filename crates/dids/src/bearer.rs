@@ -1,5 +1,5 @@
 use crate::{document::Document, identifier::Identifier};
-use jose::jws_signer::{JwsSigner, JwsSignerError};
+use josekit::jws::JwsSigner;
 use keys::{
     key::KeyError,
     key_manager::{KeyManager, KeyManagerError},
@@ -23,7 +23,7 @@ pub enum VerificationMethodType {
 
 // Define an enum to encapsulate the selection criteria
 #[derive(Debug, Clone, PartialEq)]
-pub enum SignerSelector {
+pub enum KeySelector {
     KeyId(String),
     MethodType(VerificationMethodType),
 }
@@ -34,18 +34,22 @@ pub enum BearerDidError {
     #[error("verfication method not found")]
     VerificationMethodNotFound,
     #[error(transparent)]
-    SignerError(#[from] JwsSignerError),
-    #[error(transparent)]
     KeyManagerError(#[from] KeyManagerError),
     #[error(transparent)]
     KeyError(#[from] KeyError),
 }
 
 impl BearerDid {
-    pub fn get_jws_signer(&self, selector: SignerSelector) -> Result<JwsSigner, BearerDidError> {
-        let key_id = match selector {
-            SignerSelector::KeyId(key_id) => key_id,
-            SignerSelector::MethodType(method_type) => {
+    // todo 
+    // pub fn get_verification_method(&self, key_selector: KeySelector) -> 
+
+    pub fn get_jws_signer(
+        &self,
+        key_selector: KeySelector,
+    ) -> Result<Arc<dyn JwsSigner>, BearerDidError> {
+        let key_id = match key_selector {
+            KeySelector::KeyId(key_id) => key_id,
+            KeySelector::MethodType(method_type) => {
                 let get_first_method =
                     |methods: &Option<Vec<String>>| -> Result<String, BearerDidError> {
                         methods
@@ -80,25 +84,8 @@ impl BearerDid {
             }
         };
 
-        let identifier =
-            Identifier::parse(&key_id).map_err(|_| BearerDidError::VerificationMethodNotFound)?;
-        let key_alias = identifier
-            .fragment
-            .ok_or(BearerDidError::VerificationMethodNotFound)?;
+        let signer = self.key_manager.get_jws_signer(&key_id)?;
 
-        let public_key = self
-            .key_manager
-            .get_public_key(&key_alias)?
-            .ok_or(KeyManagerError::SigningKeyNotFound)?;
-        let algorithm = public_key.algorithm()?;
-
-        let key_manager_clone = self.key_manager.clone();
-        let signer_func = Arc::new(move |key_id: &str, message: &[u8]| {
-            key_manager_clone
-                .sign(key_id, message)
-                .map_err(JwsSignerError::from)
-        });
-
-        Ok(JwsSigner::new(algorithm, key_alias, signer_func))
+        Ok(signer)
     }
 }

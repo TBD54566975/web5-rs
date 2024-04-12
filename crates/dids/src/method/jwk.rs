@@ -7,7 +7,7 @@ use crate::method::{Method, MethodError};
 use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;
-use jose::jwk::Curve;
+use keys::key::Curve;
 use keys::key_manager::KeyManager;
 use serde_json::from_str;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
@@ -63,7 +63,7 @@ impl Method<DidJwkCreateOptions> for DidJwk {
                     id: format!("{}#{}", uri, key_alias),
                     r#type: "JsonWebKey".to_string(),
                     controller: uri,
-                    public_key_jwk: public_key.jwk().clone(),
+                    public_key_jwk: public_key.jwk()?.clone(),
                 }],
                 ..Default::default()
             },
