@@ -46,48 +46,39 @@ impl BearerDid {
     pub fn get_jws_signer(&self, selector: SignerSelector) -> Result<JwsSigner, BearerDidError> {
         let key_id = match selector {
             SignerSelector::KeyId(key_id) => key_id,
-            SignerSelector::MethodType(method_type) => match method_type {
-                // todo a lot of duplication
-                VerificationMethodType::AssertionMethod => self
-                    .document
-                    .assertion_method
-                    .as_ref()
-                    .ok_or(BearerDidError::VerificationMethodNotFound)?
-                    .first()
-                    .ok_or(BearerDidError::VerificationMethodNotFound)?
-                    .to_string(),
-                VerificationMethodType::Authentication => self
-                    .document
-                    .authentication
-                    .as_ref()
-                    .ok_or(BearerDidError::VerificationMethodNotFound)?
-                    .first()
-                    .ok_or(BearerDidError::VerificationMethodNotFound)?
-                    .to_string(),
-                VerificationMethodType::CapabilityDelegation => self
-                    .document
-                    .capability_delegation
-                    .as_ref()
-                    .ok_or(BearerDidError::VerificationMethodNotFound)?
-                    .first()
-                    .ok_or(BearerDidError::VerificationMethodNotFound)?
-                    .to_string(),
-                VerificationMethodType::CapabilityInvocation => self
-                    .document
-                    .capability_invocation
-                    .as_ref()
-                    .ok_or(BearerDidError::VerificationMethodNotFound)?
-                    .first()
-                    .ok_or(BearerDidError::VerificationMethodNotFound)?
-                    .to_string(),
-                VerificationMethodType::VerificationMethod => self
-                    .document
-                    .verification_method
-                    .first()
-                    .ok_or(BearerDidError::VerificationMethodNotFound)?
-                    .id
-                    .clone(),
-            },
+            SignerSelector::MethodType(method_type) => {
+                let get_first_method =
+                    |methods: &Option<Vec<String>>| -> Result<String, BearerDidError> {
+                        methods
+                            .as_ref()
+                            .ok_or(BearerDidError::VerificationMethodNotFound)?
+                            .first()
+                            .ok_or(BearerDidError::VerificationMethodNotFound)
+                            .map(|s| s.to_string())
+                    };
+
+                match method_type {
+                    VerificationMethodType::AssertionMethod => {
+                        get_first_method(&self.document.assertion_method)?
+                    }
+                    VerificationMethodType::Authentication => {
+                        get_first_method(&self.document.authentication)?
+                    }
+                    VerificationMethodType::CapabilityDelegation => {
+                        get_first_method(&self.document.capability_delegation)?
+                    }
+                    VerificationMethodType::CapabilityInvocation => {
+                        get_first_method(&self.document.capability_invocation)?
+                    }
+                    VerificationMethodType::VerificationMethod => self
+                        .document
+                        .verification_method
+                        .first()
+                        .ok_or(BearerDidError::VerificationMethodNotFound)?
+                        .id
+                        .clone(),
+                }
+            }
         };
 
         let identifier =

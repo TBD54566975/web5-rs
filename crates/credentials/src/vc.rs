@@ -18,13 +18,12 @@ pub struct DataModel<T: CredentialSubject + Serialize> {
     pub id: String,
     #[serde(rename = "type")]
     pub r#type: Vec<String>,
-    pub issuer: String, // TODO also need to support it as an object
+    pub issuer: String,
     #[serde(rename = "issuanceDate")]
     pub issuance_date: DateTime<Utc>,
     #[serde(rename = "expirationDate")]
     pub expiration_date: Option<DateTime<Utc>>,
     pub credential_subject: T,
-    // todo credential_status, credential_schema, evidence
 }
 
 pub trait CredentialSubject {
@@ -124,12 +123,8 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
             jwt_id: Some(self.id.clone()),
             subject: Some(self.credential_subject.get_id()),
             not_before: Some(SystemTime::from(Utc::now())),
-            expires_at: match self.expiration_date {
-                Some(exp) => Some(SystemTime::from(exp)),
-                None => None,
-            },
+            expires_at: self.expiration_date.map(SystemTime::from),
             vc: Some(serde_json::to_value(self).map_err(|_| CredentialError::SigningFailed)?),
-            ..Default::default()
         };
 
         let header = Header {
@@ -153,7 +148,8 @@ mod tests {
     use dids::bearer::VerificationMethodType;
     use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
     use dids::method::Method;
-    use keys::{key::KeyType, key_manager::local_key_manager::LocalKeyManager};
+    use jose::jwk::Curve;
+    use keys::key_manager::local_key_manager::LocalKeyManager;
 
     use super::*;
 
@@ -161,7 +157,7 @@ mod tests {
     fn test_everythang() {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
-            key_type: KeyType::Ed25519,
+            curve: Curve::Ed25519,
         };
         let bearer_did = DidJwk::create(key_manager, options).unwrap();
 

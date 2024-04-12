@@ -30,7 +30,7 @@ impl Document {
 
         let verification_methods = spruce_document
             .verification_method
-            .unwrap_or_else(Vec::new)
+            .unwrap_or_default()
             .into_iter()
             .map(VerificationMethod::from_spruce)
             .collect::<Result<Vec<_>, String>>()?;

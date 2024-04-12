@@ -7,7 +7,7 @@ use crate::method::{Method, MethodError};
 use crate::resolver::ResolutionResult;
 use async_trait::async_trait;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;
-use keys::key::KeyType;
+use jose::jwk::Curve;
 use keys::key_manager::KeyManager;
 use serde_json::from_str;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
@@ -19,7 +19,7 @@ pub struct DidJwk;
 
 /// Options that can be used to create a did:jwk DID
 pub struct DidJwkCreateOptions {
-    pub key_type: KeyType,
+    pub curve: Curve,
 }
 
 #[async_trait]
@@ -30,7 +30,7 @@ impl Method<DidJwkCreateOptions> for DidJwk {
         key_manager: Arc<dyn KeyManager>,
         options: DidJwkCreateOptions,
     ) -> Result<BearerDid, MethodError> {
-        let key_alias = key_manager.generate_private_key(options.key_type)?;
+        let key_alias = key_manager.generate_private_key(options.curve)?;
         let public_key =
             key_manager
                 .get_public_key(&key_alias)?
@@ -41,8 +41,8 @@ impl Method<DidJwkCreateOptions> for DidJwk {
         let jwk_string = public_key.to_json().map_err(|_| {
             MethodError::DidCreationFailure("failed to serialize public jwk".to_string())
         })?;
-        let spruce_jwk: SpruceJwk = from_str(&jwk_string)
-            .map_err(|e| MethodError::DidCreationFailure(e.to_string()))?;
+        let spruce_jwk: SpruceJwk =
+            from_str(&jwk_string).map_err(|e| MethodError::DidCreationFailure(e.to_string()))?;
 
         let uri = SpruceDidJwkMethod
             .generate(&Source::Key(&spruce_jwk))
@@ -97,7 +97,7 @@ mod tests {
     fn create_did_jwk() -> BearerDid {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
-            key_type: KeyType::Ed25519,
+            curve: Curve::Ed25519,
         };
 
         DidJwk::create(key_manager, options).unwrap()

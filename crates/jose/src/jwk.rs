@@ -100,7 +100,7 @@ impl Jwk {
         let mut hasher = Sha256::new();
         hasher.update(thumbprint_json_string);
         let digest = hasher.finalize();
-        let thumbprint = general_purpose::URL_SAFE_NO_PAD.encode(&digest);
+        let thumbprint = general_purpose::URL_SAFE_NO_PAD.encode(digest);
 
         Ok(thumbprint)
     }
@@ -141,7 +141,7 @@ impl Jwk {
             _ => return Err(JwkError::CurveNotFound),
         };
 
-        let _ = verifier.verify(payload, signature)?;
+        verifier.verify(payload, signature)?;
         Ok(())
     }
 

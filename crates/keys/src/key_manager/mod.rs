@@ -1,10 +1,10 @@
 pub mod key_store;
 pub mod local_key_manager;
 
-use jose::jws_signer::JwsSignerError;
-
-use crate::key::{KeyError, KeyType, PublicKey};
+use crate::key::{KeyError, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
+use jose::jwk::Curve;
+use jose::jws_signer::JwsSignerError;
 use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
@@ -32,10 +32,10 @@ impl From<KeyManagerError> for JwsSignerError {
 /// Systems (KMS), such as AWS KMS, Google Cloud KMD, Hardware Security Modules (HSM), or simple
 /// in-memory storage, each adhering to the same consistent API for usage within applications.
 pub trait KeyManager: Send + Sync {
-    /// Generates and securely stores a private key based on the provided `key_type`,
+    /// Generates and securely stores a private key based on the provided `curve`,
     /// returning a unique alias that can be utilized to reference the generated key for future
     /// operations.
-    fn generate_private_key(&self, key_type: KeyType) -> Result<String, KeyManagerError>;
+    fn generate_private_key(&self, curve: Curve) -> Result<String, KeyManagerError>;
 
     /// Returns the public key associated with the provided `key_alias`, if one exists.
     fn get_public_key(

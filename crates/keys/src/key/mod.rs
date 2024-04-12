@@ -4,12 +4,6 @@ pub mod public_key;
 use jose::jwk::{Jwk, JwkError};
 use std::sync::Arc;
 
-/// Enum defining all supported cryptographic key types.
-pub enum KeyType {
-    Secp256k1,
-    Ed25519,
-}
-
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum KeyError {
     #[error(transparent)]

@@ -2,9 +2,6 @@ use crate::key::{Key, KeyError, PrivateKey, PublicKey};
 use jose::jwk::Jwk;
 use std::sync::Arc;
 
-// #[derive(Clone, PartialEq, Debug)]
-// pub struct PrivateJwk(pub(crate) Jwk);
-
 impl PrivateKey for Jwk {
     /// Derive a [`PublicKey`] from the target [`PrivateKey`].
     fn to_public(&self) -> Result<Arc<dyn PublicKey>, KeyError> {
@@ -21,18 +18,18 @@ impl PrivateKey for Jwk {
 
 impl Key for Jwk {
     fn jwk(&self) -> &Jwk {
-        &self
+        self
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::key::KeyType;
+    use jose::jwk::Curve;
 
     #[test]
     fn test_to_public() {
-        let private_key = Arc::new(Jwk::generate_private_key(KeyType::Ed25519.into()).unwrap());
+        let private_key = Arc::new(Jwk::generate_private_key(Curve::Ed25519.into()).unwrap());
         let public_key = private_key.to_public().unwrap();
 
         assert_eq!(
@@ -50,7 +47,7 @@ mod tests {
 
     #[test]
     fn test_sign() {
-        let private_key = Arc::new(Jwk::generate_private_key(KeyType::Ed25519.into()).unwrap());
+        let private_key = Arc::new(Jwk::generate_private_key(Curve::Ed25519.into()).unwrap());
         let payload: &[u8] = b"hello world";
         let signature = private_key.sign(payload).unwrap();
 

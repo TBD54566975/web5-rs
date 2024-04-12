@@ -1,9 +1,8 @@
-use jose::jwk::{Curve, Jwk};
-
-use crate::key::{KeyType, PublicKey};
+use crate::key::PublicKey;
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
+use jose::jwk::{Curve, Jwk};
 use std::sync::Arc;
 
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
@@ -26,20 +25,10 @@ impl LocalKeyManager {
     }
 }
 
-impl From<KeyType> for Curve {
-    fn from(key_type: KeyType) -> Self {
-        match key_type {
-            KeyType::Secp256k1 => Curve::Secp256k1,
-            KeyType::Ed25519 => Curve::Ed25519,
-        }
-    }
-}
-
 impl KeyManager for LocalKeyManager {
-    fn generate_private_key(&self, key_type: KeyType) -> Result<String, KeyManagerError> {
+    fn generate_private_key(&self, curve: Curve) -> Result<String, KeyManagerError> {
         let private_key = Arc::new(
-            Jwk::generate_private_key(key_type.into())
-                .map_err(|_| KeyManagerError::KeyGenerationFailed)?,
+            Jwk::generate_private_key(curve).map_err(|_| KeyManagerError::KeyGenerationFailed)?,
         );
         let public_key = private_key
             .to_public()
@@ -84,11 +73,11 @@ mod tests {
         let key_manager = LocalKeyManager::new_in_memory();
 
         key_manager
-            .generate_private_key(KeyType::Ed25519)
+            .generate_private_key(Curve::Ed25519)
             .expect("Failed to generate Ed25519 key");
 
         key_manager
-            .generate_private_key(KeyType::Secp256k1)
+            .generate_private_key(Curve::Secp256k1)
             .expect("Failed to generate secp256k1 key");
     }
 
@@ -96,7 +85,7 @@ mod tests {
     fn test_get_public_key() {
         let key_manager = LocalKeyManager::new_in_memory();
 
-        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+        let key_alias = key_manager.generate_private_key(Curve::Ed25519).unwrap();
 
         key_manager
             .get_public_key(&key_alias)
@@ -107,7 +96,7 @@ mod tests {
     #[test]
     fn test_sign() {
         let key_manager = LocalKeyManager::new_in_memory();
-        let key_alias = key_manager.generate_private_key(KeyType::Ed25519).unwrap();
+        let key_alias = key_manager.generate_private_key(Curve::Ed25519).unwrap();
 
         // Sign a payload
         let payload: &[u8] = b"hello world";

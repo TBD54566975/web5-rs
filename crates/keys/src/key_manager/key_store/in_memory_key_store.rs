@@ -51,13 +51,12 @@ impl Default for InMemoryKeyStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::key::KeyType;
-    use jose::jwk::Jwk;
+    use jose::jwk::{Curve, Jwk};
 
     #[test]
     fn test_insert_get() {
         let key_alias = "key-alias";
-        let private_key = Arc::new(Jwk::generate_private_key(KeyType::Secp256k1.into()).unwrap());
+        let private_key = Arc::new(Jwk::generate_private_key(Curve::Secp256k1.into()).unwrap());
 
         let key_store = InMemoryKeyStore::new();
         key_store.insert(key_alias, private_key.clone()).unwrap();
