@@ -7,7 +7,7 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-base64 = "0.22.0"
+base64 = { workspace = true }
 josekit = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

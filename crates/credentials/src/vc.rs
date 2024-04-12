@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use dids::bearer::{BearerDid, KeySelector};
 use josekit::{jws::JwsHeader, jwt::JwtPayload};
-use jwt::jwt::{sign_jwt, JwtError};
+use jwt::jwt::{encode, JwtError};
 use keys::key::KeyError;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::SystemTime};
@@ -134,7 +134,7 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
         let mut header = JwsHeader::new();
         header.set_token_type("JWT");
 
-        let jwt = sign_jwt(bearer_did, key_selector, &claims, &mut header)?;
+        let jwt = encode(bearer_did, key_selector, &claims, &mut header)?;
         Ok(jwt)
     }
 
@@ -145,21 +145,19 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
+    use super::*;
     use dids::bearer::VerificationMethodType;
     use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
     use dids::method::Method;
     use keys::key::Curve;
     use keys::key_manager::local_key_manager::LocalKeyManager;
-
-    use super::*;
+    use std::sync::Arc;
 
     #[test]
     fn test_everythang() {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
-            curve: Curve::Ed25519,
+            curve: Curve::Secp256k1,
         };
         let bearer_did = DidJwk::create(key_manager, options).unwrap();
 
