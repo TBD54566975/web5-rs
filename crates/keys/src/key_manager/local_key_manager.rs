@@ -1,8 +1,8 @@
-use crate::key::PublicKey;
+use crate::key::jwk::generate_private_jwk;
+use crate::key::{Curve, PrivateKey, PublicKey};
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
-use jose::jwk::{Curve, Jwk};
 use std::sync::Arc;
 
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
@@ -27,9 +27,7 @@ impl LocalKeyManager {
 
 impl KeyManager for LocalKeyManager {
     fn generate_private_key(&self, curve: Curve) -> Result<String, KeyManagerError> {
-        let private_key = Arc::new(
-            Jwk::generate_private_key(curve).map_err(|_| KeyManagerError::KeyGenerationFailed)?,
-        );
+        let private_key = generate_private_jwk(curve)?;
         let public_key = private_key
             .to_public()
             .map_err(|_| KeyManagerError::KeyGenerationFailed)?;
