@@ -1,6 +1,10 @@
 {
   "folders": [
     {
+      "name": "root",
+      "path": "."
+    },
+    {
       "path": "crates/credentials"
     },
     {
@@ -11,9 +15,6 @@
     },
     {
       "path": "crates/keys"
-    },
-    {
-      "path": "."
     }
   ],
   "settings": {

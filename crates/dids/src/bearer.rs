@@ -42,7 +42,6 @@ pub enum BearerDidError {
 }
 
 impl BearerDid {
-    // todo support optional selector
     pub fn get_jws_signer(&self, selector: SignerSelector) -> Result<JwsSigner, BearerDidError> {
         let key_id = match selector {
             SignerSelector::KeyId(key_id) => key_id,
