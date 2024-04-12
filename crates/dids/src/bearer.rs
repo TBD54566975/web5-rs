@@ -1,5 +1,8 @@
-use crate::{document::Document, identifier::Identifier};
-use jose::jws_signer::{JwsSigner, JwsSignerError};
+use crate::{
+    document::{Document, VerificationMethod},
+    identifier::Identifier,
+};
+use josekit::jws::JwsSigner;
 use keys::{
     key::KeyError,
     key_manager::{KeyManager, KeyManagerError},
@@ -23,7 +26,7 @@ pub enum VerificationMethodType {
 
 // Define an enum to encapsulate the selection criteria
 #[derive(Debug, Clone, PartialEq)]
-pub enum SignerSelector {
+pub enum KeySelector {
     KeyId(String),
     MethodType(VerificationMethodType),
 }
@@ -34,26 +37,27 @@ pub enum BearerDidError {
     #[error("verfication method not found")]
     VerificationMethodNotFound,
     #[error(transparent)]
-    SignerError(#[from] JwsSignerError),
-    #[error(transparent)]
     KeyManagerError(#[from] KeyManagerError),
     #[error(transparent)]
     KeyError(#[from] KeyError),
 }
 
 impl BearerDid {
-    pub fn get_jws_signer(&self, selector: SignerSelector) -> Result<JwsSigner, BearerDidError> {
-        let key_id = match selector {
-            SignerSelector::KeyId(key_id) => key_id,
-            SignerSelector::MethodType(method_type) => {
+    pub fn get_verification_method(
+        &self,
+        key_selector: &KeySelector,
+    ) -> Result<VerificationMethod, BearerDidError> {
+        let key_id = match key_selector {
+            KeySelector::KeyId(key_id) => key_id.clone(),
+            KeySelector::MethodType(method_type) => {
                 let get_first_method =
                     |methods: &Option<Vec<String>>| -> Result<String, BearerDidError> {
                         methods
                             .as_ref()
                             .ok_or(BearerDidError::VerificationMethodNotFound)?
                             .first()
+                            .cloned()
                             .ok_or(BearerDidError::VerificationMethodNotFound)
-                            .map(|s| s.to_string())
                     };
 
                 match method_type {
@@ -69,36 +73,41 @@ impl BearerDid {
                     VerificationMethodType::CapabilityInvocation => {
                         get_first_method(&self.document.capability_invocation)?
                     }
-                    VerificationMethodType::VerificationMethod => self
-                        .document
-                        .verification_method
-                        .first()
-                        .ok_or(BearerDidError::VerificationMethodNotFound)?
-                        .id
-                        .clone(),
+                    VerificationMethodType::VerificationMethod => {
+                        self.document
+                            .verification_method
+                            .first()
+                            .cloned()
+                            .ok_or(BearerDidError::VerificationMethodNotFound)?
+                            .id
+                    }
                 }
             }
         };
 
-        let identifier =
-            Identifier::parse(&key_id).map_err(|_| BearerDidError::VerificationMethodNotFound)?;
-        let key_alias = identifier
-            .fragment
+        let verification_method = self
+            .document
+            .verification_method
+            .iter()
+            .find(|method| method.id == *key_id)
+            .cloned()
             .ok_or(BearerDidError::VerificationMethodNotFound)?;
 
-        let public_key = self
-            .key_manager
-            .get_public_key(&key_alias)?
-            .ok_or(KeyManagerError::SigningKeyNotFound)?;
-        let algorithm = public_key.algorithm()?;
+        Ok(verification_method)
+    }
 
-        let key_manager_clone = self.key_manager.clone();
-        let signer_func = Arc::new(move |key_id: &str, message: &[u8]| {
-            key_manager_clone
-                .sign(key_id, message)
-                .map_err(JwsSignerError::from)
-        });
+    pub fn get_jws_signer(
+        &self,
+        key_selector: &KeySelector,
+    ) -> Result<Arc<dyn JwsSigner>, BearerDidError> {
+        let verification_method = self.get_verification_method(key_selector)?;
+        let key_id = &verification_method.id;
 
-        Ok(JwsSigner::new(algorithm, key_alias, signer_func))
+        let key_alias = key_id
+            .split_once('#')
+            .map_or(&key_id[..], |(_, after)| after);
+        let signer = self.key_manager.get_jws_signer(key_alias)?;
+
+        Ok(signer)
     }
 }

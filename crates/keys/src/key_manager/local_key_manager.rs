@@ -1,8 +1,12 @@
-use crate::key::PublicKey;
+use josekit::jws::alg::ecdsa::EcdsaJwsAlgorithm;
+use josekit::jws::alg::eddsa::EddsaJwsAlgorithm;
+use josekit::jws::JwsSigner;
+
+use crate::key::jwk::generate_private_jwk;
+use crate::key::{Curve, KeyError, PrivateKey, PublicKey};
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
-use jose::jwk::{Curve, Jwk};
 use std::sync::Arc;
 
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
@@ -27,9 +31,7 @@ impl LocalKeyManager {
 
 impl KeyManager for LocalKeyManager {
     fn generate_private_key(&self, curve: Curve) -> Result<String, KeyManagerError> {
-        let private_key = Arc::new(
-            Jwk::generate_private_key(curve).map_err(|_| KeyManagerError::KeyGenerationFailed)?,
-        );
+        let private_key = generate_private_jwk(curve)?;
         let public_key = private_key
             .to_public()
             .map_err(|_| KeyManagerError::KeyGenerationFailed)?;
@@ -61,6 +63,29 @@ impl KeyManager for LocalKeyManager {
         let signed_payload = private_key.sign(payload)?;
 
         Ok(signed_payload)
+    }
+
+    fn get_jws_signer(&self, key_alias: &str) -> Result<Arc<dyn JwsSigner>, KeyManagerError> {
+        let private_key = self
+            .key_store
+            .get(key_alias)?
+            .ok_or(KeyManagerError::SigningKeyNotFound)?;
+
+        let signer: Arc<dyn JwsSigner> = match private_key.jwk()?.curve() {
+            Some("secp256k1") => Arc::new(
+                EcdsaJwsAlgorithm::Es256k
+                    .signer_from_jwk(&private_key.jwk()?)
+                    .map_err(|e| KeyError::JoseError(e.to_string()))?,
+            ),
+            Some("Ed25519") => Arc::new(
+                EddsaJwsAlgorithm::Eddsa
+                    .signer_from_jwk(&private_key.jwk()?)
+                    .map_err(|e| KeyError::JoseError(e.to_string()))?,
+            ),
+            _ => return Err(KeyManagerError::KeyError(KeyError::CurveNotFound)),
+        };
+
+        Ok(signer)
     }
 }
 

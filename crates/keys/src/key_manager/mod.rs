@@ -1,10 +1,9 @@
 pub mod key_store;
 pub mod local_key_manager;
 
-use crate::key::{KeyError, PublicKey};
+use crate::key::{Curve, KeyError, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
-use jose::jwk::Curve;
-use jose::jws_signer::JwsSignerError;
+use josekit::jws::JwsSigner;
 use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
@@ -17,12 +16,6 @@ pub enum KeyManagerError {
     KeyError(#[from] KeyError),
     #[error(transparent)]
     KeyStoreError(#[from] KeyStoreError),
-}
-
-impl From<KeyManagerError> for JwsSignerError {
-    fn from(value: KeyManagerError) -> Self {
-        Self::UnknownError(value.to_string())
-    }
 }
 
 /// A key management trait for generating, storing, and utilizing keys private keys and their
@@ -45,4 +38,6 @@ pub trait KeyManager: Send + Sync {
 
     /// Signs the provided payload using the private key identified by the provided `key_alias`.
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
+
+    fn get_jws_signer(&self, key_alias: &str) -> Result<Arc<dyn JwsSigner>, KeyManagerError>;
 }
