@@ -51,4 +51,80 @@ pub struct Service {
     pub service_endpoint: String,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum VerificationMethodType {
+    VerificationMethod,
+    AssertionMethod,
+    Authentication,
+    CapabilityDelegation,
+    CapabilityInvocation,
+}
+
+// Define an enum to encapsulate the selection criteria
+#[derive(Debug, Clone, PartialEq)]
+pub enum KeySelector {
+    KeyId(String),
+    MethodType(VerificationMethodType),
+}
+
+// todo more precise errors
+#[derive(thiserror::Error, Debug, Clone, PartialEq)]
+pub enum DocumentError {
+    #[error("verfication method not found")]
+    VerificationMethodNotFound,
+}
+
+impl Document {
+    pub fn get_verification_method(
+        &self,
+        key_selector: &KeySelector,
+    ) -> Result<VerificationMethod, DocumentError> {
+        let key_id = match key_selector {
+            KeySelector::KeyId(key_id) => key_id.clone(),
+            KeySelector::MethodType(method_type) => {
+                let get_first_method =
+                    |methods: &Option<Vec<String>>| -> Result<String, DocumentError> {
+                        methods
+                            .as_ref()
+                            .ok_or(DocumentError::VerificationMethodNotFound)?
+                            .first()
+                            .cloned()
+                            .ok_or(DocumentError::VerificationMethodNotFound)
+                    };
+
+                match method_type {
+                    VerificationMethodType::AssertionMethod => {
+                        get_first_method(&self.assertion_method)?
+                    }
+                    VerificationMethodType::Authentication => {
+                        get_first_method(&self.authentication)?
+                    }
+                    VerificationMethodType::CapabilityDelegation => {
+                        get_first_method(&self.capability_delegation)?
+                    }
+                    VerificationMethodType::CapabilityInvocation => {
+                        get_first_method(&self.capability_invocation)?
+                    }
+                    VerificationMethodType::VerificationMethod => {
+                        self.verification_method
+                            .first()
+                            .cloned()
+                            .ok_or(DocumentError::VerificationMethodNotFound)?
+                            .id
+                    }
+                }
+            }
+        };
+
+        let verification_method = self
+            .verification_method
+            .iter()
+            .find(|method| method.id == *key_id)
+            .cloned()
+            .ok_or(DocumentError::VerificationMethodNotFound)?;
+
+        Ok(verification_method)
+    }
+}
+
 // todo tests for serialization which enforce web5-spec data types

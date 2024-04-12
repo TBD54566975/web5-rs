@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
-use dids::bearer::{BearerDid, KeySelector};
+use dids::{bearer::BearerDid, document::KeySelector};
 use jwt::jwt::{sign_jwt, Claims, JwtError};
 use keys::key::KeyError;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, time::SystemTime};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
@@ -140,7 +140,7 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use dids::bearer::VerificationMethodType;
+    use dids::document::VerificationMethodType;
     use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
     use dids::method::Method;
     use keys::key::Curve;

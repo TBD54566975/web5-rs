@@ -1,6 +1,9 @@
 use crate::jws::{sign_jws, Header, JwsError, JwsSignOptions, JwsString};
 use base64::{engine::general_purpose, Engine as _};
-use dids::bearer::{BearerDid, BearerDidError, KeySelector};
+use dids::{
+    bearer::{BearerDid, BearerDidError},
+    document::KeySelector,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice, to_string, Value};
 
@@ -107,7 +110,7 @@ impl JwtString for String {
     }
 
     fn verify(&self) -> Result<Decoded, JwtError> {
-        let decoded = JwtString::decode(self)?;
+        // let decoded = JwtString::decode(self)?;
 
         // todo call jws.verify()
 
@@ -134,13 +137,10 @@ pub fn sign_jwt(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use dids::{
-        bearer::VerificationMethodType,
-        method::{
-            jwk::{DidJwk, DidJwkCreateOptions},
-            Method,
-        },
-    };
+    use dids::{document::VerificationMethodType, method::{
+        jwk::{DidJwk, DidJwkCreateOptions},
+        Method,
+    }};
     use keys::{key::Curve, key_manager::local_key_manager::LocalKeyManager};
     use std::sync::Arc;
 

@@ -13,6 +13,7 @@ repository = "https://github.com/TBD54566975/web5-rs.git"
 license-file = "LICENSE"
 
 [workspace.dependencies]
+async-trait = "0.1.74"
 base64 = "0.22.0"
 chrono = { version = "0.4.37", features = ["std"] }
 josekit = "0.8.6"

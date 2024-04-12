@@ -1,5 +1,8 @@
 use base64::{engine::general_purpose, Engine as _};
-use dids::bearer::{BearerDid, BearerDidError, KeySelector};
+use dids::{
+    bearer::{BearerDid, BearerDidError},
+    document::{DocumentError, KeySelector},
+};
 use josekit::JoseError;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice, to_string};
@@ -16,6 +19,8 @@ pub enum JwsError {
     JoseError(String),
     #[error("algorithm not found {0}")]
     AlgorithmNotFound(String),
+    #[error(transparent)]
+    DocumentError(#[from] DocumentError),
 }
 
 impl From<JoseError> for JwsError {
@@ -104,7 +109,9 @@ impl JwsString for String {
     }
 
     fn verify(&self) -> Result<Decoded, JwsError> {
-        let decoded = self.decode()?;
+        // let decoded = self.decode()?;
+        // let resolution_result = Resolver::resolve_uri(&decoded.header.kid);
+        // let public_key_jwk = resolution_result
 
         // TODO cryptographic verification
         // resolve did
@@ -122,6 +129,7 @@ impl JwsString for String {
 
         // verifier.verify(payload, signature).map_err(KeyError::from)
 
+        // Ok()
         unimplemented!()
     }
 }
@@ -138,7 +146,7 @@ pub fn sign_jws(
     options: JwsSignOptions,
 ) -> Result<String, JwsError> {
     // todo options
-    let verification_method = bearer_did.get_verification_method(key_selector)?;
+    let verification_method = bearer_did.document.get_verification_method(key_selector)?;
     let signer = bearer_did.get_jws_signer(key_selector)?;
 
     let kid = verification_method.id;
