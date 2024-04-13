@@ -44,6 +44,7 @@ impl CredentialSubject for CredentialSubjectClaims {
     }
 }
 
+#[derive(Default)]
 pub struct CreateOptions {
     pub id: Option<String>,
     pub contexts: Option<Vec<String>>,
@@ -119,11 +120,11 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
             issuer: Some(issuer.clone()),
             jti: Some(self.id.clone()),
             subject: Some(self.credential_subject.get_id()),
-            // not_before: Some(SystemTime::from(Utc::now())),
-            // expiration: match self.expiration_date {
-            //     Some(exp) => Some(SystemTime::from(exp)),
-            //     None => None,
-            // },
+            not_before: Some(self.issuance_date.timestamp()),
+            expiration: match self.expiration_date {
+                Some(exp) => Some(exp.timestamp()),
+                None => None,
+            },
             vc: Some(serde_json::to_value(self).map_err(|_| CredentialError::SigningFailed)?),
             ..Default::default()
         };
@@ -140,6 +141,7 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Duration;
     use dids::document::VerificationMethodType;
     use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
     use dids::method::Method;
@@ -158,8 +160,15 @@ mod tests {
         let mut claims = CredentialSubjectClaims::new();
         claims.set_id("subject_id-something-something-testing123".to_string());
 
-        let mut vc = DataModel::create(claims, &bearer_did.identifier.uri, None)
-            .expect("Failed to create DataModel");
+        let mut vc = DataModel::create(
+            claims,
+            &bearer_did.identifier.uri,
+            Some(CreateOptions {
+                expiration_date: Some(Utc::now() + Duration::minutes(30)),
+                ..Default::default()
+            }),
+        )
+        .expect("Failed to create DataModel");
 
         let signed_jwt = vc
             .encode_vcjwt(

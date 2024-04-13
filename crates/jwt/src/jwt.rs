@@ -1,4 +1,5 @@
 use crate::jws::{sign_jws, Header, JwsError, JwsSignOptions, JwsString};
+use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
 use dids::{
     bearer::{BearerDid, BearerDidError},
@@ -84,11 +85,13 @@ pub struct Decoded {
     pub parts: Vec<String>,
 }
 
+#[async_trait]
 pub trait JwtString {
     fn decode(&self) -> Result<Decoded, JwtError>;
-    fn verify(&self) -> Result<Decoded, JwtError>;
+    async fn verify(&self) -> Result<Decoded, JwtError>;
 }
 
+#[async_trait]
 impl JwtString for String {
     fn decode(&self) -> Result<Decoded, JwtError> {
         let parts: Vec<&str> = self.split('.').collect();
@@ -109,12 +112,12 @@ impl JwtString for String {
         })
     }
 
-    fn verify(&self) -> Result<Decoded, JwtError> {
-        // let decoded = JwtString::decode(self)?;
+    async fn verify(&self) -> Result<Decoded, JwtError> {
+        let decoded = JwtString::decode(self)?;
 
-        // todo call jws.verify()
+        JwsString::verify(self).await?;
 
-        unimplemented!()
+        Ok(decoded)
     }
 }
 
@@ -137,10 +140,13 @@ pub fn sign_jwt(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use dids::{document::VerificationMethodType, method::{
-        jwk::{DidJwk, DidJwkCreateOptions},
-        Method,
-    }};
+    use dids::{
+        document::VerificationMethodType,
+        method::{
+            jwk::{DidJwk, DidJwkCreateOptions},
+            Method,
+        },
+    };
     use keys::{key::Curve, key_manager::local_key_manager::LocalKeyManager};
     use std::sync::Arc;
 

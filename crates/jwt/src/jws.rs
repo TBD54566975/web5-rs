@@ -1,9 +1,19 @@
+use std::sync::Arc;
+
+use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
 use dids::{
     bearer::{BearerDid, BearerDidError},
     document::{DocumentError, KeySelector},
+    resolver::Resolver,
 };
-use josekit::JoseError;
+use josekit::{
+    jws::{
+        alg::{ecdsa::EcdsaJwsAlgorithm, eddsa::EddsaJwsAlgorithm},
+        JwsVerifier,
+    },
+    JoseError,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice, to_string};
 
@@ -78,11 +88,13 @@ pub struct Decoded {
     pub parts: Vec<String>,
 }
 
+#[async_trait]
 pub trait JwsString {
     fn decode(&self) -> Result<Decoded, JwsError>;
-    fn verify(&self) -> Result<Decoded, JwsError>;
+    async fn verify(&self) -> Result<Decoded, JwsError>;
 }
 
+#[async_trait]
 impl JwsString for String {
     fn decode(&self) -> Result<Decoded, JwsError> {
         let parts: Vec<&str> = self.split('.').collect();
@@ -108,29 +120,30 @@ impl JwsString for String {
         })
     }
 
-    fn verify(&self) -> Result<Decoded, JwsError> {
-        // let decoded = self.decode()?;
-        // let resolution_result = Resolver::resolve_uri(&decoded.header.kid);
-        // let public_key_jwk = resolution_result
+    async fn verify(&self) -> Result<Decoded, JwsError> {
+        let decoded = self.decode()?;
+        let key_id = decoded.header.kid.clone();
+        let resolution_result = Resolver::resolve_uri(&key_id).await;
+        let verification_method = match resolution_result.did_document {
+            Some(document) => document.get_verification_method(&KeySelector::KeyId(key_id)),
+            None => {
+                return Err(JwsError::DocumentError(
+                    DocumentError::VerificationMethodNotFound,
+                ))
+            }
+        }?;
+        let public_key = verification_method.public_key_jwk.clone();
 
-        // TODO cryptographic verification
-        // resolve did
-        // select public key jwk from did
-        // pass into functions below
+        let alg = decoded.header.alg.clone();
+        let verifier: Arc<dyn JwsVerifier> = match alg.as_str() {
+            "ES256K" => Arc::new(EcdsaJwsAlgorithm::Es256k.verifier_from_jwk(&public_key)?),
+            "EdDSA" => Arc::new(EddsaJwsAlgorithm::Eddsa.verifier_from_jwk(&public_key)?),
+            _ => return Err(JwsError::AlgorithmNotFound(alg)),
+        };
 
-        //   let verifier: Box<dyn JwsVerifier> = match decoded.header.alg {
-        //       &"ES256K" => &EcdsaJwsAlgorithm::Es256k,
-        //       &"EdDSA" => &EddsaJwsAlgorithm::Eddsa,
+        verifier.verify(&decoded.payload, &decoded.signature)?;
 
-        //     Some("secp256k1") => Box::new(EcdsaJwsAlgorithm::Es256k.verifier_from_jwk(&self.0)?),
-        //     Some("Ed25519") => Box::new(EddsaJwsAlgorithm::Eddsa.verifier_from_jwk(&self.0)?),
-        //     _ => return Err(KeyError::AlgorithmNotFound),
-        // };
-
-        // verifier.verify(payload, signature).map_err(KeyError::from)
-
-        // Ok()
-        unimplemented!()
+        Ok(decoded)
     }
 }
 
@@ -145,7 +158,6 @@ pub fn sign_jws(
     encoded_payload: String,
     options: JwsSignOptions,
 ) -> Result<String, JwsError> {
-    // todo options
     let verification_method = bearer_did.document.get_verification_method(key_selector)?;
     let signer = bearer_did.get_jws_signer(key_selector)?;
 
