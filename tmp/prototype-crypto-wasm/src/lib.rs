@@ -1,11 +1,5 @@
 use base64::{engine::general_purpose, Engine as _};
 use ed25519_dalek::{SigningKey, SECRET_KEY_LENGTH};
-use rand::{rngs::OsRng, RngCore};
-// use secp256k1::Secp256k1;
-// use k256::{
-//     ecdsa::{signature::Signer, SigningKey as k256SigningKey},
-//     EncodedPoint,
-// };
 use k256::{
     ecdsa::{
         signature::{Signer, Verifier},
@@ -13,6 +7,8 @@ use k256::{
     },
     EncodedPoint,
 };
+use rand::{rngs::OsRng, RngCore};
+use secp256k1::Secp256k1;
 use serde_json::json;
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -38,24 +34,24 @@ pub fn prove_ed25519() {
     println!("JWK: {}", jwk.to_string());
 }
 
-// #[wasm_bindgen]
-// pub fn prove_secp256k1() {
-//     let secp = Secp256k1::new();
-//     let (secret_key, public_key) = secp.generate_keypair(&mut OsRng);
+#[wasm_bindgen]
+pub fn prove_bitcoin_secp256k1() {
+    let secp = Secp256k1::new();
+    let (secret_key, public_key) = secp.generate_keypair(&mut OsRng);
 
-//     // Serialize public key in uncompressed form
-//     let serialized_pub_key = public_key.serialize_uncompressed(); // 65 bytes: 0x04, x (32 bytes), y (32 bytes)
+    // Serialize public key in uncompressed form
+    let serialized_pub_key = public_key.serialize_uncompressed(); // 65 bytes: 0x04, x (32 bytes), y (32 bytes)
 
-//     let jwk = json!({
-//         "kty": "EC",
-//         "crv": "secp256k1",
-//         "x": general_purpose::URL_SAFE_NO_PAD.encode(&serialized_pub_key[1..33]), // Skip the first byte (0x04)
-//         "y": general_purpose::URL_SAFE_NO_PAD.encode(&serialized_pub_key[33..65]),
-//         "d": general_purpose::URL_SAFE_NO_PAD.encode(&secret_key.secret_bytes())
-//     });
+    let jwk = json!({
+        "kty": "EC",
+        "crv": "secp256k1",
+        "x": general_purpose::URL_SAFE_NO_PAD.encode(&serialized_pub_key[1..33]), // Skip the first byte (0x04)
+        "y": general_purpose::URL_SAFE_NO_PAD.encode(&serialized_pub_key[33..65]),
+        "d": general_purpose::URL_SAFE_NO_PAD.encode(&secret_key.secret_bytes())
+    });
 
-//     println!("JWK: {}", jwk);
-// }
+    println!("JWK: {}", jwk);
+}
 
 #[wasm_bindgen]
 pub fn prove_secp256k1() {
@@ -100,5 +96,10 @@ mod tests {
     #[test]
     fn secp256k1() {
         prove_secp256k1()
+    }
+
+    #[test]
+    fn bitcoin_secp256k1() {
+        prove_bitcoin_secp256k1()
     }
 }
