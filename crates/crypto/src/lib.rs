@@ -3,6 +3,7 @@ pub mod secp256k1;
 
 use base64::DecodeError;
 use jwk::Jwk;
+use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum CryptoError {
@@ -26,6 +27,8 @@ pub enum Curve {
     Secp256k1,
     Ed25519,
 }
+
+pub type Signer = Arc<dyn Fn(&[u8]) -> Result<Vec<u8>, CryptoError> + Send + Sync>;
 
 pub trait CurveOperations {
     fn generate() -> Result<Jwk, CryptoError>;

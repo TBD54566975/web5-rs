@@ -12,21 +12,49 @@ pub struct Jwk {
     pub y: Option<String>,
 }
 
+#[derive(thiserror::Error, Debug, Clone, PartialEq)]
+pub enum JwkError {
+    #[error("thumbprint computation failed {0}")]
+    ThumprintFailed(String),
+}
+
 impl Jwk {
-    pub fn compute_thumbprint(&self) -> Result<String, serde_json::Error> {
-        let thumbprint_payload = serde_json::json!({
-            "crv": self.crv,
-            "kty": self.kty,
-            "x": self.x,
-            "y": self.y,
-        });
+    pub fn compute_thumbprint(&self) -> Result<String, JwkError> {
+        let thumbprint_json_string = match self.kty.as_str() {
+            "EC" => format!(
+                r#"{{"crv":"{}","kty":"EC","x":"{}","y":"{}"}}"#,
+                self.crv,
+                self.x,
+                self.y
+                    .as_ref()
+                    .ok_or(JwkError::ThumprintFailed("missing y".to_string()))?,
+            ),
+            "OKP" => format!(r#"{{"crv":"{}","kty":"OKP","x":"{}"}}"#, self.crv, self.x,),
+            _ => {
+                return Err(JwkError::ThumprintFailed(format!(
+                    "kty not supported {0}",
+                    self.kty
+                )))
+            }
+        };
+        let mut hasher = Sha256::new();
+        hasher.update(thumbprint_json_string);
 
-        let bytes = serde_json::to_vec(&thumbprint_payload)?;
-
-        let digest = Sha256::digest(&bytes);
-        let thumbprint = general_purpose::URL_SAFE_NO_PAD.encode(&digest);
+        let digest = hasher.finalize();
+        let thumbprint = general_purpose::URL_SAFE_NO_PAD.encode(digest);
 
         Ok(thumbprint)
+    }
+
+    pub fn to_public(&self) -> Result<Self, JwkError> {
+        Ok(Jwk {
+            alg: self.alg.clone(),
+            kty: self.kty.clone(),
+            crv: self.crv.clone(),
+            x: self.x.clone(),
+            y: self.y.clone(),
+            ..Default::default()
+        })
     }
 }
 

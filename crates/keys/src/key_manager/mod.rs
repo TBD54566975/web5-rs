@@ -1,9 +1,9 @@
 pub mod key_store;
 pub mod local_key_manager;
 
-use crate::key::{Curve, KeyError, PublicKey};
+use crate::key::{KeyError, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
-use josekit::jws::JwsSigner;
+use crypto::{Curve, Signer};
 use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
@@ -31,13 +31,10 @@ pub trait KeyManager: Send + Sync {
     fn generate_private_key(&self, curve: Curve) -> Result<String, KeyManagerError>;
 
     /// Returns the public key associated with the provided `key_alias`, if one exists.
-    fn get_public_key(
-        &self,
-        key_alias: &str,
-    ) -> Result<Arc<dyn PublicKey>, KeyManagerError>;
+    fn get_public_key(&self, key_alias: &str) -> Result<Arc<dyn PublicKey>, KeyManagerError>;
 
     /// Signs the provided payload using the private key identified by the provided `key_alias`.
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
 
-    fn get_jws_signer(&self, key_alias: &str) -> Result<Arc<dyn JwsSigner>, KeyManagerError>;
+    fn get_signer(&self, key_alias: &str) -> Result<Signer, KeyManagerError>;
 }

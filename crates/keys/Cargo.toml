@@ -8,6 +8,7 @@ license-file.workspace = true
 
 [dependencies]
 base64 = { workspace = true }
+crypto = { path = "../crypto" }
 josekit = { workspace = true }
 jwk = { path = "../jwk" }
 serde = { workspace = true }
