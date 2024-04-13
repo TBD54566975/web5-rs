@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
 use dids::{
@@ -16,6 +14,7 @@ use josekit::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice, to_string};
+use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum JwsError {

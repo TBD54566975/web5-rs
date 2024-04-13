@@ -1,13 +1,12 @@
-use std::sync::Arc;
-
 use crate::{
     bearer::BearerDid,
     method::{Method, MethodError, ResolutionResult},
 };
 use async_trait::async_trait;
-use keys::key_manager::KeyManager;
 use did_web::DIDWeb as SpruceDidWebMethod;
+use keys::key_manager::KeyManager;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
+use std::sync::Arc;
 
 /// Concrete implementation for a did:web DID
 pub struct DidWeb {}
