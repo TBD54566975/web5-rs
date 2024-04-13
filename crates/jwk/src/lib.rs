@@ -2,14 +2,14 @@ use base64::{engine::general_purpose, Engine};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct Jwk {
-    alg: Option<String>,
-    kty: Option<String>,
-    crv: Option<String>,
-    d: Option<String>,
-    x: Option<String>,
-    y: Option<String>,
+    pub alg: String,
+    pub kty: String,
+    pub crv: String,
+    pub d: Option<String>,
+    pub x: String,
+    pub y: Option<String>,
 }
 
 impl Jwk {
@@ -37,11 +37,11 @@ mod tests {
     #[test]
     fn test_compute_thumbprint() {
         let jwk = Jwk {
-            alg: Some("".to_string()),
-            kty: Some("EC".to_string()),
-            crv: Some("secp256k1".to_string()),
+            alg: "".to_string(),
+            kty: "EC".to_string(),
+            crv: "secp256k1".to_string(),
             d: Some("".to_string()),
-            x: Some("IP76NWyz81Bk1Zfsbk_ZgTJ57nTMIGM_YKdUlAUKbeY".to_string()),
+            x: "IP76NWyz81Bk1Zfsbk_ZgTJ57nTMIGM_YKdUlAUKbeY".to_string(),
             y: Some("UefbWznggYPo3S17R9hcW5wAmwYoyfFw9xeBbQOacaA".to_string()),
         };
 
