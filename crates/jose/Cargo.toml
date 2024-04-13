@@ -1,5 +1,5 @@
 [package]
-name = "jwt"
+name = "jose"
 version = "0.1.0"
 edition = "2021"
 homepage.workspace = true
@@ -7,7 +7,11 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
+async-trait = { workspace = true }
+base64 = { workspace = true }
 dids = { path = "../dids" }
 josekit = { workspace = true }
 keys = { path = "../keys" }
+serde = { workspace = true }
+serde_json = { workspace = true }
 thiserror = { workspace = true }

@@ -7,7 +7,7 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-async-trait = "0.1.74"
+async-trait = { workspace = true }
 keys = { path = "../keys" }
 did-jwk = "0.1.1"
 did-web = "0.2.2"

@@ -11,7 +11,7 @@
       "path": "crates/dids"
     },
     {
-      "path": "crates/jwt"
+      "path": "crates/jose"
     },
     {
       "path": "crates/keys"
