@@ -71,3 +71,49 @@ impl CurveOperations for Secp256k1 {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_keys() {
+        let jwk = Secp256k1::generate().unwrap();
+        assert_eq!(jwk.alg, "ES256K");
+        assert_eq!(jwk.kty, "EC");
+        assert_eq!(jwk.crv, "secp256k1");
+        assert!(jwk.x.len() > 0);
+        assert!(jwk.y.as_ref().unwrap().len() > 0);
+        assert!(jwk.d.as_ref().unwrap().len() > 0);
+    }
+
+    #[test]
+    fn test_sign_and_verify() {
+        let jwk = Secp256k1::generate().unwrap();
+        let payload = b"hello world";
+        let signature = Secp256k1::sign(&jwk, payload).unwrap();
+
+        assert!(Secp256k1::verify(&jwk, payload, &signature).is_ok());
+    }
+
+    #[test]
+    fn test_verification_failure_on_modified_payload() {
+        let jwk = Secp256k1::generate().unwrap();
+        let payload = b"hello world";
+        let signature = Secp256k1::sign(&jwk, payload).unwrap();
+        let modified_payload = b"hello mars";
+
+        assert!(Secp256k1::verify(&jwk, modified_payload, &signature).is_err());
+    }
+
+    #[test]
+    fn test_verification_failure_on_modified_signature() {
+        let jwk = Secp256k1::generate().unwrap();
+        let payload = b"hello world";
+        let mut signature = Secp256k1::sign(&jwk, payload).unwrap();
+        // Introduce an error in the signature
+        signature[0] ^= 0xff;
+
+        assert!(Secp256k1::verify(&jwk, payload, &signature).is_err());
+    }
+}

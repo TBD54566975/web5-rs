@@ -71,3 +71,61 @@ impl CurveOperations for Ed25199 {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_keys() {
+        let jwk = Ed25199::generate().unwrap();
+        assert_eq!(jwk.alg, "EdDSA");
+        assert_eq!(jwk.kty, "OKP");
+        assert_eq!(jwk.crv, "Ed25519");
+        assert_eq!(jwk.x.len(), 43); // base64 URL-safe no padding length of 32 bytes
+        assert_eq!(jwk.d.as_ref().unwrap().len(), 43); // base64 URL-safe no padding length of 32 bytes
+    }
+
+    #[test]
+    fn test_sign_and_verify() {
+        let jwk = Ed25199::generate().unwrap();
+        let payload = b"test payload";
+        let signature = Ed25199::sign(&jwk, payload).unwrap();
+
+        assert!(Ed25199::verify(&jwk, payload, &signature).is_ok());
+    }
+
+    #[test]
+    fn test_sign_with_invalid_private_key_length() {
+        let mut jwk = Ed25199::generate().unwrap();
+        let payload = b"another test payload";
+        // Alter the private key to an invalid length
+        jwk.d = Some(general_purpose::URL_SAFE_NO_PAD.encode(&[0u8; 31])); // one byte short
+
+        assert!(Ed25199::sign(&jwk, payload).is_err());
+    }
+
+    #[test]
+    fn test_verification_failure_with_invalid_public_key_length() {
+        let jwk = Ed25199::generate().unwrap();
+        let payload = b"test payload again";
+        let signature = Ed25199::sign(&jwk, payload).unwrap();
+
+        let mut jwk_modified = jwk.clone();
+        // Alter the public key to an invalid length
+        jwk_modified.x = general_purpose::URL_SAFE_NO_PAD.encode(&[0u8; 31]); // one byte short
+
+        assert!(Ed25199::verify(&jwk_modified, payload, &signature).is_err());
+    }
+
+    #[test]
+    fn test_verification_failure_with_modified_signature() {
+        let jwk = Ed25199::generate().unwrap();
+        let payload = b"yet another test payload";
+        let mut signature = Ed25199::sign(&jwk, payload).unwrap();
+        // Introduce an error in the signature
+        signature[0] ^= 0xff;
+
+        assert!(Ed25199::verify(&jwk, payload, &signature).is_err());
+    }
+}
