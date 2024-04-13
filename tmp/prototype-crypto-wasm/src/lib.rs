@@ -1,9 +1,22 @@
 use base64::{engine::general_purpose, Engine as _};
 use ed25519_dalek::{SigningKey, SECRET_KEY_LENGTH};
 use rand::{rngs::OsRng, RngCore};
-use secp256k1::Secp256k1;
+// use secp256k1::Secp256k1;
+// use k256::{
+//     ecdsa::{signature::Signer, SigningKey as k256SigningKey},
+//     EncodedPoint,
+// };
+use k256::{
+    ecdsa::{
+        signature::{Signer, Verifier},
+        SigningKey as k256SigningKey, VerifyingKey,
+    },
+    EncodedPoint,
+};
 use serde_json::json;
+use wasm_bindgen::prelude::wasm_bindgen;
 
+#[wasm_bindgen]
 pub fn prove_ed25519() {
     let mut csprng = OsRng {};
     let mut secret_key_bytes = [0u8; SECRET_KEY_LENGTH];
@@ -25,22 +38,54 @@ pub fn prove_ed25519() {
     println!("JWK: {}", jwk.to_string());
 }
 
+// #[wasm_bindgen]
+// pub fn prove_secp256k1() {
+//     let secp = Secp256k1::new();
+//     let (secret_key, public_key) = secp.generate_keypair(&mut OsRng);
+
+//     // Serialize public key in uncompressed form
+//     let serialized_pub_key = public_key.serialize_uncompressed(); // 65 bytes: 0x04, x (32 bytes), y (32 bytes)
+
+//     let jwk = json!({
+//         "kty": "EC",
+//         "crv": "secp256k1",
+//         "x": general_purpose::URL_SAFE_NO_PAD.encode(&serialized_pub_key[1..33]), // Skip the first byte (0x04)
+//         "y": general_purpose::URL_SAFE_NO_PAD.encode(&serialized_pub_key[33..65]),
+//         "d": general_purpose::URL_SAFE_NO_PAD.encode(&secret_key.secret_bytes())
+//     });
+
+//     println!("JWK: {}", jwk);
+// }
+
+#[wasm_bindgen]
 pub fn prove_secp256k1() {
-    let secp = Secp256k1::new();
-    let (secret_key, public_key) = secp.generate_keypair(&mut OsRng);
+    // Generate a new signing key (private key)
+    let signing_key = k256SigningKey::random(&mut rand::thread_rng());
+    let verifying_key = signing_key.verifying_key();
 
-    // Serialize public key in uncompressed form
-    let serialized_pub_key = public_key.serialize_uncompressed(); // 65 bytes: 0x04, x (32 bytes), y (32 bytes)
+    // Serialize the public key in uncompressed form
+    let serialized_pub_key = verifying_key.to_encoded_point(false); // false to get uncompressed
 
+    // Extract x and y coordinates
+    let bytes = serialized_pub_key.as_bytes();
+    let x_bytes = &bytes[1..33]; // Skip the first byte (0x04 for uncompressed)
+    let y_bytes = &bytes[33..65];
+
+    // // Encode x, y, and d to base64 URL safe without padding
+    let x_b64 = general_purpose::URL_SAFE_NO_PAD.encode(x_bytes);
+    let y_b64 = general_purpose::URL_SAFE_NO_PAD.encode(y_bytes);
+    let d_b64 = general_purpose::URL_SAFE_NO_PAD.encode(signing_key.to_bytes().as_slice());
+
+    // Create a JWK JSON object
     let jwk = json!({
         "kty": "EC",
         "crv": "secp256k1",
-        "x": general_purpose::URL_SAFE_NO_PAD.encode(&serialized_pub_key[1..33]), // Skip the first byte (0x04)
-        "y": general_purpose::URL_SAFE_NO_PAD.encode(&serialized_pub_key[33..65]),
-        "d": general_purpose::URL_SAFE_NO_PAD.encode(&secret_key.secret_bytes())
+        "x": x_b64,
+        "y": y_b64,
+        "d": d_b64
     });
 
-    println!("JWK: {}", jwk);
+    println!("JWK: {}", jwk.to_string());
 }
 
 #[cfg(test)]

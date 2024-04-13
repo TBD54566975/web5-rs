@@ -2,6 +2,7 @@
 members = [ 
     "bindings/*",
     "crates/*",
+    "tmp/prototype-crypto-wasm"
 ]
 default-members = [
     "crates/*",
