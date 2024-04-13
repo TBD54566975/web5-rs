@@ -3,7 +3,7 @@ use ed25519_dalek::{SigningKey, SECRET_KEY_LENGTH};
 use k256::{
     ecdsa::{
         signature::{Signer, Verifier},
-        SigningKey as k256SigningKey, VerifyingKey,
+        Signature, SigningKey as k256SigningKey, VerifyingKey,
     },
     EncodedPoint,
 };
@@ -32,6 +32,14 @@ pub fn prove_ed25519() {
     });
 
     println!("JWK: {}", jwk.to_string());
+
+    let message = b"hello world";
+    let signature = signing_key.sign(message);
+    let verify_result = verifying_key.verify(message, &signature);
+    match verify_result {
+        Ok(_) => println!("Signature verified successfully!"),
+        Err(e) => println!("Signature verification failed: {}", e),
+    }
 }
 
 #[wasm_bindgen]
@@ -82,6 +90,14 @@ pub fn prove_secp256k1() {
     });
 
     println!("JWK: {}", jwk.to_string());
+
+    let message = b"hello world";
+    let signature: Signature = signing_key.sign(message);
+    let verify_result = verifying_key.verify(message, &signature);
+    match verify_result {
+        Ok(_) => println!("Signature verified successfully!"),
+        Err(e) => println!("Signature verification failed: {}", e),
+    }
 }
 
 #[cfg(test)]
