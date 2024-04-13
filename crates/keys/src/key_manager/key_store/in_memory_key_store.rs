@@ -1,10 +1,9 @@
-use josekit::jws::alg::ecdsa::EcdsaJwsAlgorithm;
-use josekit::jws::alg::eddsa::EddsaJwsAlgorithm;
-use josekit::jws::JwsSigner;
-
 use crate::key::jwk::generate_private_jwk;
 use crate::key::{Curve, Key, KeyError, PrivateKey, PublicKey};
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
+use josekit::jws::alg::ecdsa::EcdsaJwsAlgorithm;
+use josekit::jws::alg::eddsa::EddsaJwsAlgorithm;
+use josekit::jws::JwsSigner;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 

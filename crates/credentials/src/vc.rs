@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use dids::{bearer::BearerDid, document::KeySelector};
-use jwt::jwt::{sign_jwt, Claims, JwtError};
+use jose::jwt::{sign_jwt, Claims, JwtError};
 use keys::key::KeyError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
