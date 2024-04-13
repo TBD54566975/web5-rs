@@ -5,7 +5,12 @@
       "path": "."
     },
     {
-      "path": "bindings/web5-wasm"
+      "name": "bindings/c",
+      "path": "bindings/c"
+    },
+    {
+      "name": "bindings/wasm",
+      "path": "bindings/wasm"
     },
     {
       "path": "crates/credentials"

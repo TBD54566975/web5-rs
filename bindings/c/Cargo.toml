@@ -1,0 +1,14 @@
+[package]
+name = "web5-c"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+keys = { path = "../../crates/keys" }
+
+[lib]
+name = "web5_c"
+crate-type = ["cdylib"]
