@@ -1,5 +1,5 @@
 [package]
-name = "keys"
+name = "jwk"
 version = "0.1.0"
 edition = "2021"
 homepage.workspace = true
@@ -8,9 +8,6 @@ license-file.workspace = true
 
 [dependencies]
 base64 = { workspace = true }
-josekit = { workspace = true }
-jwk = { path = "../jwk" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = "0.10.8"
-thiserror = { workspace = true }

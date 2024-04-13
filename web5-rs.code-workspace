@@ -8,10 +8,16 @@
       "path": "crates/credentials"
     },
     {
+      "path": "crates/crypto"
+    },
+    {
       "path": "crates/dids"
     },
     {
       "path": "crates/jose"
+    },
+    {
+      "path": "crates/jwk"
     },
     {
       "path": "crates/keys"
