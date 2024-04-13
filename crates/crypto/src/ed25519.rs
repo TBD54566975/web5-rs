@@ -9,8 +9,10 @@ use rand::rngs::OsRng;
 
 pub struct Ed25199;
 
-impl Ed25199 {
-    pub fn generate() -> Result<Jwk, CryptoError> {
+impl Ed25199 {}
+
+impl CurveOperations for Ed25199 {
+    fn generate() -> Result<Jwk, CryptoError> {
         let signing_key = SigningKey::generate(&mut OsRng {});
         let verifying_key = signing_key.verifying_key();
 
@@ -26,9 +28,7 @@ impl Ed25199 {
             ..Default::default()
         })
     }
-}
 
-impl CurveOperations for Ed25199 {
     fn sign(private_jwk: &Jwk, payload: &[u8]) -> Result<Vec<u8>, CryptoError> {
         let d = private_jwk
             .d
