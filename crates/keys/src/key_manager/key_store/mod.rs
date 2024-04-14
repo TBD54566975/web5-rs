@@ -1,6 +1,6 @@
 pub mod in_memory_key_store;
 
-use crate::key::{KeyError, PublicKey};
+use crate::key::{KeyError, PrivateKey, PublicKey};
 use crypto::{CryptoError, Curve, Signer};
 use jwk::JwkError;
 use std::sync::Arc;
@@ -17,6 +17,8 @@ pub enum KeyStoreError {
     CryptoError(#[from] CryptoError),
     #[error(transparent)]
     JwkError(#[from] JwkError),
+    #[error("{0}")]
+    UnsupportedOperation(String),
 }
 
 // Trait for storing and retrieving private keys.
@@ -28,4 +30,15 @@ pub trait KeyStore: Send + Sync {
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyStoreError>;
     fn get_public_key(&self, key_alias: &str) -> Result<Arc<dyn PublicKey>, KeyStoreError>;
     fn get_signer(&self, key_alias: &str) -> Result<Signer, KeyStoreError>;
+
+    fn export_private_keys(&self) -> Result<Vec<Arc<dyn PrivateKey>>, KeyStoreError> {
+        Err(KeyStoreError::UnsupportedOperation(
+            "exporting private keys is not supported".to_string(),
+        ))
+    }
+    fn import_private_keys(&self, _private_keys: Vec<Arc<dyn PrivateKey>>) -> Result<(), KeyStoreError> {
+        Err(KeyStoreError::UnsupportedOperation(
+            "importing private keys is not supported".to_string(),
+        ))
+    }
 }

@@ -1,7 +1,7 @@
 pub mod key_store;
 pub mod local_key_manager;
 
-use crate::key::{KeyError, PublicKey};
+use crate::key::{KeyError, PrivateKey, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
 use crypto::{Curve, Signer};
 use std::sync::Arc;
@@ -36,5 +36,25 @@ pub trait KeyManager: Send + Sync {
     /// Signs the provided payload using the private key identified by the provided `key_alias`.
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
 
+    /// Retrieves a signer for the given `key_alias`.
     fn get_signer(&self, key_alias: &str) -> Result<Signer, KeyManagerError>;
+
+    /// Exports all private keys managed by this key manager.
+    /// Default implementation returns an error indicating the feature is not supported.
+    fn export_private_keys(&self) -> Result<Vec<Arc<dyn PrivateKey>>, KeyManagerError> {
+        Err(KeyStoreError::UnsupportedOperation(
+            "exporting private keys is not supported".to_string(),
+        ))?
+    }
+
+    /// Imports a list of private keys into the key manager.
+    /// Default implementation returns an error indicating the feature is not supported.
+    fn import_private_keys(
+        &self,
+        _private_keys: Vec<Arc<dyn PrivateKey>>,
+    ) -> Result<(), KeyManagerError> {
+        Err(KeyStoreError::UnsupportedOperation(
+            "importing private keys is not supported".to_string(),
+        ))?
+    }
 }

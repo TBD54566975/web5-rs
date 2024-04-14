@@ -36,7 +36,7 @@ impl KeyStore for InMemoryKeyStore {
         let map_lock = self.map.read().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
         })?;
-        let aliases: Vec<String> = map_lock.keys().cloned().collect();
+        let aliases = map_lock.keys().cloned().collect();
         Ok(aliases)
     }
 
@@ -85,6 +85,30 @@ impl KeyStore for InMemoryKeyStore {
         };
 
         Ok(signer)
+    }
+
+    fn export_private_keys(&self) -> Result<Vec<Arc<dyn PrivateKey>>, KeyStoreError> {
+        let map_lock = self.map.read().map_err(|e| {
+            KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
+        })?;
+        let private_keys = map_lock.values().cloned().collect();
+        Ok(private_keys)
+    }
+
+    fn import_private_keys(
+        &self,
+        private_keys: Vec<Arc<dyn PrivateKey>>,
+    ) -> Result<(), KeyStoreError> {
+        let mut map_lock = self.map.write().map_err(|e| {
+            KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
+        })?;
+
+        for key in private_keys {
+            let key_alias = key.alias()?;
+            map_lock.insert(key_alias, key);
+        }
+
+        Ok(())
     }
 }
 

@@ -45,6 +45,19 @@ impl KeyManager for LocalKeyManager {
         let signer = self.key_store.get_signer(key_alias)?;
         Ok(signer)
     }
+
+    fn export_private_keys(&self) -> Result<Vec<Arc<dyn crate::key::PrivateKey>>, KeyManagerError> {
+        let private_keys = self.key_store.export_private_keys()?;
+        Ok(private_keys)
+    }
+
+    fn import_private_keys(
+        &self,
+        private_keys: Vec<Arc<dyn crate::key::PrivateKey>>,
+    ) -> Result<(), KeyManagerError> {
+        self.key_store.import_private_keys(private_keys)?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]
