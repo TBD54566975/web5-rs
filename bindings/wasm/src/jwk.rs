@@ -1,4 +1,5 @@
 use jwk::Jwk as InternalJwk;
+use keys::key::{PrivateKey, PublicKey};
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 
 #[wasm_bindgen]
@@ -33,7 +34,7 @@ impl Jwk {
         d: Option<String>,
         x: String,
         y: Option<String>,
-    ) -> Jwk {
+    ) -> Self {
         let jwk = InternalJwk {
             alg,
             kty,
@@ -82,10 +83,31 @@ impl Jwk {
             .map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 
+    /** PublicKey implementations */
     #[wasm_bindgen]
-    pub fn to_public(&self) -> Jwk {
-        // todo unwrap no bueno
-        let public_jwk = self.0.to_public().unwrap();
-        Jwk(public_jwk)
+    pub fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<(), JsValue> {
+        self.0
+            .verify(payload, signature)
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))
+    }
+
+    /** PrivateKey implementations */
+    #[wasm_bindgen]
+    pub fn to_public(&self) -> Result<Jwk, JsValue> {
+        let public_jwk = self
+            .0
+            .to_public()
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))?
+            .jwk()
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let jwk = Jwk::from(public_jwk);
+        Ok(jwk)
+    }
+
+    #[wasm_bindgen]
+    pub fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, JsValue> {
+        self.0
+            .sign(payload)
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 }

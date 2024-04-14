@@ -32,7 +32,7 @@ impl Method<DidJwkCreateOptions> for DidJwk {
         let key_alias = key_manager.generate_private_key(options.curve)?;
         let public_key = key_manager.get_public_key(&key_alias)?;
 
-        let jwk_string = public_key.to_json().map_err(|_| {
+        let jwk_string = serde_json::to_string(&public_key.jwk()?).map_err(|_| {
             MethodError::DidCreationFailure("failed to serialize public jwk".to_string())
         })?;
         let spruce_jwk: SpruceJwk =
