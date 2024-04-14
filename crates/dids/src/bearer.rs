@@ -2,7 +2,7 @@ use crate::{
     document::{Document, DocumentError, KeySelector},
     identifier::Identifier,
 };
-use josekit::jws::JwsSigner;
+use crypto::Signer;
 use keys::{
     key::KeyError,
     key_manager::{KeyManager, KeyManagerError},
@@ -29,17 +29,17 @@ pub enum BearerDidError {
 }
 
 impl BearerDid {
-    pub fn get_jws_signer(
+    pub fn get_signer(
         &self,
         key_selector: &KeySelector,
-    ) -> Result<Arc<dyn JwsSigner>, BearerDidError> {
+    ) -> Result<Signer, BearerDidError> {
         let verification_method = self.document.get_verification_method(key_selector)?;
         let key_id = &verification_method.id;
 
         let key_alias = key_id
             .split_once('#')
             .map_or(&key_id[..], |(_, after)| after);
-        let signer = self.key_manager.get_jws_signer(key_alias)?;
+        let signer = self.key_manager.get_signer(key_alias)?;
 
         Ok(signer)
     }

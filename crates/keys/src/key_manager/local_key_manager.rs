@@ -1,8 +1,8 @@
-use crate::key::{Curve, PublicKey};
+use crate::key::PublicKey;
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
-use josekit::jws::JwsSigner;
+use crypto::{Curve, Signer};
 use std::sync::Arc;
 
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
@@ -41,8 +41,8 @@ impl KeyManager for LocalKeyManager {
         Ok(signed_payload)
     }
 
-    fn get_jws_signer(&self, key_alias: &str) -> Result<Arc<dyn JwsSigner>, KeyManagerError> {
-        let signer = self.key_store.get_jws_signer(key_alias)?;
+    fn get_signer(&self, key_alias: &str) -> Result<Signer, KeyManagerError> {
+        let signer = self.key_store.get_signer(key_alias)?;
         Ok(signer)
     }
 }

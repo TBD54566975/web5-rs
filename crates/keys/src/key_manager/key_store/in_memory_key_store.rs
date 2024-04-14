@@ -1,9 +1,8 @@
-use crate::key::jwk::generate_private_jwk;
-use crate::key::{Curve, Key, KeyError, PrivateKey, PublicKey};
+use crate::key::{KeyError, PrivateKey, PublicKey};
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
-use josekit::jws::alg::ecdsa::EcdsaJwsAlgorithm;
-use josekit::jws::alg::eddsa::EddsaJwsAlgorithm;
-use josekit::jws::JwsSigner;
+use crypto::ed25519::Ed25199;
+use crypto::secp256k1::Secp256k1;
+use crypto::{CryptoError, Curve, CurveOperations, Signer};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -21,8 +20,11 @@ impl InMemoryKeyStore {
 
 impl KeyStore for InMemoryKeyStore {
     fn generate_new(&self, curve: Curve) -> Result<String, KeyStoreError> {
-        let private_key = generate_private_jwk(curve)?;
-        let key_alias = private_key.alias()?;
+        let private_key = Arc::new(match curve {
+            Curve::Ed25519 => Ed25199::generate(),
+            Curve::Secp256k1 => Secp256k1::generate(),
+        }?);
+        let key_alias = private_key.compute_thumbprint()?;
         let mut map_lock = self.map.write().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("unable to acquire Mutex lock: {}", e))
         })?;
@@ -62,7 +64,7 @@ impl KeyStore for InMemoryKeyStore {
         Ok(public_key)
     }
 
-    fn get_jws_signer(&self, key_alias: &str) -> Result<Arc<dyn JwsSigner>, KeyStoreError> {
+    fn get_signer(&self, key_alias: &str) -> Result<Signer, KeyStoreError> {
         let map_lock = self.map.read().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
         })?;
@@ -70,17 +72,15 @@ impl KeyStore for InMemoryKeyStore {
             .get(key_alias)
             .ok_or(KeyStoreError::KeyNotFound(key_alias.to_string()))?;
 
-        let signer: Arc<dyn JwsSigner> = match private_key.jwk()?.curve() {
-            Some("secp256k1") => Arc::new(
-                EcdsaJwsAlgorithm::Es256k
-                    .signer_from_jwk(&private_key.jwk()?)
-                    .map_err(|e| KeyError::JoseError(e.to_string()))?,
-            ),
-            Some("Ed25519") => Arc::new(
-                EddsaJwsAlgorithm::Eddsa
-                    .signer_from_jwk(&private_key.jwk()?)
-                    .map_err(|e| KeyError::JoseError(e.to_string()))?,
-            ),
+        let private_jwk = private_key.jwk()?;
+
+        let signer = match private_jwk.crv.as_str() {
+            "Ed25519" => Arc::new(move |payload: &[u8]| -> Result<Vec<u8>, CryptoError> {
+                Ed25199::sign(&private_jwk, payload)
+            }) as Signer,
+            "secp256k1" => Arc::new(move |payload: &[u8]| -> Result<Vec<u8>, CryptoError> {
+                Secp256k1::sign(&private_jwk, payload)
+            }) as Signer,
             _ => return Err(KeyStoreError::KeyError(KeyError::CurveNotFound)),
         };
 

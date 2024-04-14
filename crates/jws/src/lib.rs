@@ -1,20 +1,13 @@
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
+use crypto::{ed25519::Ed25199, secp256k1::Secp256k1, CryptoError, CurveOperations};
 use dids::{
     bearer::{BearerDid, BearerDidError},
     document::{DocumentError, KeySelector},
     resolver::Resolver,
 };
-use josekit::{
-    jws::{
-        alg::{ecdsa::EcdsaJwsAlgorithm, eddsa::EddsaJwsAlgorithm},
-        JwsVerifier,
-    },
-    JoseError,
-};
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice, to_string};
-use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum JwsError {
@@ -24,18 +17,12 @@ pub enum JwsError {
     SerializationError(String),
     #[error("deserialization error {0}")]
     DeserializationError(String),
-    #[error("josekit error")]
-    JoseError(String),
     #[error("algorithm not found {0}")]
     AlgorithmNotFound(String),
     #[error(transparent)]
     DocumentError(#[from] DocumentError),
-}
-
-impl From<JoseError> for JwsError {
-    fn from(error: JoseError) -> Self {
-        JwsError::JoseError(error.to_string())
-    }
+    #[error(transparent)]
+    CryptoError(#[from] CryptoError),
 }
 
 /// Represents a JWS (JSON Web Signature) header. See [Specification] for more details.
@@ -134,13 +121,11 @@ impl JwsString for String {
         let public_key = verification_method.public_key_jwk.clone();
 
         let alg = decoded.header.alg.clone();
-        let verifier: Arc<dyn JwsVerifier> = match alg.as_str() {
-            "ES256K" => Arc::new(EcdsaJwsAlgorithm::Es256k.verifier_from_jwk(&public_key)?),
-            "EdDSA" => Arc::new(EddsaJwsAlgorithm::Eddsa.verifier_from_jwk(&public_key)?),
+        match alg.as_str() {
+            "EdDSA" => Ed25199::verify(&public_key, &decoded.payload, &decoded.signature),
+            "ES256K" => Secp256k1::verify(&public_key, &decoded.payload, &decoded.signature),
             _ => return Err(JwsError::AlgorithmNotFound(alg)),
-        };
-
-        verifier.verify(&decoded.payload, &decoded.signature)?;
+        }?;
 
         Ok(decoded)
     }
@@ -158,12 +143,12 @@ pub fn sign_jws(
     options: JwsSignOptions,
 ) -> Result<String, JwsError> {
     let verification_method = bearer_did.document.get_verification_method(key_selector)?;
-    let signer = bearer_did.get_jws_signer(key_selector)?;
+    let signer = bearer_did.get_signer(key_selector)?;
 
     let kid = verification_method.id;
-    let alg = match verification_method.public_key_jwk.curve() {
-        Some("secp256k1") => "ES256K".to_string(),
-        Some("Ed25519") => "EdDSA".to_string(),
+    let alg = match verification_method.public_key_jwk.crv.as_str() {
+        "secp256k1" => "ES256K".to_string(),
+        "Ed25519" => "EdDSA".to_string(),
         _ => return Err(JwsError::AlgorithmNotFound(kid)),
     };
     let typ = options.r#type.unwrap_or_else(|| "JWT".to_string());
@@ -171,7 +156,7 @@ pub fn sign_jws(
     let encoded_header = header.encode()?;
     let to_sign = format!("{}.{}", encoded_header, encoded_payload);
 
-    let signature = signer.sign(&to_sign.into_bytes())?;
+    let signature = signer(&to_sign.into_bytes())?;
     let encoded_signature = general_purpose::URL_SAFE_NO_PAD.encode(signature);
 
     let jws_token = format!(

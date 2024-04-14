@@ -1,5 +1,5 @@
 [package]
-name = "keys"
+name = "jws"
 version = "0.1.0"
 edition = "2021"
 homepage.workspace = true
@@ -7,7 +7,10 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
+async-trait = { workspace = true }
+base64 = { workspace = true }
 crypto = { path = "../crypto" }
-jwk = { path = "../jwk" }
+dids = { path = "../dids" }
+serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use dids::{bearer::BearerDid, document::KeySelector};
-use jose::jwt::{sign_jwt, Claims, JwtError};
+use jwt::{sign_jwt, Claims, JwtError};
 use keys::key::KeyError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -142,10 +142,10 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
 mod tests {
     use super::*;
     use chrono::Duration;
+    use crypto::Curve;
     use dids::document::VerificationMethodType;
     use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
     use dids::method::Method;
-    use keys::key::Curve;
     use keys::key_manager::local_key_manager::LocalKeyManager;
     use std::sync::Arc;
 
