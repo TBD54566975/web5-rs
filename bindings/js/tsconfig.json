@@ -8,5 +8,5 @@
   },
   "include": [
     "src"
-  ]
+, "tests/crypto.test.ts", "tests/jwk.test.ts", "tests/keys.test.ts"  ]
 }

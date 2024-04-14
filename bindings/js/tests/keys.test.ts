@@ -1,4 +1,4 @@
-import { LocalJwkManager } from '../../../bindings/wasm/pkg';
+import { LocalJwkManager } from '../pkg';
 
 describe('LocalJwkManager', () => {
   let keyManager: LocalJwkManager;

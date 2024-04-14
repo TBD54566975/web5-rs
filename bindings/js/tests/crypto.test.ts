@@ -1,4 +1,4 @@
-import { generate_ed25519_key, generate_secp256k1_key, sign_ed25519, sign_secp256k1, verify_ed25519, verify_secp256k1 } from '../../../bindings/wasm/pkg';
+import { generate_ed25519_key, generate_secp256k1_key, sign_ed25519, sign_secp256k1, verify_ed25519, verify_secp256k1 } from '../pkg';
 
 describe('crypto', () => {
   test('should generate Ed25519 key', () => {

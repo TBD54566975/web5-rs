@@ -1,4 +1,4 @@
-import { Jwk } from '../../../bindings/wasm/pkg';
+import { Jwk } from '../pkg';
 
 describe('Jwk', () => {
   test('should create a new Jwk instance', () => {

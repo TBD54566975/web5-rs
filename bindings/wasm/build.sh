@@ -2,4 +2,4 @@
 
 # cargo install wasm-pack 
 
-wasm-pack build --target nodejs
+wasm-pack build --target nodejs --out-dir ../js/pkg
