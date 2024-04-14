@@ -54,7 +54,7 @@ const DID_RESOLUTION_V1_CONTEXT: &str = "https://w3id.org/did-resolution/v1";
 
 /// Errors that can occur during DID resolution
 /// https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-error-types
-#[derive(thiserror::Error, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(thiserror::Error, Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub enum ResolutionError {
     #[error("The requested DID was not valid and resolution could not proceed.")]
     #[serde(rename = "invalidDid")]

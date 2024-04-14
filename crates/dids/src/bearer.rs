@@ -1,6 +1,7 @@
 use crate::{
     document::{Document, DocumentError, KeySelector},
-    identifier::Identifier,
+    identifier::{Identifier, IdentifierError},
+    resolver::{ResolutionError, Resolver},
 };
 use crypto::Signer;
 use keys::{
@@ -26,13 +27,32 @@ pub enum BearerDidError {
     KeyError(#[from] KeyError),
     #[error(transparent)]
     DocumentError(#[from] DocumentError),
+    #[error(transparent)]
+    ResolutionError(#[from] ResolutionError),
+    #[error(transparent)]
+    IdentifierError(#[from] IdentifierError),
 }
 
 impl BearerDid {
-    pub fn get_signer(
-        &self,
-        key_selector: &KeySelector,
-    ) -> Result<Signer, BearerDidError> {
+    pub async fn from_key_manager(
+        did_uri: &str,
+        key_manager: Arc<dyn KeyManager>,
+    ) -> Result<Self, BearerDidError> {
+        let resolution_result = Resolver::resolve_uri(did_uri).await;
+        if let Some(err) = resolution_result.did_resolution_metadata.error {
+            return Err(err)?;
+        }
+
+        Ok(BearerDid {
+            identifier: Identifier::parse(did_uri)?,
+            key_manager,
+            document: resolution_result
+                .did_document
+                .ok_or(ResolutionError::NotFound)?,
+        })
+    }
+
+    pub fn get_signer(&self, key_selector: &KeySelector) -> Result<Signer, BearerDidError> {
         let verification_method = self.document.get_verification_method(key_selector)?;
         let key_id = &verification_method.id;
 
