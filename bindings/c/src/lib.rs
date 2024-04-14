@@ -1,3 +1,4 @@
+use crypto::Curve;
 use dids::{
     bearer::BearerDid,
     method::{
@@ -5,10 +6,7 @@ use dids::{
         Method,
     },
 };
-use keys::{
-    key::Curve,
-    key_manager::{local_key_manager::LocalKeyManager, KeyManager},
-};
+use keys::key_manager::{local_key_manager::LocalKeyManager, KeyManager};
 use std::{
     ffi::{c_char, CString},
     sync::Arc,

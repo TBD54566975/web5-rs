@@ -7,6 +7,7 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
+crypto = { path = "../../crates/crypto" }
 keys = { path = "../../crates/keys" }
 wasm-bindgen = "0.2.92"
 

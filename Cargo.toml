@@ -1,8 +1,7 @@
 [workspace]
 members = [ 
     "bindings/*",
-    "crates/*",
-    "tmp/prototype-crypto-wasm"
+    "crates/*"
 ]
 default-members = [
     "crates/*",

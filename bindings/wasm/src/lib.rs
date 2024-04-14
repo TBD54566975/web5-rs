@@ -1,7 +1,5 @@
-use keys::{
-    key::Curve,
-    key_manager::{local_key_manager::LocalKeyManager, KeyManager},
-};
+use crypto::Curve;
+use keys::key_manager::{local_key_manager::LocalKeyManager, KeyManager};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 #[wasm_bindgen]
