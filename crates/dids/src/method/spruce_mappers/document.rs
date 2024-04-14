@@ -1,11 +1,12 @@
 use crate::document::{Document, Service, VerificationMethod};
-use josekit::jwk::Jwk;
+use jwk::Jwk;
 use ssi_core::one_or_many::OneOrMany;
 use ssi_dids::{
     Context as SpruceContext, Contexts as SpruceContexts, Document as SpruceDocument,
     Service as SpruceService, ServiceEndpoint as SpruceServiceEndpoint,
     VerificationMethod as SpruceVerificationMethod,
 };
+use ssi_jwk::Params;
 
 impl Document {
     pub fn from_spruce(spruce_document: SpruceDocument) -> Result<Self, String> {
@@ -103,9 +104,35 @@ impl VerificationMethod {
         match spruce_verification_method {
             SpruceVerificationMethod::Map(ssi_vmm) => {
                 let spruce_jwk = ssi_vmm.get_jwk()?;
-                let spruce_jwk_bytes =
-                    serde_json::to_vec(&spruce_jwk).map_err(|e| e.to_string())?;
-                let jwk = Jwk::from_bytes(&spruce_jwk_bytes).map_err(|e| e.to_string())?;
+                let alg = spruce_jwk
+                    .algorithm
+                    .ok_or("spruce alg missing".to_string())?;
+                let (kty, crv, x, y) = match &spruce_jwk.params {
+                    Params::EC(ec_params) => (
+                        "EC",
+                        ec_params.curve.clone(),
+                        ec_params.x_coordinate.clone(),
+                        ec_params.y_coordinate.clone(),
+                    ),
+                    Params::RSA(_) => ("RSA", None, None, None),
+                    Params::Symmetric(_) => ("oct", None, None, None),
+                    Params::OKP(okp_params) => (
+                        "OKP",
+                        Some(okp_params.curve.clone()),
+                        Some(okp_params.public_key.clone()),
+                        None,
+                    ),
+                };
+                let jwk = Jwk {
+                    alg: format!("{:?}", alg),
+                    kty: kty.to_string(),
+                    crv: crv.unwrap_or("".to_string()),
+                    x: x.as_ref()
+                        .map(|b64| String::from(b64))
+                        .unwrap_or_else(|| "".to_string()),
+                    y: y.map(String::from),
+                    ..Default::default()
+                };
 
                 Ok(VerificationMethod {
                     id: ssi_vmm.id,
