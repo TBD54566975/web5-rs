@@ -5,6 +5,14 @@
       "path": "."
     },
     {
+      "name": "wasm",
+      "path": "bindings/wasm"
+    },
+    {
+      "name": "samples/typescript",
+      "path": "samples/typescript"
+    },
+    {
       "path": "crates/credentials"
     },
     {
