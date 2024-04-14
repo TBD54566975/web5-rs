@@ -2,7 +2,6 @@ pub mod in_memory_key_store;
 
 use crate::key::{KeyError, PublicKey};
 use crypto::{CryptoError, Curve, Signer};
-use josekit::jws::JwsSigner;
 use jwk::JwkError;
 use std::sync::Arc;
 
