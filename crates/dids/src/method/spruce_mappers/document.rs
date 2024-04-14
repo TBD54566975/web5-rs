@@ -6,7 +6,7 @@ use ssi_dids::{
     Service as SpruceService, ServiceEndpoint as SpruceServiceEndpoint,
     VerificationMethod as SpruceVerificationMethod,
 };
-use ssi_jwk::Params;
+use ssi_jwk::{Algorithm, Params};
 
 impl Document {
     pub fn from_spruce(spruce_document: SpruceDocument) -> Result<Self, String> {
@@ -104,9 +104,12 @@ impl VerificationMethod {
         match spruce_verification_method {
             SpruceVerificationMethod::Map(ssi_vmm) => {
                 let spruce_jwk = ssi_vmm.get_jwk()?;
-                let alg = spruce_jwk
-                    .algorithm
-                    .ok_or("spruce alg missing".to_string())?;
+                let alg = match spruce_jwk.algorithm {
+                    Some(Algorithm::ES256K) => "ES256K",
+                    Some(Algorithm::EdDSA) => "EdDSA",
+                    _ => "",
+                }
+                .to_string();
                 let (kty, crv, x, y) = match &spruce_jwk.params {
                     Params::EC(ec_params) => (
                         "EC",

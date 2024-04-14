@@ -5,6 +5,7 @@ use crate::method::web::DidWeb;
 use crate::method::Method;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug)]
 pub struct Resolver;
 
 impl Resolver {
@@ -137,7 +138,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_did_jwk() {
-        let did_uri = "did:jwk:eyJjcnYiOiJQLTI1NiIsImt0eSI6IkVDIiwieCI6ImFjYklRaXVNczNpOF91c3pFakoydHBUdFJNNEVVM3l6OTFQSDZDZEgyVjAiLCJ5IjoiX0tjeUxqOXZXTXB0bm1LdG00NkdxRHo4d2Y3NEk1TEtncmwyR3pIM25TRSJ9";
+        let did_uri = "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6Ik4zVXNneVJ2R3dKc2lMWGVQQloyOXItSHN2NmVjcHZneW9xZXFsMjgzQVkifQ";
         let result = Resolver::resolve_uri(did_uri).await;
         assert!(result.did_resolution_metadata.error.is_none());
 
