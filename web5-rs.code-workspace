@@ -20,6 +20,9 @@
       "path": "crates/jwk"
     },
     {
+      "path": "crates/jws"
+    },
+    {
       "path": "crates/keys"
     }
   ],
