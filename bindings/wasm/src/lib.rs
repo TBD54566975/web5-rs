@@ -2,6 +2,15 @@ use crypto::Curve;
 use keys::key_manager::{local_key_manager::LocalKeyManager, KeyManager};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
+/**
+ * todo spike
+ * - BearerDid::from_private_keys()
+ * - jwt::sign_jwt()
+ * - JwtString::verify()
+ * - VerifiableCredential::create()
+ * - VerifiableCredential::sign()
+ */
+
 #[wasm_bindgen]
 pub struct WasmKeyManager {
     key_manager: LocalKeyManager,
