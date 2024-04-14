@@ -85,8 +85,8 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
                 .and_then(|opts| opts.contexts.clone())
                 .unwrap_or_default()
                 .into_iter()
-                .fold(vec![BASE_CONTEXT.to_string()], |mut acc, ctx| {
-                    acc.push(ctx);
+                .fold(vec![BASE_CONTEXT.to_string()], |mut acc, item| {
+                    acc.push(item);
                     acc
                 }),
             r#type: options
@@ -108,7 +108,7 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
         })
     }
 
-    pub fn encode_vcjwt(
+    pub fn sign_vcjwt(
         &mut self,
         bearer_did: BearerDid,
         key_selector: &KeySelector,
@@ -170,13 +170,13 @@ mod tests {
         )
         .expect("Failed to create DataModel");
 
-        let signed_jwt = vc
-            .encode_vcjwt(
+        let signed_vcjwt = vc
+            .sign_vcjwt(
                 bearer_did,
                 &KeySelector::MethodType(VerificationMethodType::VerificationMethod),
             )
             .expect("Failed to sign VC");
 
-        println!("Signed JWT: {:?}", signed_jwt);
+        println!("Signed JWT: {:?}", signed_vcjwt);
     }
 }
