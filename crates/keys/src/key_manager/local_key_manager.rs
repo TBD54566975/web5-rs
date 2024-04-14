@@ -1,4 +1,4 @@
-use crate::key::PublicKey;
+use crate::key::{PrivateKey, PublicKey};
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
@@ -46,14 +46,14 @@ impl KeyManager for LocalKeyManager {
         Ok(signer)
     }
 
-    fn export_private_keys(&self) -> Result<Vec<Arc<dyn crate::key::PrivateKey>>, KeyManagerError> {
+    fn export_private_keys(&self) -> Result<Vec<Arc<dyn PrivateKey>>, KeyManagerError> {
         let private_keys = self.key_store.export_private_keys()?;
         Ok(private_keys)
     }
 
     fn import_private_keys(
         &self,
-        private_keys: Vec<Arc<dyn crate::key::PrivateKey>>,
+        private_keys: Vec<Arc<dyn PrivateKey>>,
     ) -> Result<(), KeyManagerError> {
         self.key_store.import_private_keys(private_keys)?;
         Ok(())

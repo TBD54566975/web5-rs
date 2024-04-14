@@ -45,17 +45,6 @@ impl Jwk {
 
         Ok(thumbprint)
     }
-
-    pub fn to_public(&self) -> Result<Self, JwkError> {
-        Ok(Jwk {
-            alg: self.alg.clone(),
-            kty: self.kty.clone(),
-            crv: self.crv.clone(),
-            x: self.x.clone(),
-            y: self.y.clone(),
-            ..Default::default()
-        })
-    }
 }
 
 #[cfg(test)]

@@ -28,11 +28,6 @@ pub trait Key {
 pub trait PublicKey: Key + Send + Sync {
     /// Verifies a payload with a given signature using the target [`PublicKey`].
     fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<(), KeyError>;
-
-    fn algorithm(&self) -> Result<String, KeyError>;
-
-    // todo is this necessary?
-    fn to_json(&self) -> Result<String, KeyError>;
 }
 
 pub trait PrivateKey: Key + Send + Sync {
@@ -64,20 +59,18 @@ impl PublicKey for Jwk {
 
         Ok(())
     }
-
-    fn algorithm(&self) -> Result<String, KeyError> {
-        Ok(self.alg.clone())
-    }
-
-    fn to_json(&self) -> Result<String, KeyError> {
-        let json_str = serde_json::to_string(self).map_err(|_| KeyError::SerializationFailed)?;
-        Ok(json_str)
-    }
 }
 
 impl PrivateKey for Jwk {
     fn to_public(&self) -> Result<Arc<dyn PublicKey>, KeyError> {
-        let public_key = self.to_public()?;
+        let public_key = Jwk {
+            alg: self.alg.clone(),
+            kty: self.kty.clone(),
+            crv: self.crv.clone(),
+            x: self.x.clone(),
+            y: self.y.clone(),
+            ..Default::default()
+        };
         Ok(Arc::new(public_key))
     }
 
