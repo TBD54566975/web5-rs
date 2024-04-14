@@ -8,8 +8,6 @@ pub enum KeyError {
     KeyGenerationFailed,
     #[error("failed to serialize")]
     SerializationFailed,
-    #[error("josekit error {0}")]
-    JoseError(String),
     #[error("curve not found")]
     CurveNotFound,
     #[error("algorithm not found")]

@@ -14,13 +14,13 @@
       "path": "crates/dids"
     },
     {
-      "path": "crates/jose"
-    },
-    {
       "path": "crates/jwk"
     },
     {
       "path": "crates/jws"
+    },
+    {
+      "path": "crates/jwt"
     },
     {
       "path": "crates/keys"

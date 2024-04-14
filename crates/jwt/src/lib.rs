@@ -1,10 +1,10 @@
-use crate::jws::{sign_jws, Header, JwsError, JwsSignOptions, JwsString};
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
 use dids::{
     bearer::{BearerDid, BearerDidError},
     document::KeySelector,
 };
+use jws::{sign_jws, Header, JwsError, JwsSignOptions, JwsString};
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice, to_string, Value};
 
@@ -140,6 +140,7 @@ pub fn sign_jwt(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crypto::Curve;
     use dids::{
         document::VerificationMethodType,
         method::{
@@ -147,7 +148,7 @@ mod tests {
             Method,
         },
     };
-    use keys::{key::Curve, key_manager::local_key_manager::LocalKeyManager};
+    use keys::key_manager::local_key_manager::LocalKeyManager;
     use std::sync::Arc;
 
     #[test]

@@ -17,8 +17,6 @@ pub enum JwsError {
     SerializationError(String),
     #[error("deserialization error {0}")]
     DeserializationError(String),
-    #[error("josekit error")]
-    JoseError(String),
     #[error("algorithm not found {0}")]
     AlgorithmNotFound(String),
     #[error(transparent)]
