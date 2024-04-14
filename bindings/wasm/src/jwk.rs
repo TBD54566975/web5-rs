@@ -4,6 +4,25 @@ use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 #[wasm_bindgen]
 pub struct Jwk(InternalJwk);
 
+impl From<InternalJwk> for Jwk {
+    fn from(value: InternalJwk) -> Self {
+        Self::new(value.alg, value.kty, value.crv, value.d, value.x, value.y)
+    }
+}
+
+impl From<&Jwk> for InternalJwk {
+    fn from(value: &Jwk) -> Self {
+        Self {
+            alg: value.alg().clone(),
+            kty: value.kty().clone(),
+            crv: value.crv().clone(),
+            d: value.d().clone(),
+            x: value.x().clone(),
+            y: value.y().clone(),
+        }
+    }
+}
+
 #[wasm_bindgen]
 impl Jwk {
     #[wasm_bindgen(constructor)]
@@ -65,6 +84,7 @@ impl Jwk {
 
     #[wasm_bindgen]
     pub fn to_public(&self) -> Jwk {
+        // todo unwrap no bueno
         let public_jwk = self.0.to_public().unwrap();
         Jwk(public_jwk)
     }
