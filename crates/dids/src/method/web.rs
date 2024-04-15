@@ -2,11 +2,10 @@ use crate::{
     bearer::BearerDid,
     method::{Method, MethodError, ResolutionResult},
 };
-use async_trait::async_trait;
 use did_web::DIDWeb as SpruceDidWebMethod;
 use keys::key_manager::KeyManager;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
-use std::sync::Arc;
+use std::{future::Future, sync::Arc};
 
 /// Concrete implementation for a did:web DID
 pub struct DidWeb {}
@@ -15,7 +14,6 @@ pub struct DidWeb {}
 /// This is currently a unit struct because did:web does not support key creation.
 pub struct DidWebCreateOptions;
 
-#[async_trait]
 impl Method<DidWebCreateOptions> for DidWeb {
     const NAME: &'static str = "web";
 
@@ -28,18 +26,20 @@ impl Method<DidWebCreateOptions> for DidWeb {
         ))
     }
 
-    async fn resolve(did_uri: &str) -> ResolutionResult {
-        let input_metadata = ResolutionInputMetadata::default();
-        let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
-            SpruceDidWebMethod.resolve(did_uri, &input_metadata).await;
+    fn resolve(did_uri: &str) -> impl Future<Output = ResolutionResult> {
+        async move {
+            let input_metadata = ResolutionInputMetadata::default();
+            let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
+                SpruceDidWebMethod.resolve(did_uri, &input_metadata).await;
 
-        match ResolutionResult::from_spruce(
-            spruce_resolution_metadata,
-            spruce_document,
-            spruce_document_metadata,
-        ) {
-            Ok(r) => r,
-            Err(e) => ResolutionResult::from_error(e),
+            match ResolutionResult::from_spruce(
+                spruce_resolution_metadata,
+                spruce_document,
+                spruce_document_metadata,
+            ) {
+                Ok(r) => r,
+                Err(e) => ResolutionResult::from_error(e),
+            }
         }
     }
 }

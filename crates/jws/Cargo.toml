@@ -7,7 +7,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-async-trait = { workspace = true }
 base64 = { workspace = true }
 crypto = { path = "../crypto" }
 dids = { path = "../dids" }

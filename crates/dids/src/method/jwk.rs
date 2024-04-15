@@ -3,7 +3,6 @@ use crate::document::{Document, VerificationMethod};
 use crate::identifier::Identifier;
 use crate::method::{Method, MethodError};
 use crate::resolver::ResolutionResult;
-use async_trait::async_trait;
 use crypto::Curve;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;
 use keys::key_manager::KeyManager;
@@ -11,6 +10,7 @@ use serde_json::from_str;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 use ssi_dids::{DIDMethod, Source};
 use ssi_jwk::JWK as SpruceJwk;
+use std::future::Future;
 use std::sync::Arc;
 
 /// Concrete implementation for a did:jwk DID
@@ -21,7 +21,6 @@ pub struct DidJwkCreateOptions {
     pub curve: Curve,
 }
 
-#[async_trait]
 impl Method<DidJwkCreateOptions> for DidJwk {
     const NAME: &'static str = "jwk";
 
@@ -66,18 +65,20 @@ impl Method<DidJwkCreateOptions> for DidJwk {
         Ok(bearer_did)
     }
 
-    async fn resolve(did_uri: &str) -> ResolutionResult {
-        let input_metadata = ResolutionInputMetadata::default();
-        let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
-            SpruceDidJwkMethod.resolve(did_uri, &input_metadata).await;
+    fn resolve(did_uri: &str) -> impl Future<Output = ResolutionResult> {
+        async move {
+            let input_metadata = ResolutionInputMetadata::default();
+            let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
+                SpruceDidJwkMethod.resolve(did_uri, &input_metadata).await;
 
-        match ResolutionResult::from_spruce(
-            spruce_resolution_metadata,
-            spruce_document,
-            spruce_document_metadata,
-        ) {
-            Ok(r) => r,
-            Err(e) => ResolutionResult::from_error(e),
+            match ResolutionResult::from_spruce(
+                spruce_resolution_metadata,
+                spruce_document,
+                spruce_document_metadata,
+            ) {
+                Ok(r) => r,
+                Err(e) => ResolutionResult::from_error(e),
+            }
         }
     }
 }
