@@ -1,6 +1,8 @@
 [workspace]
-members = [ "bindings/uniffi", "bindings/wasm",
+members = [ 
     "crates/*",
+    "bindings/uniffi", 
+    "bindings/wasm",
 ]
 default-members = [
     "crates/*",

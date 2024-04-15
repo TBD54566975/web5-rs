@@ -1,4 +1,4 @@
-namespace jwk {};
+namespace web5 {};
 
 dictionary Jwk {
     string alg;

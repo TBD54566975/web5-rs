@@ -1,11 +1,22 @@
 [package]
-name = "web5uniffi"
+name = "web5-uniffi"
 version = "0.1.0"
 edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
 
 [dependencies]
+jwk = { path = "../../crates/jwk" }
 uniffi = { workspace = true }
 
+[build-dependencies]
+uniffi = { workspace = true, features = ["build"] }
+
+[lib]
+crate-type = ["cdylib"]
+name = "web5"
+
 [[bin]]
-name = "web5uniffi"
-path = "src/main.rs"
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
