@@ -1,4 +1,5 @@
-use async_trait::async_trait;
+use std::future::Future;
+
 use base64::{engine::general_purpose, Engine as _};
 use dids::{
     bearer::{BearerDid, BearerDidError},
@@ -85,13 +86,11 @@ pub struct Decoded {
     pub parts: Vec<String>,
 }
 
-#[async_trait]
 pub trait JwtString {
     fn decode(&self) -> Result<Decoded, JwtError>;
-    async fn verify(&self) -> Result<Decoded, JwtError>;
+    fn verify(&self) -> impl Future<Output = Result<Decoded, JwtError>>;
 }
 
-#[async_trait]
 impl JwtString for String {
     fn decode(&self) -> Result<Decoded, JwtError> {
         let parts: Vec<&str> = self.split('.').collect();
@@ -112,12 +111,12 @@ impl JwtString for String {
         })
     }
 
-    async fn verify(&self) -> Result<Decoded, JwtError> {
-        let decoded = JwtString::decode(self)?;
-
-        JwsString::verify(self).await?;
-
-        Ok(decoded)
+    fn verify(&self) -> impl Future<Output = Result<Decoded, JwtError>> {
+        async move {
+            let decoded = JwtString::decode(self)?;
+            JwsString::verify(self).await?;
+            Ok(decoded)
+        }
     }
 }
 

@@ -7,7 +7,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-async-trait = { workspace = true }
 crypto = { path = "../crypto" }
 did-jwk = "0.1.1"
 did-web = "0.2.2"

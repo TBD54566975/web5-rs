@@ -4,9 +4,11 @@ pub mod web;
 
 use crate::bearer::BearerDid;
 use crate::resolver::ResolutionResult;
-use async_trait::async_trait;
-use keys::{key::KeyError, key_manager::{KeyManager, KeyManagerError}};
-use std::sync::Arc;
+use keys::{
+    key::KeyError,
+    key_manager::{KeyManager, KeyManagerError},
+};
+use std::{future::Future, sync::Arc};
 
 /// Errors that can occur when working with DID methods.
 #[derive(thiserror::Error, Debug)]
@@ -20,7 +22,6 @@ pub enum MethodError {
 }
 
 /// A trait with common behavior across all DID methods.
-#[async_trait]
 pub trait Method<CreateOptions> {
     /// The name of the implemented DID method (e.g. `jwk`).
     ///
@@ -41,5 +42,5 @@ pub trait Method<CreateOptions> {
 
     /// Resolve a DID URI to a [`DidResolutionResult`], as specified in
     /// [Resolving a DID](https://w3c-ccg.github.io/did-resolution/#resolving).
-    async fn resolve(did_uri: &str) -> ResolutionResult;
+    fn resolve(did_uri: &str) -> impl Future<Output = ResolutionResult>;
 }

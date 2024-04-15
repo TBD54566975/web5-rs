@@ -1,4 +1,5 @@
-use async_trait::async_trait;
+use std::future::Future;
+
 use base64::{engine::general_purpose, Engine as _};
 use crypto::{ed25519::Ed25199, secp256k1::Secp256k1, CryptoError, CurveOperations};
 use dids::{
@@ -76,13 +77,11 @@ pub struct Decoded {
     pub parts: Vec<String>,
 }
 
-#[async_trait]
 pub trait JwsString {
     fn decode(&self) -> Result<Decoded, JwsError>;
-    async fn verify(&self) -> Result<Decoded, JwsError>;
+    fn verify(&self) -> impl Future<Output = Result<Decoded, JwsError>>;
 }
 
-#[async_trait]
 impl JwsString for String {
     fn decode(&self) -> Result<Decoded, JwsError> {
         let parts: Vec<&str> = self.split('.').collect();
@@ -108,32 +107,38 @@ impl JwsString for String {
         })
     }
 
-    async fn verify(&self) -> Result<Decoded, JwsError> {
-        let decoded = self.decode()?;
-        let key_id = decoded.header.kid.clone();
-        let did_uri = KeyIdFragment(key_id.clone()).splice_uri();
-        let resolution_result = Resolver::resolve_uri(&did_uri).await;
-        if let Some(err) = resolution_result.did_resolution_metadata.error {
-            return Err(JwsError::ResolutionError(err));
-        }
-        let verification_method = match resolution_result.did_document {
-            Some(document) => document.get_verification_method(&KeySelector::KeyId(key_id)),
-            None => {
-                return Err(JwsError::DocumentError(
-                    DocumentError::VerificationMethodNotFound,
-                ))
+    fn verify(&self) -> impl Future<Output = Result<Decoded, JwsError>> {
+        async move {
+            let decoded = self.decode()?;
+            let key_id = decoded.header.kid.clone();
+            let did_uri = KeyIdFragment(key_id.clone()).splice_uri();
+            let resolution_result = Resolver::resolve_uri(&did_uri).await;
+            if let Some(err) = resolution_result.did_resolution_metadata.error {
+                return Err(JwsError::ResolutionError(err));
             }
-        }?;
-        let public_key = verification_method.public_key_jwk.clone();
-        let to_verify = format!("{}.{}", decoded.parts[0], decoded.parts[1]);
-        let alg = decoded.header.alg.clone();
-        match alg.as_str() {
-            "EdDSA" => Ed25199::verify(&public_key, &to_verify.into_bytes(), &decoded.signature),
-            "ES256K" => Secp256k1::verify(&public_key, &to_verify.into_bytes(), &decoded.signature),
-            _ => return Err(JwsError::AlgorithmNotFound(alg)),
-        }?;
+            let verification_method = match resolution_result.did_document {
+                Some(document) => document.get_verification_method(&KeySelector::KeyId(key_id)),
+                None => {
+                    return Err(JwsError::DocumentError(
+                        DocumentError::VerificationMethodNotFound,
+                    ))
+                }
+            }?;
+            let public_key = verification_method.public_key_jwk.clone();
+            let to_verify = format!("{}.{}", decoded.parts[0], decoded.parts[1]);
+            let alg = decoded.header.alg.clone();
+            match alg.as_str() {
+                "EdDSA" => {
+                    Ed25199::verify(&public_key, &to_verify.into_bytes(), &decoded.signature)
+                }
+                "ES256K" => {
+                    Secp256k1::verify(&public_key, &to_verify.into_bytes(), &decoded.signature)
+                }
+                _ => return Err(JwsError::AlgorithmNotFound(alg)),
+            }?;
 
-        Ok(decoded)
+            Ok(decoded)
+        }
     }
 }
 
