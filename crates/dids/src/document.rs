@@ -42,6 +42,23 @@ pub struct VerificationMethod {
     pub public_key_jwk: Jwk,
 }
 
+pub struct KeyIdFragment(pub String);
+
+impl KeyIdFragment {
+    pub fn splice_key_alias(&self) -> String {
+        self.0
+            .split_once('#')
+            .map_or(&self.0[..], |(_, after)| after)
+            .to_string()
+    }
+
+    pub fn splice_uri(&self) -> String {
+        self.0
+            .split_once('#')
+            .map_or(self.0.clone(), |(base, _)| base.to_string())
+    }
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Service {
     pub id: String,

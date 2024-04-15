@@ -1,5 +1,5 @@
 use crate::{
-    document::{Document, DocumentError, KeySelector},
+    document::{Document, DocumentError, KeyIdFragment, KeySelector},
     identifier::{Identifier, IdentifierError},
     resolver::{ResolutionError, Resolver},
 };
@@ -54,13 +54,8 @@ impl BearerDid {
 
     pub fn get_signer(&self, key_selector: &KeySelector) -> Result<Signer, BearerDidError> {
         let verification_method = self.document.get_verification_method(key_selector)?;
-        let key_id = &verification_method.id;
-
-        let key_alias = key_id
-            .split_once('#')
-            .map_or(&key_id[..], |(_, after)| after);
-        let signer = self.key_manager.get_signer(key_alias)?;
-
+        let key_alias = KeyIdFragment(verification_method.id.clone()).splice_key_alias();
+        let signer = self.key_manager.get_signer(&key_alias)?;
         Ok(signer)
     }
 }

@@ -3,8 +3,8 @@ use base64::{engine::general_purpose, Engine as _};
 use crypto::{ed25519::Ed25199, secp256k1::Secp256k1, CryptoError, CurveOperations};
 use dids::{
     bearer::{BearerDid, BearerDidError},
-    document::{DocumentError, KeySelector},
-    resolver::Resolver,
+    document::{DocumentError, KeyIdFragment, KeySelector},
+    resolver::{ResolutionError, Resolver},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice, to_string};
@@ -23,6 +23,8 @@ pub enum JwsError {
     DocumentError(#[from] DocumentError),
     #[error(transparent)]
     CryptoError(#[from] CryptoError),
+    #[error(transparent)]
+    ResolutionError(#[from] ResolutionError),
 }
 
 /// Represents a JWS (JSON Web Signature) header. See [Specification] for more details.
@@ -109,7 +111,11 @@ impl JwsString for String {
     async fn verify(&self) -> Result<Decoded, JwsError> {
         let decoded = self.decode()?;
         let key_id = decoded.header.kid.clone();
-        let resolution_result = Resolver::resolve_uri(&key_id).await;
+        let did_uri = KeyIdFragment(key_id.clone()).splice_uri();
+        let resolution_result = Resolver::resolve_uri(&did_uri).await;
+        if let Some(err) = resolution_result.did_resolution_metadata.error {
+            return Err(JwsError::ResolutionError(err));
+        }
         let verification_method = match resolution_result.did_document {
             Some(document) => document.get_verification_method(&KeySelector::KeyId(key_id)),
             None => {

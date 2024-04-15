@@ -1,16 +1,15 @@
 use chrono::{DateTime, Utc};
 use dids::{bearer::BearerDid, document::KeySelector};
-use jwt::{sign_jwt, Claims, JwtError};
+use jwt::{sign_jwt, Claims, JwtError, JwtString};
 use keys::key::KeyError;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uuid::Uuid;
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 const BASE_TYPE: &str = "VerifiableCredential";
 
-#[derive(Serialize, Deserialize)]
-pub struct DataModel<T: CredentialSubject + Serialize> {
+#[derive(Serialize, Deserialize, Debug)]
+pub struct VerifiableCredential<T: CredentialSubject + Serialize> {
     #[serde(rename = "@context")]
     pub context: Vec<String>,
     pub id: String,
@@ -29,18 +28,18 @@ pub trait CredentialSubject {
     fn set_id(&mut self, id: String);
 }
 
-pub type CredentialSubjectClaims = HashMap<String, serde_json::Value>;
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DefaultCredentialSubject {
+    pub id: String,
+}
 
-impl CredentialSubject for CredentialSubjectClaims {
+impl CredentialSubject for DefaultCredentialSubject {
     fn get_id(&self) -> String {
-        self.get("id")
-            .and_then(|v| v.as_str())
-            .unwrap_or_default()
-            .to_string()
+        self.id.clone()
     }
 
     fn set_id(&mut self, id: String) {
-        self.insert("id".to_string(), serde_json::Value::String(id));
+        self.id = id
     }
 }
 
@@ -63,14 +62,16 @@ pub enum CredentialError {
     KeyError(#[from] KeyError),
     #[error(transparent)]
     JwtError(#[from] JwtError),
+    #[error("vc jwt error {0}")]
+    VcJwtError(String),
 }
 
-impl<T: CredentialSubject + Serialize> DataModel<T> {
+impl<T: CredentialSubject + Serialize + DeserializeOwned> VerifiableCredential<T> {
     pub fn create(
         credential_subject: T,
         issuer: &str,
         options: Option<CreateOptions>,
-    ) -> Result<DataModel<T>, CredentialError> {
+    ) -> Result<VerifiableCredential<T>, CredentialError> {
         if issuer.is_empty() {
             return Err(CredentialError::EmptyIssuer);
         }
@@ -133,8 +134,16 @@ impl<T: CredentialSubject + Serialize> DataModel<T> {
         Ok(jwt)
     }
 
-    pub fn from_vcjwt(_vcjwt: &str) -> Result<Self, CredentialError> {
-        unimplemented!()
+    pub async fn from_vcjwt(vcjwt: &str) -> Result<VerifiableCredential<T>, CredentialError> {
+        let decoded_jwt = vcjwt.to_string().verify().await?;
+        let vc_value = decoded_jwt.claims.vc.ok_or(CredentialError::VcJwtError(
+            "vc claim missing from jwt".to_string(),
+        ))?;
+
+        let vc: VerifiableCredential<T> = serde_json::from_value(vc_value)
+            .map_err(|_| CredentialError::VcJwtError("vc claim value error".to_string()))?;
+
+        Ok(vc)
     }
 }
 
@@ -150,18 +159,19 @@ mod tests {
     use std::sync::Arc;
 
     #[test]
-    fn test_everythang() {
+    fn test_sign_vcjwt() {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
             curve: Curve::Ed25519,
         };
         let bearer_did = DidJwk::create(key_manager, options).unwrap();
 
-        let mut claims = CredentialSubjectClaims::new();
-        claims.set_id("subject_id-something-something-testing123".to_string());
+        let credential_subject = DefaultCredentialSubject {
+            id: Uuid::new_v4().to_string(),
+        };
 
-        let mut vc = DataModel::create(
-            claims,
+        let mut vc = VerifiableCredential::create(
+            credential_subject,
             &bearer_did.identifier.uri,
             Some(CreateOptions {
                 expiration_date: Some(Utc::now() + Duration::minutes(30)),
@@ -178,5 +188,13 @@ mod tests {
             .expect("Failed to sign VC");
 
         println!("Signed JWT: {:?}", signed_vcjwt);
+    }
+
+    #[tokio::test]
+    async fn test_from_vcjwt() {
+        let jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaWRUUXhiRU0wY1ZGMFJqazFOazR0VEROb1RsbG9NazFxTlZOWVVscFFORmt5TnpKSU9VeEpUVFJLYXlKOSNYSHNxQkxyOEVzY0RwYWdpOS1uTWhZM0g5MV9fWjJmcHBqZDFlYjV3LVZvIiwidHlwIjoiSldUIn0.eyJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lkVFF4YkVNMGNWRjBSamsxTms0dFRETm9UbGxvTWsxcU5WTllVbHBRTkZreU56SklPVXhKVFRSS2F5SjkiLCJzdWIiOiJmMDg5MmE0ZS1lMmIwLTQ2MzUtOThkZC04YTEwZjk5MzVkODQiLCJleHAiOjE3MTMxNTI2ODksIm5iZiI6MTcxMzE1MDg4OSwianRpIjoidXJuOnZjOnV1aWQ6MjY4NmVmMWUtNmQ2NC00N2RkLWJkYWYtYTQwMzZiODJjZTdmIiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiZjA4OTJhNGUtZTJiMC00NjM1LTk4ZGQtOGExMGY5OTM1ZDg0In0sImV4cGlyYXRpb25EYXRlIjoiMjAyNC0wNC0xNVQwMzo0NDo0OS45ODMxOTBaIiwiaWQiOiJ1cm46dmM6dXVpZDoyNjg2ZWYxZS02ZDY0LTQ3ZGQtYmRhZi1hNDAzNmI4MmNlN2YiLCJpc3N1YW5jZURhdGUiOiIyMDI0LTA0LTE1VDAzOjE0OjQ5Ljk4MzIyOFoiLCJpc3N1ZXIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lkVFF4YkVNMGNWRjBSamsxTms0dFRETm9UbGxvTWsxcU5WTllVbHBRTkZreU56SklPVXhKVFRSS2F5SjkiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19fQ.VlCqPOJQuXojteVjWX2itsWg0XE6WjPn3Cp5cp7aIQ-tBPogzSJK-2i9FCBh3KhfBdCB_sTIKy3obMXGI7rtBw";
+        let vc: VerifiableCredential<DefaultCredentialSubject> =
+            VerifiableCredential::from_vcjwt(jwt).await.unwrap();
+        println!("VC {:?}", vc)
     }
 }
