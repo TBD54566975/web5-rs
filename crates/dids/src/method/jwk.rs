@@ -54,7 +54,7 @@ impl Method<DidJwkCreateOptions> for DidJwk {
             document: Document {
                 id: uri.clone(),
                 verification_method: vec![VerificationMethod {
-                    id: format!("{}#{}", uri, key_alias),
+                    id: format!("{}#0", uri),
                     r#type: "JsonWebKey".to_string(),
                     controller: uri,
                     public_key_jwk: public_key.jwk()?.clone(),
