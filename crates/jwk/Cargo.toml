@@ -19,7 +19,7 @@ uniffi = { version = "0.27.1", features = [ "build" ] }
 
 [lib]
 crate-type = ["cdylib"]
-name = "web5jwk"
+name = "jwk"
 
 [[bin]]
 name = "uniffi-bindgen"
