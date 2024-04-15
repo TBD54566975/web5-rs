@@ -8,10 +8,10 @@ license-file.workspace = true
 
 [dependencies]
 jwk = { path = "../../crates/jwk" }
-uniffi = { workspace = true }
+uniffi = { version = "0.27.1", features = ["cli"] }
 
 [build-dependencies]
-uniffi = { workspace = true, features = ["build"] }
+uniffi = { version = "0.27.1", features = ["build"] }
 
 [lib]
 crate-type = ["cdylib"]
