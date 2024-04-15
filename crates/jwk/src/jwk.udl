@@ -1,0 +1,18 @@
+namespace jwk {
+    [Error]
+    enum JwkError {
+        "ThumprintFailed(string)",
+    };
+
+    dictionary Jwk {
+        string alg;
+        string kty;
+        string crv;
+        string? d;
+        string x;
+        string? y;
+    };
+
+    [Throws=JwkError]
+    string compute_thumbprint(Jwk jwk);
+};

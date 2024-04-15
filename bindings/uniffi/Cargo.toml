@@ -1,0 +1,11 @@
+[package]
+name = "web5uniffi"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+uniffi = { workspace = true }
+
+[[bin]]
+name = "web5uniffi"
+path = "src/main.rs"
