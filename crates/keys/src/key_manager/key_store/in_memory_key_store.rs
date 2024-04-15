@@ -19,17 +19,20 @@ impl InMemoryKeyStore {
 }
 
 impl KeyStore for InMemoryKeyStore {
-    fn generate_new(&self, curve: Curve) -> Result<String, KeyStoreError> {
+    fn generate_new(&self, curve: Curve, key_alias: Option<&str>) -> Result<String, KeyStoreError> {
         let private_key = Arc::new(match curve {
             Curve::Ed25519 => Ed25199::generate(),
             Curve::Secp256k1 => Secp256k1::generate(),
         }?);
-        let key_alias = private_key.compute_thumbprint()?;
+        let key_alias = match key_alias {
+            Some(key_alias) => key_alias.to_string(),
+            None => private_key.compute_thumbprint()?,
+        };
         let mut map_lock = self.map.write().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("unable to acquire Mutex lock: {}", e))
         })?;
         map_lock.insert(key_alias.to_string(), private_key);
-        Ok(key_alias)
+        Ok(key_alias.to_string())
     }
 
     fn get_all_aliases(&self) -> Result<Vec<String>, KeyStoreError> {
