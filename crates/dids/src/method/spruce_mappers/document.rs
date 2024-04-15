@@ -127,7 +127,7 @@ impl VerificationMethod {
                     ),
                 };
                 let jwk = Jwk {
-                    alg: format!("{:?}", alg),
+                    alg: alg,
                     kty: kty.to_string(),
                     crv: crv.unwrap_or("".to_string()),
                     x: x.as_ref()

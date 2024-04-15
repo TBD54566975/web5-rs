@@ -55,7 +55,7 @@ impl CurveOperations for Ed25199 {
         let mut public_key_bytes = [0u8; PUBLIC_KEY_LENGTH];
         public_key_bytes.copy_from_slice(&decoded_x);
         let verifying_key = VerifyingKey::from_bytes(&public_key_bytes)
-            .map_err(|_| CryptoError::PublicKeyFailure(public_jwk.x.clone()))?;
+            .map_err(|e| CryptoError::PublicKeyFailure(e.to_string()))?;
 
         if signature.len() != SIGNATURE_LENGTH {
             return Err(CryptoError::InvalidSignatureLength(public_jwk.x.clone()));
@@ -77,13 +77,43 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_debug() {
+        let private_jwk = Jwk {
+            alg: "EdDSA".to_string(),
+            kty: "OKP".to_string(),
+            crv: "Ed25519".to_string(),
+            d: Some("kkLqdenul8m0eQBVdgbxnOz2KdgjbSC_sV4VD8iI89o".to_string()),
+            x: "23DLAC9dZsF2vT5VZQEihQmLVNwe2QVKKLXYPmfp5g0".to_string(),
+            y: None,
+        };
+        let public_jwk = Jwk {
+            alg: "EdDSA".to_string(),
+            kty: "OKP".to_string(),
+            crv: "Ed25519".to_string(),
+            d: None,
+            x: "23DLAC9dZsF2vT5VZQEihQmLVNwe2QVKKLXYPmfp5g0".to_string(),
+            y: None,
+        };
+        let payload = b"test payload";
+        let signature = Ed25199::sign(&private_jwk, payload).unwrap();
+        assert!(Ed25199::verify(&public_jwk, payload, &signature).is_ok());
+    }
+
+    #[test]
     fn test_generate_keys() {
         let jwk = Ed25199::generate().unwrap();
         assert_eq!(jwk.alg, "EdDSA");
         assert_eq!(jwk.kty, "OKP");
         assert_eq!(jwk.crv, "Ed25519");
-        assert_eq!(jwk.x.len(), 43); // base64 URL-safe no padding length of 32 bytes
-        assert_eq!(jwk.d.as_ref().unwrap().len(), 43); // base64 URL-safe no padding length of 32 bytes
+        assert_eq!(jwk.x.len(), 43);
+        assert_eq!(jwk.d.as_ref().unwrap().len(), 43);
+
+        let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x).unwrap();
+        assert_eq!(decoded_x.len(), PUBLIC_KEY_LENGTH);
+        let decoded_d = general_purpose::URL_SAFE_NO_PAD
+            .decode(&jwk.d.as_ref().unwrap())
+            .unwrap();
+        assert_eq!(decoded_d.len(), SECRET_KEY_LENGTH);
     }
 
     #[test]
@@ -91,7 +121,6 @@ mod tests {
         let jwk = Ed25199::generate().unwrap();
         let payload = b"test payload";
         let signature = Ed25199::sign(&jwk, payload).unwrap();
-
         assert!(Ed25199::verify(&jwk, payload, &signature).is_ok());
     }
 

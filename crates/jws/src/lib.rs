@@ -125,11 +125,11 @@ impl JwsString for String {
             }
         }?;
         let public_key = verification_method.public_key_jwk.clone();
-
+        let to_verify = format!("{}.{}", decoded.parts[0], decoded.parts[1]);
         let alg = decoded.header.alg.clone();
         match alg.as_str() {
-            "EdDSA" => Ed25199::verify(&public_key, &decoded.payload, &decoded.signature),
-            "ES256K" => Secp256k1::verify(&public_key, &decoded.payload, &decoded.signature),
+            "EdDSA" => Ed25199::verify(&public_key, &to_verify.into_bytes(), &decoded.signature),
+            "ES256K" => Secp256k1::verify(&public_key, &to_verify.into_bytes(), &decoded.signature),
             _ => return Err(JwsError::AlgorithmNotFound(alg)),
         }?;
 
@@ -170,4 +170,75 @@ pub fn sign_jws(
         encoded_header, encoded_payload, encoded_signature
     );
     Ok(jws_token)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crypto::Curve;
+    use dids::{
+        document::VerificationMethodType,
+        method::{
+            jwk::{DidJwk, DidJwkCreateOptions},
+            Method,
+        },
+    };
+    use keys::key_manager::local_key_manager::LocalKeyManager;
+    use std::sync::Arc;
+
+    #[test]
+    fn header_encode_success() {
+        let header = Header {
+            alg: "ES256K".to_string(),
+            kid: "key1".to_string(),
+            typ: "JWT".to_string(),
+        };
+        let encoded = header.encode().unwrap();
+        assert!(!encoded.is_empty());
+    }
+
+    #[test]
+    fn header_decode_success() {
+        let header = Header {
+            alg: "ES256K".to_string(),
+            kid: "key1".to_string(),
+            typ: "JWT".to_string(),
+        };
+        let encoded = header.encode().unwrap();
+        let decoded = Header::decode(encoded).unwrap();
+        assert_eq!(decoded.alg, "ES256K");
+        assert_eq!(decoded.kid, "key1");
+        assert_eq!(decoded.typ, "JWT");
+    }
+
+    #[test]
+    fn header_decode_failure() {
+        let result = Header::decode("invalid_base64".to_string());
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            JwsError::DeserializationError(e) => assert!(!e.is_empty()),
+            _ => panic!("Expected deserialization error"),
+        }
+    }
+
+    #[tokio::test]
+    async fn sign_jws_success() {
+        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+        let options = DidJwkCreateOptions {
+            curve: Curve::Ed25519,
+        };
+        let bearer_did = DidJwk::create(key_manager, options).unwrap();
+        let key_selector = KeySelector::MethodType(VerificationMethodType::VerificationMethod);
+        let encoded_payload = general_purpose::URL_SAFE_NO_PAD.encode(b"some payload test");
+        let options = JwsSignOptions {
+            r#type: Some("JWT".to_string()),
+        };
+
+        let signed = sign_jws(&bearer_did, &key_selector, encoded_payload, options);
+        assert!(signed.is_ok());
+
+        let jws = signed.unwrap();
+        let result = jws.verify().await;
+        assert!(result.is_ok());
+    }
 }

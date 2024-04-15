@@ -14,3 +14,7 @@ dids = { path = "../dids" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+
+[dev-dependencies]
+keys = { path = "../keys" }
+tokio = { version = "1.34.0", features = ["macros", "test-util"] }
