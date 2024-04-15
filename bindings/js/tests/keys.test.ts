@@ -7,6 +7,12 @@ describe('LocalJwkManager', () => {
     keyManager = new LocalJwkManager()
   })
 
+  test('should override key_alias', () => {
+    const keyAliasOverride = 'key-id-123'
+    const keyAlias = keyManager.generate_private_key('Secp256k1', keyAliasOverride)
+    expect(keyAlias).toEqual(keyAliasOverride)
+  })
+
   test('should generate and retrieve Secp256k1 private key', () => {
     const keyAlias = keyManager.generate_private_key('Secp256k1')
     expect(typeof keyAlias).toBe('string')
