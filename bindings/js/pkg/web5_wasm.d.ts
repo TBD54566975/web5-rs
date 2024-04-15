@@ -34,6 +34,40 @@ export function verify_secp256k1(public_key: Jwk, payload: Uint8Array, signature
 export function verify_ed25519(public_key: Jwk, payload: Uint8Array, signature: Uint8Array): void;
 /**
 */
+export class Identifier {
+  free(): void;
+/**
+* @param {string} did_uri
+* @returns {Identifier}
+*/
+  static parse(did_uri: string): Identifier;
+/**
+*/
+  readonly fragment: string | undefined;
+/**
+*/
+  readonly id: string;
+/**
+*/
+  readonly method: string;
+/**
+*/
+  readonly params: any;
+/**
+*/
+  readonly path: string | undefined;
+/**
+*/
+  readonly query: string | undefined;
+/**
+*/
+  readonly uri: string;
+/**
+*/
+  readonly url: string;
+}
+/**
+*/
 export class Jwk {
   free(): void;
 /**
