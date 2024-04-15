@@ -1,4 +1,4 @@
-use crate::key::{KeyError, PrivateKey, PublicKey};
+use crate::key::{PrivateKey, PublicKey};
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
 use crypto::ed25519::Ed25199;
 use crypto::secp256k1::Secp256k1;
@@ -19,16 +19,19 @@ impl InMemoryKeyStore {
 }
 
 impl KeyStore for InMemoryKeyStore {
-    fn generate_new(&self, curve: Curve) -> Result<String, KeyStoreError> {
+    fn generate_new(&self, curve: Curve, key_alias: Option<&str>) -> Result<String, KeyStoreError> {
         let private_key = Arc::new(match curve {
             Curve::Ed25519 => Ed25199::generate(),
             Curve::Secp256k1 => Secp256k1::generate(),
         }?);
-        let key_alias = private_key.compute_thumbprint()?;
+        let key_alias = match key_alias {
+            Some(key_alias) => key_alias.to_string(),
+            None => private_key.compute_thumbprint()?,
+        };
         let mut map_lock = self.map.write().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("unable to acquire Mutex lock: {}", e))
         })?;
-        map_lock.insert(key_alias.to_string(), private_key);
+        map_lock.insert(key_alias.clone(), private_key);
         Ok(key_alias)
     }
 
@@ -71,19 +74,12 @@ impl KeyStore for InMemoryKeyStore {
         let private_key = map_lock
             .get(key_alias)
             .ok_or(KeyStoreError::KeyNotFound(key_alias.to_string()))?;
-
         let private_jwk = private_key.jwk()?;
-
-        let signer = match private_jwk.crv.as_str() {
-            "Ed25519" => Arc::new(move |payload: &[u8]| -> Result<Vec<u8>, CryptoError> {
-                Ed25199::sign(&private_jwk, payload)
-            }) as Signer,
-            "secp256k1" => Arc::new(move |payload: &[u8]| -> Result<Vec<u8>, CryptoError> {
-                Secp256k1::sign(&private_jwk, payload)
-            }) as Signer,
-            _ => return Err(KeyStoreError::KeyError(KeyError::CurveNotFound)),
-        };
-
+        let signer = Arc::new(move |payload: &[u8]| -> Result<Vec<u8>, CryptoError> {
+            private_jwk
+                .sign(payload)
+                .map_err(|e| CryptoError::SignFailure(e.to_string()))
+        });
         Ok(signer)
     }
 

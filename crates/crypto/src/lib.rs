@@ -21,6 +21,8 @@ pub enum CryptoError {
     PrivateKeyFailure(String),
     #[error("verification failure {0}")]
     VerificationFailure(String),
+    #[error("sign failure {0}")]
+    SignFailure(String),
 }
 
 pub enum Curve {

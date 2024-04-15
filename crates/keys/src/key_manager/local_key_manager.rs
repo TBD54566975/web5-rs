@@ -26,8 +26,12 @@ impl LocalKeyManager {
 }
 
 impl KeyManager for LocalKeyManager {
-    fn generate_private_key(&self, curve: Curve) -> Result<String, KeyManagerError> {
-        let key_alias = self.key_store.generate_new(curve)?;
+    fn generate_private_key(
+        &self,
+        curve: Curve,
+        key_alias: Option<&str>,
+    ) -> Result<String, KeyManagerError> {
+        let key_alias = self.key_store.generate_new(curve, key_alias)?;
         Ok(key_alias)
     }
 
@@ -69,19 +73,27 @@ mod tests {
         let key_manager = LocalKeyManager::new_in_memory();
 
         key_manager
-            .generate_private_key(Curve::Ed25519)
+            .generate_private_key(Curve::Ed25519, None)
             .expect("Failed to generate Ed25519 key");
 
         key_manager
-            .generate_private_key(Curve::Secp256k1)
+            .generate_private_key(Curve::Secp256k1, None)
             .expect("Failed to generate secp256k1 key");
+
+        let key_alias_override = Some("key-id-123");
+        let key_alias = key_manager
+            .generate_private_key(Curve::Secp256k1, key_alias_override)
+            .expect("Failed to generate secp256k1 key");
+        assert_eq!(key_alias_override.unwrap().to_string(), key_alias)
     }
 
     #[test]
     fn test_get_public_key() {
         let key_manager = LocalKeyManager::new_in_memory();
 
-        let key_alias = key_manager.generate_private_key(Curve::Ed25519).unwrap();
+        let key_alias = key_manager
+            .generate_private_key(Curve::Ed25519, None)
+            .unwrap();
 
         key_manager
             .get_public_key(&key_alias)
@@ -91,7 +103,9 @@ mod tests {
     #[test]
     fn test_sign() {
         let key_manager = LocalKeyManager::new_in_memory();
-        let key_alias = key_manager.generate_private_key(Curve::Ed25519).unwrap();
+        let key_alias = key_manager
+            .generate_private_key(Curve::Ed25519, None)
+            .unwrap();
 
         // Sign a payload
         let payload: &[u8] = b"hello world";
