@@ -27,7 +27,7 @@ describe('Jwk', () => {
     const y = '4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM'
 
     const jwk = new Jwk(alg, kty, crv, undefined, x, y)
-    const thumbprint = jwk.compute_thumbprint()
+    const thumbprint = jwk.computeThumbprint()
 
     expect(typeof thumbprint).toBe('string')
   })

@@ -3,35 +3,35 @@
 /**
 * @returns {Jwk}
 */
-export function generate_ed25519_key(): Jwk;
+export function generateEd25519Key(): Jwk;
 /**
 * @returns {Jwk}
 */
-export function generate_secp256k1_key(): Jwk;
+export function generateSecp256k1Key(): Jwk;
 /**
 * @param {Jwk} private_key
 * @param {Uint8Array} payload
 * @returns {Uint8Array}
 */
-export function sign_secp256k1(private_key: Jwk, payload: Uint8Array): Uint8Array;
+export function signSecp256k1(private_key: Jwk, payload: Uint8Array): Uint8Array;
 /**
 * @param {Jwk} private_key
 * @param {Uint8Array} payload
 * @returns {Uint8Array}
 */
-export function sign_ed25519(private_key: Jwk, payload: Uint8Array): Uint8Array;
+export function signEd25519(private_key: Jwk, payload: Uint8Array): Uint8Array;
 /**
 * @param {Jwk} public_key
 * @param {Uint8Array} payload
 * @param {Uint8Array} signature
 */
-export function verify_secp256k1(public_key: Jwk, payload: Uint8Array, signature: Uint8Array): void;
+export function verifySecp256k1(public_key: Jwk, payload: Uint8Array, signature: Uint8Array): void;
 /**
 * @param {Jwk} public_key
 * @param {Uint8Array} payload
 * @param {Uint8Array} signature
 */
-export function verify_ed25519(public_key: Jwk, payload: Uint8Array, signature: Uint8Array): void;
+export function verifyEd25519(public_key: Jwk, payload: Uint8Array, signature: Uint8Array): void;
 /**
 */
 export class Identifier {
@@ -82,7 +82,7 @@ export class Jwk {
 /**
 * @returns {string}
 */
-  compute_thumbprint(): string;
+  computeThumbprint(): string;
 /**
 * PublicKey implementations 
 * @param {Uint8Array} payload
@@ -93,7 +93,7 @@ export class Jwk {
 * PrivateKey implementations 
 * @returns {Jwk}
 */
-  to_public(): Jwk;
+  toPublic(): Jwk;
 /**
 * @param {Uint8Array} payload
 * @returns {Uint8Array}
@@ -130,12 +130,12 @@ export class LocalJwkManager {
 * @param {string | undefined} [key_alias]
 * @returns {string}
 */
-  generate_private_key(curve: string, key_alias?: string): string;
+  generatePrivateKey(curve: string, key_alias?: string): string;
 /**
 * @param {string} key_alias
 * @returns {Jwk}
 */
-  get_public_key(key_alias: string): Jwk;
+  getPublicKey(key_alias: string): Jwk;
 /**
 * @param {string} key_alias
 * @param {Uint8Array} payload
@@ -145,9 +145,9 @@ export class LocalJwkManager {
 /**
 * @returns {(Jwk)[]}
 */
-  export_private_keys(): (Jwk)[];
+  exportPrivateKeys(): (Jwk)[];
 /**
 * @param {(Jwk)[]} private_keys
 */
-  import_private_keys(private_keys: (Jwk)[]): void;
+  importPrivateKeys(private_keys: (Jwk)[]): void;
 }

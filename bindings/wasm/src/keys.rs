@@ -18,7 +18,7 @@ impl LocalJwkManager {
         Self(InternalLocalKeyManager::new_in_memory())
     }
 
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = generatePrivateKey)]
     pub fn generate_private_key(
         &self,
         curve: String,
@@ -37,7 +37,7 @@ impl LocalJwkManager {
         Ok(key_alias)
     }
 
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = getPublicKey)]
     pub fn get_public_key(&self, key_alias: &str) -> Result<Jwk, JsValue> {
         let public_jwk = self
             .0
@@ -63,7 +63,7 @@ impl LocalJwkManager {
     //     Ok(signer)
     // }
 
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = exportPrivateKeys)]
     pub fn export_private_keys(&self) -> Result<Vec<Jwk>, JsValue> {
         let private_keys = self
             .0
@@ -82,7 +82,7 @@ impl LocalJwkManager {
         jwks
     }
 
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = importPrivateKeys)]
     pub fn import_private_keys(&self, private_keys: Vec<Jwk>) -> Result<(), JsValue> {
         let internal_jwks: Vec<Arc<dyn PrivateKey>> = private_keys
             .into_iter()

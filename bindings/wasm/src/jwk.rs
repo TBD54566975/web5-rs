@@ -76,7 +76,7 @@ impl Jwk {
         self.0.y.clone()
     }
 
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = computeThumbprint)]
     pub fn compute_thumbprint(&self) -> Result<String, JsValue> {
         self.0
             .compute_thumbprint()
@@ -92,7 +92,7 @@ impl Jwk {
     }
 
     /** PrivateKey implementations */
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = toPublic)]
     pub fn to_public(&self) -> Result<Jwk, JsValue> {
         let public_jwk = self
             .0

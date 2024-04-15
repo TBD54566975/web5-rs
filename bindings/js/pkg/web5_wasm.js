@@ -228,10 +228,10 @@ function passArrayJsValueToWasm0(array, malloc) {
 /**
 * @returns {Jwk}
 */
-module.exports.generate_ed25519_key = function() {
+module.exports.generateEd25519Key = function() {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.generate_ed25519_key(retptr);
+        wasm.generateEd25519Key(retptr);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -247,10 +247,10 @@ module.exports.generate_ed25519_key = function() {
 /**
 * @returns {Jwk}
 */
-module.exports.generate_secp256k1_key = function() {
+module.exports.generateSecp256k1Key = function() {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.generate_secp256k1_key(retptr);
+        wasm.generateSecp256k1Key(retptr);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -274,13 +274,13 @@ function _assertClass(instance, klass) {
 * @param {Uint8Array} payload
 * @returns {Uint8Array}
 */
-module.exports.sign_secp256k1 = function(private_key, payload) {
+module.exports.signSecp256k1 = function(private_key, payload) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         _assertClass(private_key, Jwk);
         const ptr0 = passArray8ToWasm0(payload, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.sign_secp256k1(retptr, private_key.__wbg_ptr, ptr0, len0);
+        wasm.signSecp256k1(retptr, private_key.__wbg_ptr, ptr0, len0);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -301,13 +301,13 @@ module.exports.sign_secp256k1 = function(private_key, payload) {
 * @param {Uint8Array} payload
 * @returns {Uint8Array}
 */
-module.exports.sign_ed25519 = function(private_key, payload) {
+module.exports.signEd25519 = function(private_key, payload) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         _assertClass(private_key, Jwk);
         const ptr0 = passArray8ToWasm0(payload, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.sign_ed25519(retptr, private_key.__wbg_ptr, ptr0, len0);
+        wasm.signEd25519(retptr, private_key.__wbg_ptr, ptr0, len0);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -328,7 +328,7 @@ module.exports.sign_ed25519 = function(private_key, payload) {
 * @param {Uint8Array} payload
 * @param {Uint8Array} signature
 */
-module.exports.verify_secp256k1 = function(public_key, payload, signature) {
+module.exports.verifySecp256k1 = function(public_key, payload, signature) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         _assertClass(public_key, Jwk);
@@ -336,7 +336,7 @@ module.exports.verify_secp256k1 = function(public_key, payload, signature) {
         const len0 = WASM_VECTOR_LEN;
         const ptr1 = passArray8ToWasm0(signature, wasm.__wbindgen_malloc);
         const len1 = WASM_VECTOR_LEN;
-        wasm.verify_secp256k1(retptr, public_key.__wbg_ptr, ptr0, len0, ptr1, len1);
+        wasm.verifySecp256k1(retptr, public_key.__wbg_ptr, ptr0, len0, ptr1, len1);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         if (r1) {
@@ -352,7 +352,7 @@ module.exports.verify_secp256k1 = function(public_key, payload, signature) {
 * @param {Uint8Array} payload
 * @param {Uint8Array} signature
 */
-module.exports.verify_ed25519 = function(public_key, payload, signature) {
+module.exports.verifyEd25519 = function(public_key, payload, signature) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         _assertClass(public_key, Jwk);
@@ -360,7 +360,7 @@ module.exports.verify_ed25519 = function(public_key, payload, signature) {
         const len0 = WASM_VECTOR_LEN;
         const ptr1 = passArray8ToWasm0(signature, wasm.__wbindgen_malloc);
         const len1 = WASM_VECTOR_LEN;
-        wasm.verify_ed25519(retptr, public_key.__wbg_ptr, ptr0, len0, ptr1, len1);
+        wasm.verifyEd25519(retptr, public_key.__wbg_ptr, ptr0, len0, ptr1, len1);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         if (r1) {
@@ -744,12 +744,12 @@ class Jwk {
     /**
     * @returns {string}
     */
-    compute_thumbprint() {
+    computeThumbprint() {
         let deferred2_0;
         let deferred2_1;
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.jwk_compute_thumbprint(retptr, this.__wbg_ptr);
+            wasm.jwk_computeThumbprint(retptr, this.__wbg_ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -794,10 +794,10 @@ class Jwk {
     * PrivateKey implementations
     * @returns {Jwk}
     */
-    to_public() {
+    toPublic() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.jwk_to_public(retptr, this.__wbg_ptr);
+            wasm.jwk_toPublic(retptr, this.__wbg_ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -866,7 +866,7 @@ class LocalJwkManager {
     * @param {string | undefined} [key_alias]
     * @returns {string}
     */
-    generate_private_key(curve, key_alias) {
+    generatePrivateKey(curve, key_alias) {
         let deferred4_0;
         let deferred4_1;
         try {
@@ -875,7 +875,7 @@ class LocalJwkManager {
             const len0 = WASM_VECTOR_LEN;
             var ptr1 = isLikeNone(key_alias) ? 0 : passStringToWasm0(key_alias, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             var len1 = WASM_VECTOR_LEN;
-            wasm.localjwkmanager_generate_private_key(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1);
+            wasm.localjwkmanager_generatePrivateKey(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -898,12 +898,12 @@ class LocalJwkManager {
     * @param {string} key_alias
     * @returns {Jwk}
     */
-    get_public_key(key_alias) {
+    getPublicKey(key_alias) {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(key_alias, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len0 = WASM_VECTOR_LEN;
-            wasm.localjwkmanager_get_public_key(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.localjwkmanager_getPublicKey(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -945,10 +945,10 @@ class LocalJwkManager {
     /**
     * @returns {(Jwk)[]}
     */
-    export_private_keys() {
+    exportPrivateKeys() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.localjwkmanager_export_private_keys(retptr, this.__wbg_ptr);
+            wasm.localjwkmanager_exportPrivateKeys(retptr, this.__wbg_ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -966,12 +966,12 @@ class LocalJwkManager {
     /**
     * @param {(Jwk)[]} private_keys
     */
-    import_private_keys(private_keys) {
+    importPrivateKeys(private_keys) {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passArrayJsValueToWasm0(private_keys, wasm.__wbindgen_malloc);
             const len0 = WASM_VECTOR_LEN;
-            wasm.localjwkmanager_import_private_keys(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.localjwkmanager_importPrivateKeys(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             if (r1) {
