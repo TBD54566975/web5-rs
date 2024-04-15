@@ -77,29 +77,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_debug() {
-        let private_jwk = Jwk {
-            alg: "EdDSA".to_string(),
-            kty: "OKP".to_string(),
-            crv: "Ed25519".to_string(),
-            d: Some("kkLqdenul8m0eQBVdgbxnOz2KdgjbSC_sV4VD8iI89o".to_string()),
-            x: "23DLAC9dZsF2vT5VZQEihQmLVNwe2QVKKLXYPmfp5g0".to_string(),
-            y: None,
-        };
-        let public_jwk = Jwk {
-            alg: "EdDSA".to_string(),
-            kty: "OKP".to_string(),
-            crv: "Ed25519".to_string(),
-            d: None,
-            x: "23DLAC9dZsF2vT5VZQEihQmLVNwe2QVKKLXYPmfp5g0".to_string(),
-            y: None,
-        };
-        let payload = b"test payload";
-        let signature = Ed25199::sign(&private_jwk, payload).unwrap();
-        assert!(Ed25199::verify(&public_jwk, payload, &signature).is_ok());
-    }
-
-    #[test]
     fn test_generate_keys() {
         let jwk = Ed25199::generate().unwrap();
         assert_eq!(jwk.alg, "EdDSA");

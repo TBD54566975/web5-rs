@@ -31,8 +31,8 @@ impl KeyStore for InMemoryKeyStore {
         let mut map_lock = self.map.write().map_err(|e| {
             KeyStoreError::InternalKeyStoreError(format!("unable to acquire Mutex lock: {}", e))
         })?;
-        map_lock.insert(key_alias.to_string(), private_key);
-        Ok(key_alias.to_string())
+        map_lock.insert(key_alias.clone(), private_key);
+        Ok(key_alias)
     }
 
     fn get_all_aliases(&self) -> Result<Vec<String>, KeyStoreError> {
