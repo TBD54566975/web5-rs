@@ -1,5 +1,5 @@
 [package]
-name = "web5wasm"
+name = "web5-wasm"
 version = "0.1.0"
 edition = "2021"
 homepage.workspace = true

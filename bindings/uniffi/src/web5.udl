@@ -1,0 +1,10 @@
+namespace web5 {};
+
+dictionary Jwk {
+    string alg;
+    string kty;
+    string crv;
+    string? d;
+    string x;
+    string? y;
+};
