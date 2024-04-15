@@ -28,6 +28,8 @@ describe('Identifier', () => {
     expect(identifier.path).toBeUndefined()
     expect(identifier.query).toBeUndefined()
     expect(identifier.fragment).toBeUndefined()
+
+    // Check the params property
     expect(identifier.params).toBeDefined()
     expect(identifier.params.foo).toEqual('bar')
     expect(identifier.params.baz).toEqual('qux')

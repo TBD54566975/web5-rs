@@ -1,4 +1,5 @@
 use dids::identifier::Identifier as InternalIdentifier;
+use js_sys::{Object, Reflect};
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 
 #[wasm_bindgen]
@@ -56,16 +57,17 @@ impl Identifier {
 
     #[wasm_bindgen(getter)]
     pub fn params(&self) -> JsValue {
-        if self.0.params.is_none() {
-            return JsValue::UNDEFINED;
+        match &self.0.params {
+            Some(params) => {
+                let obj = Object::new();
+                for (key, value) in params {
+                    Reflect::set(&obj, &JsValue::from_str(&key), &JsValue::from_str(&value))
+                        .unwrap();
+                }
+                obj.into()
+            }
+            None => JsValue::UNDEFINED,
         }
-
-        // todo this is nutso, serde-wasm-bindgen is good but convert to a Map
-        let json_string = serde_json::to_string(&self.0.params).unwrap();
-        let js_object: JsValue = wasm_bindgen::JsValue::from_str(&json_string);
-        js_sys::Function::new_no_args("return this.JSON.parse(arguments[0])")
-            .call1(&JsValue::NULL, &js_object)
-            .unwrap()
     }
 
     #[wasm_bindgen(getter)]

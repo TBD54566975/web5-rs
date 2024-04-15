@@ -989,6 +989,11 @@ module.exports.__wbindgen_string_new = function(arg0, arg1) {
     return addHeapObject(ret);
 };
 
+module.exports.__wbg_jwk_unwrap = function(arg0) {
+    const ret = Jwk.__unwrap(takeObject(arg0));
+    return ret;
+};
+
 module.exports.__wbg_jwk_new = function(arg0) {
     const ret = Jwk.__wrap(arg0);
     return addHeapObject(ret);
@@ -996,11 +1001,6 @@ module.exports.__wbg_jwk_new = function(arg0) {
 
 module.exports.__wbindgen_object_drop_ref = function(arg0) {
     takeObject(arg0);
-};
-
-module.exports.__wbg_jwk_unwrap = function(arg0) {
-    const ret = Jwk.__unwrap(takeObject(arg0));
-    return ret;
 };
 
 module.exports.__wbg_crypto_d05b68a3572bb8ca = function(arg0) {
@@ -1067,6 +1067,11 @@ module.exports.__wbg_call_27c0f87801dedf93 = function() { return handleError(fun
     return addHeapObject(ret);
 }, arguments) };
 
+module.exports.__wbg_new_72fb9a18b5ae2624 = function() {
+    const ret = new Object();
+    return addHeapObject(ret);
+};
+
 module.exports.__wbindgen_object_clone_ref = function(arg0) {
     const ret = getObject(arg0);
     return addHeapObject(ret);
@@ -1130,6 +1135,11 @@ module.exports.__wbg_subarray_a1f73cd4b5b42fe1 = function(arg0, arg1, arg2) {
     const ret = getObject(arg0).subarray(arg1 >>> 0, arg2 >>> 0);
     return addHeapObject(ret);
 };
+
+module.exports.__wbg_set_1f9b04f170055d33 = function() { return handleError(function (arg0, arg1, arg2) {
+    const ret = Reflect.set(getObject(arg0), getObject(arg1), getObject(arg2));
+    return ret;
+}, arguments) };
 
 module.exports.__wbindgen_debug_string = function(arg0, arg1) {
     const ret = debugString(getObject(arg1));
