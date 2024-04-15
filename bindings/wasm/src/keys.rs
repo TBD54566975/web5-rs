@@ -19,7 +19,11 @@ impl LocalJwkManager {
     }
 
     #[wasm_bindgen]
-    pub fn generate_private_key(&self, curve: String) -> Result<String, JsValue> {
+    pub fn generate_private_key(
+        &self,
+        curve: String,
+        key_alias: Option<String>,
+    ) -> Result<String, JsValue> {
         let curve = match curve.as_str() {
             "Secp256k1" => Curve::Secp256k1,
             "Ed25519" => Curve::Ed25519,
@@ -28,7 +32,7 @@ impl LocalJwkManager {
 
         let key_alias = self
             .0
-            .generate_private_key(curve)
+            .generate_private_key(curve, key_alias.as_ref().map(|s| s.as_str()))
             .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
         Ok(key_alias)
     }

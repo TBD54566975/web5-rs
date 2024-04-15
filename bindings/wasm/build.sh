@@ -10,3 +10,4 @@ fi
 
 wasm-pack build --target nodejs --out-dir ../js/pkg
 rm ../LICENSE
+rm ../js/pkg/.gitignore
