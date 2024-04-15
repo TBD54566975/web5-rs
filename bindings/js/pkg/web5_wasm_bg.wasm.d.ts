@@ -1,12 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export function generate_ed25519_key(a: number): void;
-export function generate_secp256k1_key(a: number): void;
-export function sign_secp256k1(a: number, b: number, c: number, d: number): void;
-export function sign_ed25519(a: number, b: number, c: number, d: number): void;
-export function verify_secp256k1(a: number, b: number, c: number, d: number, e: number, f: number): void;
-export function verify_ed25519(a: number, b: number, c: number, d: number, e: number, f: number): void;
 export function __wbg_localjwkmanager_free(a: number): void;
 export function localjwkmanager_new(): number;
 export function localjwkmanager_generate_private_key(a: number, b: number, c: number, d: number, e: number, f: number): void;
@@ -14,6 +8,12 @@ export function localjwkmanager_get_public_key(a: number, b: number, c: number, 
 export function localjwkmanager_sign(a: number, b: number, c: number, d: number, e: number, f: number): void;
 export function localjwkmanager_export_private_keys(a: number, b: number): void;
 export function localjwkmanager_import_private_keys(a: number, b: number, c: number, d: number): void;
+export function generate_ed25519_key(a: number): void;
+export function generate_secp256k1_key(a: number): void;
+export function sign_secp256k1(a: number, b: number, c: number, d: number): void;
+export function sign_ed25519(a: number, b: number, c: number, d: number): void;
+export function verify_secp256k1(a: number, b: number, c: number, d: number, e: number, f: number): void;
+export function verify_ed25519(a: number, b: number, c: number, d: number, e: number, f: number): void;
 export function __wbg_jwk_free(a: number): void;
 export function jwk_new(a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number): number;
 export function jwk_alg(a: number, b: number): void;
@@ -26,8 +26,18 @@ export function jwk_compute_thumbprint(a: number, b: number): void;
 export function jwk_verify(a: number, b: number, c: number, d: number, e: number, f: number): void;
 export function jwk_to_public(a: number, b: number): void;
 export function jwk_sign(a: number, b: number, c: number, d: number): void;
-export function __wbindgen_add_to_stack_pointer(a: number): number;
+export function __wbg_identifier_free(a: number): void;
+export function identifier_parse(a: number, b: number, c: number): void;
+export function identifier_uri(a: number, b: number): void;
+export function identifier_url(a: number, b: number): void;
+export function identifier_method(a: number, b: number): void;
+export function identifier_id(a: number, b: number): void;
+export function identifier_params(a: number): number;
+export function identifier_path(a: number, b: number): void;
+export function identifier_query(a: number, b: number): void;
+export function identifier_fragment(a: number, b: number): void;
 export function __wbindgen_malloc(a: number, b: number): number;
-export function __wbindgen_free(a: number, b: number, c: number): void;
 export function __wbindgen_realloc(a: number, b: number, c: number, d: number): number;
+export function __wbindgen_add_to_stack_pointer(a: number): number;
+export function __wbindgen_free(a: number, b: number, c: number): void;
 export function __wbindgen_exn_store(a: number): void;
