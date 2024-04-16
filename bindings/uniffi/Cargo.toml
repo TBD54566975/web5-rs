@@ -7,6 +7,7 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
+crypto = { path = "../../crates/crypto" }
 jwk = { path = "../../crates/jwk" }
 uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "7cd3aac735e905e1725d350a7a82d57aa50caaa1", features = ["cli"] }
 

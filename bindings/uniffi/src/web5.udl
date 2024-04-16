@@ -10,3 +10,15 @@ interface Jwk {
     [Throws=JwkError]
     string compute_thumbprint();
 };
+
+[Error]
+enum CryptoError {
+    "MissingPrivateKey",
+    "DecodeError",
+    "InvalidKeyLength",
+    "InvalidSignatureLength",
+    "PublicKeyFailure",
+    "PrivateKeyFailure",
+    "VerificationFailure",
+    "SignFailure",
+};
