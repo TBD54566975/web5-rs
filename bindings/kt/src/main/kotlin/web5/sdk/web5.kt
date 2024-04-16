@@ -863,6 +863,88 @@ public object FfiConverterTypeJwk: FfiConverter<Jwk, Pointer> {
 
 
 
+sealed class CryptoException(message: String): Exception(message) {
+        // Each variant is a nested class
+        // Flat enums carries a string error message, so no special implementation is necessary.
+        class MissingPrivateKey(message: String) : CryptoException(message)
+        class DecodeException(message: String) : CryptoException(message)
+        class InvalidKeyLength(message: String) : CryptoException(message)
+        class InvalidSignatureLength(message: String) : CryptoException(message)
+        class PublicKeyFailure(message: String) : CryptoException(message)
+        class PrivateKeyFailure(message: String) : CryptoException(message)
+        class VerificationFailure(message: String) : CryptoException(message)
+        class SignFailure(message: String) : CryptoException(message)
+        
+
+    companion object ErrorHandler : CallStatusErrorHandler<CryptoException> {
+        override fun lift(error_buf: RustBuffer.ByValue): CryptoException = FfiConverterTypeCryptoError.lift(error_buf)
+    }
+}
+
+public object FfiConverterTypeCryptoError : FfiConverterRustBuffer<CryptoException> {
+    override fun read(buf: ByteBuffer): CryptoException {
+        
+            return when(buf.getInt()) {
+            1 -> CryptoException.MissingPrivateKey(FfiConverterString.read(buf))
+            2 -> CryptoException.DecodeException(FfiConverterString.read(buf))
+            3 -> CryptoException.InvalidKeyLength(FfiConverterString.read(buf))
+            4 -> CryptoException.InvalidSignatureLength(FfiConverterString.read(buf))
+            5 -> CryptoException.PublicKeyFailure(FfiConverterString.read(buf))
+            6 -> CryptoException.PrivateKeyFailure(FfiConverterString.read(buf))
+            7 -> CryptoException.VerificationFailure(FfiConverterString.read(buf))
+            8 -> CryptoException.SignFailure(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: CryptoException): Int {
+        return 4
+    }
+
+    override fun write(value: CryptoException, buf: ByteBuffer) {
+        when(value) {
+            is CryptoException.MissingPrivateKey -> {
+                buf.putInt(1)
+                Unit
+            }
+            is CryptoException.DecodeException -> {
+                buf.putInt(2)
+                Unit
+            }
+            is CryptoException.InvalidKeyLength -> {
+                buf.putInt(3)
+                Unit
+            }
+            is CryptoException.InvalidSignatureLength -> {
+                buf.putInt(4)
+                Unit
+            }
+            is CryptoException.PublicKeyFailure -> {
+                buf.putInt(5)
+                Unit
+            }
+            is CryptoException.PrivateKeyFailure -> {
+                buf.putInt(6)
+                Unit
+            }
+            is CryptoException.VerificationFailure -> {
+                buf.putInt(7)
+                Unit
+            }
+            is CryptoException.SignFailure -> {
+                buf.putInt(8)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
+
+
 sealed class JwkException(message: String): Exception(message) {
         // Each variant is a nested class
         // Flat enums carries a string error message, so no special implementation is necessary.

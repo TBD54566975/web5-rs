@@ -426,6 +426,121 @@ public func FfiConverterTypeJwk_lower(_ value: Jwk) -> UnsafeMutableRawPointer {
     return FfiConverterTypeJwk.lower(value)
 }
 
+public enum CryptoError {
+
+    
+    
+    // Simple error enums only carry a message
+    case MissingPrivateKey(message: String)
+    
+    // Simple error enums only carry a message
+    case DecodeError(message: String)
+    
+    // Simple error enums only carry a message
+    case InvalidKeyLength(message: String)
+    
+    // Simple error enums only carry a message
+    case InvalidSignatureLength(message: String)
+    
+    // Simple error enums only carry a message
+    case PublicKeyFailure(message: String)
+    
+    // Simple error enums only carry a message
+    case PrivateKeyFailure(message: String)
+    
+    // Simple error enums only carry a message
+    case VerificationFailure(message: String)
+    
+    // Simple error enums only carry a message
+    case SignFailure(message: String)
+    
+
+    fileprivate static func uniffiErrorHandler(_ error: RustBuffer) throws -> Error {
+        return try FfiConverterTypeCryptoError.lift(error)
+    }
+}
+
+
+public struct FfiConverterTypeCryptoError: FfiConverterRustBuffer {
+    typealias SwiftType = CryptoError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CryptoError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .MissingPrivateKey(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .DecodeError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 3: return .InvalidKeyLength(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 4: return .InvalidSignatureLength(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 5: return .PublicKeyFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 6: return .PrivateKeyFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 7: return .VerificationFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 8: return .SignFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: CryptoError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        case .MissingPrivateKey(_ /* message is ignored*/):
+            writeInt(&buf, Int32(1))
+        case .DecodeError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(2))
+        case .InvalidKeyLength(_ /* message is ignored*/):
+            writeInt(&buf, Int32(3))
+        case .InvalidSignatureLength(_ /* message is ignored*/):
+            writeInt(&buf, Int32(4))
+        case .PublicKeyFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(5))
+        case .PrivateKeyFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(6))
+        case .VerificationFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(7))
+        case .SignFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(8))
+
+        
+        }
+    }
+}
+
+
+extension CryptoError: Equatable, Hashable {}
+
+extension CryptoError: Error { }
+
 public enum JwkError {
 
     
