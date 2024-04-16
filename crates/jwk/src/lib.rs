@@ -19,24 +19,6 @@ pub enum JwkError {
 }
 
 impl Jwk {
-    pub fn new(
-        alg: String,
-        kty: String,
-        crv: String,
-        d: Option<String>,
-        x: String,
-        y: Option<String>,
-    ) -> Self {
-        Self {
-            alg,
-            kty,
-            crv,
-            d,
-            x,
-            y,
-        }
-    }
-
     pub fn compute_thumbprint(&self) -> Result<String, JwkError> {
         let thumbprint_json_string = match self.kty.as_str() {
             "EC" => format!(
