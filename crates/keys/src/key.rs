@@ -12,8 +12,6 @@ pub enum KeyError {
     CurveNotFound,
     #[error("algorithm not found")]
     AlgorithmNotFound,
-    #[error("failed to compute key thumbprint {0}")]
-    ThumprintFailed(String),
     #[error(transparent)]
     JwkError(#[from] JwkError),
     #[error(transparent)]

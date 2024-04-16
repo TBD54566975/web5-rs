@@ -15,7 +15,7 @@ pub struct Jwk {
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum JwkError {
     #[error("thumbprint computation failed {0}")]
-    ThumprintFailed(String),
+    ThumbprintFailed(String),
 }
 
 impl Jwk {
@@ -27,11 +27,11 @@ impl Jwk {
                 self.x,
                 self.y
                     .as_ref()
-                    .ok_or(JwkError::ThumprintFailed("missing y".to_string()))?,
+                    .ok_or(JwkError::ThumbprintFailed("missing y".to_string()))?,
             ),
             "OKP" => format!(r#"{{"crv":"{}","kty":"OKP","x":"{}"}}"#, self.crv, self.x,),
             _ => {
-                return Err(JwkError::ThumprintFailed(format!(
+                return Err(JwkError::ThumbprintFailed(format!(
                     "kty not supported {0}",
                     self.kty
                 )))
