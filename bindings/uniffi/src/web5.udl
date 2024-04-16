@@ -8,3 +8,8 @@ dictionary Jwk {
     string x;
     string? y;
 };
+
+[Error]
+enum JwkError {
+    "ThumbprintFailed",
+};
