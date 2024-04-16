@@ -1,15 +1,12 @@
 namespace web5 {};
 
-dictionary Jwk {
-    string alg;
-    string kty;
-    string crv;
-    string? d;
-    string x;
-    string? y;
-};
-
 [Error]
 enum JwkError {
     "ThumbprintFailed",
+};
+
+interface Jwk {
+    constructor(string alg, string kty, string crv, string? d, string x, string? y);
+    [Throws=JwkError]
+    string compute_thumbprint();
 };
