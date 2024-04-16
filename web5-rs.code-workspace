@@ -8,6 +8,9 @@
       "path": "bindings"
     },
     {
+      "path": "examples"
+    },
+    {
       "path": "crates/credentials"
     },
     {

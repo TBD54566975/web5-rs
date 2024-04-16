@@ -1,3 +1,2 @@
 [bindings.kotlin]
 package_name = "web5.sdk"
-cdylib_name = "web5"
