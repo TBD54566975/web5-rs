@@ -551,6 +551,139 @@ public func FfiConverterTypeJwk_lower(_ value: Jwk) -> UnsafeMutableRawPointer {
     return FfiConverterTypeJwk.lower(value)
 }
 
+
+
+public protocol LocalJwkManagerProtocol : AnyObject {
+    func exportPrivateKeys() throws  -> [Jwk]
+    func generatePrivateKey(curve: Curve, keyAlias: String?) throws  -> String
+    func getPublicKey(keyAlias: String) throws  -> Jwk
+    func importPrivateKeys(privateKeys: [Jwk]) throws 
+    func sign(keyAlias: String, payload: Data) throws  -> Data
+    
+}
+
+
+public class LocalJwkManager:
+    LocalJwkManagerProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+    public convenience init()  {
+        self.init(unsafeFromRawPointer: try! rustCall() {
+    uniffi_web5_fn_constructor_localjwkmanager_new($0)
+})
+    }
+
+    deinit {
+        try! rustCall { uniffi_web5_fn_free_localjwkmanager(pointer, $0) }
+    }
+
+    
+
+    
+    
+
+    public func exportPrivateKeys() throws  -> [Jwk] {
+        return try  FfiConverterSequenceTypeJwk.lift(
+            try 
+    rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_localjwkmanager_export_private_keys(self.pointer, $0
+    )
+}
+        )
+    }
+
+    public func generatePrivateKey(curve: Curve, keyAlias: String?) throws  -> String {
+        return try  FfiConverterString.lift(
+            try 
+    rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_localjwkmanager_generate_private_key(self.pointer, 
+        FfiConverterTypeCurve.lower(curve),
+        FfiConverterOptionString.lower(keyAlias),$0
+    )
+}
+        )
+    }
+
+    public func getPublicKey(keyAlias: String) throws  -> Jwk {
+        return try  FfiConverterTypeJwk.lift(
+            try 
+    rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_localjwkmanager_get_public_key(self.pointer, 
+        FfiConverterString.lower(keyAlias),$0
+    )
+}
+        )
+    }
+
+    public func importPrivateKeys(privateKeys: [Jwk]) throws  {
+        try 
+    rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_localjwkmanager_import_private_keys(self.pointer, 
+        FfiConverterSequenceTypeJwk.lower(privateKeys),$0
+    )
+}
+    }
+
+    public func sign(keyAlias: String, payload: Data) throws  -> Data {
+        return try  FfiConverterData.lift(
+            try 
+    rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_localjwkmanager_sign(self.pointer, 
+        FfiConverterString.lower(keyAlias),
+        FfiConverterData.lower(payload),$0
+    )
+}
+        )
+    }
+
+}
+
+public struct FfiConverterTypeLocalJwkManager: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = LocalJwkManager
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> LocalJwkManager {
+        return LocalJwkManager(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: LocalJwkManager) -> UnsafeMutableRawPointer {
+        return value.pointer
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> LocalJwkManager {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: LocalJwkManager, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+public func FfiConverterTypeLocalJwkManager_lift(_ pointer: UnsafeMutableRawPointer) throws -> LocalJwkManager {
+    return try FfiConverterTypeLocalJwkManager.lift(pointer)
+}
+
+public func FfiConverterTypeLocalJwkManager_lower(_ value: LocalJwkManager) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeLocalJwkManager.lower(value)
+}
+
 public enum CryptoError {
 
     
@@ -666,6 +799,58 @@ extension CryptoError: Equatable, Hashable {}
 
 extension CryptoError: Error { }
 
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+public enum Curve {
+    
+    case secp256k1
+    case ed25519
+}
+
+public struct FfiConverterTypeCurve: FfiConverterRustBuffer {
+    typealias SwiftType = Curve
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Curve {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .secp256k1
+        
+        case 2: return .ed25519
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: Curve, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .secp256k1:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .ed25519:
+            writeInt(&buf, Int32(2))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeCurve_lift(_ buf: RustBuffer) throws -> Curve {
+    return try FfiConverterTypeCurve.lift(buf)
+}
+
+public func FfiConverterTypeCurve_lower(_ value: Curve) -> RustBuffer {
+    return FfiConverterTypeCurve.lower(value)
+}
+
+
+extension Curve: Equatable, Hashable {}
+
+
+
 public enum JwkError {
 
     
@@ -718,6 +903,85 @@ extension JwkError: Equatable, Hashable {}
 
 extension JwkError: Error { }
 
+public enum KeyManagerError {
+
+    
+    
+    // Simple error enums only carry a message
+    case KeyGenerationFailed(message: String)
+    
+    // Simple error enums only carry a message
+    case SigningKeyNotFound(message: String)
+    
+    // Simple error enums only carry a message
+    case KeyError(message: String)
+    
+    // Simple error enums only carry a message
+    case KeyStoreError(message: String)
+    
+
+    fileprivate static func uniffiErrorHandler(_ error: RustBuffer) throws -> Error {
+        return try FfiConverterTypeKeyManagerError.lift(error)
+    }
+}
+
+
+public struct FfiConverterTypeKeyManagerError: FfiConverterRustBuffer {
+    typealias SwiftType = KeyManagerError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> KeyManagerError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .KeyGenerationFailed(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .SigningKeyNotFound(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 3: return .KeyError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 4: return .KeyStoreError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: KeyManagerError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        case .KeyGenerationFailed(_ /* message is ignored*/):
+            writeInt(&buf, Int32(1))
+        case .SigningKeyNotFound(_ /* message is ignored*/):
+            writeInt(&buf, Int32(2))
+        case .KeyError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(3))
+        case .KeyStoreError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(4))
+
+        
+        }
+    }
+}
+
+
+extension KeyManagerError: Equatable, Hashable {}
+
+extension KeyManagerError: Error { }
+
 fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
     typealias SwiftType = String?
 
@@ -736,6 +1000,28 @@ fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
         case 1: return try FfiConverterString.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeJwk: FfiConverterRustBuffer {
+    typealias SwiftType = [Jwk]
+
+    public static func write(_ value: [Jwk], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeJwk.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [Jwk] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [Jwk]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeJwk.read(from: &buf))
+        }
+        return seq
     }
 }
 
@@ -766,10 +1052,28 @@ private var initializationResult: InitializationResult {
     if (uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_web5_checksum_method_localjwkmanager_export_private_keys() != 43887) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_localjwkmanager_generate_private_key() != 63783) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_localjwkmanager_get_public_key() != 63871) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_localjwkmanager_import_private_keys() != 47661) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_localjwkmanager_sign() != 45191) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_web5_checksum_constructor_ed25199_new() != 35935) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_constructor_jwk_new() != 31971) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_constructor_localjwkmanager_new() != 6883) {
         return InitializationResult.apiChecksumMismatch
     }
 

@@ -80,6 +80,21 @@ void*_Nonnull uniffi_web5_fn_constructor_jwk_new(RustBuffer alg, RustBuffer kty,
 );
 RustBuffer uniffi_web5_fn_method_jwk_compute_thumbprint(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
 );
+void uniffi_web5_fn_free_localjwkmanager(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+void*_Nonnull uniffi_web5_fn_constructor_localjwkmanager_new(RustCallStatus *_Nonnull out_status
+    
+);
+RustBuffer uniffi_web5_fn_method_localjwkmanager_export_private_keys(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+RustBuffer uniffi_web5_fn_method_localjwkmanager_generate_private_key(void*_Nonnull ptr, RustBuffer curve, RustBuffer key_alias, RustCallStatus *_Nonnull out_status
+);
+void*_Nonnull uniffi_web5_fn_method_localjwkmanager_get_public_key(void*_Nonnull ptr, RustBuffer key_alias, RustCallStatus *_Nonnull out_status
+);
+void uniffi_web5_fn_method_localjwkmanager_import_private_keys(void*_Nonnull ptr, RustBuffer private_keys, RustCallStatus *_Nonnull out_status
+);
+RustBuffer uniffi_web5_fn_method_localjwkmanager_sign(void*_Nonnull ptr, RustBuffer key_alias, RustBuffer payload, RustCallStatus *_Nonnull out_status
+);
 RustBuffer ffi_web5_rustbuffer_alloc(int32_t size, RustCallStatus *_Nonnull out_status
 );
 RustBuffer ffi_web5_rustbuffer_from_bytes(ForeignBytes bytes, RustCallStatus *_Nonnull out_status
@@ -204,10 +219,28 @@ uint16_t uniffi_web5_checksum_method_ed25199_verify(void
 uint16_t uniffi_web5_checksum_method_jwk_compute_thumbprint(void
     
 );
+uint16_t uniffi_web5_checksum_method_localjwkmanager_export_private_keys(void
+    
+);
+uint16_t uniffi_web5_checksum_method_localjwkmanager_generate_private_key(void
+    
+);
+uint16_t uniffi_web5_checksum_method_localjwkmanager_get_public_key(void
+    
+);
+uint16_t uniffi_web5_checksum_method_localjwkmanager_import_private_keys(void
+    
+);
+uint16_t uniffi_web5_checksum_method_localjwkmanager_sign(void
+    
+);
 uint16_t uniffi_web5_checksum_constructor_ed25199_new(void
     
 );
 uint16_t uniffi_web5_checksum_constructor_jwk_new(void
+    
+);
+uint16_t uniffi_web5_checksum_constructor_localjwkmanager_new(void
     
 );
 uint32_t ffi_web5_uniffi_contract_version(void
