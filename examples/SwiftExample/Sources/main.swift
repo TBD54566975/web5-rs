@@ -41,3 +41,15 @@ print("imported private keys")
 
 let identifier = try UniFFI.identifierParse(didUri: "did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1")
 print(identifier)
+
+let verificationMethod = UniFFI.VerificationMethod(id: "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImRKZ3VIWDF0QTZORlRnWlU0ZkUzZkNTTEVnSlI2NU9EOC1uM1JmYjVaMlkifQ#0", type: "JsonWebKey", controller: "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImRKZ3VIWDF0QTZORlRnWlU0ZkUzZkNTTEVnSlI2NU9EOC1uM1JmYjVaMlkifQ", publicKeyJwk: jwk)
+let document = UniFFI.Document(id: "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImRKZ3VIWDF0QTZORlRnWlU0ZkUzZkNTTEVnSlI2NU9EOC1uM1JmYjVaMlkifQ", context: ["https://www.w3.org/ns/did/v1"], controller: nil, alsoKnownAs: nil, verificationMethod: [verificationMethod], authentication: [verificationMethod.id], assertionMethod: [verificationMethod.id], keyAgreement: [verificationMethod.id], capabilityInvocation: [verificationMethod.id], capabilityDelegation: [verificationMethod.id], service: nil)
+print(document)
+
+let keySelector1 = UniFFI.KeySelector.keyId(keyId: verificationMethod.id)
+let verificationMethod2 = try UniFFI.getVerificationMethod(document: document, keySelector: keySelector1)
+print(verificationMethod2)
+
+let keySelector2 = UniFFI.KeySelector.methodType(methodType: UniFFI.VerificationMethodType.authentication)
+let verificationMethod3 = try UniFFI.getVerificationMethod(document: document, keySelector: keySelector2)
+print(verificationMethod3)

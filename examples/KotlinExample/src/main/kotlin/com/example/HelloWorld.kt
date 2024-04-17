@@ -47,4 +47,29 @@ fun main(args: Array<String>) {
 
     val identifier = identifierParse("did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1")
     println(identifier)
+
+    val didJwkUri = "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImRKZ3VIWDF0QTZORlRnWlU0ZkUzZkNTTEVnSlI2NU9EOC1uM1JmYjVaMlkifQ"
+    val verificationMethod = VerificationMethod("$didJwkUri#0", "JsonWebKey", didJwkUri, jwk)
+    val document = Document(
+        didJwkUri,
+        null,
+        null,
+        null,
+        listOf(verificationMethod),
+        listOf(verificationMethod.id),
+        null,
+        null,
+        null,
+        null,
+        null,
+    )
+    print(document)
+
+    val keySelector1 = KeySelector.KeyId(verificationMethod.id)
+    val vm1 = getVerificationMethod(document, keySelector1)
+    print(vm1)
+
+    val keySelector2 = KeySelector.MethodType(VerificationMethodType.AUTHENTICATION)
+    val vm2 = getVerificationMethod(document, keySelector2)
+    print(vm2)
 }

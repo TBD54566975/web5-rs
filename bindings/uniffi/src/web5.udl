@@ -11,6 +11,9 @@ namespace web5 {
 
     [Throws=IdentifierError]
     Identifier identifier_parse(string did_uri);
+
+    [Throws=DocumentError]
+    VerificationMethod get_verification_method(Document document, KeySelector key_selector);
 };
 
 [Error]
@@ -81,4 +84,50 @@ dictionary Identifier {
     string? path;
     string? query;
     string? fragment;
+};
+
+[Error]
+enum DocumentError {
+    "VerificationMethodNotFound"
+};
+
+dictionary Document {
+    string id;
+    sequence<string>? context;
+    sequence<string>? controller;
+    sequence<string>? also_known_as;
+    sequence<VerificationMethod> verification_method;
+    sequence<string>? authentication;
+    sequence<string>? assertion_method;
+    sequence<string>? key_agreement;
+    sequence<string>? capability_invocation;
+    sequence<string>? capability_delegation;
+    sequence<Service>? service;
+};
+
+dictionary VerificationMethod {
+    string id;
+    string type;
+    string controller;
+    Jwk public_key_jwk;
+};
+
+dictionary Service {
+    string id;
+    string type;
+    string service_endpoint;
+};
+
+enum VerificationMethodType {
+  "VerificationMethod",
+  "AssertionMethod",
+  "Authentication",
+  "CapabilityDelegation",
+  "CapabilityInvocation",
+};
+
+[Enum]
+interface KeySelector {
+  KeyId(string key_id);
+  MethodType(VerificationMethodType method_type);
 };
