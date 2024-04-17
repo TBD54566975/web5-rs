@@ -29,4 +29,6 @@ interface Ed25199 {
     Jwk generate();
     [Throws=CryptoError]
     bytes sign([ByRef]Jwk jwk, [ByRef]bytes payload);
+    [Throws=CryptoError]
+    void verify([ByRef]Jwk jwk, [ByRef]bytes payload, [ByRef]bytes signature);
 };

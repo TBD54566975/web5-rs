@@ -18,4 +18,8 @@ impl Ed25199 {
     pub fn sign(&self, private_jwk: &Jwk, payload: &[u8]) -> Result<Vec<u8>, CryptoError> {
         InternalEd25199::sign(&InternalJwk::from(private_jwk), payload)
     }
+
+    pub fn verify(&self, public_jwk: &Jwk, payload: &[u8], signature: &[u8]) -> Result<(), CryptoError> {
+        InternalEd25199::verify(&InternalJwk::from(public_jwk), payload, signature)
+    }
 }

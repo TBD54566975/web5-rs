@@ -72,6 +72,8 @@ void*_Nonnull uniffi_web5_fn_method_ed25199_generate(void*_Nonnull ptr, RustCall
 );
 RustBuffer uniffi_web5_fn_method_ed25199_sign(void*_Nonnull ptr, void*_Nonnull jwk, RustBuffer payload, RustCallStatus *_Nonnull out_status
 );
+void uniffi_web5_fn_method_ed25199_verify(void*_Nonnull ptr, void*_Nonnull jwk, RustBuffer payload, RustBuffer signature, RustCallStatus *_Nonnull out_status
+);
 void uniffi_web5_fn_free_jwk(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
 );
 void*_Nonnull uniffi_web5_fn_constructor_jwk_new(RustBuffer alg, RustBuffer kty, RustBuffer crv, RustBuffer d, RustBuffer x, RustBuffer y, RustCallStatus *_Nonnull out_status
@@ -194,6 +196,9 @@ uint16_t uniffi_web5_checksum_method_ed25199_generate(void
     
 );
 uint16_t uniffi_web5_checksum_method_ed25199_sign(void
+    
+);
+uint16_t uniffi_web5_checksum_method_ed25199_verify(void
     
 );
 uint16_t uniffi_web5_checksum_method_jwk_compute_thumbprint(void

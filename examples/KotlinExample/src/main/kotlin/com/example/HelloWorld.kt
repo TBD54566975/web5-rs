@@ -20,6 +20,15 @@ fun main(args: Array<String>) {
     val ed25199Thumbprint = ed25199Jwk.computeThumbprint()
     println("Computed thumbprint (Ed25519): $ed25199Thumbprint")
 
-    val signature = ed25199.sign(ed25199Jwk, "hello world".toByteArray())
+    val payload = "hello world".toByteArray()
+    val signature = ed25199.sign(ed25199Jwk, payload)
     println("Signature ${Base64.getEncoder().encodeToString(signature)}")
+
+    ed25199.verify(ed25199Jwk, payload, signature)
+    println("verify() passed as expected")
+    try {
+        ed25199.verify(ed25199Jwk, payload, "invalid sig".toByteArray())
+    } catch (e: Exception) {
+        println("verify() failed as expected")
+    }
 }

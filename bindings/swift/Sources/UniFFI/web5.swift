@@ -355,6 +355,7 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
 public protocol Ed25199Protocol : AnyObject {
     func generate() throws  -> Jwk
     func sign(jwk: Jwk, payload: Data) throws  -> Data
+    func verify(jwk: Jwk, payload: Data, signature: Data) throws 
     
 }
 
@@ -404,6 +405,17 @@ public class Ed25199:
     )
 }
         )
+    }
+
+    public func verify(jwk: Jwk, payload: Data, signature: Data) throws  {
+        try 
+    rustCallWithError(FfiConverterTypeCryptoError.lift) {
+    uniffi_web5_fn_method_ed25199_verify(self.pointer, 
+        FfiConverterTypeJwk.lower(jwk),
+        FfiConverterData.lower(payload),
+        FfiConverterData.lower(signature),$0
+    )
+}
     }
 
 }
@@ -746,6 +758,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_method_ed25199_sign() != 64682) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_ed25199_verify() != 46767) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735) {

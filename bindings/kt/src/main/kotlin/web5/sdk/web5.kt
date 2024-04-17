@@ -391,6 +391,8 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_web5_fn_method_ed25199_sign(`ptr`: Pointer,`jwk`: Pointer,`payload`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_web5_fn_method_ed25199_verify(`ptr`: Pointer,`jwk`: Pointer,`payload`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_web5_fn_free_jwk(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_web5_fn_constructor_jwk_new(`alg`: RustBuffer.ByValue,`kty`: RustBuffer.ByValue,`crv`: RustBuffer.ByValue,`d`: RustBuffer.ByValue,`x`: RustBuffer.ByValue,`y`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -513,6 +515,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_web5_checksum_method_ed25199_sign(
     ): Short
+    fun uniffi_web5_checksum_method_ed25199_verify(
+    ): Short
     fun uniffi_web5_checksum_method_jwk_compute_thumbprint(
     ): Short
     fun uniffi_web5_checksum_constructor_ed25199_new(
@@ -540,6 +544,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_ed25199_sign() != 64682.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_ed25199_verify() != 46767.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735.toShort()) {
@@ -815,6 +822,7 @@ object NoPointer
 public interface Ed25199Interface {
     fun `generate`(): Jwk
     fun `sign`(`jwk`: Jwk, `payload`: ByteArray): ByteArray
+    fun `verify`(`jwk`: Jwk, `payload`: ByteArray, `signature`: ByteArray)
     
     companion object
 }
@@ -878,6 +886,17 @@ open class Ed25199 : FFIObject, Ed25199Interface {
         }.let {
             FfiConverterByteArray.lift(it)
         }
+    
+    
+    @Throws(CryptoException::class)override fun `verify`(`jwk`: Jwk, `payload`: ByteArray, `signature`: ByteArray) =
+        callWithPointer {
+    rustCallWithError(CryptoException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_method_ed25199_verify(it,
+        FfiConverterTypeJwk.lower(`jwk`),FfiConverterByteArray.lower(`payload`),FfiConverterByteArray.lower(`signature`),
+        _status)
+}
+        }
+    
     
     
 

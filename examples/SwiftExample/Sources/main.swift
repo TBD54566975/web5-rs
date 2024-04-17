@@ -11,6 +11,15 @@ let ed25519Jwk = try ed25519.generate()
 let ed25519Thumbprint = try ed25519Jwk.computeThumbprint()
 print("Thumbprint (Ed25519): \(ed25519Thumbprint)")
 
-let signatureData = try ed25519.sign(jwk: ed25519Jwk, payload: Data("hello world".utf8))
-let signatureString = signatureData.base64EncodedString()
-print("Signature: \(signatureString)")
+let payload = Data("hello world".utf8)
+let signature = try ed25519.sign(jwk: ed25519Jwk, payload: payload)
+print("Signature: \(signature.base64EncodedString())")
+
+try ed25519.verify(jwk: ed25519Jwk, payload: payload, signature: signature)
+print("verify() passed as expected")
+
+do {
+    try ed25519.verify(jwk: ed25519Jwk, payload: payload, signature: Data("invalid sig".utf8))
+} catch {
+    print("verify() failed as expected")
+}
