@@ -59,3 +59,14 @@ interface LocalJwkManager {
     [Throws=KeyManagerError]
     void import_private_keys(sequence<Jwk> private_keys);
 };
+
+[Error]
+enum IdentifierError {
+    "RegexPatternFailure",
+    "ParseFailure",
+};
+
+interface Identifier {
+    [Throws=IdentifierError]
+    constructor(string did_uri);
+};

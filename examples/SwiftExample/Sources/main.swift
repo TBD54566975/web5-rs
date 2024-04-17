@@ -37,3 +37,5 @@ print("private keys \(privateKeys)")
 try keyManager.importPrivateKeys(privateKeys: privateKeys)
 print("imported private keys")
 
+let identifier = try UniFFI.Identifier(didUri: "did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1")
+print(identifier)

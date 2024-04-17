@@ -393,6 +393,10 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_method_ed25199_verify(`ptr`: Pointer,`jwk`: Pointer,`payload`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_web5_fn_free_identifier(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_web5_fn_constructor_identifier_new(`didUri`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_web5_fn_free_jwk(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_web5_fn_constructor_jwk_new(`alg`: RustBuffer.ByValue,`kty`: RustBuffer.ByValue,`crv`: RustBuffer.ByValue,`d`: RustBuffer.ByValue,`x`: RustBuffer.ByValue,`y`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -545,6 +549,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_web5_checksum_constructor_ed25199_new(
     ): Short
+    fun uniffi_web5_checksum_constructor_identifier_new(
+    ): Short
     fun uniffi_web5_checksum_constructor_jwk_new(
     ): Short
     fun uniffi_web5_checksum_constructor_localjwkmanager_new(
@@ -594,6 +600,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_constructor_ed25199_new() != 35935.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_constructor_identifier_new() != 54084.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_constructor_jwk_new() != 31971.toShort()) {
@@ -977,6 +986,82 @@ public object FfiConverterTypeEd25199: FfiConverter<Ed25199, Pointer> {
 
 
 
+public interface IdentifierInterface {
+    
+    companion object
+}
+
+
+open class Identifier : FFIObject, IdentifierInterface {
+
+    constructor(pointer: Pointer): super(pointer)
+
+    /**
+     * This constructor can be used to instantiate a fake object.
+     *
+     * **WARNING: Any object instantiated with this constructor cannot be passed to an actual Rust-backed object.**
+     * Since there isn't a backing [Pointer] the FFI lower functions will crash.
+     * @param noPointer Placeholder value so we can have a constructor separate from the default empty one that may be
+     *   implemented for classes extending [FFIObject].
+     */
+    constructor(noPointer: NoPointer): super(noPointer)
+    constructor(`didUri`: String) :
+        this(
+    rustCallWithError(IdentifierException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_constructor_identifier_new(FfiConverterString.lower(`didUri`),_status)
+})
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        this.pointer?.let { ptr ->
+            rustCall() { status ->
+                _UniFFILib.INSTANCE.uniffi_web5_fn_free_identifier(ptr, status)
+            }
+        }
+    }
+
+    
+
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeIdentifier: FfiConverter<Identifier, Pointer> {
+
+    override fun lower(value: Identifier): Pointer {
+        return value.callWithPointer { it }
+    }
+
+    override fun lift(value: Pointer): Identifier {
+        return Identifier(value)
+    }
+
+    override fun read(buf: ByteBuffer): Identifier {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: Identifier) = 8
+
+    override fun write(value: Identifier, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
 public interface JwkInterface {
     fun `computeThumbprint`(): String
     
@@ -1308,6 +1393,52 @@ public object FfiConverterTypeCurve: FfiConverterRustBuffer<Curve> {
 }
 
 
+
+
+
+
+
+sealed class IdentifierException(message: String): Exception(message) {
+        // Each variant is a nested class
+        // Flat enums carries a string error message, so no special implementation is necessary.
+        class RegexPatternFailure(message: String) : IdentifierException(message)
+        class ParseFailure(message: String) : IdentifierException(message)
+        
+
+    companion object ErrorHandler : CallStatusErrorHandler<IdentifierException> {
+        override fun lift(error_buf: RustBuffer.ByValue): IdentifierException = FfiConverterTypeIdentifierError.lift(error_buf)
+    }
+}
+
+public object FfiConverterTypeIdentifierError : FfiConverterRustBuffer<IdentifierException> {
+    override fun read(buf: ByteBuffer): IdentifierException {
+        
+            return when(buf.getInt()) {
+            1 -> IdentifierException.RegexPatternFailure(FfiConverterString.read(buf))
+            2 -> IdentifierException.ParseFailure(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: IdentifierException): Int {
+        return 4
+    }
+
+    override fun write(value: IdentifierException, buf: ByteBuffer) {
+        when(value) {
+            is IdentifierException.RegexPatternFailure -> {
+                buf.putInt(1)
+                Unit
+            }
+            is IdentifierException.ParseFailure -> {
+                buf.putInt(2)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
 
 
 

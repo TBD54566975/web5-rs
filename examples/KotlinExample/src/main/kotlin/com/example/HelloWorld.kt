@@ -5,6 +5,7 @@ import web5.sdk.Jwk
 import web5.sdk.Ed25199
 import web5.sdk.LocalJwkManager
 import web5.sdk.Curve
+import web5.sdk.Identifier
 
 fun main(args: Array<String>) {
     val jwk = Jwk(
@@ -46,4 +47,7 @@ fun main(args: Array<String>) {
     println("Exported private keys $privateKeys")
     keyManager.importPrivateKeys(privateKeys)
     println("Imported private keys")
+
+    val identifier = Identifier("did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1")
+    println(identifier)
 }
