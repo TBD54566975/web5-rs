@@ -405,6 +405,8 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_func_ed25519_verify(`publicJwk`: RustBuffer.ByValue,`payload`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_web5_fn_func_get_verification_method(`document`: RustBuffer.ByValue,`keySelector`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_web5_fn_func_identifier_parse(`didUri`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_web5_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
@@ -527,6 +529,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_web5_checksum_func_ed25519_verify(
     ): Short
+    fun uniffi_web5_checksum_func_get_verification_method(
+    ): Short
     fun uniffi_web5_checksum_func_identifier_parse(
     ): Short
     fun uniffi_web5_checksum_method_localjwkmanager_export_private_keys(
@@ -568,6 +572,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_func_ed25519_verify() != 65009.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_func_get_verification_method() != 53458.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_func_identifier_parse() != 23975.toShort()) {
@@ -991,6 +998,71 @@ public object FfiConverterTypeLocalJwkManager: FfiConverter<LocalJwkManager, Poi
 
 
 
+data class Document (
+    var `id`: String, 
+    var `context`: List<String>?, 
+    var `controller`: List<String>?, 
+    var `alsoKnownAs`: List<String>?, 
+    var `verificationMethod`: List<VerificationMethod>, 
+    var `authentication`: List<String>?, 
+    var `assertionMethod`: List<String>?, 
+    var `keyAgreement`: List<String>?, 
+    var `capabilityInvocation`: List<String>?, 
+    var `capabilityDelegation`: List<String>?, 
+    var `service`: List<Service>?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeDocument: FfiConverterRustBuffer<Document> {
+    override fun read(buf: ByteBuffer): Document {
+        return Document(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterSequenceTypeVerificationMethod.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceTypeService.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Document) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`context`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`controller`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`alsoKnownAs`) +
+            FfiConverterSequenceTypeVerificationMethod.allocationSize(value.`verificationMethod`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`authentication`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`assertionMethod`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`keyAgreement`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`capabilityInvocation`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`capabilityDelegation`) +
+            FfiConverterOptionalSequenceTypeService.allocationSize(value.`service`)
+    )
+
+    override fun write(value: Document, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterOptionalSequenceString.write(value.`context`, buf)
+            FfiConverterOptionalSequenceString.write(value.`controller`, buf)
+            FfiConverterOptionalSequenceString.write(value.`alsoKnownAs`, buf)
+            FfiConverterSequenceTypeVerificationMethod.write(value.`verificationMethod`, buf)
+            FfiConverterOptionalSequenceString.write(value.`authentication`, buf)
+            FfiConverterOptionalSequenceString.write(value.`assertionMethod`, buf)
+            FfiConverterOptionalSequenceString.write(value.`keyAgreement`, buf)
+            FfiConverterOptionalSequenceString.write(value.`capabilityInvocation`, buf)
+            FfiConverterOptionalSequenceString.write(value.`capabilityDelegation`, buf)
+            FfiConverterOptionalSequenceTypeService.write(value.`service`, buf)
+    }
+}
+
+
+
 data class Identifier (
     var `uri`: String, 
     var `url`: String, 
@@ -1084,6 +1156,76 @@ public object FfiConverterTypeJwk: FfiConverterRustBuffer<Jwk> {
             FfiConverterOptionalString.write(value.`d`, buf)
             FfiConverterString.write(value.`x`, buf)
             FfiConverterOptionalString.write(value.`y`, buf)
+    }
+}
+
+
+
+data class Service (
+    var `id`: String, 
+    var `type`: String, 
+    var `serviceEndpoint`: String
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeService: FfiConverterRustBuffer<Service> {
+    override fun read(buf: ByteBuffer): Service {
+        return Service(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Service) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterString.allocationSize(value.`type`) +
+            FfiConverterString.allocationSize(value.`serviceEndpoint`)
+    )
+
+    override fun write(value: Service, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterString.write(value.`type`, buf)
+            FfiConverterString.write(value.`serviceEndpoint`, buf)
+    }
+}
+
+
+
+data class VerificationMethod (
+    var `id`: String, 
+    var `type`: String, 
+    var `controller`: String, 
+    var `publicKeyJwk`: Jwk
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeVerificationMethod: FfiConverterRustBuffer<VerificationMethod> {
+    override fun read(buf: ByteBuffer): VerificationMethod {
+        return VerificationMethod(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterTypeJwk.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: VerificationMethod) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterString.allocationSize(value.`type`) +
+            FfiConverterString.allocationSize(value.`controller`) +
+            FfiConverterTypeJwk.allocationSize(value.`publicKeyJwk`)
+    )
+
+    override fun write(value: VerificationMethod, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterString.write(value.`type`, buf)
+            FfiConverterString.write(value.`controller`, buf)
+            FfiConverterTypeJwk.write(value.`publicKeyJwk`, buf)
     }
 }
 
@@ -1192,6 +1334,46 @@ public object FfiConverterTypeCurve: FfiConverterRustBuffer<Curve> {
 }
 
 
+
+
+
+
+
+sealed class DocumentException(message: String): Exception(message) {
+        // Each variant is a nested class
+        // Flat enums carries a string error message, so no special implementation is necessary.
+        class VerificationMethodNotFound(message: String) : DocumentException(message)
+        
+
+    companion object ErrorHandler : CallStatusErrorHandler<DocumentException> {
+        override fun lift(error_buf: RustBuffer.ByValue): DocumentException = FfiConverterTypeDocumentError.lift(error_buf)
+    }
+}
+
+public object FfiConverterTypeDocumentError : FfiConverterRustBuffer<DocumentException> {
+    override fun read(buf: ByteBuffer): DocumentException {
+        
+            return when(buf.getInt()) {
+            1 -> DocumentException.VerificationMethodNotFound(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: DocumentException): Int {
+        return 4
+    }
+
+    override fun write(value: DocumentException, buf: ByteBuffer) {
+        when(value) {
+            is DocumentException.VerificationMethodNotFound -> {
+                buf.putInt(1)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
 
 
 
@@ -1340,6 +1522,98 @@ public object FfiConverterTypeKeyManagerError : FfiConverterRustBuffer<KeyManage
 
 
 
+sealed class KeySelector {
+    data class KeyId(
+        val `keyId`: String
+        ) : KeySelector() {
+        companion object
+    }
+    data class MethodType(
+        val `methodType`: VerificationMethodType
+        ) : KeySelector() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeKeySelector : FfiConverterRustBuffer<KeySelector>{
+    override fun read(buf: ByteBuffer): KeySelector {
+        return when(buf.getInt()) {
+            1 -> KeySelector.KeyId(
+                FfiConverterString.read(buf),
+                )
+            2 -> KeySelector.MethodType(
+                FfiConverterTypeVerificationMethodType.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: KeySelector) = when(value) {
+        is KeySelector.KeyId -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`keyId`)
+            )
+        }
+        is KeySelector.MethodType -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterTypeVerificationMethodType.allocationSize(value.`methodType`)
+            )
+        }
+    }
+
+    override fun write(value: KeySelector, buf: ByteBuffer) {
+        when(value) {
+            is KeySelector.KeyId -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`keyId`, buf)
+                Unit
+            }
+            is KeySelector.MethodType -> {
+                buf.putInt(2)
+                FfiConverterTypeVerificationMethodType.write(value.`methodType`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
+enum class VerificationMethodType {
+    VERIFICATION_METHOD,ASSERTION_METHOD,AUTHENTICATION,CAPABILITY_DELEGATION,CAPABILITY_INVOCATION;
+    companion object
+}
+
+public object FfiConverterTypeVerificationMethodType: FfiConverterRustBuffer<VerificationMethodType> {
+    override fun read(buf: ByteBuffer) = try {
+        VerificationMethodType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: VerificationMethodType) = 4
+
+    override fun write(value: VerificationMethodType, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
 public object FfiConverterOptionalString: FfiConverterRustBuffer<String?> {
     override fun read(buf: ByteBuffer): String? {
         if (buf.get().toInt() == 0) {
@@ -1362,6 +1636,64 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<String?> {
         } else {
             buf.put(1)
             FfiConverterString.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<String>?> {
+    override fun read(buf: ByteBuffer): List<String>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceString.read(buf)
+    }
+
+    override fun allocationSize(value: List<String>?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterSequenceString.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<String>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceString.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalSequenceTypeService: FfiConverterRustBuffer<List<Service>?> {
+    override fun read(buf: ByteBuffer): List<Service>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeService.read(buf)
+    }
+
+    override fun allocationSize(value: List<Service>?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterSequenceTypeService.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<Service>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeService.write(value, buf)
         }
     }
 }
@@ -1398,6 +1730,31 @@ public object FfiConverterOptionalMapStringString: FfiConverterRustBuffer<Map<St
 
 
 
+public object FfiConverterSequenceString: FfiConverterRustBuffer<List<String>> {
+    override fun read(buf: ByteBuffer): List<String> {
+        val len = buf.getInt()
+        return List<String>(len) {
+            FfiConverterString.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<String>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterString.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<String>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterString.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeJwk: FfiConverterRustBuffer<List<Jwk>> {
     override fun read(buf: ByteBuffer): List<Jwk> {
         val len = buf.getInt()
@@ -1416,6 +1773,56 @@ public object FfiConverterSequenceTypeJwk: FfiConverterRustBuffer<List<Jwk>> {
         buf.putInt(value.size)
         value.forEach {
             FfiConverterTypeJwk.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeService: FfiConverterRustBuffer<List<Service>> {
+    override fun read(buf: ByteBuffer): List<Service> {
+        val len = buf.getInt()
+        return List<Service>(len) {
+            FfiConverterTypeService.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Service>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterTypeService.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Service>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterTypeService.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeVerificationMethod: FfiConverterRustBuffer<List<VerificationMethod>> {
+    override fun read(buf: ByteBuffer): List<VerificationMethod> {
+        val len = buf.getInt()
+        return List<VerificationMethod>(len) {
+            FfiConverterTypeVerificationMethod.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<VerificationMethod>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterTypeVerificationMethod.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<VerificationMethod>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterTypeVerificationMethod.write(it, buf)
         }
     }
 }
@@ -1489,6 +1896,15 @@ fun `ed25519Verify`(`publicJwk`: Jwk, `payload`: ByteArray, `signature`: ByteArr
     _UniFFILib.INSTANCE.uniffi_web5_fn_func_ed25519_verify(FfiConverterTypeJwk.lower(`publicJwk`),FfiConverterByteArray.lower(`payload`),FfiConverterByteArray.lower(`signature`),_status)
 }
 
+
+@Throws(DocumentException::class)
+
+fun `getVerificationMethod`(`document`: Document, `keySelector`: KeySelector): VerificationMethod {
+    return FfiConverterTypeVerificationMethod.lift(
+    rustCallWithError(DocumentException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_func_get_verification_method(FfiConverterTypeDocument.lower(`document`),FfiConverterTypeKeySelector.lower(`keySelector`),_status)
+})
+}
 
 @Throws(IdentifierException::class)
 

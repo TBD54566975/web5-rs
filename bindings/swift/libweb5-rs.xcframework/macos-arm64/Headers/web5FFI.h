@@ -87,6 +87,8 @@ RustBuffer uniffi_web5_fn_func_ed25519_sign(RustBuffer private_jwk, RustBuffer p
 );
 void uniffi_web5_fn_func_ed25519_verify(RustBuffer public_jwk, RustBuffer payload, RustBuffer signature, RustCallStatus *_Nonnull out_status
 );
+RustBuffer uniffi_web5_fn_func_get_verification_method(RustBuffer document, RustBuffer key_selector, RustCallStatus *_Nonnull out_status
+);
 RustBuffer uniffi_web5_fn_func_identifier_parse(RustBuffer did_uri, RustCallStatus *_Nonnull out_status
 );
 RustBuffer ffi_web5_rustbuffer_alloc(int32_t size, RustCallStatus *_Nonnull out_status
@@ -211,6 +213,9 @@ uint16_t uniffi_web5_checksum_func_ed25519_sign(void
     
 );
 uint16_t uniffi_web5_checksum_func_ed25519_verify(void
+    
+);
+uint16_t uniffi_web5_checksum_func_get_verification_method(void
     
 );
 uint16_t uniffi_web5_checksum_func_identifier_parse(void

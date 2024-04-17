@@ -484,6 +484,134 @@ public func FfiConverterTypeLocalJwkManager_lower(_ value: LocalJwkManager) -> U
 }
 
 
+public struct Document {
+    public var id: String
+    public var context: [String]?
+    public var controller: [String]?
+    public var alsoKnownAs: [String]?
+    public var verificationMethod: [VerificationMethod]
+    public var authentication: [String]?
+    public var assertionMethod: [String]?
+    public var keyAgreement: [String]?
+    public var capabilityInvocation: [String]?
+    public var capabilityDelegation: [String]?
+    public var service: [Service]?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, context: [String]?, controller: [String]?, alsoKnownAs: [String]?, verificationMethod: [VerificationMethod], authentication: [String]?, assertionMethod: [String]?, keyAgreement: [String]?, capabilityInvocation: [String]?, capabilityDelegation: [String]?, service: [Service]?) {
+        self.id = id
+        self.context = context
+        self.controller = controller
+        self.alsoKnownAs = alsoKnownAs
+        self.verificationMethod = verificationMethod
+        self.authentication = authentication
+        self.assertionMethod = assertionMethod
+        self.keyAgreement = keyAgreement
+        self.capabilityInvocation = capabilityInvocation
+        self.capabilityDelegation = capabilityDelegation
+        self.service = service
+    }
+}
+
+
+extension Document: Equatable, Hashable {
+    public static func ==(lhs: Document, rhs: Document) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.context != rhs.context {
+            return false
+        }
+        if lhs.controller != rhs.controller {
+            return false
+        }
+        if lhs.alsoKnownAs != rhs.alsoKnownAs {
+            return false
+        }
+        if lhs.verificationMethod != rhs.verificationMethod {
+            return false
+        }
+        if lhs.authentication != rhs.authentication {
+            return false
+        }
+        if lhs.assertionMethod != rhs.assertionMethod {
+            return false
+        }
+        if lhs.keyAgreement != rhs.keyAgreement {
+            return false
+        }
+        if lhs.capabilityInvocation != rhs.capabilityInvocation {
+            return false
+        }
+        if lhs.capabilityDelegation != rhs.capabilityDelegation {
+            return false
+        }
+        if lhs.service != rhs.service {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(context)
+        hasher.combine(controller)
+        hasher.combine(alsoKnownAs)
+        hasher.combine(verificationMethod)
+        hasher.combine(authentication)
+        hasher.combine(assertionMethod)
+        hasher.combine(keyAgreement)
+        hasher.combine(capabilityInvocation)
+        hasher.combine(capabilityDelegation)
+        hasher.combine(service)
+    }
+}
+
+
+public struct FfiConverterTypeDocument: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Document {
+        return
+            try Document(
+                id: FfiConverterString.read(from: &buf), 
+                context: FfiConverterOptionSequenceString.read(from: &buf), 
+                controller: FfiConverterOptionSequenceString.read(from: &buf), 
+                alsoKnownAs: FfiConverterOptionSequenceString.read(from: &buf), 
+                verificationMethod: FfiConverterSequenceTypeVerificationMethod.read(from: &buf), 
+                authentication: FfiConverterOptionSequenceString.read(from: &buf), 
+                assertionMethod: FfiConverterOptionSequenceString.read(from: &buf), 
+                keyAgreement: FfiConverterOptionSequenceString.read(from: &buf), 
+                capabilityInvocation: FfiConverterOptionSequenceString.read(from: &buf), 
+                capabilityDelegation: FfiConverterOptionSequenceString.read(from: &buf), 
+                service: FfiConverterOptionSequenceTypeService.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: Document, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterOptionSequenceString.write(value.context, into: &buf)
+        FfiConverterOptionSequenceString.write(value.controller, into: &buf)
+        FfiConverterOptionSequenceString.write(value.alsoKnownAs, into: &buf)
+        FfiConverterSequenceTypeVerificationMethod.write(value.verificationMethod, into: &buf)
+        FfiConverterOptionSequenceString.write(value.authentication, into: &buf)
+        FfiConverterOptionSequenceString.write(value.assertionMethod, into: &buf)
+        FfiConverterOptionSequenceString.write(value.keyAgreement, into: &buf)
+        FfiConverterOptionSequenceString.write(value.capabilityInvocation, into: &buf)
+        FfiConverterOptionSequenceString.write(value.capabilityDelegation, into: &buf)
+        FfiConverterOptionSequenceTypeService.write(value.service, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeDocument_lift(_ buf: RustBuffer) throws -> Document {
+    return try FfiConverterTypeDocument.lift(buf)
+}
+
+public func FfiConverterTypeDocument_lower(_ value: Document) -> RustBuffer {
+    return FfiConverterTypeDocument.lower(value)
+}
+
+
 public struct Identifier {
     public var uri: String
     public var url: String
@@ -675,6 +803,142 @@ public func FfiConverterTypeJwk_lower(_ value: Jwk) -> RustBuffer {
     return FfiConverterTypeJwk.lower(value)
 }
 
+
+public struct Service {
+    public var id: String
+    public var type: String
+    public var serviceEndpoint: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, type: String, serviceEndpoint: String) {
+        self.id = id
+        self.type = type
+        self.serviceEndpoint = serviceEndpoint
+    }
+}
+
+
+extension Service: Equatable, Hashable {
+    public static func ==(lhs: Service, rhs: Service) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.type != rhs.type {
+            return false
+        }
+        if lhs.serviceEndpoint != rhs.serviceEndpoint {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(type)
+        hasher.combine(serviceEndpoint)
+    }
+}
+
+
+public struct FfiConverterTypeService: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Service {
+        return
+            try Service(
+                id: FfiConverterString.read(from: &buf), 
+                type: FfiConverterString.read(from: &buf), 
+                serviceEndpoint: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: Service, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.type, into: &buf)
+        FfiConverterString.write(value.serviceEndpoint, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeService_lift(_ buf: RustBuffer) throws -> Service {
+    return try FfiConverterTypeService.lift(buf)
+}
+
+public func FfiConverterTypeService_lower(_ value: Service) -> RustBuffer {
+    return FfiConverterTypeService.lower(value)
+}
+
+
+public struct VerificationMethod {
+    public var id: String
+    public var type: String
+    public var controller: String
+    public var publicKeyJwk: Jwk
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, type: String, controller: String, publicKeyJwk: Jwk) {
+        self.id = id
+        self.type = type
+        self.controller = controller
+        self.publicKeyJwk = publicKeyJwk
+    }
+}
+
+
+extension VerificationMethod: Equatable, Hashable {
+    public static func ==(lhs: VerificationMethod, rhs: VerificationMethod) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.type != rhs.type {
+            return false
+        }
+        if lhs.controller != rhs.controller {
+            return false
+        }
+        if lhs.publicKeyJwk != rhs.publicKeyJwk {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(type)
+        hasher.combine(controller)
+        hasher.combine(publicKeyJwk)
+    }
+}
+
+
+public struct FfiConverterTypeVerificationMethod: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VerificationMethod {
+        return
+            try VerificationMethod(
+                id: FfiConverterString.read(from: &buf), 
+                type: FfiConverterString.read(from: &buf), 
+                controller: FfiConverterString.read(from: &buf), 
+                publicKeyJwk: FfiConverterTypeJwk.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: VerificationMethod, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.type, into: &buf)
+        FfiConverterString.write(value.controller, into: &buf)
+        FfiConverterTypeJwk.write(value.publicKeyJwk, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeVerificationMethod_lift(_ buf: RustBuffer) throws -> VerificationMethod {
+    return try FfiConverterTypeVerificationMethod.lift(buf)
+}
+
+public func FfiConverterTypeVerificationMethod_lower(_ value: VerificationMethod) -> RustBuffer {
+    return FfiConverterTypeVerificationMethod.lower(value)
+}
+
 public enum CryptoError {
 
     
@@ -841,6 +1105,58 @@ public func FfiConverterTypeCurve_lower(_ value: Curve) -> RustBuffer {
 extension Curve: Equatable, Hashable {}
 
 
+
+public enum DocumentError {
+
+    
+    
+    // Simple error enums only carry a message
+    case VerificationMethodNotFound(message: String)
+    
+
+    fileprivate static func uniffiErrorHandler(_ error: RustBuffer) throws -> Error {
+        return try FfiConverterTypeDocumentError.lift(error)
+    }
+}
+
+
+public struct FfiConverterTypeDocumentError: FfiConverterRustBuffer {
+    typealias SwiftType = DocumentError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DocumentError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .VerificationMethodNotFound(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: DocumentError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        case .VerificationMethodNotFound(_ /* message is ignored*/):
+            writeInt(&buf, Int32(1))
+
+        
+        }
+    }
+}
+
+
+extension DocumentError: Equatable, Hashable {}
+
+extension DocumentError: Error { }
 
 public enum IdentifierError {
 
@@ -1034,6 +1350,137 @@ extension KeyManagerError: Equatable, Hashable {}
 
 extension KeyManagerError: Error { }
 
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+public enum KeySelector {
+    
+    case keyId(keyId: String)
+    case methodType(methodType: VerificationMethodType)
+}
+
+public struct FfiConverterTypeKeySelector: FfiConverterRustBuffer {
+    typealias SwiftType = KeySelector
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> KeySelector {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .keyId(
+            keyId: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .methodType(
+            methodType: try FfiConverterTypeVerificationMethodType.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: KeySelector, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case let .keyId(keyId):
+            writeInt(&buf, Int32(1))
+            FfiConverterString.write(keyId, into: &buf)
+            
+        
+        case let .methodType(methodType):
+            writeInt(&buf, Int32(2))
+            FfiConverterTypeVerificationMethodType.write(methodType, into: &buf)
+            
+        }
+    }
+}
+
+
+public func FfiConverterTypeKeySelector_lift(_ buf: RustBuffer) throws -> KeySelector {
+    return try FfiConverterTypeKeySelector.lift(buf)
+}
+
+public func FfiConverterTypeKeySelector_lower(_ value: KeySelector) -> RustBuffer {
+    return FfiConverterTypeKeySelector.lower(value)
+}
+
+
+extension KeySelector: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+public enum VerificationMethodType {
+    
+    case verificationMethod
+    case assertionMethod
+    case authentication
+    case capabilityDelegation
+    case capabilityInvocation
+}
+
+public struct FfiConverterTypeVerificationMethodType: FfiConverterRustBuffer {
+    typealias SwiftType = VerificationMethodType
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VerificationMethodType {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .verificationMethod
+        
+        case 2: return .assertionMethod
+        
+        case 3: return .authentication
+        
+        case 4: return .capabilityDelegation
+        
+        case 5: return .capabilityInvocation
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: VerificationMethodType, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .verificationMethod:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .assertionMethod:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .authentication:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .capabilityDelegation:
+            writeInt(&buf, Int32(4))
+        
+        
+        case .capabilityInvocation:
+            writeInt(&buf, Int32(5))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeVerificationMethodType_lift(_ buf: RustBuffer) throws -> VerificationMethodType {
+    return try FfiConverterTypeVerificationMethodType.lift(buf)
+}
+
+public func FfiConverterTypeVerificationMethodType_lower(_ value: VerificationMethodType) -> RustBuffer {
+    return FfiConverterTypeVerificationMethodType.lower(value)
+}
+
+
+extension VerificationMethodType: Equatable, Hashable {}
+
+
+
 fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
     typealias SwiftType = String?
 
@@ -1050,6 +1497,48 @@ fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterString.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionSequenceString: FfiConverterRustBuffer {
+    typealias SwiftType = [String]?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterSequenceString.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterSequenceString.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionSequenceTypeService: FfiConverterRustBuffer {
+    typealias SwiftType = [Service]?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterSequenceTypeService.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterSequenceTypeService.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -1076,6 +1565,28 @@ fileprivate struct FfiConverterOptionDictionaryStringString: FfiConverterRustBuf
     }
 }
 
+fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
+    typealias SwiftType = [String]
+
+    public static func write(_ value: [String], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterString.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [String] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [String]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterString.read(from: &buf))
+        }
+        return seq
+    }
+}
+
 fileprivate struct FfiConverterSequenceTypeJwk: FfiConverterRustBuffer {
     typealias SwiftType = [Jwk]
 
@@ -1093,6 +1604,50 @@ fileprivate struct FfiConverterSequenceTypeJwk: FfiConverterRustBuffer {
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterTypeJwk.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeService: FfiConverterRustBuffer {
+    typealias SwiftType = [Service]
+
+    public static func write(_ value: [Service], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeService.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [Service] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [Service]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeService.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeVerificationMethod: FfiConverterRustBuffer {
+    typealias SwiftType = [VerificationMethod]
+
+    public static func write(_ value: [VerificationMethod], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeVerificationMethod.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [VerificationMethod] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [VerificationMethod]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeVerificationMethod.read(from: &buf))
         }
         return seq
     }
@@ -1159,6 +1714,16 @@ public func ed25519Verify(publicJwk: Jwk, payload: Data, signature: Data) throws
 
 
 
+public func getVerificationMethod(document: Document, keySelector: KeySelector) throws  -> VerificationMethod {
+    return try  FfiConverterTypeVerificationMethod.lift(
+        try rustCallWithError(FfiConverterTypeDocumentError.lift) {
+    uniffi_web5_fn_func_get_verification_method(
+        FfiConverterTypeDocument.lower(document),
+        FfiConverterTypeKeySelector.lower(keySelector),$0)
+}
+    )
+}
+
 public func identifierParse(didUri: String) throws  -> Identifier {
     return try  FfiConverterTypeIdentifier.lift(
         try rustCallWithError(FfiConverterTypeIdentifierError.lift) {
@@ -1193,6 +1758,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_func_ed25519_verify() != 65009) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_func_get_verification_method() != 53458) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_func_identifier_parse() != 23975) {
