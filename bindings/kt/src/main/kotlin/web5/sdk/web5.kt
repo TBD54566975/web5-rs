@@ -403,9 +403,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_web5_rust_future_continuation_callback_set(`callback`: UniFffiRustFutureContinuationCallbackType,
-    ): Unit
-    fun ffi_web5_rust_future_poll_u8(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_u8(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_u8(`handle`: Pointer,
     ): Unit
@@ -413,7 +411,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_u8(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun ffi_web5_rust_future_poll_i8(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_i8(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_i8(`handle`: Pointer,
     ): Unit
@@ -421,7 +419,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_i8(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun ffi_web5_rust_future_poll_u16(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_u16(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_u16(`handle`: Pointer,
     ): Unit
@@ -429,7 +427,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_u16(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Short
-    fun ffi_web5_rust_future_poll_i16(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_i16(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_i16(`handle`: Pointer,
     ): Unit
@@ -437,7 +435,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_i16(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Short
-    fun ffi_web5_rust_future_poll_u32(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_u32(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_u32(`handle`: Pointer,
     ): Unit
@@ -445,7 +443,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_u32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Int
-    fun ffi_web5_rust_future_poll_i32(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_i32(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_i32(`handle`: Pointer,
     ): Unit
@@ -453,7 +451,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_i32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Int
-    fun ffi_web5_rust_future_poll_u64(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_u64(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_u64(`handle`: Pointer,
     ): Unit
@@ -461,7 +459,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_u64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
-    fun ffi_web5_rust_future_poll_i64(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_i64(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_i64(`handle`: Pointer,
     ): Unit
@@ -469,7 +467,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_i64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
-    fun ffi_web5_rust_future_poll_f32(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_f32(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_f32(`handle`: Pointer,
     ): Unit
@@ -477,7 +475,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_f32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Float
-    fun ffi_web5_rust_future_poll_f64(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_f64(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_f64(`handle`: Pointer,
     ): Unit
@@ -485,7 +483,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_f64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Double
-    fun ffi_web5_rust_future_poll_pointer(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_pointer(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_pointer(`handle`: Pointer,
     ): Unit
@@ -493,7 +491,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_pointer(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun ffi_web5_rust_future_poll_rust_buffer(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_rust_buffer(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_rust_buffer(`handle`: Pointer,
     ): Unit
@@ -501,7 +499,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_rust_buffer(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_web5_rust_future_poll_void(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_web5_rust_future_poll_void(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_void(`handle`: Pointer,
     ): Unit
@@ -524,7 +522,7 @@ internal interface _UniFFILib : Library {
 
 private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
     // Get the bindings contract version from our ComponentInterface
-    val bindings_contract_version = 24
+    val bindings_contract_version = 25
     // Get the scaffolding contract version by calling the into the dylib
     val scaffolding_contract_version = lib.ffi_web5_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
@@ -606,6 +604,7 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         buf.put(byteBuf)
     }
 }
+
 
 
 // Interface implemented by anything that can contain an object reference.
@@ -719,9 +718,26 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 //
 // [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
 //
-abstract class FFIObject(
-    protected val pointer: Pointer
-): Disposable, AutoCloseable {
+abstract class FFIObject: Disposable, AutoCloseable {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object.
+     *
+     * **WARNING: Any object instantiated with this constructor cannot be passed to an actual Rust-backed object.**
+     * Since there isn't a backing [Pointer] the FFI lower functions will crash.
+     * @param noPointer Placeholder value so we can have a constructor separate from the default empty one that may be
+     *   implemented for classes extending [FFIObject].
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+    }
+
+    protected val pointer: Pointer?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -760,7 +776,7 @@ abstract class FFIObject(
         } while (! this.callCounter.compareAndSet(c, c + 1L))
         // Now we can safely do the method call without the pointer being freed concurrently.
         try {
-            return block(this.pointer)
+            return block(this.pointer!!)
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
@@ -770,15 +786,29 @@ abstract class FFIObject(
     }
 }
 
+/** Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly. */
+object NoPointer
+
 public interface Ed25199Interface {
-    @Throws(CryptoException::class)
     fun `generate`(): Jwk
+    
     companion object
 }
 
-class Ed25199(
-    pointer: Pointer
-) : FFIObject(pointer), Ed25199Interface {
+
+open class Ed25199 : FFIObject, Ed25199Interface {
+
+    constructor(pointer: Pointer): super(pointer)
+
+    /**
+     * This constructor can be used to instantiate a fake object.
+     *
+     * **WARNING: Any object instantiated with this constructor cannot be passed to an actual Rust-backed object.**
+     * Since there isn't a backing [Pointer] the FFI lower functions will crash.
+     * @param noPointer Placeholder value so we can have a constructor separate from the default empty one that may be
+     *   implemented for classes extending [FFIObject].
+     */
+    constructor(noPointer: NoPointer): super(noPointer)
     constructor() :
         this(
     rustCall() { _status ->
@@ -794,8 +824,10 @@ class Ed25199(
      * Clients **must** call this method once done with the object, or cause a memory leak.
      */
     override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_web5_fn_free_ed25199(this.pointer, status)
+        this.pointer?.let { ptr ->
+            rustCall() { status ->
+                _UniFFILib.INSTANCE.uniffi_web5_fn_free_ed25199(ptr, status)
+            }
         }
     }
 
@@ -819,7 +851,10 @@ class Ed25199(
 }
 
 public object FfiConverterTypeEd25199: FfiConverter<Ed25199, Pointer> {
-    override fun lower(value: Ed25199): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: Ed25199): Pointer {
+        return value.callWithPointer { it }
+    }
 
     override fun lift(value: Pointer): Ed25199 {
         return Ed25199(value)
@@ -844,14 +879,25 @@ public object FfiConverterTypeEd25199: FfiConverter<Ed25199, Pointer> {
 
 
 public interface JwkInterface {
-    @Throws(JwkException::class)
     fun `computeThumbprint`(): String
+    
     companion object
 }
 
-class Jwk(
-    pointer: Pointer
-) : FFIObject(pointer), JwkInterface {
+
+open class Jwk : FFIObject, JwkInterface {
+
+    constructor(pointer: Pointer): super(pointer)
+
+    /**
+     * This constructor can be used to instantiate a fake object.
+     *
+     * **WARNING: Any object instantiated with this constructor cannot be passed to an actual Rust-backed object.**
+     * Since there isn't a backing [Pointer] the FFI lower functions will crash.
+     * @param noPointer Placeholder value so we can have a constructor separate from the default empty one that may be
+     *   implemented for classes extending [FFIObject].
+     */
+    constructor(noPointer: NoPointer): super(noPointer)
     constructor(`alg`: String, `kty`: String, `crv`: String, `d`: String?, `x`: String, `y`: String?) :
         this(
     rustCall() { _status ->
@@ -867,8 +913,10 @@ class Jwk(
      * Clients **must** call this method once done with the object, or cause a memory leak.
      */
     override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_web5_fn_free_jwk(this.pointer, status)
+        this.pointer?.let { ptr ->
+            rustCall() { status ->
+                _UniFFILib.INSTANCE.uniffi_web5_fn_free_jwk(ptr, status)
+            }
         }
     }
 
@@ -892,7 +940,10 @@ class Jwk(
 }
 
 public object FfiConverterTypeJwk: FfiConverter<Jwk, Pointer> {
-    override fun lower(value: Jwk): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: Jwk): Pointer {
+        return value.callWithPointer { it }
+    }
 
     override fun lift(value: Pointer): Jwk {
         return Jwk(value)

@@ -4,3 +4,8 @@ let jwk = UniFFI.Jwk(alg: "ES256K", kty: "EC", crv: "secp256k1", d: "P3hRuve79Ga
 
 let thumbprint = try jwk.computeThumbprint()
 print("Thumbprint: \(thumbprint)")
+
+let ed25519 = UniFFI.Ed25199()
+let ed25519Jwk = try ed25519.generate()
+let ed25519Thumbprint = try ed25519Jwk.computeThumbprint()
+print("Thumbprint (Ed25519): \(ed25519Thumbprint)")

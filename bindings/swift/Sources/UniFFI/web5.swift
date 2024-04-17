@@ -287,7 +287,7 @@ private func uniffiCheckCallStatus(
             }
 
         case CALL_CANCELLED:
-                throw CancellationError()
+            fatalError("Cancellation not supported yet")
 
         default:
             throw UniffiInternalError.unexpectedRustCallStatusCode
@@ -336,12 +336,15 @@ fileprivate struct FfiConverterString: FfiConverter {
 }
 
 
-public protocol Ed25199Protocol {
-    func generate()  throws -> Jwk
+
+public protocol Ed25199Protocol : AnyObject {
+    func generate() throws  -> Jwk
     
 }
 
-public class Ed25199: Ed25199Protocol {
+
+public class Ed25199:
+    Ed25199Protocol {
     fileprivate let pointer: UnsafeMutableRawPointer
 
     // TODO: We'd like this to be `private` but for Swifty reasons,
@@ -365,7 +368,7 @@ public class Ed25199: Ed25199Protocol {
     
     
 
-    public func generate() throws -> Jwk {
+    public func generate() throws  -> Jwk {
         return try  FfiConverterTypeJwk.lift(
             try 
     rustCallWithError(FfiConverterTypeCryptoError.lift) {
@@ -374,11 +377,21 @@ public class Ed25199: Ed25199Protocol {
 }
         )
     }
+
 }
 
 public struct FfiConverterTypeEd25199: FfiConverter {
+
     typealias FfiType = UnsafeMutableRawPointer
     typealias SwiftType = Ed25199
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25199 {
+        return Ed25199(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Ed25199) -> UnsafeMutableRawPointer {
+        return value.pointer
+    }
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ed25199 {
         let v: UInt64 = try readInt(&buf)
@@ -396,14 +409,6 @@ public struct FfiConverterTypeEd25199: FfiConverter {
         // The Rust code won't compile if a pointer won't fit in a `UInt64`.
         writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
     }
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25199 {
-        return Ed25199(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: Ed25199) -> UnsafeMutableRawPointer {
-        return value.pointer
-    }
 }
 
 
@@ -416,12 +421,15 @@ public func FfiConverterTypeEd25199_lower(_ value: Ed25199) -> UnsafeMutableRawP
 }
 
 
-public protocol JwkProtocol {
-    func computeThumbprint()  throws -> String
+
+public protocol JwkProtocol : AnyObject {
+    func computeThumbprint() throws  -> String
     
 }
 
-public class Jwk: JwkProtocol {
+
+public class Jwk:
+    JwkProtocol {
     fileprivate let pointer: UnsafeMutableRawPointer
 
     // TODO: We'd like this to be `private` but for Swifty reasons,
@@ -451,7 +459,7 @@ public class Jwk: JwkProtocol {
     
     
 
-    public func computeThumbprint() throws -> String {
+    public func computeThumbprint() throws  -> String {
         return try  FfiConverterString.lift(
             try 
     rustCallWithError(FfiConverterTypeJwkError.lift) {
@@ -460,11 +468,21 @@ public class Jwk: JwkProtocol {
 }
         )
     }
+
 }
 
 public struct FfiConverterTypeJwk: FfiConverter {
+
     typealias FfiType = UnsafeMutableRawPointer
     typealias SwiftType = Jwk
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Jwk {
+        return Jwk(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Jwk) -> UnsafeMutableRawPointer {
+        return value.pointer
+    }
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Jwk {
         let v: UInt64 = try readInt(&buf)
@@ -481,14 +499,6 @@ public struct FfiConverterTypeJwk: FfiConverter {
         // This fiddling is because `Int` is the thing that's the same size as a pointer.
         // The Rust code won't compile if a pointer won't fit in a `UInt64`.
         writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
-    }
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Jwk {
-        return Jwk(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: Jwk) -> UnsafeMutableRawPointer {
-        return value.pointer
     }
 }
 
@@ -698,7 +708,7 @@ private enum InitializationResult {
 // the code inside is only computed once.
 private var initializationResult: InitializationResult {
     // Get the bindings contract version from our ComponentInterface
-    let bindings_contract_version = 24
+    let bindings_contract_version = 25
     // Get the scaffolding contract version by calling the into the dylib
     let scaffolding_contract_version = ffi_web5_uniffi_contract_version()
     if bindings_contract_version != scaffolding_contract_version {
