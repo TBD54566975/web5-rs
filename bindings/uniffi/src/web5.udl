@@ -32,3 +32,11 @@ interface Ed25199 {
     [Throws=CryptoError]
     void verify([ByRef]Jwk jwk, [ByRef]bytes payload, [ByRef]bytes signature);
 };
+
+[Error]
+enum KeyManagerError {
+    "KeyGenerationFailed",
+    "SigningKeyNotFound",
+    "KeyError",
+    "KeyStoreError",
+};
