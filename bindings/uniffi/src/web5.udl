@@ -11,6 +11,9 @@ namespace web5 {
 
     [Throws=IdentifierError]
     Identifier identifier_parse(string did_uri);
+
+    [Throws=DocumentError]
+    VerificationMethod get_verification_method(Document document, KeySelector key_selector);
 };
 
 [Error]
@@ -113,4 +116,18 @@ dictionary Service {
     string id;
     string type;
     string service_endpoint;
+};
+
+enum VerificationMethodType {
+  "VerificationMethod",
+  "AssertionMethod",
+  "Authentication",
+  "CapabilityDelegation",
+  "CapabilityInvocation",
+};
+
+[Enum]
+interface KeySelector {
+  KeyId(string key_id);
+  MethodType(VerificationMethodType method_type);
 };
