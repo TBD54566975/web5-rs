@@ -462,6 +462,81 @@ public func FfiConverterTypeEd25199_lower(_ value: Ed25199) -> UnsafeMutableRawP
 
 
 
+public protocol IdentifierProtocol : AnyObject {
+    
+}
+
+
+public class Identifier:
+    IdentifierProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+    public convenience init(didUri: String) throws  {
+        self.init(unsafeFromRawPointer: try rustCallWithError(FfiConverterTypeIdentifierError.lift) {
+    uniffi_web5_fn_constructor_identifier_new(
+        FfiConverterString.lower(didUri),$0)
+})
+    }
+
+    deinit {
+        try! rustCall { uniffi_web5_fn_free_identifier(pointer, $0) }
+    }
+
+    
+
+    
+    
+
+}
+
+public struct FfiConverterTypeIdentifier: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Identifier
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Identifier {
+        return Identifier(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Identifier) -> UnsafeMutableRawPointer {
+        return value.pointer
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Identifier {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Identifier, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+public func FfiConverterTypeIdentifier_lift(_ pointer: UnsafeMutableRawPointer) throws -> Identifier {
+    return try FfiConverterTypeIdentifier.lift(pointer)
+}
+
+public func FfiConverterTypeIdentifier_lower(_ value: Identifier) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeIdentifier.lower(value)
+}
+
+
+
 public protocol JwkProtocol : AnyObject {
     func computeThumbprint() throws  -> String
     
@@ -851,6 +926,67 @@ extension Curve: Equatable, Hashable {}
 
 
 
+public enum IdentifierError {
+
+    
+    
+    // Simple error enums only carry a message
+    case RegexPatternFailure(message: String)
+    
+    // Simple error enums only carry a message
+    case ParseFailure(message: String)
+    
+
+    fileprivate static func uniffiErrorHandler(_ error: RustBuffer) throws -> Error {
+        return try FfiConverterTypeIdentifierError.lift(error)
+    }
+}
+
+
+public struct FfiConverterTypeIdentifierError: FfiConverterRustBuffer {
+    typealias SwiftType = IdentifierError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> IdentifierError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .RegexPatternFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .ParseFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: IdentifierError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        case .RegexPatternFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(1))
+        case .ParseFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(2))
+
+        
+        }
+    }
+}
+
+
+extension IdentifierError: Equatable, Hashable {}
+
+extension IdentifierError: Error { }
+
 public enum JwkError {
 
     
@@ -1068,6 +1204,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_constructor_ed25199_new() != 35935) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_constructor_identifier_new() != 54084) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_constructor_jwk_new() != 31971) {

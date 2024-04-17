@@ -2,7 +2,6 @@
 
 set -e
 
-cargo build --release
 cargo run --bin uniffi-bindgen generate --library ../../target/release/libweb5.dylib --language swift --out-dir target/bindgen-swift
 
 mkdir -p target/xcframework-staging
