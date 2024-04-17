@@ -287,7 +287,7 @@ private func uniffiCheckCallStatus(
             }
 
         case CALL_CANCELLED:
-            fatalError("Cancellation not supported yet")
+                throw CancellationError()
 
         default:
             throw UniffiInternalError.unexpectedRustCallStatusCode
@@ -336,15 +336,92 @@ fileprivate struct FfiConverterString: FfiConverter {
 }
 
 
-
-public protocol JwkProtocol : AnyObject {
-    func computeThumbprint() throws  -> String
+public protocol Ed25199Protocol {
+    func generate()  throws -> Jwk
     
 }
 
+public class Ed25199: Ed25199Protocol {
+    fileprivate let pointer: UnsafeMutableRawPointer
 
-public class Jwk:
-    JwkProtocol {
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+    public convenience init()  {
+        self.init(unsafeFromRawPointer: try! rustCall() {
+    uniffi_web5_fn_constructor_ed25199_new($0)
+})
+    }
+
+    deinit {
+        try! rustCall { uniffi_web5_fn_free_ed25199(pointer, $0) }
+    }
+
+    
+
+    
+    
+
+    public func generate() throws -> Jwk {
+        return try  FfiConverterTypeJwk.lift(
+            try 
+    rustCallWithError(FfiConverterTypeCryptoError.lift) {
+    uniffi_web5_fn_method_ed25199_generate(self.pointer, $0
+    )
+}
+        )
+    }
+}
+
+public struct FfiConverterTypeEd25199: FfiConverter {
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Ed25199
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ed25199 {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Ed25199, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25199 {
+        return Ed25199(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Ed25199) -> UnsafeMutableRawPointer {
+        return value.pointer
+    }
+}
+
+
+public func FfiConverterTypeEd25199_lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25199 {
+    return try FfiConverterTypeEd25199.lift(pointer)
+}
+
+public func FfiConverterTypeEd25199_lower(_ value: Ed25199) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeEd25199.lower(value)
+}
+
+
+public protocol JwkProtocol {
+    func computeThumbprint()  throws -> String
+    
+}
+
+public class Jwk: JwkProtocol {
     fileprivate let pointer: UnsafeMutableRawPointer
 
     // TODO: We'd like this to be `private` but for Swifty reasons,
@@ -374,7 +451,7 @@ public class Jwk:
     
     
 
-    public func computeThumbprint() throws  -> String {
+    public func computeThumbprint() throws -> String {
         return try  FfiConverterString.lift(
             try 
     rustCallWithError(FfiConverterTypeJwkError.lift) {
@@ -383,21 +460,11 @@ public class Jwk:
 }
         )
     }
-
 }
 
 public struct FfiConverterTypeJwk: FfiConverter {
-
     typealias FfiType = UnsafeMutableRawPointer
     typealias SwiftType = Jwk
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Jwk {
-        return Jwk(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: Jwk) -> UnsafeMutableRawPointer {
-        return value.pointer
-    }
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Jwk {
         let v: UInt64 = try readInt(&buf)
@@ -414,6 +481,14 @@ public struct FfiConverterTypeJwk: FfiConverter {
         // This fiddling is because `Int` is the thing that's the same size as a pointer.
         // The Rust code won't compile if a pointer won't fit in a `UInt64`.
         writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Jwk {
+        return Jwk(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Jwk) -> UnsafeMutableRawPointer {
+        return value.pointer
     }
 }
 
@@ -623,13 +698,19 @@ private enum InitializationResult {
 // the code inside is only computed once.
 private var initializationResult: InitializationResult {
     // Get the bindings contract version from our ComponentInterface
-    let bindings_contract_version = 25
+    let bindings_contract_version = 24
     // Get the scaffolding contract version by calling the into the dylib
     let scaffolding_contract_version = ffi_web5_uniffi_contract_version()
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
+    if (uniffi_web5_checksum_method_ed25199_generate() != 51640) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_constructor_ed25199_new() != 35935) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_constructor_jwk_new() != 31971) {

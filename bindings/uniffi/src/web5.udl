@@ -1,6 +1,4 @@
-namespace web5 {
-    string hello_world();
-};
+namespace web5 {};
 
 [Error]
 enum JwkError {
@@ -25,18 +23,7 @@ enum CryptoError {
     "SignFailure",
 };
 
-[Trait]
-interface SomeTrait {
-    string some_func();
-};
-interface SomeTraitA {
-    constructor();
-};
-interface SomeTraitB {
-    constructor();
-};
-
-interface Ed25199_2 {
+interface Ed25199 {
     constructor();
     [Throws=CryptoError]
     Jwk generate();

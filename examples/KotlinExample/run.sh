@@ -2,7 +2,7 @@
 
 set -e
 
-# (cd ../../bindings/kt; ./install.sh)
+(cd ../../bindings/kt; ./install.sh)
 
 mvn clean compile
 mvn package

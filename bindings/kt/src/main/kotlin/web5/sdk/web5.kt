@@ -383,34 +383,18 @@ internal interface _UniFFILib : Library {
         }
     }
 
+    fun uniffi_web5_fn_free_ed25199(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_web5_fn_constructor_ed25199_new(_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_fn_method_ed25199_generate(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_web5_fn_free_jwk(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_web5_fn_constructor_jwk_new(`alg`: RustBuffer.ByValue,`kty`: RustBuffer.ByValue,`crv`: RustBuffer.ByValue,`d`: RustBuffer.ByValue,`x`: RustBuffer.ByValue,`y`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_web5_fn_method_jwk_compute_thumbprint(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_fn_free_sometrait(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_web5_fn_method_sometrait_some_func(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_web5_fn_free_sometraita(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_web5_fn_constructor_sometraita_new(_uniffi_out_err: RustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_fn_method_sometraita_some_func(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_web5_fn_free_sometraitb(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_web5_fn_constructor_sometraitb_new(_uniffi_out_err: RustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_fn_free_mytrait(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_web5_fn_method_mytrait_something(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_web5_fn_func_hello_world(_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_web5_fn_func_hello_ffi(_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun ffi_web5_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_web5_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -525,23 +509,13 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_void(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_web5_checksum_func_hello_world(
-    ): Short
-    fun uniffi_web5_checksum_func_hello_ffi(
+    fun uniffi_web5_checksum_method_ed25199_generate(
     ): Short
     fun uniffi_web5_checksum_method_jwk_compute_thumbprint(
     ): Short
-    fun uniffi_web5_checksum_method_sometrait_some_func(
-    ): Short
-    fun uniffi_web5_checksum_method_sometraita_some_func(
-    ): Short
-    fun uniffi_web5_checksum_method_mytrait_something(
+    fun uniffi_web5_checksum_constructor_ed25199_new(
     ): Short
     fun uniffi_web5_checksum_constructor_jwk_new(
-    ): Short
-    fun uniffi_web5_checksum_constructor_sometraita_new(
-    ): Short
-    fun uniffi_web5_checksum_constructor_sometraitb_new(
     ): Short
     fun ffi_web5_uniffi_contract_version(
     ): Int
@@ -560,31 +534,16 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
-    if (lib.uniffi_web5_checksum_func_hello_world() != 37465.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_checksum_func_hello_ffi() != 64792.toShort()) {
+    if (lib.uniffi_web5_checksum_method_ed25199_generate() != 51640.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_checksum_method_sometrait_some_func() != 49520.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_checksum_method_sometraita_some_func() != 42871.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_checksum_method_mytrait_something() != 4441.toShort()) {
+    if (lib.uniffi_web5_checksum_constructor_ed25199_new() != 35935.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_constructor_jwk_new() != 31971.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_checksum_constructor_sometraita_new() != 6196.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_checksum_constructor_sometraitb_new() != 52812.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -811,6 +770,79 @@ abstract class FFIObject(
     }
 }
 
+public interface Ed25199Interface {
+    @Throws(CryptoException::class)
+    fun `generate`(): Jwk
+    companion object
+}
+
+class Ed25199(
+    pointer: Pointer
+) : FFIObject(pointer), Ed25199Interface {
+    constructor() :
+        this(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_constructor_ed25199_new(_status)
+})
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.uniffi_web5_fn_free_ed25199(this.pointer, status)
+        }
+    }
+
+    
+    @Throws(CryptoException::class)override fun `generate`(): Jwk =
+        callWithPointer {
+    rustCallWithError(CryptoException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_method_ed25199_generate(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterTypeJwk.lift(it)
+        }
+    
+    
+
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeEd25199: FfiConverter<Ed25199, Pointer> {
+    override fun lower(value: Ed25199): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): Ed25199 {
+        return Ed25199(value)
+    }
+
+    override fun read(buf: ByteBuffer): Ed25199 {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: Ed25199) = 8
+
+    override fun write(value: Ed25199, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
 public interface JwkInterface {
     @Throws(JwkException::class)
     fun `computeThumbprint`(): String
@@ -875,272 +907,6 @@ public object FfiConverterTypeJwk: FfiConverter<Jwk, Pointer> {
     override fun allocationSize(value: Jwk) = 8
 
     override fun write(value: Jwk, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-
-
-public interface MyTraitInterface {
-    
-    fun `something`(): String
-    companion object
-}
-
-class MyTrait(
-    pointer: Pointer
-) : FFIObject(pointer), MyTraitInterface {
-
-    /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
-     */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_web5_fn_free_mytrait(this.pointer, status)
-        }
-    }
-
-    override fun `something`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_method_mytrait_something(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
-        }
-    
-    
-
-    
-    companion object
-    
-}
-
-public object FfiConverterTypeMyTrait: FfiConverter<MyTrait, Pointer> {
-    override fun lower(value: MyTrait): Pointer = value.callWithPointer { it }
-
-    override fun lift(value: Pointer): MyTrait {
-        return MyTrait(value)
-    }
-
-    override fun read(buf: ByteBuffer): MyTrait {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: MyTrait) = 8
-
-    override fun write(value: MyTrait, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-
-
-public interface SomeTraitInterface {
-    
-    fun `someFunc`(): String
-    companion object
-}
-
-class SomeTrait(
-    pointer: Pointer
-) : FFIObject(pointer), SomeTraitInterface {
-
-    /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
-     */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_web5_fn_free_sometrait(this.pointer, status)
-        }
-    }
-
-    override fun `someFunc`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_method_sometrait_some_func(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
-        }
-    
-    
-
-    
-    companion object
-    
-}
-
-public object FfiConverterTypeSomeTrait: FfiConverter<SomeTrait, Pointer> {
-    override fun lower(value: SomeTrait): Pointer = value.callWithPointer { it }
-
-    override fun lift(value: Pointer): SomeTrait {
-        return SomeTrait(value)
-    }
-
-    override fun read(buf: ByteBuffer): SomeTrait {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: SomeTrait) = 8
-
-    override fun write(value: SomeTrait, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-
-
-public interface SomeTraitAInterface {
-    
-    fun `someFunc`(): String
-    companion object
-}
-
-class SomeTraitA(
-    pointer: Pointer
-) : FFIObject(pointer), SomeTraitAInterface {
-    constructor() :
-        this(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_constructor_sometraita_new(_status)
-})
-
-    /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
-     */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_web5_fn_free_sometraita(this.pointer, status)
-        }
-    }
-
-    override fun `someFunc`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_method_sometraita_some_func(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
-        }
-    
-    
-
-    
-    companion object
-    
-}
-
-public object FfiConverterTypeSomeTraitA: FfiConverter<SomeTraitA, Pointer> {
-    override fun lower(value: SomeTraitA): Pointer = value.callWithPointer { it }
-
-    override fun lift(value: Pointer): SomeTraitA {
-        return SomeTraitA(value)
-    }
-
-    override fun read(buf: ByteBuffer): SomeTraitA {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: SomeTraitA) = 8
-
-    override fun write(value: SomeTraitA, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-
-
-public interface SomeTraitBInterface {
-    
-    companion object
-}
-
-class SomeTraitB(
-    pointer: Pointer
-) : FFIObject(pointer), SomeTraitBInterface {
-    constructor() :
-        this(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_constructor_sometraitb_new(_status)
-})
-
-    /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
-     */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_web5_fn_free_sometraitb(this.pointer, status)
-        }
-    }
-
-    
-
-    
-    companion object
-    
-}
-
-public object FfiConverterTypeSomeTraitB: FfiConverter<SomeTraitB, Pointer> {
-    override fun lower(value: SomeTraitB): Pointer = value.callWithPointer { it }
-
-    override fun lift(value: Pointer): SomeTraitB {
-        return SomeTraitB(value)
-    }
-
-    override fun read(buf: ByteBuffer): SomeTraitB {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: SomeTraitB) = 8
-
-    override fun write(value: SomeTraitB, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -1297,20 +1063,4 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<String?> {
         }
     }
 }
-
-fun `helloWorld`(): String {
-    return FfiConverterString.lift(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_func_hello_world(_status)
-})
-}
-
-
-fun `helloFfi`() =
-    
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_func_hello_ffi(_status)
-}
-
-
 
