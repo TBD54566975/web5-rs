@@ -111,7 +111,7 @@ impl<T: CredentialSubject + Serialize + DeserializeOwned> VerifiableCredential<T
 
     pub fn sign_vcjwt(
         &self,
-        bearer_did: BearerDid,
+        bearer_did: &BearerDid,
         key_selector: &KeySelector,
     ) -> Result<String, CredentialError> {
         if self.issuer.is_empty() {
@@ -172,7 +172,7 @@ mod tests {
             id: Uuid::new_v4().to_string(),
         };
 
-        let mut vc = VerifiableCredential::create(
+        let vc = VerifiableCredential::create(
             credential_subject,
             &bearer_did.identifier.uri,
             Some(CreateOptions {
@@ -184,7 +184,7 @@ mod tests {
 
         let signed_vcjwt = vc
             .sign_vcjwt(
-                bearer_did,
+                &bearer_did,
                 &KeySelector::MethodType(VerificationMethodType::VerificationMethod),
             )
             .expect("Failed to sign VC");
