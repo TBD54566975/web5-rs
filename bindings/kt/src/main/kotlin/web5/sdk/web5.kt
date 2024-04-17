@@ -389,6 +389,8 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_web5_fn_method_ed25199_generate(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
+    fun uniffi_web5_fn_method_ed25199_sign(`ptr`: Pointer,`jwk`: Pointer,`payload`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_web5_fn_free_jwk(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_web5_fn_constructor_jwk_new(`alg`: RustBuffer.ByValue,`kty`: RustBuffer.ByValue,`crv`: RustBuffer.ByValue,`d`: RustBuffer.ByValue,`x`: RustBuffer.ByValue,`y`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -509,6 +511,8 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_web5_checksum_method_ed25199_generate(
     ): Short
+    fun uniffi_web5_checksum_method_ed25199_sign(
+    ): Short
     fun uniffi_web5_checksum_method_jwk_compute_thumbprint(
     ): Short
     fun uniffi_web5_checksum_constructor_ed25199_new(
@@ -533,6 +537,9 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_web5_checksum_method_ed25199_generate() != 51640.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_ed25199_sign() != 64682.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735.toShort()) {
@@ -602,6 +609,22 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         val byteBuf = toUtf8(value)
         buf.putInt(byteBuf.limit())
         buf.put(byteBuf)
+    }
+}
+
+public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
+    override fun read(buf: ByteBuffer): ByteArray {
+        val len = buf.getInt()
+        val byteArr = ByteArray(len)
+        buf.get(byteArr)
+        return byteArr
+    }
+    override fun allocationSize(value: ByteArray): Int {
+        return 4 + value.size
+    }
+    override fun write(value: ByteArray, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        buf.put(value)
     }
 }
 
@@ -791,6 +814,7 @@ object NoPointer
 
 public interface Ed25199Interface {
     fun `generate`(): Jwk
+    fun `sign`(`jwk`: Jwk, `payload`: ByteArray): ByteArray
     
     companion object
 }
@@ -841,6 +865,18 @@ open class Ed25199 : FFIObject, Ed25199Interface {
 }
         }.let {
             FfiConverterTypeJwk.lift(it)
+        }
+    
+    
+    @Throws(CryptoException::class)override fun `sign`(`jwk`: Jwk, `payload`: ByteArray): ByteArray =
+        callWithPointer {
+    rustCallWithError(CryptoException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_method_ed25199_sign(it,
+        FfiConverterTypeJwk.lower(`jwk`),FfiConverterByteArray.lower(`payload`),
+        _status)
+}
+        }.let {
+            FfiConverterByteArray.lift(it)
         }
     
     

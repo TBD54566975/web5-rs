@@ -1,5 +1,6 @@
 use crate::Jwk;
 use crypto::{ed25519::Ed25199 as InternalEd25199, CryptoError, CurveOperations};
+use jwk::Jwk as InternalJwk;
 use std::sync::Arc;
 
 pub struct Ed25199 {}
@@ -12,5 +13,9 @@ impl Ed25199 {
     pub fn generate(&self) -> Result<Arc<Jwk>, CryptoError> {
         let jwk = InternalEd25199::generate()?;
         Ok(Arc::new(Jwk(jwk)))
+    }
+
+    pub fn sign(&self, private_jwk: &Jwk, payload: &[u8]) -> Result<Vec<u8>, CryptoError> {
+        InternalEd25199::sign(&InternalJwk::from(private_jwk), payload)
     }
 }

@@ -335,10 +335,26 @@ fileprivate struct FfiConverterString: FfiConverter {
     }
 }
 
+fileprivate struct FfiConverterData: FfiConverterRustBuffer {
+    typealias SwiftType = Data
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Data {
+        let len: Int32 = try readInt(&buf)
+        return Data(try readBytes(&buf, count: Int(len)))
+    }
+
+    public static func write(_ value: Data, into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        writeBytes(&buf, value)
+    }
+}
+
 
 
 public protocol Ed25199Protocol : AnyObject {
     func generate() throws  -> Jwk
+    func sign(jwk: Jwk, payload: Data) throws  -> Data
     
 }
 
@@ -373,6 +389,18 @@ public class Ed25199:
             try 
     rustCallWithError(FfiConverterTypeCryptoError.lift) {
     uniffi_web5_fn_method_ed25199_generate(self.pointer, $0
+    )
+}
+        )
+    }
+
+    public func sign(jwk: Jwk, payload: Data) throws  -> Data {
+        return try  FfiConverterData.lift(
+            try 
+    rustCallWithError(FfiConverterTypeCryptoError.lift) {
+    uniffi_web5_fn_method_ed25199_sign(self.pointer, 
+        FfiConverterTypeJwk.lower(jwk),
+        FfiConverterData.lower(payload),$0
     )
 }
         )
@@ -715,6 +743,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.contractVersionMismatch
     }
     if (uniffi_web5_checksum_method_ed25199_generate() != 51640) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_ed25199_sign() != 64682) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735) {
