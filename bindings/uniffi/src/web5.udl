@@ -10,3 +10,25 @@ interface Jwk {
     [Throws=JwkError]
     string compute_thumbprint();
 };
+
+[Error]
+enum CryptoError {
+    "MissingPrivateKey",
+    "DecodeError",
+    "InvalidKeyLength",
+    "InvalidSignatureLength",
+    "PublicKeyFailure",
+    "PrivateKeyFailure",
+    "VerificationFailure",
+    "SignFailure",
+};
+
+interface Ed25199 {
+    constructor();
+    [Throws=CryptoError]
+    Jwk generate();
+    [Throws=CryptoError]
+    bytes sign([ByRef]Jwk jwk, [ByRef]bytes payload);
+    [Throws=CryptoError]
+    void verify([ByRef]Jwk jwk, [ByRef]bytes payload, [ByRef]bytes signature);
+};

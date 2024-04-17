@@ -383,6 +383,16 @@ internal interface _UniFFILib : Library {
         }
     }
 
+    fun uniffi_web5_fn_free_ed25199(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_web5_fn_constructor_ed25199_new(_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_fn_method_ed25199_generate(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_fn_method_ed25199_sign(`ptr`: Pointer,`jwk`: Pointer,`payload`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_method_ed25199_verify(`ptr`: Pointer,`jwk`: Pointer,`payload`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_web5_fn_free_jwk(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_web5_fn_constructor_jwk_new(`alg`: RustBuffer.ByValue,`kty`: RustBuffer.ByValue,`crv`: RustBuffer.ByValue,`d`: RustBuffer.ByValue,`x`: RustBuffer.ByValue,`y`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -501,7 +511,15 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_void(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_web5_checksum_method_ed25199_generate(
+    ): Short
+    fun uniffi_web5_checksum_method_ed25199_sign(
+    ): Short
+    fun uniffi_web5_checksum_method_ed25199_verify(
+    ): Short
     fun uniffi_web5_checksum_method_jwk_compute_thumbprint(
+    ): Short
+    fun uniffi_web5_checksum_constructor_ed25199_new(
     ): Short
     fun uniffi_web5_checksum_constructor_jwk_new(
     ): Short
@@ -522,7 +540,19 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
+    if (lib.uniffi_web5_checksum_method_ed25199_generate() != 51640.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_ed25199_sign() != 64682.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_ed25199_verify() != 46767.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_constructor_ed25199_new() != 35935.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_constructor_jwk_new() != 31971.toShort()) {
@@ -586,6 +616,22 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         val byteBuf = toUtf8(value)
         buf.putInt(byteBuf.limit())
         buf.put(byteBuf)
+    }
+}
+
+public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
+    override fun read(buf: ByteBuffer): ByteArray {
+        val len = buf.getInt()
+        val byteArr = ByteArray(len)
+        buf.get(byteArr)
+        return byteArr
+    }
+    override fun allocationSize(value: ByteArray): Int {
+        return 4 + value.size
+    }
+    override fun write(value: ByteArray, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        buf.put(value)
     }
 }
 
@@ -773,6 +819,120 @@ abstract class FFIObject: Disposable, AutoCloseable {
 /** Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly. */
 object NoPointer
 
+public interface Ed25199Interface {
+    fun `generate`(): Jwk
+    fun `sign`(`jwk`: Jwk, `payload`: ByteArray): ByteArray
+    fun `verify`(`jwk`: Jwk, `payload`: ByteArray, `signature`: ByteArray)
+    
+    companion object
+}
+
+
+open class Ed25199 : FFIObject, Ed25199Interface {
+
+    constructor(pointer: Pointer): super(pointer)
+
+    /**
+     * This constructor can be used to instantiate a fake object.
+     *
+     * **WARNING: Any object instantiated with this constructor cannot be passed to an actual Rust-backed object.**
+     * Since there isn't a backing [Pointer] the FFI lower functions will crash.
+     * @param noPointer Placeholder value so we can have a constructor separate from the default empty one that may be
+     *   implemented for classes extending [FFIObject].
+     */
+    constructor(noPointer: NoPointer): super(noPointer)
+    constructor() :
+        this(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_constructor_ed25199_new(_status)
+})
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        this.pointer?.let { ptr ->
+            rustCall() { status ->
+                _UniFFILib.INSTANCE.uniffi_web5_fn_free_ed25199(ptr, status)
+            }
+        }
+    }
+
+    
+    @Throws(CryptoException::class)override fun `generate`(): Jwk =
+        callWithPointer {
+    rustCallWithError(CryptoException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_method_ed25199_generate(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterTypeJwk.lift(it)
+        }
+    
+    
+    @Throws(CryptoException::class)override fun `sign`(`jwk`: Jwk, `payload`: ByteArray): ByteArray =
+        callWithPointer {
+    rustCallWithError(CryptoException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_method_ed25199_sign(it,
+        FfiConverterTypeJwk.lower(`jwk`),FfiConverterByteArray.lower(`payload`),
+        _status)
+}
+        }.let {
+            FfiConverterByteArray.lift(it)
+        }
+    
+    
+    @Throws(CryptoException::class)override fun `verify`(`jwk`: Jwk, `payload`: ByteArray, `signature`: ByteArray) =
+        callWithPointer {
+    rustCallWithError(CryptoException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_method_ed25199_verify(it,
+        FfiConverterTypeJwk.lower(`jwk`),FfiConverterByteArray.lower(`payload`),FfiConverterByteArray.lower(`signature`),
+        _status)
+}
+        }
+    
+    
+    
+
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeEd25199: FfiConverter<Ed25199, Pointer> {
+
+    override fun lower(value: Ed25199): Pointer {
+        return value.callWithPointer { it }
+    }
+
+    override fun lift(value: Pointer): Ed25199 {
+        return Ed25199(value)
+    }
+
+    override fun read(buf: ByteBuffer): Ed25199 {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: Ed25199) = 8
+
+    override fun write(value: Ed25199, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
 public interface JwkInterface {
     fun `computeThumbprint`(): String
     
@@ -857,6 +1017,88 @@ public object FfiConverterTypeJwk: FfiConverter<Jwk, Pointer> {
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
     }
+}
+
+
+
+
+
+sealed class CryptoException(message: String): Exception(message) {
+        // Each variant is a nested class
+        // Flat enums carries a string error message, so no special implementation is necessary.
+        class MissingPrivateKey(message: String) : CryptoException(message)
+        class DecodeException(message: String) : CryptoException(message)
+        class InvalidKeyLength(message: String) : CryptoException(message)
+        class InvalidSignatureLength(message: String) : CryptoException(message)
+        class PublicKeyFailure(message: String) : CryptoException(message)
+        class PrivateKeyFailure(message: String) : CryptoException(message)
+        class VerificationFailure(message: String) : CryptoException(message)
+        class SignFailure(message: String) : CryptoException(message)
+        
+
+    companion object ErrorHandler : CallStatusErrorHandler<CryptoException> {
+        override fun lift(error_buf: RustBuffer.ByValue): CryptoException = FfiConverterTypeCryptoError.lift(error_buf)
+    }
+}
+
+public object FfiConverterTypeCryptoError : FfiConverterRustBuffer<CryptoException> {
+    override fun read(buf: ByteBuffer): CryptoException {
+        
+            return when(buf.getInt()) {
+            1 -> CryptoException.MissingPrivateKey(FfiConverterString.read(buf))
+            2 -> CryptoException.DecodeException(FfiConverterString.read(buf))
+            3 -> CryptoException.InvalidKeyLength(FfiConverterString.read(buf))
+            4 -> CryptoException.InvalidSignatureLength(FfiConverterString.read(buf))
+            5 -> CryptoException.PublicKeyFailure(FfiConverterString.read(buf))
+            6 -> CryptoException.PrivateKeyFailure(FfiConverterString.read(buf))
+            7 -> CryptoException.VerificationFailure(FfiConverterString.read(buf))
+            8 -> CryptoException.SignFailure(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: CryptoException): Int {
+        return 4
+    }
+
+    override fun write(value: CryptoException, buf: ByteBuffer) {
+        when(value) {
+            is CryptoException.MissingPrivateKey -> {
+                buf.putInt(1)
+                Unit
+            }
+            is CryptoException.DecodeException -> {
+                buf.putInt(2)
+                Unit
+            }
+            is CryptoException.InvalidKeyLength -> {
+                buf.putInt(3)
+                Unit
+            }
+            is CryptoException.InvalidSignatureLength -> {
+                buf.putInt(4)
+                Unit
+            }
+            is CryptoException.PublicKeyFailure -> {
+                buf.putInt(5)
+                Unit
+            }
+            is CryptoException.PrivateKeyFailure -> {
+                buf.putInt(6)
+                Unit
+            }
+            is CryptoException.VerificationFailure -> {
+                buf.putInt(7)
+                Unit
+            }
+            is CryptoException.SignFailure -> {
+                buf.putInt(8)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
 }
 
 

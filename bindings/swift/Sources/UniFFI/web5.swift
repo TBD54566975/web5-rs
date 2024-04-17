@@ -335,6 +335,131 @@ fileprivate struct FfiConverterString: FfiConverter {
     }
 }
 
+fileprivate struct FfiConverterData: FfiConverterRustBuffer {
+    typealias SwiftType = Data
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Data {
+        let len: Int32 = try readInt(&buf)
+        return Data(try readBytes(&buf, count: Int(len)))
+    }
+
+    public static func write(_ value: Data, into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        writeBytes(&buf, value)
+    }
+}
+
+
+
+public protocol Ed25199Protocol : AnyObject {
+    func generate() throws  -> Jwk
+    func sign(jwk: Jwk, payload: Data) throws  -> Data
+    func verify(jwk: Jwk, payload: Data, signature: Data) throws 
+    
+}
+
+
+public class Ed25199:
+    Ed25199Protocol {
+    fileprivate let pointer: UnsafeMutableRawPointer
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+    public convenience init()  {
+        self.init(unsafeFromRawPointer: try! rustCall() {
+    uniffi_web5_fn_constructor_ed25199_new($0)
+})
+    }
+
+    deinit {
+        try! rustCall { uniffi_web5_fn_free_ed25199(pointer, $0) }
+    }
+
+    
+
+    
+    
+
+    public func generate() throws  -> Jwk {
+        return try  FfiConverterTypeJwk.lift(
+            try 
+    rustCallWithError(FfiConverterTypeCryptoError.lift) {
+    uniffi_web5_fn_method_ed25199_generate(self.pointer, $0
+    )
+}
+        )
+    }
+
+    public func sign(jwk: Jwk, payload: Data) throws  -> Data {
+        return try  FfiConverterData.lift(
+            try 
+    rustCallWithError(FfiConverterTypeCryptoError.lift) {
+    uniffi_web5_fn_method_ed25199_sign(self.pointer, 
+        FfiConverterTypeJwk.lower(jwk),
+        FfiConverterData.lower(payload),$0
+    )
+}
+        )
+    }
+
+    public func verify(jwk: Jwk, payload: Data, signature: Data) throws  {
+        try 
+    rustCallWithError(FfiConverterTypeCryptoError.lift) {
+    uniffi_web5_fn_method_ed25199_verify(self.pointer, 
+        FfiConverterTypeJwk.lower(jwk),
+        FfiConverterData.lower(payload),
+        FfiConverterData.lower(signature),$0
+    )
+}
+    }
+
+}
+
+public struct FfiConverterTypeEd25199: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Ed25199
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25199 {
+        return Ed25199(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Ed25199) -> UnsafeMutableRawPointer {
+        return value.pointer
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ed25199 {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Ed25199, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+public func FfiConverterTypeEd25199_lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25199 {
+    return try FfiConverterTypeEd25199.lift(pointer)
+}
+
+public func FfiConverterTypeEd25199_lower(_ value: Ed25199) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeEd25199.lower(value)
+}
+
 
 
 public protocol JwkProtocol : AnyObject {
@@ -426,6 +551,121 @@ public func FfiConverterTypeJwk_lower(_ value: Jwk) -> UnsafeMutableRawPointer {
     return FfiConverterTypeJwk.lower(value)
 }
 
+public enum CryptoError {
+
+    
+    
+    // Simple error enums only carry a message
+    case MissingPrivateKey(message: String)
+    
+    // Simple error enums only carry a message
+    case DecodeError(message: String)
+    
+    // Simple error enums only carry a message
+    case InvalidKeyLength(message: String)
+    
+    // Simple error enums only carry a message
+    case InvalidSignatureLength(message: String)
+    
+    // Simple error enums only carry a message
+    case PublicKeyFailure(message: String)
+    
+    // Simple error enums only carry a message
+    case PrivateKeyFailure(message: String)
+    
+    // Simple error enums only carry a message
+    case VerificationFailure(message: String)
+    
+    // Simple error enums only carry a message
+    case SignFailure(message: String)
+    
+
+    fileprivate static func uniffiErrorHandler(_ error: RustBuffer) throws -> Error {
+        return try FfiConverterTypeCryptoError.lift(error)
+    }
+}
+
+
+public struct FfiConverterTypeCryptoError: FfiConverterRustBuffer {
+    typealias SwiftType = CryptoError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CryptoError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .MissingPrivateKey(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .DecodeError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 3: return .InvalidKeyLength(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 4: return .InvalidSignatureLength(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 5: return .PublicKeyFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 6: return .PrivateKeyFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 7: return .VerificationFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 8: return .SignFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: CryptoError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        case .MissingPrivateKey(_ /* message is ignored*/):
+            writeInt(&buf, Int32(1))
+        case .DecodeError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(2))
+        case .InvalidKeyLength(_ /* message is ignored*/):
+            writeInt(&buf, Int32(3))
+        case .InvalidSignatureLength(_ /* message is ignored*/):
+            writeInt(&buf, Int32(4))
+        case .PublicKeyFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(5))
+        case .PrivateKeyFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(6))
+        case .VerificationFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(7))
+        case .SignFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(8))
+
+        
+        }
+    }
+}
+
+
+extension CryptoError: Equatable, Hashable {}
+
+extension CryptoError: Error { }
+
 public enum JwkError {
 
     
@@ -514,7 +754,19 @@ private var initializationResult: InitializationResult {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
+    if (uniffi_web5_checksum_method_ed25199_generate() != 51640) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_ed25199_sign() != 64682) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_ed25199_verify() != 46767) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_constructor_ed25199_new() != 35935) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_constructor_jwk_new() != 31971) {
