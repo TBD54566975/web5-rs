@@ -383,26 +383,6 @@ internal interface _UniFFILib : Library {
         }
     }
 
-    fun uniffi_web5_fn_free_ed25199(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_web5_fn_constructor_ed25199_new(_uniffi_out_err: RustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_fn_method_ed25199_generate(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_fn_method_ed25199_sign(`ptr`: Pointer,`jwk`: Pointer,`payload`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_web5_fn_method_ed25199_verify(`ptr`: Pointer,`jwk`: Pointer,`payload`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_web5_fn_free_identifier(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_web5_fn_constructor_identifier_new(`didUri`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_fn_free_jwk(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_web5_fn_constructor_jwk_new(`alg`: RustBuffer.ByValue,`kty`: RustBuffer.ByValue,`crv`: RustBuffer.ByValue,`d`: RustBuffer.ByValue,`x`: RustBuffer.ByValue,`y`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_fn_method_jwk_compute_thumbprint(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_web5_fn_free_localjwkmanager(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_web5_fn_constructor_localjwkmanager_new(_uniffi_out_err: RustCallStatus, 
@@ -412,10 +392,20 @@ internal interface _UniFFILib : Library {
     fun uniffi_web5_fn_method_localjwkmanager_generate_private_key(`ptr`: Pointer,`curve`: RustBuffer.ByValue,`keyAlias`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_method_localjwkmanager_get_public_key(`ptr`: Pointer,`keyAlias`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
+    ): RustBuffer.ByValue
     fun uniffi_web5_fn_method_localjwkmanager_import_private_keys(`ptr`: Pointer,`privateKeys`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_web5_fn_method_localjwkmanager_sign(`ptr`: Pointer,`keyAlias`: RustBuffer.ByValue,`payload`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_func_compute_thumbprint(`jwk`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_func_ed25519_generate(_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_func_ed25519_sign(`privateJwk`: RustBuffer.ByValue,`payload`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_func_ed25519_verify(`publicJwk`: RustBuffer.ByValue,`payload`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_web5_fn_func_identifier_parse(`didUri`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_web5_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
@@ -529,13 +519,15 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_void(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_web5_checksum_method_ed25199_generate(
+    fun uniffi_web5_checksum_func_compute_thumbprint(
     ): Short
-    fun uniffi_web5_checksum_method_ed25199_sign(
+    fun uniffi_web5_checksum_func_ed25519_generate(
     ): Short
-    fun uniffi_web5_checksum_method_ed25199_verify(
+    fun uniffi_web5_checksum_func_ed25519_sign(
     ): Short
-    fun uniffi_web5_checksum_method_jwk_compute_thumbprint(
+    fun uniffi_web5_checksum_func_ed25519_verify(
+    ): Short
+    fun uniffi_web5_checksum_func_identifier_parse(
     ): Short
     fun uniffi_web5_checksum_method_localjwkmanager_export_private_keys(
     ): Short
@@ -546,12 +538,6 @@ internal interface _UniFFILib : Library {
     fun uniffi_web5_checksum_method_localjwkmanager_import_private_keys(
     ): Short
     fun uniffi_web5_checksum_method_localjwkmanager_sign(
-    ): Short
-    fun uniffi_web5_checksum_constructor_ed25199_new(
-    ): Short
-    fun uniffi_web5_checksum_constructor_identifier_new(
-    ): Short
-    fun uniffi_web5_checksum_constructor_jwk_new(
     ): Short
     fun uniffi_web5_checksum_constructor_localjwkmanager_new(
     ): Short
@@ -572,40 +558,34 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
-    if (lib.uniffi_web5_checksum_method_ed25199_generate() != 51640.toShort()) {
+    if (lib.uniffi_web5_checksum_func_compute_thumbprint() != 38266.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_checksum_method_ed25199_sign() != 64682.toShort()) {
+    if (lib.uniffi_web5_checksum_func_ed25519_generate() != 10960.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_checksum_method_ed25199_verify() != 46767.toShort()) {
+    if (lib.uniffi_web5_checksum_func_ed25519_sign() != 15003.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735.toShort()) {
+    if (lib.uniffi_web5_checksum_func_ed25519_verify() != 65009.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_checksum_method_localjwkmanager_export_private_keys() != 43887.toShort()) {
+    if (lib.uniffi_web5_checksum_func_identifier_parse() != 23975.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_localjwkmanager_export_private_keys() != 61650.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_localjwkmanager_generate_private_key() != 63783.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_checksum_method_localjwkmanager_get_public_key() != 63871.toShort()) {
+    if (lib.uniffi_web5_checksum_method_localjwkmanager_get_public_key() != 24974.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_checksum_method_localjwkmanager_import_private_keys() != 47661.toShort()) {
+    if (lib.uniffi_web5_checksum_method_localjwkmanager_import_private_keys() != 24027.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_localjwkmanager_sign() != 45191.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_checksum_constructor_ed25199_new() != 35935.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_checksum_constructor_identifier_new() != 54084.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_checksum_constructor_jwk_new() != 31971.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_constructor_localjwkmanager_new() != 6883.toShort()) {
@@ -872,285 +852,6 @@ abstract class FFIObject: Disposable, AutoCloseable {
 /** Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly. */
 object NoPointer
 
-public interface Ed25199Interface {
-    fun `generate`(): Jwk
-    fun `sign`(`jwk`: Jwk, `payload`: ByteArray): ByteArray
-    fun `verify`(`jwk`: Jwk, `payload`: ByteArray, `signature`: ByteArray)
-    
-    companion object
-}
-
-
-open class Ed25199 : FFIObject, Ed25199Interface {
-
-    constructor(pointer: Pointer): super(pointer)
-
-    /**
-     * This constructor can be used to instantiate a fake object.
-     *
-     * **WARNING: Any object instantiated with this constructor cannot be passed to an actual Rust-backed object.**
-     * Since there isn't a backing [Pointer] the FFI lower functions will crash.
-     * @param noPointer Placeholder value so we can have a constructor separate from the default empty one that may be
-     *   implemented for classes extending [FFIObject].
-     */
-    constructor(noPointer: NoPointer): super(noPointer)
-    constructor() :
-        this(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_constructor_ed25199_new(_status)
-})
-
-    /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
-     */
-    override protected fun freeRustArcPtr() {
-        this.pointer?.let { ptr ->
-            rustCall() { status ->
-                _UniFFILib.INSTANCE.uniffi_web5_fn_free_ed25199(ptr, status)
-            }
-        }
-    }
-
-    
-    @Throws(CryptoException::class)override fun `generate`(): Jwk =
-        callWithPointer {
-    rustCallWithError(CryptoException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_method_ed25199_generate(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeJwk.lift(it)
-        }
-    
-    
-    @Throws(CryptoException::class)override fun `sign`(`jwk`: Jwk, `payload`: ByteArray): ByteArray =
-        callWithPointer {
-    rustCallWithError(CryptoException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_method_ed25199_sign(it,
-        FfiConverterTypeJwk.lower(`jwk`),FfiConverterByteArray.lower(`payload`),
-        _status)
-}
-        }.let {
-            FfiConverterByteArray.lift(it)
-        }
-    
-    
-    @Throws(CryptoException::class)override fun `verify`(`jwk`: Jwk, `payload`: ByteArray, `signature`: ByteArray) =
-        callWithPointer {
-    rustCallWithError(CryptoException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_method_ed25199_verify(it,
-        FfiConverterTypeJwk.lower(`jwk`),FfiConverterByteArray.lower(`payload`),FfiConverterByteArray.lower(`signature`),
-        _status)
-}
-        }
-    
-    
-    
-
-    
-    companion object
-    
-}
-
-public object FfiConverterTypeEd25199: FfiConverter<Ed25199, Pointer> {
-
-    override fun lower(value: Ed25199): Pointer {
-        return value.callWithPointer { it }
-    }
-
-    override fun lift(value: Pointer): Ed25199 {
-        return Ed25199(value)
-    }
-
-    override fun read(buf: ByteBuffer): Ed25199 {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: Ed25199) = 8
-
-    override fun write(value: Ed25199, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-
-
-public interface IdentifierInterface {
-    
-    companion object
-}
-
-
-open class Identifier : FFIObject, IdentifierInterface {
-
-    constructor(pointer: Pointer): super(pointer)
-
-    /**
-     * This constructor can be used to instantiate a fake object.
-     *
-     * **WARNING: Any object instantiated with this constructor cannot be passed to an actual Rust-backed object.**
-     * Since there isn't a backing [Pointer] the FFI lower functions will crash.
-     * @param noPointer Placeholder value so we can have a constructor separate from the default empty one that may be
-     *   implemented for classes extending [FFIObject].
-     */
-    constructor(noPointer: NoPointer): super(noPointer)
-    constructor(`didUri`: String) :
-        this(
-    rustCallWithError(IdentifierException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_constructor_identifier_new(FfiConverterString.lower(`didUri`),_status)
-})
-
-    /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
-     */
-    override protected fun freeRustArcPtr() {
-        this.pointer?.let { ptr ->
-            rustCall() { status ->
-                _UniFFILib.INSTANCE.uniffi_web5_fn_free_identifier(ptr, status)
-            }
-        }
-    }
-
-    
-
-    
-    companion object
-    
-}
-
-public object FfiConverterTypeIdentifier: FfiConverter<Identifier, Pointer> {
-
-    override fun lower(value: Identifier): Pointer {
-        return value.callWithPointer { it }
-    }
-
-    override fun lift(value: Pointer): Identifier {
-        return Identifier(value)
-    }
-
-    override fun read(buf: ByteBuffer): Identifier {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: Identifier) = 8
-
-    override fun write(value: Identifier, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-
-
-public interface JwkInterface {
-    fun `computeThumbprint`(): String
-    
-    companion object
-}
-
-
-open class Jwk : FFIObject, JwkInterface {
-
-    constructor(pointer: Pointer): super(pointer)
-
-    /**
-     * This constructor can be used to instantiate a fake object.
-     *
-     * **WARNING: Any object instantiated with this constructor cannot be passed to an actual Rust-backed object.**
-     * Since there isn't a backing [Pointer] the FFI lower functions will crash.
-     * @param noPointer Placeholder value so we can have a constructor separate from the default empty one that may be
-     *   implemented for classes extending [FFIObject].
-     */
-    constructor(noPointer: NoPointer): super(noPointer)
-    constructor(`alg`: String, `kty`: String, `crv`: String, `d`: String?, `x`: String, `y`: String?) :
-        this(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_constructor_jwk_new(FfiConverterString.lower(`alg`),FfiConverterString.lower(`kty`),FfiConverterString.lower(`crv`),FfiConverterOptionalString.lower(`d`),FfiConverterString.lower(`x`),FfiConverterOptionalString.lower(`y`),_status)
-})
-
-    /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
-     */
-    override protected fun freeRustArcPtr() {
-        this.pointer?.let { ptr ->
-            rustCall() { status ->
-                _UniFFILib.INSTANCE.uniffi_web5_fn_free_jwk(ptr, status)
-            }
-        }
-    }
-
-    
-    @Throws(JwkException::class)override fun `computeThumbprint`(): String =
-        callWithPointer {
-    rustCallWithError(JwkException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_web5_fn_method_jwk_compute_thumbprint(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
-        }
-    
-    
-
-    
-    companion object
-    
-}
-
-public object FfiConverterTypeJwk: FfiConverter<Jwk, Pointer> {
-
-    override fun lower(value: Jwk): Pointer {
-        return value.callWithPointer { it }
-    }
-
-    override fun lift(value: Pointer): Jwk {
-        return Jwk(value)
-    }
-
-    override fun read(buf: ByteBuffer): Jwk {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: Jwk) = 8
-
-    override fun write(value: Jwk, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-
-
 public interface LocalJwkManagerInterface {
     fun `exportPrivateKeys`(): List<Jwk>
     fun `generatePrivateKey`(`curve`: Curve, `keyAlias`: String?): String
@@ -1285,6 +986,104 @@ public object FfiConverterTypeLocalJwkManager: FfiConverter<LocalJwkManager, Poi
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+data class Identifier (
+    var `uri`: String, 
+    var `url`: String, 
+    var `method`: String, 
+    var `id`: String, 
+    var `params`: Map<String, String>?, 
+    var `path`: String?, 
+    var `query`: String?, 
+    var `fragment`: String?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeIdentifier: FfiConverterRustBuffer<Identifier> {
+    override fun read(buf: ByteBuffer): Identifier {
+        return Identifier(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalMapStringString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Identifier) = (
+            FfiConverterString.allocationSize(value.`uri`) +
+            FfiConverterString.allocationSize(value.`url`) +
+            FfiConverterString.allocationSize(value.`method`) +
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterOptionalMapStringString.allocationSize(value.`params`) +
+            FfiConverterOptionalString.allocationSize(value.`path`) +
+            FfiConverterOptionalString.allocationSize(value.`query`) +
+            FfiConverterOptionalString.allocationSize(value.`fragment`)
+    )
+
+    override fun write(value: Identifier, buf: ByteBuffer) {
+            FfiConverterString.write(value.`uri`, buf)
+            FfiConverterString.write(value.`url`, buf)
+            FfiConverterString.write(value.`method`, buf)
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterOptionalMapStringString.write(value.`params`, buf)
+            FfiConverterOptionalString.write(value.`path`, buf)
+            FfiConverterOptionalString.write(value.`query`, buf)
+            FfiConverterOptionalString.write(value.`fragment`, buf)
+    }
+}
+
+
+
+data class Jwk (
+    var `alg`: String, 
+    var `kty`: String, 
+    var `crv`: String, 
+    var `d`: String?, 
+    var `x`: String, 
+    var `y`: String?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeJwk: FfiConverterRustBuffer<Jwk> {
+    override fun read(buf: ByteBuffer): Jwk {
+        return Jwk(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Jwk) = (
+            FfiConverterString.allocationSize(value.`alg`) +
+            FfiConverterString.allocationSize(value.`kty`) +
+            FfiConverterString.allocationSize(value.`crv`) +
+            FfiConverterOptionalString.allocationSize(value.`d`) +
+            FfiConverterString.allocationSize(value.`x`) +
+            FfiConverterOptionalString.allocationSize(value.`y`)
+    )
+
+    override fun write(value: Jwk, buf: ByteBuffer) {
+            FfiConverterString.write(value.`alg`, buf)
+            FfiConverterString.write(value.`kty`, buf)
+            FfiConverterString.write(value.`crv`, buf)
+            FfiConverterOptionalString.write(value.`d`, buf)
+            FfiConverterString.write(value.`x`, buf)
+            FfiConverterOptionalString.write(value.`y`, buf)
     }
 }
 
@@ -1570,6 +1369,35 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<String?> {
 
 
 
+public object FfiConverterOptionalMapStringString: FfiConverterRustBuffer<Map<String, String>?> {
+    override fun read(buf: ByteBuffer): Map<String, String>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterMapStringString.read(buf)
+    }
+
+    override fun allocationSize(value: Map<String, String>?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterMapStringString.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Map<String, String>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterMapStringString.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeJwk: FfiConverterRustBuffer<List<Jwk>> {
     override fun read(buf: ByteBuffer): List<Jwk> {
         val len = buf.getInt()
@@ -1591,4 +1419,84 @@ public object FfiConverterSequenceTypeJwk: FfiConverterRustBuffer<List<Jwk>> {
         }
     }
 }
+
+
+
+public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<String, String>> {
+    override fun read(buf: ByteBuffer): Map<String, String> {
+        val len = buf.getInt()
+        return buildMap<String, String>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterString.read(buf)
+                this[k] = v
+            }
+        }
+    }
+
+    override fun allocationSize(value: Map<String, String>): Int {
+        val spaceForMapSize = 4
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterString.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<String, String>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterString.write(v, buf)
+        }
+    }
+}
+@Throws(JwkException::class)
+
+fun `computeThumbprint`(`jwk`: Jwk): String {
+    return FfiConverterString.lift(
+    rustCallWithError(JwkException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_func_compute_thumbprint(FfiConverterTypeJwk.lower(`jwk`),_status)
+})
+}
+
+@Throws(CryptoException::class)
+
+fun `ed25519Generate`(): Jwk {
+    return FfiConverterTypeJwk.lift(
+    rustCallWithError(CryptoException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_func_ed25519_generate(_status)
+})
+}
+
+@Throws(CryptoException::class)
+
+fun `ed25519Sign`(`privateJwk`: Jwk, `payload`: ByteArray): ByteArray {
+    return FfiConverterByteArray.lift(
+    rustCallWithError(CryptoException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_func_ed25519_sign(FfiConverterTypeJwk.lower(`privateJwk`),FfiConverterByteArray.lower(`payload`),_status)
+})
+}
+
+@Throws(CryptoException::class)
+
+fun `ed25519Verify`(`publicJwk`: Jwk, `payload`: ByteArray, `signature`: ByteArray) =
+    
+    rustCallWithError(CryptoException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_func_ed25519_verify(FfiConverterTypeJwk.lower(`publicJwk`),FfiConverterByteArray.lower(`payload`),FfiConverterByteArray.lower(`signature`),_status)
+}
+
+
+@Throws(IdentifierException::class)
+
+fun `identifierParse`(`didUri`: String): Identifier {
+    return FfiConverterTypeIdentifier.lift(
+    rustCallWithError(IdentifierException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_func_identifier_parse(FfiConverterString.lower(`didUri`),_status)
+})
+}
+
 
