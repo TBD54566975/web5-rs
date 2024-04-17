@@ -23,3 +23,17 @@ do {
 } catch {
     print("verify() failed as expected")
 }
+
+let keyManager = UniFFI.LocalJwkManager()
+let keyAlias = try keyManager.generatePrivateKey(curve: Curve.ed25519, keyAlias: nil)
+print("key alias \(keyAlias)")
+let publicKey = try keyManager.getPublicKey(keyAlias: keyAlias)
+print("public key \(publicKey)")
+let signature2 = try keyManager.sign(keyAlias: keyAlias, payload: payload)
+try ed25519.verify(jwk: publicKey, payload: payload, signature: signature2)
+print("signed & verified \(signature2.base64EncodedString())")
+let privateKeys = try keyManager.exportPrivateKeys()
+print("private keys \(privateKeys)")
+try keyManager.importPrivateKeys(privateKeys: privateKeys)
+print("imported private keys")
+

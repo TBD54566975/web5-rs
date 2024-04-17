@@ -3,6 +3,8 @@ package com.example
 import java.util.Base64
 import web5.sdk.Jwk
 import web5.sdk.Ed25199
+import web5.sdk.LocalJwkManager
+import web5.sdk.Curve
 
 fun main(args: Array<String>) {
     val jwk = Jwk(
@@ -31,4 +33,17 @@ fun main(args: Array<String>) {
     } catch (e: Exception) {
         println("verify() failed as expected")
     }
+
+    val keyManager = LocalJwkManager()
+    val keyAlias = keyManager.generatePrivateKey(Curve.ED25519, null)
+    println("Key Alias: $keyAlias")
+    val publicKey = keyManager.getPublicKey(keyAlias)
+    println("Public Key: $publicKey")
+    val signature2 = keyManager.sign(keyAlias, payload)
+    ed25199.verify(publicKey, payload, signature2)
+    println("Signed & verified ${Base64.getEncoder().encodeToString(signature2)}")
+    val privateKeys = keyManager.exportPrivateKeys()
+    println("Exported private keys $privateKeys")
+    keyManager.importPrivateKeys(privateKeys)
+    println("Imported private keys")
 }
