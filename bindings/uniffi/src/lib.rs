@@ -4,7 +4,10 @@ pub mod jwk;
 pub mod keys;
 
 use ::crypto::{CryptoError, Curve};
-use ::dids::identifier::{Identifier, IdentifierError};
+use ::dids::{
+    document::{Document, DocumentError, Service, VerificationMethod},
+    identifier::{Identifier, IdentifierError},
+};
 use ::jwk::{Jwk, JwkError};
 use ::keys::key_manager::KeyManagerError;
 use crypto::{ed25519_generate, ed25519_sign, ed25519_verify};
