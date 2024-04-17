@@ -2,7 +2,7 @@ use crate::key::{PrivateKey, PublicKey};
 use crate::key_manager::key_store::in_memory_key_store::InMemoryKeyStore;
 use crate::key_manager::key_store::KeyStore;
 use crate::key_manager::{KeyManager, KeyManagerError};
-use crypto::{Curve, Signer};
+use crypto::Curve;
 use std::sync::Arc;
 
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
@@ -43,11 +43,6 @@ impl KeyManager for LocalKeyManager {
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError> {
         let signed_payload = self.key_store.sign(key_alias, payload)?;
         Ok(signed_payload)
-    }
-
-    fn get_signer(&self, key_alias: &str) -> Result<Signer, KeyManagerError> {
-        let signer = self.key_store.get_signer(key_alias)?;
-        Ok(signer)
     }
 
     fn export_private_keys(&self) -> Result<Vec<Arc<dyn PrivateKey>>, KeyManagerError> {

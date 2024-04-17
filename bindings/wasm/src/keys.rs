@@ -57,12 +57,6 @@ impl LocalJwkManager {
         Ok(signed_payload)
     }
 
-    // TODO function type as a return type
-    // fn get_signer(&self, key_alias: &str) -> Result<Signer, KeyManagerError> {
-    //     let signer = self.key_store.get_signer(key_alias)?;
-    //     Ok(signer)
-    // }
-
     #[wasm_bindgen(js_name = exportPrivateKeys)]
     pub fn export_private_keys(&self) -> Result<Vec<Jwk>, JsValue> {
         let private_keys = self

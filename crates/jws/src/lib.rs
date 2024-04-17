@@ -154,7 +154,6 @@ pub fn sign_jws(
     options: JwsSignOptions,
 ) -> Result<String, JwsError> {
     let verification_method = bearer_did.document.get_verification_method(key_selector)?;
-    let signer = bearer_did.get_signer(key_selector)?;
 
     let kid = verification_method.id;
     let alg = match verification_method.public_key_jwk.crv.as_str() {
@@ -167,7 +166,7 @@ pub fn sign_jws(
     let encoded_header = header.encode()?;
     let to_sign = format!("{}.{}", encoded_header, encoded_payload);
 
-    let signature = signer(&to_sign.into_bytes())?;
+    let signature = bearer_did.sign(key_selector, &to_sign.into_bytes())?;
     let encoded_signature = general_purpose::URL_SAFE_NO_PAD.encode(signature);
 
     let jws_token = format!(

@@ -3,7 +3,6 @@ use crate::{
     identifier::{Identifier, IdentifierError},
     resolver::{ResolutionError, Resolver},
 };
-use crypto::Signer;
 use keys::{
     key::KeyError,
     key_manager::{KeyManager, KeyManagerError},
@@ -52,10 +51,10 @@ impl BearerDid {
         })
     }
 
-    pub fn get_signer(&self, key_selector: &KeySelector) -> Result<Signer, BearerDidError> {
+    pub fn sign(&self, key_selector: &KeySelector, payload: &[u8]) -> Result<Vec<u8>, BearerDidError> {
         let verification_method = self.document.get_verification_method(key_selector)?;
         let key_alias = KeyIdFragment(verification_method.id.clone()).splice_key_alias();
-        let signer = self.key_manager.get_signer(&key_alias)?;
-        Ok(signer)
+        let signature = self.key_manager.sign(&key_alias, payload)?;
+        Ok(signature)
     }
 }

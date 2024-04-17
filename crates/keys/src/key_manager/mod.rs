@@ -3,7 +3,7 @@ pub mod local_key_manager;
 
 use crate::key::{KeyError, PrivateKey, PublicKey};
 use crate::key_manager::key_store::KeyStoreError;
-use crypto::{Curve, Signer};
+use crypto::Curve;
 use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
@@ -28,16 +28,17 @@ pub trait KeyManager: Send + Sync {
     /// Generates and securely stores a private key based on the provided `curve`,
     /// returning a unique alias that can be utilized to reference the generated key for future
     /// operations.
-    fn generate_private_key(&self, curve: Curve, key_alias: Option<&str>) -> Result<String, KeyManagerError>;
+    fn generate_private_key(
+        &self,
+        curve: Curve,
+        key_alias: Option<&str>,
+    ) -> Result<String, KeyManagerError>;
 
     /// Returns the public key associated with the provided `key_alias`, if one exists.
     fn get_public_key(&self, key_alias: &str) -> Result<Arc<dyn PublicKey>, KeyManagerError>;
 
     /// Signs the provided payload using the private key identified by the provided `key_alias`.
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
-
-    /// Retrieves a signer for the given `key_alias`.
-    fn get_signer(&self, key_alias: &str) -> Result<Signer, KeyManagerError>;
 
     /// Exports all private keys managed by this key manager.
     /// Default implementation returns an error indicating the feature is not supported.

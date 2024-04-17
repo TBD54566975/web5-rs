@@ -78,15 +78,4 @@ describe('LocalJwkManager', () => {
     const publicKey2 = newKeyManager.getPublicKey(keyAlias2)
     expect(publicKey2).toBeDefined()
   })
-
-  // todo implement get_signer()
-  // test('should get signer function', () => {
-  //   const keyAlias = keyManager.generatePrivateKey('Secp256k1');
-  //   const signer = keyManager.get_signer(keyAlias);
-  //   expect(typeof signer).toBe('function');
-
-  //   const payload = new TextEncoder().encode('test message');
-  //   const signature = signer(payload);
-  //   expect(signature).toBeDefined();
-  // });
 })

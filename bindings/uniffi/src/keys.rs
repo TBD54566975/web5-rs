@@ -35,11 +35,6 @@ impl LocalJwkManager {
         self.0.sign(&key_alias, payload)
     }
 
-    // todo not implemented
-    // pub fn get_signer(&self, key_alias: String) -> Result<Signer, KeyManagerError> {
-    //     unimplemented!()
-    // }
-
     pub fn export_private_keys(&self) -> Result<Vec<Jwk>, KeyManagerError> {
         let private_keys = self.0.export_private_keys()?;
         let mut private_jwks: Vec<Jwk> = Vec::new();

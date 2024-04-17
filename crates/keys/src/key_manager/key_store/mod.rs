@@ -1,7 +1,7 @@
 pub mod in_memory_key_store;
 
 use crate::key::{KeyError, PrivateKey, PublicKey};
-use crypto::{CryptoError, Curve, Signer};
+use crypto::{CryptoError, Curve};
 use jwk::JwkError;
 use std::sync::Arc;
 
@@ -29,14 +29,16 @@ pub trait KeyStore: Send + Sync {
     fn get_all_aliases(&self) -> Result<Vec<String>, KeyStoreError>;
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyStoreError>;
     fn get_public_key(&self, key_alias: &str) -> Result<Arc<dyn PublicKey>, KeyStoreError>;
-    fn get_signer(&self, key_alias: &str) -> Result<Signer, KeyStoreError>;
 
     fn export_private_keys(&self) -> Result<Vec<Arc<dyn PrivateKey>>, KeyStoreError> {
         Err(KeyStoreError::UnsupportedOperation(
             "exporting private keys is not supported".to_string(),
         ))
     }
-    fn import_private_keys(&self, _private_keys: Vec<Arc<dyn PrivateKey>>) -> Result<(), KeyStoreError> {
+    fn import_private_keys(
+        &self,
+        _private_keys: Vec<Arc<dyn PrivateKey>>,
+    ) -> Result<(), KeyStoreError> {
         Err(KeyStoreError::UnsupportedOperation(
             "importing private keys is not supported".to_string(),
         ))

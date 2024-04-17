@@ -2,7 +2,7 @@ use crate::key::{PrivateKey, PublicKey};
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
 use crypto::ed25519::Ed25199;
 use crypto::secp256k1::Secp256k1;
-use crypto::{CryptoError, Curve, CurveOperations, Signer};
+use crypto::{Curve, CurveOperations};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -65,22 +65,6 @@ impl KeyStore for InMemoryKeyStore {
             .ok_or(KeyStoreError::KeyNotFound(key_alias.to_string()))?;
         let public_key = private_key.to_public()?;
         Ok(public_key)
-    }
-
-    fn get_signer(&self, key_alias: &str) -> Result<Signer, KeyStoreError> {
-        let map_lock = self.map.read().map_err(|e| {
-            KeyStoreError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
-        })?;
-        let private_key = map_lock
-            .get(key_alias)
-            .ok_or(KeyStoreError::KeyNotFound(key_alias.to_string()))?;
-        let private_jwk = private_key.jwk()?;
-        let signer = Arc::new(move |payload: &[u8]| -> Result<Vec<u8>, CryptoError> {
-            private_jwk
-                .sign(payload)
-                .map_err(|e| CryptoError::SignFailure(e.to_string()))
-        });
-        Ok(signer)
     }
 
     fn export_private_keys(&self) -> Result<Vec<Arc<dyn PrivateKey>>, KeyStoreError> {
