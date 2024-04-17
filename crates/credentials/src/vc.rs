@@ -110,11 +110,13 @@ impl<T: CredentialSubject + Serialize + DeserializeOwned> VerifiableCredential<T
     }
 
     pub fn sign_vcjwt(
-        &mut self,
+        &self,
         bearer_did: BearerDid,
         key_selector: &KeySelector,
     ) -> Result<String, CredentialError> {
-        self.issuer = bearer_did.identifier.uri.clone();
+        if self.issuer.is_empty() {
+            return Err(CredentialError::EmptyIssuer);
+        }
 
         let issuer = &bearer_did.identifier.uri;
         let claims = Claims {
