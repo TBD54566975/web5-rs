@@ -28,9 +28,9 @@ interface Ed25199 {
     [Throws=CryptoError]
     Jwk generate();
     [Throws=CryptoError]
-    bytes sign([ByRef]Jwk jwk, [ByRef]bytes payload);
+    bytes sign([ByRef] Jwk jwk, [ByRef] bytes payload);
     [Throws=CryptoError]
-    void verify([ByRef]Jwk jwk, [ByRef]bytes payload, [ByRef]bytes signature);
+    void verify([ByRef] Jwk jwk, [ByRef] bytes payload, [ByRef] bytes signature);
 };
 
 [Error]
@@ -39,4 +39,15 @@ enum KeyManagerError {
     "SigningKeyNotFound",
     "KeyError",
     "KeyStoreError",
+};
+
+enum Curve {
+    "Secp256k1",
+    "Ed25519",
+};
+
+interface LocalJwkManager {
+    constructor();
+    [Throws=KeyManagerError]
+    string generate_private_key(Curve curve, string? key_alias);
 };
