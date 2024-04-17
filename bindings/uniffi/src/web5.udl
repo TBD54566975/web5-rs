@@ -1,14 +1,30 @@
-namespace web5 {};
+namespace web5 {
+    [Throws=JwkError]
+    string compute_thumbprint(Jwk jwk);
+
+    [Throws=CryptoError]
+    Jwk ed25519_generate();
+    [Throws=CryptoError]
+    bytes ed25519_sign([ByRef] Jwk private_jwk, [ByRef] bytes payload);
+    [Throws=CryptoError]
+    void ed25519_verify([ByRef] Jwk public_jwk, [ByRef] bytes payload, [ByRef] bytes signature);
+
+    [Throws=IdentifierError]
+    Identifier identifier_parse(string did_uri);
+};
 
 [Error]
 enum JwkError {
     "ThumbprintFailed",
 };
 
-interface Jwk {
-    constructor(string alg, string kty, string crv, string? d, string x, string? y);
-    [Throws=JwkError]
-    string compute_thumbprint();
+dictionary Jwk {
+    string alg;
+    string kty;
+    string crv;
+    string? d;
+    string x;
+    string? y;
 };
 
 [Error]
@@ -23,14 +39,9 @@ enum CryptoError {
     "SignFailure",
 };
 
-interface Ed25199 {
-    constructor();
-    [Throws=CryptoError]
-    Jwk generate();
-    [Throws=CryptoError]
-    bytes sign([ByRef] Jwk jwk, [ByRef] bytes payload);
-    [Throws=CryptoError]
-    void verify([ByRef] Jwk jwk, [ByRef] bytes payload, [ByRef] bytes signature);
+enum Curve {
+    "Secp256k1",
+    "Ed25519",
 };
 
 [Error]
@@ -39,11 +50,6 @@ enum KeyManagerError {
     "SigningKeyNotFound",
     "KeyError",
     "KeyStoreError",
-};
-
-enum Curve {
-    "Secp256k1",
-    "Ed25519",
 };
 
 interface LocalJwkManager {
@@ -66,7 +72,13 @@ enum IdentifierError {
     "ParseFailure",
 };
 
-interface Identifier {
-    [Throws=IdentifierError]
-    constructor(string did_uri);
+dictionary Identifier {
+    string uri;
+    string url;
+    string method;
+    string id;
+    record<string, string>? params;
+    string? path;
+    string? query;
+    string? fragment;
 };
