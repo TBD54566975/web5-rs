@@ -1,6 +1,9 @@
 package com.example
 
 import web5.sdk.Jwk
+import web5.sdk.SomeTrait
+import web5.sdk.SomeTraitA
+import web5.sdk.SomeTraitB
 
 fun main(args: Array<String>) {
     val jwk = Jwk(
@@ -12,4 +15,7 @@ fun main(args: Array<String>) {
         "A1qGUBx-wpznzVI0DLu8kEhDZ77ou533NKSCw90R33Q")
     val thumbprint = jwk.computeThumbprint()
     println("Computed thumbprint: $thumbprint")
+
+    val someTraitA = SomeTraitA()
+    println(someTraitA.someFunc())
 }

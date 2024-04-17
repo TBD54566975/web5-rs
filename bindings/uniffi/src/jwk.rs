@@ -1,6 +1,6 @@
 use jwk::{Jwk as InternalJwk, JwkError};
 
-pub struct Jwk(InternalJwk);
+pub struct Jwk(pub InternalJwk);
 
 impl Jwk {
     pub fn new(

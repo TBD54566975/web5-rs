@@ -389,6 +389,28 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_web5_fn_method_jwk_compute_thumbprint(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_web5_fn_free_sometrait(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_web5_fn_method_sometrait_some_func(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_free_sometraita(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_web5_fn_constructor_sometraita_new(_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_fn_method_sometraita_some_func(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_free_sometraitb(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_web5_fn_constructor_sometraitb_new(_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_fn_free_mytrait(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_web5_fn_method_mytrait_something(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_func_hello_world(_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_func_hello_ffi(_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun ffi_web5_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_web5_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -397,7 +419,9 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_web5_rust_future_poll_u8(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_continuation_callback_set(`callback`: UniFffiRustFutureContinuationCallbackType,
+    ): Unit
+    fun ffi_web5_rust_future_poll_u8(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_u8(`handle`: Pointer,
     ): Unit
@@ -405,7 +429,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_u8(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun ffi_web5_rust_future_poll_i8(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_i8(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_i8(`handle`: Pointer,
     ): Unit
@@ -413,7 +437,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_i8(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun ffi_web5_rust_future_poll_u16(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_u16(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_u16(`handle`: Pointer,
     ): Unit
@@ -421,7 +445,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_u16(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Short
-    fun ffi_web5_rust_future_poll_i16(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_i16(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_i16(`handle`: Pointer,
     ): Unit
@@ -429,7 +453,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_i16(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Short
-    fun ffi_web5_rust_future_poll_u32(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_u32(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_u32(`handle`: Pointer,
     ): Unit
@@ -437,7 +461,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_u32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Int
-    fun ffi_web5_rust_future_poll_i32(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_i32(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_i32(`handle`: Pointer,
     ): Unit
@@ -445,7 +469,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_i32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Int
-    fun ffi_web5_rust_future_poll_u64(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_u64(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_u64(`handle`: Pointer,
     ): Unit
@@ -453,7 +477,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_u64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
-    fun ffi_web5_rust_future_poll_i64(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_i64(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_i64(`handle`: Pointer,
     ): Unit
@@ -461,7 +485,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_i64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
-    fun ffi_web5_rust_future_poll_f32(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_f32(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_f32(`handle`: Pointer,
     ): Unit
@@ -469,7 +493,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_f32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Float
-    fun ffi_web5_rust_future_poll_f64(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_f64(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_f64(`handle`: Pointer,
     ): Unit
@@ -477,7 +501,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_f64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Double
-    fun ffi_web5_rust_future_poll_pointer(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_pointer(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_pointer(`handle`: Pointer,
     ): Unit
@@ -485,7 +509,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_pointer(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun ffi_web5_rust_future_poll_rust_buffer(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_rust_buffer(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_rust_buffer(`handle`: Pointer,
     ): Unit
@@ -493,7 +517,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_rust_buffer(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_web5_rust_future_poll_void(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_web5_rust_future_poll_void(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
     fun ffi_web5_rust_future_cancel_void(`handle`: Pointer,
     ): Unit
@@ -501,9 +525,23 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_web5_rust_future_complete_void(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_web5_checksum_func_hello_world(
+    ): Short
+    fun uniffi_web5_checksum_func_hello_ffi(
+    ): Short
     fun uniffi_web5_checksum_method_jwk_compute_thumbprint(
     ): Short
+    fun uniffi_web5_checksum_method_sometrait_some_func(
+    ): Short
+    fun uniffi_web5_checksum_method_sometraita_some_func(
+    ): Short
+    fun uniffi_web5_checksum_method_mytrait_something(
+    ): Short
     fun uniffi_web5_checksum_constructor_jwk_new(
+    ): Short
+    fun uniffi_web5_checksum_constructor_sometraita_new(
+    ): Short
+    fun uniffi_web5_checksum_constructor_sometraitb_new(
     ): Short
     fun ffi_web5_uniffi_contract_version(
     ): Int
@@ -512,7 +550,7 @@ internal interface _UniFFILib : Library {
 
 private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
     // Get the bindings contract version from our ComponentInterface
-    val bindings_contract_version = 25
+    val bindings_contract_version = 24
     // Get the scaffolding contract version by calling the into the dylib
     val scaffolding_contract_version = lib.ffi_web5_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
@@ -522,10 +560,31 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
+    if (lib.uniffi_web5_checksum_func_hello_world() != 37465.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_func_hello_ffi() != 64792.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_checksum_method_jwk_compute_thumbprint() != 9735.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_web5_checksum_method_sometrait_some_func() != 49520.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_sometraita_some_func() != 42871.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_mytrait_something() != 4441.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_checksum_constructor_jwk_new() != 31971.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_constructor_sometraita_new() != 6196.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_constructor_sometraitb_new() != 52812.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -588,7 +647,6 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         buf.put(byteBuf)
     }
 }
-
 
 
 // Interface implemented by anything that can contain an object reference.
@@ -702,26 +760,9 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 //
 // [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
 //
-abstract class FFIObject: Disposable, AutoCloseable {
-
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-    }
-
-    /**
-     * This constructor can be used to instantiate a fake object.
-     *
-     * **WARNING: Any object instantiated with this constructor cannot be passed to an actual Rust-backed object.**
-     * Since there isn't a backing [Pointer] the FFI lower functions will crash.
-     * @param noPointer Placeholder value so we can have a constructor separate from the default empty one that may be
-     *   implemented for classes extending [FFIObject].
-     */
-    @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-    }
-
-    protected val pointer: Pointer?
+abstract class FFIObject(
+    protected val pointer: Pointer
+): Disposable, AutoCloseable {
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -760,7 +801,7 @@ abstract class FFIObject: Disposable, AutoCloseable {
         } while (! this.callCounter.compareAndSet(c, c + 1L))
         // Now we can safely do the method call without the pointer being freed concurrently.
         try {
-            return block(this.pointer!!)
+            return block(this.pointer)
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
@@ -770,29 +811,15 @@ abstract class FFIObject: Disposable, AutoCloseable {
     }
 }
 
-/** Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly. */
-object NoPointer
-
 public interface JwkInterface {
+    @Throws(JwkException::class)
     fun `computeThumbprint`(): String
-    
     companion object
 }
 
-
-open class Jwk : FFIObject, JwkInterface {
-
-    constructor(pointer: Pointer): super(pointer)
-
-    /**
-     * This constructor can be used to instantiate a fake object.
-     *
-     * **WARNING: Any object instantiated with this constructor cannot be passed to an actual Rust-backed object.**
-     * Since there isn't a backing [Pointer] the FFI lower functions will crash.
-     * @param noPointer Placeholder value so we can have a constructor separate from the default empty one that may be
-     *   implemented for classes extending [FFIObject].
-     */
-    constructor(noPointer: NoPointer): super(noPointer)
+class Jwk(
+    pointer: Pointer
+) : FFIObject(pointer), JwkInterface {
     constructor(`alg`: String, `kty`: String, `crv`: String, `d`: String?, `x`: String, `y`: String?) :
         this(
     rustCall() { _status ->
@@ -808,10 +835,8 @@ open class Jwk : FFIObject, JwkInterface {
      * Clients **must** call this method once done with the object, or cause a memory leak.
      */
     override protected fun freeRustArcPtr() {
-        this.pointer?.let { ptr ->
-            rustCall() { status ->
-                _UniFFILib.INSTANCE.uniffi_web5_fn_free_jwk(ptr, status)
-            }
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.uniffi_web5_fn_free_jwk(this.pointer, status)
         }
     }
 
@@ -835,10 +860,7 @@ open class Jwk : FFIObject, JwkInterface {
 }
 
 public object FfiConverterTypeJwk: FfiConverter<Jwk, Pointer> {
-
-    override fun lower(value: Jwk): Pointer {
-        return value.callWithPointer { it }
-    }
+    override fun lower(value: Jwk): Pointer = value.callWithPointer { it }
 
     override fun lift(value: Pointer): Jwk {
         return Jwk(value)
@@ -853,6 +875,272 @@ public object FfiConverterTypeJwk: FfiConverter<Jwk, Pointer> {
     override fun allocationSize(value: Jwk) = 8
 
     override fun write(value: Jwk, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
+public interface MyTraitInterface {
+    
+    fun `something`(): String
+    companion object
+}
+
+class MyTrait(
+    pointer: Pointer
+) : FFIObject(pointer), MyTraitInterface {
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.uniffi_web5_fn_free_mytrait(this.pointer, status)
+        }
+    }
+
+    override fun `something`(): String =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_method_mytrait_something(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterString.lift(it)
+        }
+    
+    
+
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeMyTrait: FfiConverter<MyTrait, Pointer> {
+    override fun lower(value: MyTrait): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): MyTrait {
+        return MyTrait(value)
+    }
+
+    override fun read(buf: ByteBuffer): MyTrait {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: MyTrait) = 8
+
+    override fun write(value: MyTrait, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
+public interface SomeTraitInterface {
+    
+    fun `someFunc`(): String
+    companion object
+}
+
+class SomeTrait(
+    pointer: Pointer
+) : FFIObject(pointer), SomeTraitInterface {
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.uniffi_web5_fn_free_sometrait(this.pointer, status)
+        }
+    }
+
+    override fun `someFunc`(): String =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_method_sometrait_some_func(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterString.lift(it)
+        }
+    
+    
+
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeSomeTrait: FfiConverter<SomeTrait, Pointer> {
+    override fun lower(value: SomeTrait): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): SomeTrait {
+        return SomeTrait(value)
+    }
+
+    override fun read(buf: ByteBuffer): SomeTrait {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: SomeTrait) = 8
+
+    override fun write(value: SomeTrait, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
+public interface SomeTraitAInterface {
+    
+    fun `someFunc`(): String
+    companion object
+}
+
+class SomeTraitA(
+    pointer: Pointer
+) : FFIObject(pointer), SomeTraitAInterface {
+    constructor() :
+        this(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_constructor_sometraita_new(_status)
+})
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.uniffi_web5_fn_free_sometraita(this.pointer, status)
+        }
+    }
+
+    override fun `someFunc`(): String =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_method_sometraita_some_func(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterString.lift(it)
+        }
+    
+    
+
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeSomeTraitA: FfiConverter<SomeTraitA, Pointer> {
+    override fun lower(value: SomeTraitA): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): SomeTraitA {
+        return SomeTraitA(value)
+    }
+
+    override fun read(buf: ByteBuffer): SomeTraitA {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: SomeTraitA) = 8
+
+    override fun write(value: SomeTraitA, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
+public interface SomeTraitBInterface {
+    
+    companion object
+}
+
+class SomeTraitB(
+    pointer: Pointer
+) : FFIObject(pointer), SomeTraitBInterface {
+    constructor() :
+        this(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_constructor_sometraitb_new(_status)
+})
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.uniffi_web5_fn_free_sometraitb(this.pointer, status)
+        }
+    }
+
+    
+
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeSomeTraitB: FfiConverter<SomeTraitB, Pointer> {
+    override fun lower(value: SomeTraitB): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): SomeTraitB {
+        return SomeTraitB(value)
+    }
+
+    override fun read(buf: ByteBuffer): SomeTraitB {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: SomeTraitB) = 8
+
+    override fun write(value: SomeTraitB, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -1009,4 +1297,20 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<String?> {
         }
     }
 }
+
+fun `helloWorld`(): String {
+    return FfiConverterString.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_func_hello_world(_status)
+})
+}
+
+
+fun `helloFfi`() =
+    
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_web5_fn_func_hello_ffi(_status)
+}
+
+
 
