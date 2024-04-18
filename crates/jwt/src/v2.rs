@@ -1,6 +1,6 @@
 use base64::{engine::general_purpose, Engine as _};
 use dids::{bearer::BearerDid, document::KeySelector};
-use jws::v2::{sign_compact_jws, JwsError, JwsHeader};
+use jws::v2::{sign_compact_jws, verify_compact_jws, JwsError, JwsHeader};
 use serde::{Deserialize, Serialize};
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
@@ -83,4 +83,9 @@ pub fn sign_jwt(
 ) -> Result<String, JwtError> {
     let compact_jws = sign_compact_jws(bearer_did, key_selector, encoded_header, encoded_payload)?;
     Ok(compact_jws)
+}
+
+pub async fn verify_jwt(jwt: &str) -> Result<(), JwtError> {
+    let _ = verify_compact_jws(jwt).await?;
+    Ok(())
 }

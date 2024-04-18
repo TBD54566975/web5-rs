@@ -4,6 +4,8 @@ namespace web5 {
 
   [Throws=JwtError]
   string sign_jwt([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector, [ByRef] string encoded_header, [ByRef] string encoded_payload);
+  [Throws=JwtError, Async]
+  void verify_jwt([ByRef] string jwt);
 };
 
 [Error]
