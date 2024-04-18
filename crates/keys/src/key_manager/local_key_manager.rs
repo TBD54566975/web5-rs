@@ -33,7 +33,7 @@ impl KeyManager for LocalKeyManager {
     ) -> Result<String, KeyManagerError> {
         let key_alias = self
             .key_store
-            .generate_new(curve, key_alias.as_ref().map(|x| x.as_str()))?;
+            .generate_new(curve, key_alias)?;
         Ok(key_alias)
     }
 

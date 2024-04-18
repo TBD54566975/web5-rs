@@ -83,6 +83,7 @@ interface KeyManager {
 };
 
 interface LocalKeyManager {
+  constructor(KeyStore key_store);
   [Name=new_in_memory]
   constructor();
 
@@ -95,5 +96,48 @@ interface LocalKeyManager {
   [Throws=KeyManagerError]
   sequence<PrivateKey> export_private_keys();
   [Throws=KeyManagerError]
+  void import_private_keys(sequence<PrivateKey> private_keys);
+};
+
+[Error]
+enum KeyStoreError {
+  "InternalKeyStoreError",
+  "KeyError",
+  "KeyNotFound",
+  "CryptoError",
+  "JwkError",
+  "UnsupportedOperation",
+};
+
+[Trait]
+interface KeyStore {
+  [Throws=KeyStoreError]
+  string generate_new(Curve curve, string? key_alias);
+  [Throws=KeyStoreError]
+  sequence<string> get_all_aliases();
+  [Throws=KeyStoreError]
+  bytes sign([ByRef] string key_alias, [ByRef] sequence<u8> payload);
+  [Throws=KeyStoreError]
+  PublicKey get_public_key([ByRef] string key_alias);
+  [Throws=KeyStoreError]
+  sequence<PrivateKey> export_private_keys();
+  [Throws=KeyStoreError]
+  void import_private_keys(sequence<PrivateKey> private_keys);
+};
+
+interface InMemoryKeyStore {
+  constructor();
+
+  [Throws=KeyStoreError]
+  string generate_new(Curve curve, string? key_alias);
+  [Throws=KeyStoreError]
+  sequence<string> get_all_aliases();
+  [Throws=KeyStoreError]
+  bytes sign([ByRef] string key_alias, [ByRef] sequence<u8> payload);
+  [Throws=KeyStoreError]
+  PublicKey get_public_key([ByRef] string key_alias);
+  [Throws=KeyStoreError]
+  sequence<PrivateKey> export_private_keys();
+  [Throws=KeyStoreError]
   void import_private_keys(sequence<PrivateKey> private_keys);
 };
