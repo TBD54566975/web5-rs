@@ -49,10 +49,9 @@ impl JwsHeader {
         Self { alg, kid, typ }
     }
 
-    pub fn from_compact_jws(compact_jws: &str) -> Result<Self, JwsError> {
-        let parts = splice_parts(compact_jws)?;
+    pub fn from_encoded_part(encoded_part: &str) -> Result<Self, JwsError> {
         let decoded_bytes = general_purpose::URL_SAFE_NO_PAD
-            .decode(&parts[0])
+            .decode(&encoded_part)
             .map_err(|e| JwsError::DecodingError(e.to_string()))?;
         let jws_header = serde_json::from_slice(&decoded_bytes)
             .map_err(|e| JwsError::DeserializationError(e.to_string()))?;
@@ -71,7 +70,11 @@ impl JwsHeader {
             "Ed25519" => "EdDSA".to_string(),
             _ => return Err(JwsError::AlgorithmNotFound(kid)),
         };
-        Ok(Self { alg, kid, typ: typ.to_string() })
+        Ok(Self {
+            alg,
+            kid,
+            typ: typ.to_string(),
+        })
     }
 
     // todo getter methods
@@ -114,7 +117,7 @@ pub fn sign_compact_jws(
 
 pub async fn verify_compact_jws(compact_jws: &str) -> Result<(), JwsError> {
     let parts = splice_parts(compact_jws)?;
-    let jws_header = JwsHeader::from_compact_jws(&parts[0])?;
+    let jws_header = JwsHeader::from_encoded_part(&parts[0])?;
     let key_id = jws_header.kid.clone();
     let did_uri = KeyIdFragment(key_id.clone()).splice_uri();
     let resolution_result = Resolver::resolve_uri(&did_uri).await;
