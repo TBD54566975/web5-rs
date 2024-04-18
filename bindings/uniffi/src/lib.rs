@@ -1,11 +1,11 @@
-use ::credentials::vcv2::{verify_vcjwt, CredentialError, CredentialSubject, VerifiableCredential};
+use ::credentials::vc::{verify_vcjwt, CredentialError, CredentialSubject, VerifiableCredential};
 use ::crypto::Curve;
 use ::dids::{
     bearer::{BearerDid, BearerDidError},
     document::{KeySelector, VerificationMethodType},
 };
 use ::jwk::{Jwk, JwkError};
-use ::jwt::v2::{sign_jwt, verify_jwt, Claims, JwtError};
+use ::jwt::{sign_jwt, verify_jwt, Claims, JwtError};
 use ::keys::{
     key::{Key, KeyError, PrivateKey, PublicKey},
     key_manager::{
