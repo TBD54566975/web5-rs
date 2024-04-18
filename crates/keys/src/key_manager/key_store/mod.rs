@@ -25,7 +25,7 @@ pub enum KeyStoreError {
 //
 // Implementations of this trait should be thread-safe and allow for concurrent access.
 pub trait KeyStore: Send + Sync {
-    fn generate_new(&self, curve: Curve, key_alias: Option<&str>) -> Result<String, KeyStoreError>;
+    fn generate_new(&self, curve: Curve, key_alias: Option<String>) -> Result<String, KeyStoreError>;
     fn get_all_aliases(&self) -> Result<Vec<String>, KeyStoreError>;
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyStoreError>;
     fn get_public_key(&self, key_alias: &str) -> Result<Arc<dyn PublicKey>, KeyStoreError>;

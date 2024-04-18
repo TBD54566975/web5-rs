@@ -29,9 +29,11 @@ impl KeyManager for LocalKeyManager {
     fn generate_private_key(
         &self,
         curve: Curve,
-        key_alias: Option<&str>,
+        key_alias: Option<String>,
     ) -> Result<String, KeyManagerError> {
-        let key_alias = self.key_store.generate_new(curve, key_alias)?;
+        let key_alias = self
+            .key_store
+            .generate_new(curve, key_alias)?;
         Ok(key_alias)
     }
 
@@ -75,9 +77,9 @@ mod tests {
             .generate_private_key(Curve::Secp256k1, None)
             .expect("Failed to generate secp256k1 key");
 
-        let key_alias_override = Some("key-id-123");
+        let key_alias_override = Some("key-id-123".to_string());
         let key_alias = key_manager
-            .generate_private_key(Curve::Secp256k1, key_alias_override)
+            .generate_private_key(Curve::Secp256k1, key_alias_override.clone())
             .expect("Failed to generate secp256k1 key");
         assert_eq!(key_alias_override.unwrap().to_string(), key_alias)
     }

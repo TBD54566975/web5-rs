@@ -7,9 +7,11 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
+credentials = { path = "../../crates/credentials" }
 crypto = { path = "../../crates/crypto" }
 dids = { path = "../../crates/dids" }
 jwk = { path = "../../crates/jwk" }
+jwt = { path = "../../crates/jwt" }
 keys = { path = "../../crates/keys" }
 uniffi = { version = "0.27.1", features = ["cli"] }
 

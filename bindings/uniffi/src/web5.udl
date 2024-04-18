@@ -1,121 +1,166 @@
 namespace web5 {
-    [Throws=JwkError]
-    string compute_thumbprint(Jwk jwk);
+  [Throws=BearerDidError, Async]
+  BearerDid bearer_did_from_key_manager([ByRef] string did_uri, KeyManager key_manager);
 
-    [Throws=CryptoError]
-    Jwk ed25519_generate();
-    [Throws=CryptoError]
-    bytes ed25519_sign([ByRef] Jwk private_jwk, [ByRef] bytes payload);
-    [Throws=CryptoError]
-    void ed25519_verify([ByRef] Jwk public_jwk, [ByRef] bytes payload, [ByRef] bytes signature);
+  [Throws=JwtError]
+  string sign_jwt([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector, [ByRef] string encoded_header, [ByRef] string encoded_payload);
+  [Throws=JwtError, Async]
+  void verify_jwt([ByRef] string jwt);
 
-    [Throws=IdentifierError]
-    Identifier identifier_parse(string did_uri);
+  [Throws=CredentialError, Async]
+  VerifiableCredential verify_vcjwt([ByRef] string jwt);
+};
 
-    [Throws=DocumentError]
-    VerificationMethod get_verification_method(Document document, KeySelector key_selector);
+[Error]
+enum KeyError {
+    "KeyGenerationFailed",
+    "SerializationFailed",
+    "CurveNotFound",
+    "AlgorithmNotFound",
+    "JwkError",
+    "CryptoError",
+};
+
+[Trait]
+interface Key {
+  [Throws=KeyError]
+  string alias();
+  [Throws=KeyError]
+  Jwk jwk();
+};
+
+[Trait]
+interface PublicKey {
+  [Throws=KeyError]
+  void verify([ByRef] sequence<u8> payload, [ByRef] sequence<u8> signature);
+};
+
+[Trait]
+interface PrivateKey {
+  [Throws=KeyError]
+  PublicKey to_public();
+  [Throws=KeyError]
+  bytes sign([ByRef] sequence<u8> payload);
 };
 
 [Error]
 enum JwkError {
-    "ThumbprintFailed",
+  "ThumbprintFailed",
 };
 
-dictionary Jwk {
-    string alg;
-    string kty;
-    string crv;
-    string? d;
-    string x;
-    string? y;
-};
+interface Jwk {
+  [Throws=JwkError]
+  string compute_thumbprint();
 
-[Error]
-enum CryptoError {
-    "MissingPrivateKey",
-    "DecodeError",
-    "InvalidKeyLength",
-    "InvalidSignatureLength",
-    "PublicKeyFailure",
-    "PrivateKeyFailure",
-    "VerificationFailure",
-    "SignFailure",
+  [Throws=KeyError]
+  string alias();
+  [Throws=KeyError]
+  Jwk jwk();
+
+  [Throws=KeyError]
+  void verify([ByRef] sequence<u8> payload, [ByRef] sequence<u8> signature);
+
+  [Throws=KeyError]
+  PublicKey to_public();
+  [Throws=KeyError]
+  bytes sign([ByRef] sequence<u8> payload);
 };
 
 enum Curve {
-    "Secp256k1",
-    "Ed25519",
+  "Secp256k1",
+  "Ed25519",
 };
 
 [Error]
 enum KeyManagerError {
-    "KeyGenerationFailed",
-    "SigningKeyNotFound",
-    "KeyError",
-    "KeyStoreError",
+  "KeyGenerationFailed",
+  "SigningKeyNotFound",
+  "KeyError",
+  "KeyStoreError",
 };
 
-interface LocalJwkManager {
-    constructor();
-    [Throws=KeyManagerError]
-    string generate_private_key(Curve curve, string? key_alias);
-    [Throws=KeyManagerError]
-    Jwk get_public_key(string key_alias);
-    [Throws=KeyManagerError]
-    bytes sign(string key_alias, [ByRef] bytes payload);
-    [Throws=KeyManagerError]
-    sequence<Jwk> export_private_keys();
-    [Throws=KeyManagerError]
-    void import_private_keys(sequence<Jwk> private_keys);
+[Trait]
+interface KeyManager {
+  [Throws=KeyManagerError]
+  string generate_private_key(Curve curve, string? key_alias);
+  [Throws=KeyManagerError]
+  PublicKey get_public_key([ByRef] string key_alias);
+  [Throws=KeyManagerError]
+  bytes sign([ByRef] string key_alias, [ByRef] sequence<u8> payload);
+  [Throws=KeyManagerError]
+  sequence<PrivateKey> export_private_keys();
+  [Throws=KeyManagerError]
+  void import_private_keys(sequence<PrivateKey> private_keys);
+};
+
+interface LocalKeyManager {
+  constructor(KeyStore key_store);
+  [Name=new_in_memory]
+  constructor();
+
+  [Throws=KeyManagerError]
+  string generate_private_key(Curve curve, string? key_alias);
+  [Throws=KeyManagerError]
+  PublicKey get_public_key([ByRef] string key_alias);
+  [Throws=KeyManagerError]
+  bytes sign([ByRef] string key_alias, [ByRef] sequence<u8> payload);
+  [Throws=KeyManagerError]
+  sequence<PrivateKey> export_private_keys();
+  [Throws=KeyManagerError]
+  void import_private_keys(sequence<PrivateKey> private_keys);
 };
 
 [Error]
-enum IdentifierError {
-    "RegexPatternFailure",
-    "ParseFailure",
+enum KeyStoreError {
+  "InternalKeyStoreError",
+  "KeyError",
+  "KeyNotFound",
+  "CryptoError",
+  "JwkError",
+  "UnsupportedOperation",
 };
 
-dictionary Identifier {
-    string uri;
-    string url;
-    string method;
-    string id;
-    record<string, string>? params;
-    string? path;
-    string? query;
-    string? fragment;
+[Trait]
+interface KeyStore {
+  [Throws=KeyStoreError]
+  string generate_new(Curve curve, string? key_alias);
+  [Throws=KeyStoreError]
+  sequence<string> get_all_aliases();
+  [Throws=KeyStoreError]
+  bytes sign([ByRef] string key_alias, [ByRef] sequence<u8> payload);
+  [Throws=KeyStoreError]
+  PublicKey get_public_key([ByRef] string key_alias);
+  [Throws=KeyStoreError]
+  sequence<PrivateKey> export_private_keys();
+  [Throws=KeyStoreError]
+  void import_private_keys(sequence<PrivateKey> private_keys);
+};
+
+interface InMemoryKeyStore {
+  constructor();
+
+  [Throws=KeyStoreError]
+  string generate_new(Curve curve, string? key_alias);
+  [Throws=KeyStoreError]
+  sequence<string> get_all_aliases();
+  [Throws=KeyStoreError]
+  bytes sign([ByRef] string key_alias, [ByRef] sequence<u8> payload);
+  [Throws=KeyStoreError]
+  PublicKey get_public_key([ByRef] string key_alias);
+  [Throws=KeyStoreError]
+  sequence<PrivateKey> export_private_keys();
+  [Throws=KeyStoreError]
+  void import_private_keys(sequence<PrivateKey> private_keys);
 };
 
 [Error]
-enum DocumentError {
-    "VerificationMethodNotFound"
-};
-
-dictionary Document {
-    string id;
-    sequence<string>? context;
-    sequence<string>? controller;
-    sequence<string>? also_known_as;
-    sequence<VerificationMethod> verification_method;
-    sequence<string>? authentication;
-    sequence<string>? assertion_method;
-    sequence<string>? key_agreement;
-    sequence<string>? capability_invocation;
-    sequence<string>? capability_delegation;
-    sequence<Service>? service;
-};
-
-dictionary VerificationMethod {
-    string id;
-    string type;
-    string controller;
-    Jwk public_key_jwk;
-};
-
-dictionary Service {
-    string id;
-    string type;
-    string service_endpoint;
+enum BearerDidError {
+  "VerificationMethodNotFound",
+  "KeyManagerError",
+  "KeyError",
+  "DocumentError",
+  "ResolutionError",
+  "IdentifierError",
 };
 
 enum VerificationMethodType {
@@ -129,5 +174,42 @@ enum VerificationMethodType {
 [Enum]
 interface KeySelector {
   KeyId(string key_id);
-  MethodType(VerificationMethodType method_type);
+  MethodType(VerificationMethodType verification_method_type);
+};
+
+interface BearerDid {
+  [Throws=BearerDidError]
+  bytes sign([ByRef] KeySelector key_selector, [ByRef] sequence<u8> payload);
+};
+
+[Error]
+enum JwtError {
+  "JwsError",
+  "SerializationError",
+  "DeserializationError",
+};
+
+interface Claims {
+  constructor(string? issuer, string? subject, string? audience, i64? expiration, i64? not_before, i64? issued_at, string? jti);
+  [Throws=JwtError]
+  string encode();
+  [Throws=JwtError]
+  string sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector);
+};
+
+dictionary CredentialSubject {
+  string id;
+  record<string, string>? params;
+};
+
+[Error]
+enum CredentialError {
+  "JwtError",
+  "JwsError",
+};
+
+interface VerifiableCredential {
+  constructor(sequence<string> context, string id, sequence<string> type, string issuer, i64 issuance_date, i64? expiration_date, CredentialSubject credential_subject);
+  [Throws=CredentialError]
+  string sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector);
 };

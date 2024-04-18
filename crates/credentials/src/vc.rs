@@ -1,15 +1,23 @@
-use chrono::{DateTime, Utc};
+use base64::{engine::general_purpose, Engine as _};
 use dids::{bearer::BearerDid, document::KeySelector};
-use jwt::{sign_jwt, Claims, JwtError, JwtString};
-use keys::key::KeyError;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use uuid::Uuid;
+use jws::{splice_parts, JwsError, JwsHeader};
+use jwt::{sign_jwt, verify_jwt, Claims, JwtError};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, sync::Arc};
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 const BASE_TYPE: &str = "VerifiableCredential";
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct VerifiableCredential<T: CredentialSubject + Serialize> {
+#[derive(thiserror::Error, Debug)]
+pub enum CredentialError {
+    #[error(transparent)]
+    JwtError(#[from] JwtError),
+    #[error(transparent)]
+    JwsError(#[from] JwsError),
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct VerifiableCredential {
     #[serde(rename = "@context")]
     pub context: Vec<String>,
     pub id: String,
@@ -17,186 +25,169 @@ pub struct VerifiableCredential<T: CredentialSubject + Serialize> {
     pub r#type: Vec<String>,
     pub issuer: String,
     #[serde(rename = "issuanceDate")]
-    pub issuance_date: DateTime<Utc>,
+    pub issuance_date: i64,
     #[serde(rename = "expirationDate")]
-    pub expiration_date: Option<DateTime<Utc>>,
-    pub credential_subject: T,
+    pub expiration_date: Option<i64>,
+    pub credential_subject: CredentialSubject,
 }
 
-pub trait CredentialSubject {
-    fn get_id(&self) -> String;
-    fn set_id(&mut self, id: String);
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct DefaultCredentialSubject {
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct CredentialSubject {
     pub id: String,
+    #[serde(flatten)]
+    pub params: Option<HashMap<String, String>>,
 }
 
-impl CredentialSubject for DefaultCredentialSubject {
-    fn get_id(&self) -> String {
-        self.id.clone()
-    }
-
-    fn set_id(&mut self, id: String) {
-        self.id = id
-    }
-}
-
-#[derive(Default)]
-pub struct CreateOptions {
-    pub id: Option<String>,
-    pub contexts: Option<Vec<String>>,
-    pub types: Option<Vec<String>>,
-    pub issuance_date: Option<DateTime<Utc>>,
-    pub expiration_date: Option<DateTime<Utc>>,
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum CredentialError {
-    #[error("issuer cannot be empty")]
-    EmptyIssuer,
-    #[error("signing failed")]
-    SigningFailed,
-    #[error(transparent)]
-    KeyError(#[from] KeyError),
-    #[error(transparent)]
-    JwtError(#[from] JwtError),
-    #[error("vc jwt error {0}")]
-    VcJwtError(String),
-}
-
-impl<T: CredentialSubject + Serialize + DeserializeOwned> VerifiableCredential<T> {
-    pub fn create(
-        credential_subject: T,
-        issuer: &str,
-        options: Option<CreateOptions>,
-    ) -> Result<VerifiableCredential<T>, CredentialError> {
-        if issuer.is_empty() {
-            return Err(CredentialError::EmptyIssuer);
-        }
-
-        Ok(Self {
-            id: options
-                .as_ref()
-                .and_then(|opts| opts.id.clone())
-                .unwrap_or_else(|| format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string())),
-            context: options
-                .as_ref()
-                .and_then(|opts| opts.contexts.clone())
-                .unwrap_or_default()
-                .into_iter()
-                .fold(vec![BASE_CONTEXT.to_string()], |mut acc, item| {
-                    acc.push(item);
-                    acc
-                }),
-            r#type: options
-                .as_ref()
-                .and_then(|opts| opts.types.clone())
-                .unwrap_or_default()
-                .into_iter()
-                .fold(vec![BASE_TYPE.to_string()], |mut acc, t| {
-                    acc.push(t);
-                    acc
-                }),
-            issuance_date: options
-                .as_ref()
-                .and_then(|opts| opts.issuance_date)
-                .unwrap_or_else(Utc::now),
-            issuer: issuer.to_string(),
-            expiration_date: options.as_ref().and_then(|opts| opts.expiration_date),
+impl VerifiableCredential {
+    pub fn new(
+        context: Vec<String>,
+        id: String,
+        r#type: Vec<String>,
+        issuer: String,
+        issuance_date: i64,
+        expiration_date: Option<i64>,
+        credential_subject: CredentialSubject,
+    ) -> Self {
+        Self {
+            context,
+            id,
+            r#type,
+            issuer,
+            issuance_date,
+            expiration_date,
             credential_subject,
-        })
+        }
     }
 
-    pub fn sign_vcjwt(
+    pub fn sign(
         &self,
         bearer_did: &BearerDid,
         key_selector: &KeySelector,
     ) -> Result<String, CredentialError> {
-        if self.issuer.is_empty() {
-            return Err(CredentialError::EmptyIssuer);
-        }
-
-        let issuer = &bearer_did.identifier.uri;
-        let claims = Claims {
-            issuer: Some(issuer.clone()),
-            jti: Some(self.id.clone()),
-            subject: Some(self.credential_subject.get_id()),
-            not_before: Some(self.issuance_date.timestamp()),
-            expiration: match self.expiration_date {
-                Some(exp) => Some(exp.timestamp()),
-                None => None,
+        let header = JwsHeader::from_bearer_did(bearer_did, key_selector, "JWT")?;
+        let claims = VcJwtClaims {
+            base_claims: Claims {
+                issuer: Some(self.issuer.clone()),
+                jti: Some(self.id.clone()),
+                subject: Some(self.credential_subject.id.clone()),
+                not_before: Some(self.issuance_date),
+                expiration: match self.expiration_date {
+                    Some(exp) => Some(exp),
+                    None => None,
+                },
+                ..Default::default()
             },
-            vc: Some(serde_json::to_value(self).map_err(|_| CredentialError::SigningFailed)?),
-            ..Default::default()
+            vc: self.clone(),
         };
 
-        let jwt = sign_jwt(&bearer_did, key_selector, &claims, None)?;
-        Ok(jwt)
+        let encoded_header = header.encode()?;
+        let encoded_claims = claims.encode()?;
+
+        let vcjwt = sign_jwt(bearer_did, key_selector, &encoded_header, &encoded_claims)?;
+        Ok(vcjwt)
+    }
+}
+
+pub async fn verify_vcjwt(jwt: &str) -> Result<Arc<VerifiableCredential>, CredentialError> {
+    let _ = verify_jwt(jwt).await?;
+    let claims = VcJwtClaims::new_from_compact_jws(jwt)?;
+    Ok(Arc::new(claims.vc))
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+pub struct VcJwtClaims {
+    vc: VerifiableCredential,
+    #[serde(flatten)]
+    base_claims: Claims,
+}
+
+impl VcJwtClaims {
+    pub fn new_from_compact_jws(compact_jws: &str) -> Result<Self, CredentialError> {
+        let parts = splice_parts(compact_jws)?;
+        let decoded_bytes = general_purpose::URL_SAFE_NO_PAD
+            .decode(&parts[1])
+            .map_err(|e| JwsError::DecodingError(e.to_string()))?;
+        let claims: Self = serde_json::from_slice(&decoded_bytes)
+            .map_err(|e| JwsError::DeserializationError(e.to_string()))?;
+        Ok(claims)
     }
 
-    pub async fn from_vcjwt(vcjwt: &str) -> Result<VerifiableCredential<T>, CredentialError> {
-        let decoded_jwt = vcjwt.to_string().verify().await?;
-        let vc_value = decoded_jwt.claims.vc.ok_or(CredentialError::VcJwtError(
-            "vc claim missing from jwt".to_string(),
-        ))?;
-
-        let vc: VerifiableCredential<T> = serde_json::from_value(vc_value)
-            .map_err(|_| CredentialError::VcJwtError("vc claim value error".to_string()))?;
-
-        Ok(vc)
+    pub fn encode(&self) -> Result<String, CredentialError> {
+        let json_str = serde_json::to_string(&self)
+            .map_err(|e| JwsError::SerializationError(e.to_string()))?;
+        let encoded_str = general_purpose::URL_SAFE_NO_PAD.encode(json_str.as_bytes());
+        Ok(encoded_str)
     }
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use chrono::Duration;
-    use crypto::Curve;
-    use dids::document::VerificationMethodType;
-    use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
-    use dids::method::Method;
-    use keys::key_manager::local_key_manager::LocalKeyManager;
-    use std::sync::Arc;
+mod test {
+    use std::time::{SystemTime, UNIX_EPOCH};
 
-    #[test]
-    fn test_sign_vcjwt() {
+    use super::*;
+    use crypto::Curve;
+    use dids::{
+        document::VerificationMethodType,
+        method::{
+            jwk::{DidJwk, DidJwkCreateOptions},
+            Method,
+        },
+    };
+    use keys::key_manager::local_key_manager::LocalKeyManager;
+    use uuid::Uuid;
+
+    fn create_bearer_did() -> BearerDid {
         let key_manager = Arc::new(LocalKeyManager::new_in_memory());
         let options = DidJwkCreateOptions {
             curve: Curve::Ed25519,
         };
         let bearer_did = DidJwk::create(key_manager, options).unwrap();
+        bearer_did
+    }
 
-        let credential_subject = DefaultCredentialSubject {
-            id: Uuid::new_v4().to_string(),
-        };
+    fn create_vc(issuer: &str) -> VerifiableCredential {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
 
-        let vc = VerifiableCredential::create(
-            credential_subject,
-            &bearer_did.identifier.uri,
-            Some(CreateOptions {
-                expiration_date: Some(Utc::now() + Duration::minutes(30)),
+        VerifiableCredential::new(
+            vec![BASE_CONTEXT.to_string()],
+            format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+            vec![BASE_TYPE.to_string()],
+            issuer.to_string(),
+            now,
+            Some(now + 30 * 60),
+            CredentialSubject {
+                id: issuer.to_string(),
                 ..Default::default()
-            }),
+            },
         )
-        .expect("Failed to create DataModel");
+    }
 
-        let signed_vcjwt = vc
-            .sign_vcjwt(
-                &bearer_did,
-                &KeySelector::MethodType(VerificationMethodType::VerificationMethod),
-            )
-            .expect("Failed to sign VC");
-
-        println!("Signed JWT: {:?}", signed_vcjwt);
+    #[test]
+    fn test_create() {
+        let bearer_did = create_bearer_did();
+        let vc = create_vc(&bearer_did.identifier.uri);
+        assert_eq!(1, vc.context.len());
+        assert_ne!("", vc.id);
+        assert_eq!(1, vc.r#type.len());
+        assert_eq!(vc.issuer, bearer_did.identifier.uri);
     }
 
     #[tokio::test]
-    async fn test_from_vcjwt() {
-        let jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVNuRmhPV3BqTFUxMU5XcFNVMU5LZFUxdVprdDFTUzA1VUVKZlpYaHdXWG93TkZaV1VsQTFZMjlWVVNKOSMwIiwidHlwIjoiSldUIn0.eyJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lTbkZoT1dwakxVMTFOV3BTVTFOS2RVMXVaa3QxU1MwNVVFSmZaWGh3V1hvd05GWldVbEExWTI5VlVTSjkiLCJzdWIiOiIxZGYyMTU3Zi04NzRhLTQ2OTktODJmNC05MGZjNzk1OGI3OTAiLCJleHAiOjE3MTMxODgzMDIsIm5iZiI6MTcxMzE4NjUwMiwianRpIjoidXJuOnZjOnV1aWQ6ZmYwZjBjYTUtZGY5Ny00MGIzLWJmYTktNjhhZjczNzkxMDY5IiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiMWRmMjE1N2YtODc0YS00Njk5LTgyZjQtOTBmYzc5NThiNzkwIn0sImV4cGlyYXRpb25EYXRlIjoiMjAyNC0wNC0xNVQxMzozODoyMi42Nzc5MzBaIiwiaWQiOiJ1cm46dmM6dXVpZDpmZjBmMGNhNS1kZjk3LTQwYjMtYmZhOS02OGFmNzM3OTEwNjkiLCJpc3N1YW5jZURhdGUiOiIyMDI0LTA0LTE1VDEzOjA4OjIyLjY3ODAxMloiLCJpc3N1ZXIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lTbkZoT1dwakxVMTFOV3BTVTFOS2RVMXVaa3QxU1MwNVVFSmZaWGh3V1hvd05GWldVbEExWTI5VlVTSjkiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19fQ.pO5FZY304r72RReBklhCNYkKM5LUi-uyUanJ0vXN_IWP8V4dL2Pk-rTKyOU2Pegy1JgzGWkT4ctOA9oYgPVkDw";
-        let vc: VerifiableCredential<DefaultCredentialSubject> =
-            VerifiableCredential::from_vcjwt(jwt).await.unwrap();
-        println!("VC {:?}", vc)
+    async fn test_sign_and_verify() {
+        let bearer_did = create_bearer_did();
+        let vc = create_vc(&bearer_did.identifier.uri);
+        let key_selector = KeySelector::MethodType {
+            verification_method_type: VerificationMethodType::VerificationMethod,
+        };
+        let vcjwt = vc.sign(&bearer_did, &key_selector).unwrap();
+        assert!(!vcjwt.is_empty());
+
+        let verified_vc = verify_vcjwt(&vcjwt).await.unwrap();
+        assert_eq!(vc.id, verified_vc.id);
+        assert_eq!(vc.issuer, verified_vc.issuer);
+        assert_eq!(vc.credential_subject.id, verified_vc.credential_subject.id);
     }
 }

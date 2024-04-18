@@ -28,10 +28,10 @@ impl Method<DidJwkCreateOptions> for DidJwk {
         key_manager: Arc<dyn KeyManager>,
         options: DidJwkCreateOptions,
     ) -> Result<BearerDid, MethodError> {
-        let key_alias = key_manager.generate_private_key(options.curve, Some("0"))?;
+        let key_alias = key_manager.generate_private_key(options.curve, Some("0".to_string()))?;
         let public_key = key_manager.get_public_key(&key_alias)?;
-
-        let jwk_string = serde_json::to_string(&public_key.jwk()?).map_err(|_| {
+        let public_jwk = public_key.jwk()?;
+        let jwk_string = serde_json::to_string(public_jwk.as_ref()).map_err(|_| {
             MethodError::DidCreationFailure("failed to serialize public jwk".to_string())
         })?;
         let spruce_jwk: SpruceJwk =
@@ -56,7 +56,7 @@ impl Method<DidJwkCreateOptions> for DidJwk {
                     id: format!("{}#0", uri),
                     r#type: "JsonWebKey".to_string(),
                     controller: uri,
-                    public_key_jwk: public_key.jwk()?.clone(),
+                    public_key_jwk: public_jwk.as_ref().clone(),
                 }],
                 ..Default::default()
             },
