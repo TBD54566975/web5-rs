@@ -1,3 +1,5 @@
+pub mod v2;
+
 use std::future::Future;
 
 use base64::{engine::general_purpose, Engine as _};
