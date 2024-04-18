@@ -80,8 +80,12 @@ pub enum VerificationMethodType {
 // Define an enum to encapsulate the selection criteria
 #[derive(Debug, Clone, PartialEq)]
 pub enum KeySelector {
-    KeyId(String),
-    MethodType(VerificationMethodType),
+    KeyId {
+        key_id: String,
+    },
+    MethodType {
+        verification_method_type: VerificationMethodType,
+    },
 }
 
 // todo more precise errors
@@ -97,8 +101,10 @@ impl Document {
         key_selector: &KeySelector,
     ) -> Result<VerificationMethod, DocumentError> {
         let key_id = match key_selector {
-            KeySelector::KeyId(key_id) => key_id.clone(),
-            KeySelector::MethodType(method_type) => {
+            KeySelector::KeyId { key_id } => key_id.clone(),
+            KeySelector::MethodType {
+                verification_method_type,
+            } => {
                 let get_first_method =
                     |methods: &Option<Vec<String>>| -> Result<String, DocumentError> {
                         methods
@@ -109,7 +115,7 @@ impl Document {
                             .ok_or(DocumentError::VerificationMethodNotFound)
                     };
 
-                match method_type {
+                match verification_method_type {
                     VerificationMethodType::AssertionMethod => {
                         get_first_method(&self.assertion_method)?
                     }

@@ -168,7 +168,9 @@ mod tests {
 
         let jwt = sign_jwt(
             &bearer_did,
-            &KeySelector::MethodType(VerificationMethodType::VerificationMethod),
+            &KeySelector::MethodType {
+                verification_method_type: VerificationMethodType::VerificationMethod,
+            },
             &claims,
             None,
         )

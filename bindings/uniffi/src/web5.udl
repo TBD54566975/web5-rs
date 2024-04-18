@@ -155,6 +155,21 @@ enum BearerDidError {
   "IdentifierError",
 };
 
+enum VerificationMethodType {
+  "VerificationMethod",
+  "AssertionMethod",
+  "Authentication",
+  "CapabilityDelegation",
+  "CapabilityInvocation",
+};
+
+[Enum]
+interface KeySelector {
+  KeyId(string key_id);
+  MethodType(VerificationMethodType verification_method_type);
+};
+
 interface BearerDid {
-  
+  [Throws=BearerDidError]
+  bytes sign([ByRef] KeySelector key_selector, [ByRef] sequence<u8> payload);
 };

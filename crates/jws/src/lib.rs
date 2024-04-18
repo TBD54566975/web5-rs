@@ -117,7 +117,7 @@ impl JwsString for String {
                 return Err(JwsError::ResolutionError(err));
             }
             let verification_method = match resolution_result.did_document {
-                Some(document) => document.get_verification_method(&KeySelector::KeyId(key_id)),
+                Some(document) => document.get_verification_method(&KeySelector::KeyId { key_id }),
                 None => {
                     return Err(JwsError::DocumentError(
                         DocumentError::VerificationMethodNotFound,
@@ -232,7 +232,9 @@ mod tests {
             curve: Curve::Ed25519,
         };
         let bearer_did = DidJwk::create(key_manager, options).unwrap();
-        let key_selector = KeySelector::MethodType(VerificationMethodType::VerificationMethod);
+        let key_selector = KeySelector::MethodType {
+            verification_method_type: VerificationMethodType::VerificationMethod,
+        };
         let encoded_payload = general_purpose::URL_SAFE_NO_PAD.encode(b"some payload test");
         let options = JwsSignOptions {
             r#type: Some("JWT".to_string()),

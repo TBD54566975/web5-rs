@@ -1,5 +1,8 @@
 use ::crypto::Curve;
-use ::dids::bearer::{BearerDid, BearerDidError};
+use ::dids::{
+    bearer::{BearerDid, BearerDidError},
+    document::{KeySelector, VerificationMethodType},
+};
 use ::jwk::{Jwk, JwkError};
 use ::keys::{
     key::{Key, KeyError, PrivateKey, PublicKey},

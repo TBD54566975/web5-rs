@@ -185,7 +185,9 @@ mod tests {
         let signed_vcjwt = vc
             .sign_vcjwt(
                 &bearer_did,
-                &KeySelector::MethodType(VerificationMethodType::VerificationMethod),
+                &KeySelector::MethodType {
+                    verification_method_type: VerificationMethodType::VerificationMethod,
+                },
             )
             .expect("Failed to sign VC");
 
