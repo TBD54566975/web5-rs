@@ -62,7 +62,7 @@ impl JwsHeader {
     pub fn from_bearer_did(
         bearer_did: &BearerDid,
         key_selector: &KeySelector,
-        typ: String,
+        typ: &str,
     ) -> Result<Self, JwsError> {
         let verification_method = bearer_did.document.get_verification_method(key_selector)?;
         let kid = verification_method.id;
@@ -71,7 +71,7 @@ impl JwsHeader {
             "Ed25519" => "EdDSA".to_string(),
             _ => return Err(JwsError::AlgorithmNotFound(kid)),
         };
-        Ok(Self { alg, kid, typ })
+        Ok(Self { alg, kid, typ: typ.to_string() })
     }
 
     // todo getter methods

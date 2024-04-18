@@ -16,19 +16,19 @@ pub enum JwtError {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Claims {
     #[serde(rename = "iss", skip_serializing_if = "Option::is_none")]
-    issuer: Option<String>,
+    pub issuer: Option<String>,
     #[serde(rename = "sub", skip_serializing_if = "Option::is_none")]
-    subject: Option<String>,
+    pub subject: Option<String>,
     #[serde(rename = "aud", skip_serializing_if = "Option::is_none")]
-    audience: Option<String>,
+    pub audience: Option<String>,
     #[serde(rename = "exp", skip_serializing_if = "Option::is_none")]
-    expiration: Option<i64>,
+    pub expiration: Option<i64>,
     #[serde(rename = "nbf", skip_serializing_if = "Option::is_none")]
-    not_before: Option<i64>,
+    pub not_before: Option<i64>,
     #[serde(rename = "iat", skip_serializing_if = "Option::is_none")]
-    issued_at: Option<i64>,
+    pub issued_at: Option<i64>,
     #[serde(rename = "jti", skip_serializing_if = "Option::is_none")]
-    jti: Option<String>,
+    pub jti: Option<String>,
 }
 
 impl Claims {
@@ -68,7 +68,7 @@ impl Claims {
         key_selector: &KeySelector,
     ) -> Result<String, JwtError> {
         let encoded_payload = self.encode()?;
-        let jws_header = JwsHeader::from_bearer_did(bearer_did, key_selector, "JWT".to_string())?;
+        let jws_header = JwsHeader::from_bearer_did(bearer_did, key_selector, "JWT")?;
         let compact_jws =
             jws_header.sign_compact_jws(bearer_did, key_selector, &encoded_payload)?;
         Ok(compact_jws)
