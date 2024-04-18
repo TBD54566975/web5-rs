@@ -1,4 +1,7 @@
-namespace web5 {};
+namespace web5 {
+  [Throws=BearerDidError, Async]
+  BearerDid bearer_did_from_key_manager([ByRef] string did_uri, KeyManager key_manager);
+};
 
 [Error]
 enum KeyError {
@@ -140,4 +143,18 @@ interface InMemoryKeyStore {
   sequence<PrivateKey> export_private_keys();
   [Throws=KeyStoreError]
   void import_private_keys(sequence<PrivateKey> private_keys);
+};
+
+[Error]
+enum BearerDidError {
+  "VerificationMethodNotFound",
+  "KeyManagerError",
+  "KeyError",
+  "DocumentError",
+  "ResolutionError",
+  "IdentifierError",
+};
+
+interface BearerDid {
+  
 };
