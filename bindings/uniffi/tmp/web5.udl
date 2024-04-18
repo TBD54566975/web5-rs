@@ -1,0 +1,133 @@
+namespace web5 {
+    [Throws=JwkError]
+    string compute_thumbprint(Jwk jwk);
+
+    [Throws=CryptoError]
+    Jwk ed25519_generate();
+    [Throws=CryptoError]
+    bytes ed25519_sign([ByRef] Jwk private_jwk, [ByRef] bytes payload);
+    [Throws=CryptoError]
+    void ed25519_verify([ByRef] Jwk public_jwk, [ByRef] bytes payload, [ByRef] bytes signature);
+
+    [Throws=IdentifierError]
+    Identifier identifier_parse(string did_uri);
+
+    [Throws=DocumentError]
+    VerificationMethod get_verification_method(Document document, KeySelector key_selector);
+};
+
+[Error]
+enum JwkError {
+    "ThumbprintFailed",
+};
+
+dictionary Jwk {
+    string alg;
+    string kty;
+    string crv;
+    string? d;
+    string x;
+    string? y;
+};
+
+[Error]
+enum CryptoError {
+    "MissingPrivateKey",
+    "DecodeError",
+    "InvalidKeyLength",
+    "InvalidSignatureLength",
+    "PublicKeyFailure",
+    "PrivateKeyFailure",
+    "VerificationFailure",
+    "SignFailure",
+};
+
+enum Curve {
+    "Secp256k1",
+    "Ed25519",
+};
+
+[Error]
+enum KeyManagerError {
+    "KeyGenerationFailed",
+    "SigningKeyNotFound",
+    "KeyError",
+    "KeyStoreError",
+};
+
+interface LocalJwkManager {
+    constructor();
+    [Throws=KeyManagerError]
+    string generate_private_key(Curve curve, string? key_alias);
+    [Throws=KeyManagerError]
+    Jwk get_public_key(string key_alias);
+    [Throws=KeyManagerError]
+    bytes sign(string key_alias, [ByRef] bytes payload);
+    [Throws=KeyManagerError]
+    sequence<Jwk> export_private_keys();
+    [Throws=KeyManagerError]
+    void import_private_keys(sequence<Jwk> private_keys);
+};
+
+[Error]
+enum IdentifierError {
+    "RegexPatternFailure",
+    "ParseFailure",
+};
+
+dictionary Identifier {
+    string uri;
+    string url;
+    string method;
+    string id;
+    record<string, string>? params;
+    string? path;
+    string? query;
+    string? fragment;
+};
+
+[Error]
+enum DocumentError {
+    "VerificationMethodNotFound"
+};
+
+dictionary Document {
+    string id;
+    sequence<string>? context;
+    sequence<string>? controller;
+    sequence<string>? also_known_as;
+    sequence<VerificationMethod> verification_method;
+    sequence<string>? authentication;
+    sequence<string>? assertion_method;
+    sequence<string>? key_agreement;
+    sequence<string>? capability_invocation;
+    sequence<string>? capability_delegation;
+    sequence<Service>? service;
+};
+
+dictionary VerificationMethod {
+    string id;
+    string type;
+    string controller;
+    Jwk public_key_jwk;
+};
+
+dictionary Service {
+    string id;
+    string type;
+    string service_endpoint;
+};
+
+enum VerificationMethodType {
+  "VerificationMethod",
+  "AssertionMethod",
+  "Authentication",
+  "CapabilityDelegation",
+  "CapabilityInvocation",
+};
+
+[Enum]
+interface KeySelector {
+  KeyId(string key_id);
+  MethodType(VerificationMethodType method_type);
+};
