@@ -3,22 +3,14 @@ use dids::{bearer::BearerDid, document::KeySelector};
 use jws::v2::{splice_parts, JwsError, JwsHeader};
 use jwt::v2::{sign_jwt, verify_jwt, Claims, JwtError};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 #[derive(thiserror::Error, Debug)]
 pub enum CredentialError {
-    // #[error("issuer cannot be empty")]
-    // EmptyIssuer,
-    // #[error("signing failed")]
-    // SigningFailed,
-    // #[error(transparent)]
-    // KeyError(#[from] KeyError),
     #[error(transparent)]
     JwtError(#[from] JwtError),
     #[error(transparent)]
     JwsError(#[from] JwsError),
-    // #[error("vc jwt error {0}")]
-    // VcJwtError(String),
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -38,9 +30,9 @@ pub struct VerifiableCredential {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CredentialSubject {
-    id: String,
+    pub id: String,
     #[serde(flatten)]
-    params: Option<HashMap<String, String>>,
+    pub params: Option<HashMap<String, String>>,
 }
 
 impl VerifiableCredential {
@@ -93,10 +85,10 @@ impl VerifiableCredential {
     }
 }
 
-pub async fn verify_vcjwt(jwt: &str) -> Result<VerifiableCredential, CredentialError> {
+pub async fn verify_vcjwt(jwt: &str) -> Result<Arc<VerifiableCredential>, CredentialError> {
     let _ = verify_jwt(jwt).await?;
     let claims = VcJwtClaims::new_from_compact_jws(jwt)?;
-    Ok(claims.vc)
+    Ok(Arc::new(claims.vc))
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]

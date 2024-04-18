@@ -6,6 +6,9 @@ namespace web5 {
   string sign_jwt([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector, [ByRef] string encoded_header, [ByRef] string encoded_payload);
   [Throws=JwtError, Async]
   void verify_jwt([ByRef] string jwt);
+
+  [Throws=CredentialError, Async]
+  VerifiableCredential verify_vcjwt([ByRef] string jwt);
 };
 
 [Error]
@@ -191,5 +194,22 @@ interface Claims {
   [Throws=JwtError]
   string encode();
   [Throws=JwtError]
+  string sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector);
+};
+
+dictionary CredentialSubject {
+  string id;
+  record<string, string>? params;
+};
+
+[Error]
+enum CredentialError {
+  "JwtError",
+  "JwsError",
+};
+
+interface VerifiableCredential {
+  constructor(sequence<string> context, string id, sequence<string> type, string issuer, i64 issuance_date, i64? expiration_date, CredentialSubject credential_subject);
+  [Throws=CredentialError]
   string sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector);
 };
