@@ -16,22 +16,42 @@ pub enum JwtError {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Claims {
     #[serde(rename = "iss", skip_serializing_if = "Option::is_none")]
-    pub issuer: Option<String>,
+    issuer: Option<String>,
     #[serde(rename = "sub", skip_serializing_if = "Option::is_none")]
-    pub subject: Option<String>,
+    subject: Option<String>,
     #[serde(rename = "aud", skip_serializing_if = "Option::is_none")]
-    pub audience: Option<String>,
+    audience: Option<String>,
     #[serde(rename = "exp", skip_serializing_if = "Option::is_none")]
-    pub expiration: Option<i64>,
+    expiration: Option<i64>,
     #[serde(rename = "nbf", skip_serializing_if = "Option::is_none")]
-    pub not_before: Option<i64>,
+    not_before: Option<i64>,
     #[serde(rename = "iat", skip_serializing_if = "Option::is_none")]
-    pub issued_at: Option<i64>,
+    issued_at: Option<i64>,
     #[serde(rename = "jti", skip_serializing_if = "Option::is_none")]
-    pub jti: Option<String>,
+    jti: Option<String>,
 }
 
 impl Claims {
+    pub fn new(
+        issuer: Option<String>,
+        subject: Option<String>,
+        audience: Option<String>,
+        expiration: Option<i64>,
+        not_before: Option<i64>,
+        issued_at: Option<i64>,
+        jti: Option<String>,
+    ) -> Self {
+        Self {
+            issuer,
+            subject,
+            audience,
+            expiration,
+            not_before,
+            issued_at,
+            jti,
+        }
+    }
+
     // todo uniffi will want a constructor so might we well make props private w/ getters only
     // todo this might be a good use case for dictionary's
 
@@ -42,7 +62,7 @@ impl Claims {
         Ok(encoded_str)
     }
 
-    pub fn sign_jwt(
+    pub fn sign(
         &self,
         bearer_did: &BearerDid,
         key_selector: &KeySelector,

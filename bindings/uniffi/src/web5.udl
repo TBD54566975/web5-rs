@@ -1,6 +1,9 @@
 namespace web5 {
   [Throws=BearerDidError, Async]
   BearerDid bearer_did_from_key_manager([ByRef] string did_uri, KeyManager key_manager);
+
+  [Throws=JwtError]
+  string sign_jwt([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector, [ByRef] string encoded_header, [ByRef] string encoded_payload);
 };
 
 [Error]
@@ -172,4 +175,19 @@ interface KeySelector {
 interface BearerDid {
   [Throws=BearerDidError]
   bytes sign([ByRef] KeySelector key_selector, [ByRef] sequence<u8> payload);
+};
+
+[Error]
+enum JwtError {
+  "JwsError",
+  "SerializationError",
+  "DeserializationError",
+};
+
+interface Claims {
+  constructor(string? issuer, string? subject, string? audience, i64? expiration, i64? not_before, i64? issued_at, string? jti);
+  [Throws=JwtError]
+  string encode();
+  [Throws=JwtError]
+  string sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector);
 };

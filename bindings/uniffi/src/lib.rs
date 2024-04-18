@@ -4,6 +4,7 @@ use ::dids::{
     document::{KeySelector, VerificationMethodType},
 };
 use ::jwk::{Jwk, JwkError};
+use ::jwt::v2::{Claims, JwtError, sign_jwt};
 use ::keys::{
     key::{Key, KeyError, PrivateKey, PublicKey},
     key_manager::{
