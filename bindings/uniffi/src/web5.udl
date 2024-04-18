@@ -54,3 +54,46 @@ interface Jwk {
   [Throws=KeyError]
   bytes sign([ByRef] sequence<u8> payload);
 };
+
+enum Curve {
+  "Secp256k1",
+  "Ed25519",
+};
+
+[Error]
+enum KeyManagerError {
+  "KeyGenerationFailed",
+  "SigningKeyNotFound",
+  "KeyError",
+  "KeyStoreError",
+};
+
+[Trait]
+interface KeyManager {
+  [Throws=KeyManagerError]
+  string generate_private_key(Curve curve, string? key_alias);
+  [Throws=KeyManagerError]
+  PublicKey get_public_key([ByRef] string key_alias);
+  [Throws=KeyManagerError]
+  bytes sign([ByRef] string key_alias, [ByRef] sequence<u8> payload);
+  [Throws=KeyManagerError]
+  sequence<PrivateKey> export_private_keys();
+  [Throws=KeyManagerError]
+  void import_private_keys(sequence<PrivateKey> private_keys);
+};
+
+interface LocalKeyManager {
+  [Name=new_in_memory]
+  constructor();
+
+  [Throws=KeyManagerError]
+  string generate_private_key(Curve curve, string? key_alias);
+  [Throws=KeyManagerError]
+  PublicKey get_public_key([ByRef] string key_alias);
+  [Throws=KeyManagerError]
+  bytes sign([ByRef] string key_alias, [ByRef] sequence<u8> payload);
+  [Throws=KeyManagerError]
+  sequence<PrivateKey> export_private_keys();
+  [Throws=KeyManagerError]
+  void import_private_keys(sequence<PrivateKey> private_keys);
+};

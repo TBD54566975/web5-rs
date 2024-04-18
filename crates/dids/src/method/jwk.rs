@@ -28,7 +28,7 @@ impl Method<DidJwkCreateOptions> for DidJwk {
         key_manager: Arc<dyn KeyManager>,
         options: DidJwkCreateOptions,
     ) -> Result<BearerDid, MethodError> {
-        let key_alias = key_manager.generate_private_key(options.curve, Some("0"))?;
+        let key_alias = key_manager.generate_private_key(options.curve, Some("0".to_string()))?;
         let public_key = key_manager.get_public_key(&key_alias)?;
         let public_jwk = public_key.jwk()?;
         let jwk_string = serde_json::to_string(public_jwk.as_ref()).map_err(|_| {

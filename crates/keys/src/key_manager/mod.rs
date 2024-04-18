@@ -31,7 +31,7 @@ pub trait KeyManager: Send + Sync {
     fn generate_private_key(
         &self,
         curve: Curve,
-        key_alias: Option<&str>,
+        key_alias: Option<String>,
     ) -> Result<String, KeyManagerError>;
 
     /// Returns the public key associated with the provided `key_alias`, if one exists.
