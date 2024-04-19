@@ -1,7 +1,7 @@
 package web5.sdk
 
-import org.junit.Test
-import org.junit.Assert.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertEquals
 import web5.sdk.ed25519Generate
 
 class Web5Test {
