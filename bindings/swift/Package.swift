@@ -5,6 +5,9 @@ import PackageDescription
 
 let package = Package(
     name: "Web5",
+    platforms: [
+        .macOS(.v10_15)
+    ],
     products: [
         .library(
             name: "Web5",
@@ -24,6 +27,10 @@ let package = Package(
             name: "UniFFI",
             dependencies: [.target(name: "Web5CoreRS")],
             path: "Sources/UniFFI"
+        ),
+        .testTarget(
+            name: "Web5Tests",
+            dependencies: ["Web5"]
         ),
     ]
 )
