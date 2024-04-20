@@ -381,6 +381,32 @@ fileprivate class UniffiHandleMap<T> {
 // Public interface members begin here.
 
 
+fileprivate struct FfiConverterUInt8: FfiConverterPrimitive {
+    typealias FfiType = UInt8
+    typealias SwiftType = UInt8
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt8 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: UInt8, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+fileprivate struct FfiConverterInt64: FfiConverterPrimitive {
+    typealias FfiType = Int64
+    typealias SwiftType = Int64
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Int64 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: Int64, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
 fileprivate struct FfiConverterString: FfiConverter {
     typealias SwiftType = String
     typealias FfiType = RustBuffer
@@ -437,22 +463,14 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
 
 
 
-public protocol LocalJwkManagerProtocol : AnyObject {
+public protocol BearerDidProtocol : AnyObject {
     
-    func exportPrivateKeys() throws  -> [Jwk]
-    
-    func generatePrivateKey(curve: Curve, keyAlias: String?) throws  -> String
-    
-    func getPublicKey(keyAlias: String) throws  -> Jwk
-    
-    func importPrivateKeys(privateKeys: [Jwk]) throws 
-    
-    func sign(keyAlias: String, payload: Data) throws  -> Data
+    func sign(keySelector: KeySelector, payload: [UInt8]) throws  -> Data
     
 }
 
-open class LocalJwkManager:
-    LocalJwkManagerProtocol {
+open class BearerDid:
+    BearerDidProtocol {
     fileprivate let pointer: UnsafeMutableRawPointer!
 
     /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
@@ -477,64 +495,26 @@ open class LocalJwkManager:
     }
 
     public func uniffiClonePointer() -> UnsafeMutableRawPointer {
-        return try! rustCall { uniffi_web5_fn_clone_localjwkmanager(self.pointer, $0) }
+        return try! rustCall { uniffi_web5_fn_clone_bearerdid(self.pointer, $0) }
     }
-public convenience init() {
-    let pointer =
-        try! rustCall() {
-    uniffi_web5_fn_constructor_localjwkmanager_new($0
-    )
-}
-    self.init(unsafeFromRawPointer: pointer)
-}
+    // No primary constructor declared for this class.
 
     deinit {
         guard let pointer = pointer else {
             return
         }
 
-        try! rustCall { uniffi_web5_fn_free_localjwkmanager(pointer, $0) }
+        try! rustCall { uniffi_web5_fn_free_bearerdid(pointer, $0) }
     }
 
     
 
     
-open func exportPrivateKeys()throws  -> [Jwk] {
-    return try  FfiConverterSequenceTypeJwk.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
-    uniffi_web5_fn_method_localjwkmanager_export_private_keys(self.uniffiClonePointer(),$0
-    )
-})
-}
-    
-open func generatePrivateKey(curve: Curve, keyAlias: String?)throws  -> String {
-    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
-    uniffi_web5_fn_method_localjwkmanager_generate_private_key(self.uniffiClonePointer(),
-        FfiConverterTypeCurve.lower(curve),
-        FfiConverterOptionString.lower(keyAlias),$0
-    )
-})
-}
-    
-open func getPublicKey(keyAlias: String)throws  -> Jwk {
-    return try  FfiConverterTypeJwk.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
-    uniffi_web5_fn_method_localjwkmanager_get_public_key(self.uniffiClonePointer(),
-        FfiConverterString.lower(keyAlias),$0
-    )
-})
-}
-    
-open func importPrivateKeys(privateKeys: [Jwk])throws  {try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
-    uniffi_web5_fn_method_localjwkmanager_import_private_keys(self.uniffiClonePointer(),
-        FfiConverterSequenceTypeJwk.lower(privateKeys),$0
-    )
-}
-}
-    
-open func sign(keyAlias: String, payload: Data)throws  -> Data {
-    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
-    uniffi_web5_fn_method_localjwkmanager_sign(self.uniffiClonePointer(),
-        FfiConverterString.lower(keyAlias),
-        FfiConverterData.lower(payload),$0
+open func sign(keySelector: KeySelector, payload: [UInt8])throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeBearerDidError.lift) {
+    uniffi_web5_fn_method_bearerdid_sign(self.uniffiClonePointer(),
+        FfiConverterTypeKeySelector.lower(keySelector),
+        FfiConverterSequenceUInt8.lower(payload),$0
     )
 })
 }
@@ -542,20 +522,20 @@ open func sign(keyAlias: String, payload: Data)throws  -> Data {
 
 }
 
-public struct FfiConverterTypeLocalJwkManager: FfiConverter {
+public struct FfiConverterTypeBearerDid: FfiConverter {
 
     typealias FfiType = UnsafeMutableRawPointer
-    typealias SwiftType = LocalJwkManager
+    typealias SwiftType = BearerDid
 
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> LocalJwkManager {
-        return LocalJwkManager(unsafeFromRawPointer: pointer)
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> BearerDid {
+        return BearerDid(unsafeFromRawPointer: pointer)
     }
 
-    public static func lower(_ value: LocalJwkManager) -> UnsafeMutableRawPointer {
+    public static func lower(_ value: BearerDid) -> UnsafeMutableRawPointer {
         return value.uniffiClonePointer()
     }
 
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> LocalJwkManager {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BearerDid {
         let v: UInt64 = try readInt(&buf)
         // The Rust code won't compile if a pointer won't fit in a UInt64.
         // We have to go via `UInt` because that's the thing that's the size of a pointer.
@@ -566,7 +546,7 @@ public struct FfiConverterTypeLocalJwkManager: FfiConverter {
         return try lift(ptr!)
     }
 
-    public static func write(_ value: LocalJwkManager, into buf: inout [UInt8]) {
+    public static func write(_ value: BearerDid, into buf: inout [UInt8]) {
         // This fiddling is because `Int` is the thing that's the same size as a pointer.
         // The Rust code won't compile if a pointer won't fit in a `UInt64`.
         writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
@@ -576,538 +556,1454 @@ public struct FfiConverterTypeLocalJwkManager: FfiConverter {
 
 
 
-public func FfiConverterTypeLocalJwkManager_lift(_ pointer: UnsafeMutableRawPointer) throws -> LocalJwkManager {
-    return try FfiConverterTypeLocalJwkManager.lift(pointer)
+public func FfiConverterTypeBearerDid_lift(_ pointer: UnsafeMutableRawPointer) throws -> BearerDid {
+    return try FfiConverterTypeBearerDid.lift(pointer)
 }
 
-public func FfiConverterTypeLocalJwkManager_lower(_ value: LocalJwkManager) -> UnsafeMutableRawPointer {
-    return FfiConverterTypeLocalJwkManager.lower(value)
+public func FfiConverterTypeBearerDid_lower(_ value: BearerDid) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeBearerDid.lower(value)
 }
 
 
-public struct Document {
-    public var id: String
-    public var context: [String]?
-    public var controller: [String]?
-    public var alsoKnownAs: [String]?
-    public var verificationMethod: [VerificationMethod]
-    public var authentication: [String]?
-    public var assertionMethod: [String]?
-    public var keyAgreement: [String]?
-    public var capabilityInvocation: [String]?
-    public var capabilityDelegation: [String]?
-    public var service: [Service]?
 
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(id: String, context: [String]?, controller: [String]?, alsoKnownAs: [String]?, verificationMethod: [VerificationMethod], authentication: [String]?, assertionMethod: [String]?, keyAgreement: [String]?, capabilityInvocation: [String]?, capabilityDelegation: [String]?, service: [Service]?) {
-        self.id = id
-        self.context = context
-        self.controller = controller
-        self.alsoKnownAs = alsoKnownAs
-        self.verificationMethod = verificationMethod
-        self.authentication = authentication
-        self.assertionMethod = assertionMethod
-        self.keyAgreement = keyAgreement
-        self.capabilityInvocation = capabilityInvocation
-        self.capabilityDelegation = capabilityDelegation
-        self.service = service
+
+public protocol ClaimsProtocol : AnyObject {
+    
+    func encode() throws  -> String
+    
+    func sign(bearerDid: BearerDid, keySelector: KeySelector) throws  -> String
+    
+}
+
+open class Claims:
+    ClaimsProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_fn_clone_claims(self.pointer, $0) }
+    }
+public convenience init(issuer: String?, subject: String?, audience: String?, expiration: Int64?, notBefore: Int64?, issuedAt: Int64?, jti: String?) {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_fn_constructor_claims_new(
+        FfiConverterOptionString.lower(issuer),
+        FfiConverterOptionString.lower(subject),
+        FfiConverterOptionString.lower(audience),
+        FfiConverterOptionInt64.lower(expiration),
+        FfiConverterOptionInt64.lower(notBefore),
+        FfiConverterOptionInt64.lower(issuedAt),
+        FfiConverterOptionString.lower(jti),$0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_fn_free_claims(pointer, $0) }
+    }
+
+    
+
+    
+open func encode()throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeJwtError.lift) {
+    uniffi_web5_fn_method_claims_encode(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func sign(bearerDid: BearerDid, keySelector: KeySelector)throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeJwtError.lift) {
+    uniffi_web5_fn_method_claims_sign(self.uniffiClonePointer(),
+        FfiConverterTypeBearerDid.lower(bearerDid),
+        FfiConverterTypeKeySelector.lower(keySelector),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeClaims: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Claims
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Claims {
+        return Claims(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Claims) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Claims {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Claims, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
     }
 }
 
 
 
-extension Document: Equatable, Hashable {
-    public static func ==(lhs: Document, rhs: Document) -> Bool {
-        if lhs.id != rhs.id {
-            return false
-        }
-        if lhs.context != rhs.context {
-            return false
-        }
-        if lhs.controller != rhs.controller {
-            return false
-        }
-        if lhs.alsoKnownAs != rhs.alsoKnownAs {
-            return false
-        }
-        if lhs.verificationMethod != rhs.verificationMethod {
-            return false
-        }
-        if lhs.authentication != rhs.authentication {
-            return false
-        }
-        if lhs.assertionMethod != rhs.assertionMethod {
-            return false
-        }
-        if lhs.keyAgreement != rhs.keyAgreement {
-            return false
-        }
-        if lhs.capabilityInvocation != rhs.capabilityInvocation {
-            return false
-        }
-        if lhs.capabilityDelegation != rhs.capabilityDelegation {
-            return false
-        }
-        if lhs.service != rhs.service {
-            return false
-        }
-        return true
+
+public func FfiConverterTypeClaims_lift(_ pointer: UnsafeMutableRawPointer) throws -> Claims {
+    return try FfiConverterTypeClaims.lift(pointer)
+}
+
+public func FfiConverterTypeClaims_lower(_ value: Claims) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeClaims.lower(value)
+}
+
+
+
+
+public protocol InMemoryKeyStoreProtocol : AnyObject {
+    
+    func exportPrivateKeys() throws  -> [PrivateKey]
+    
+    func generateNew(curve: Curve, keyAlias: String?) throws  -> String
+    
+    func getAllAliases() throws  -> [String]
+    
+    func getPublicKey(keyAlias: String) throws  -> PublicKey
+    
+    func importPrivateKeys(privateKeys: [PrivateKey]) throws 
+    
+    func sign(keyAlias: String, payload: [UInt8]) throws  -> Data
+    
+}
+
+open class InMemoryKeyStore:
+    InMemoryKeyStoreProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
     }
 
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-        hasher.combine(context)
-        hasher.combine(controller)
-        hasher.combine(alsoKnownAs)
-        hasher.combine(verificationMethod)
-        hasher.combine(authentication)
-        hasher.combine(assertionMethod)
-        hasher.combine(keyAgreement)
-        hasher.combine(capabilityInvocation)
-        hasher.combine(capabilityDelegation)
-        hasher.combine(service)
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_fn_clone_inmemorykeystore(self.pointer, $0) }
+    }
+public convenience init() {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_fn_constructor_inmemorykeystore_new($0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_fn_free_inmemorykeystore(pointer, $0) }
+    }
+
+    
+
+    
+open func exportPrivateKeys()throws  -> [PrivateKey] {
+    return try  FfiConverterSequenceTypePrivateKey.lift(try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_inmemorykeystore_export_private_keys(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func generateNew(curve: Curve, keyAlias: String?)throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_inmemorykeystore_generate_new(self.uniffiClonePointer(),
+        FfiConverterTypeCurve.lower(curve),
+        FfiConverterOptionString.lower(keyAlias),$0
+    )
+})
+}
+    
+open func getAllAliases()throws  -> [String] {
+    return try  FfiConverterSequenceString.lift(try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_inmemorykeystore_get_all_aliases(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func getPublicKey(keyAlias: String)throws  -> PublicKey {
+    return try  FfiConverterTypePublicKey.lift(try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_inmemorykeystore_get_public_key(self.uniffiClonePointer(),
+        FfiConverterString.lower(keyAlias),$0
+    )
+})
+}
+    
+open func importPrivateKeys(privateKeys: [PrivateKey])throws  {try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_inmemorykeystore_import_private_keys(self.uniffiClonePointer(),
+        FfiConverterSequenceTypePrivateKey.lower(privateKeys),$0
+    )
+}
+}
+    
+open func sign(keyAlias: String, payload: [UInt8])throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_inmemorykeystore_sign(self.uniffiClonePointer(),
+        FfiConverterString.lower(keyAlias),
+        FfiConverterSequenceUInt8.lower(payload),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeInMemoryKeyStore: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = InMemoryKeyStore
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> InMemoryKeyStore {
+        return InMemoryKeyStore(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: InMemoryKeyStore) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> InMemoryKeyStore {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: InMemoryKeyStore, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
     }
 }
 
 
-public struct FfiConverterTypeDocument: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Document {
-        return
-            try Document(
-                id: FfiConverterString.read(from: &buf), 
-                context: FfiConverterOptionSequenceString.read(from: &buf), 
-                controller: FfiConverterOptionSequenceString.read(from: &buf), 
-                alsoKnownAs: FfiConverterOptionSequenceString.read(from: &buf), 
-                verificationMethod: FfiConverterSequenceTypeVerificationMethod.read(from: &buf), 
-                authentication: FfiConverterOptionSequenceString.read(from: &buf), 
-                assertionMethod: FfiConverterOptionSequenceString.read(from: &buf), 
-                keyAgreement: FfiConverterOptionSequenceString.read(from: &buf), 
-                capabilityInvocation: FfiConverterOptionSequenceString.read(from: &buf), 
-                capabilityDelegation: FfiConverterOptionSequenceString.read(from: &buf), 
-                service: FfiConverterOptionSequenceTypeService.read(from: &buf)
-        )
+
+
+public func FfiConverterTypeInMemoryKeyStore_lift(_ pointer: UnsafeMutableRawPointer) throws -> InMemoryKeyStore {
+    return try FfiConverterTypeInMemoryKeyStore.lift(pointer)
+}
+
+public func FfiConverterTypeInMemoryKeyStore_lower(_ value: InMemoryKeyStore) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeInMemoryKeyStore.lower(value)
+}
+
+
+
+
+public protocol JwkProtocol : AnyObject {
+    
+    func alias() throws  -> String
+    
+    func computeThumbprint() throws  -> String
+    
+    func jwk() throws  -> Jwk
+    
+    func sign(payload: [UInt8]) throws  -> Data
+    
+    func toPublic() throws  -> PublicKey
+    
+    func verify(payload: [UInt8], signature: [UInt8]) throws 
+    
+}
+
+open class Jwk:
+    JwkProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
     }
 
-    public static func write(_ value: Document, into buf: inout [UInt8]) {
-        FfiConverterString.write(value.id, into: &buf)
-        FfiConverterOptionSequenceString.write(value.context, into: &buf)
-        FfiConverterOptionSequenceString.write(value.controller, into: &buf)
-        FfiConverterOptionSequenceString.write(value.alsoKnownAs, into: &buf)
-        FfiConverterSequenceTypeVerificationMethod.write(value.verificationMethod, into: &buf)
-        FfiConverterOptionSequenceString.write(value.authentication, into: &buf)
-        FfiConverterOptionSequenceString.write(value.assertionMethod, into: &buf)
-        FfiConverterOptionSequenceString.write(value.keyAgreement, into: &buf)
-        FfiConverterOptionSequenceString.write(value.capabilityInvocation, into: &buf)
-        FfiConverterOptionSequenceString.write(value.capabilityDelegation, into: &buf)
-        FfiConverterOptionSequenceTypeService.write(value.service, into: &buf)
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_fn_clone_jwk(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_fn_free_jwk(pointer, $0) }
+    }
+
+    
+
+    
+open func alias()throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_jwk_alias(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func computeThumbprint()throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeJwkError.lift) {
+    uniffi_web5_fn_method_jwk_compute_thumbprint(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func jwk()throws  -> Jwk {
+    return try  FfiConverterTypeJwk.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_jwk_jwk(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func sign(payload: [UInt8])throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_jwk_sign(self.uniffiClonePointer(),
+        FfiConverterSequenceUInt8.lower(payload),$0
+    )
+})
+}
+    
+open func toPublic()throws  -> PublicKey {
+    return try  FfiConverterTypePublicKey.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_jwk_to_public(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func verify(payload: [UInt8], signature: [UInt8])throws  {try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_jwk_verify(self.uniffiClonePointer(),
+        FfiConverterSequenceUInt8.lower(payload),
+        FfiConverterSequenceUInt8.lower(signature),$0
+    )
+}
+}
+    
+
+}
+
+public struct FfiConverterTypeJwk: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Jwk
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Jwk {
+        return Jwk(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Jwk) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Jwk {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Jwk, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
     }
 }
 
 
-public func FfiConverterTypeDocument_lift(_ buf: RustBuffer) throws -> Document {
-    return try FfiConverterTypeDocument.lift(buf)
+
+
+public func FfiConverterTypeJwk_lift(_ pointer: UnsafeMutableRawPointer) throws -> Jwk {
+    return try FfiConverterTypeJwk.lift(pointer)
 }
 
-public func FfiConverterTypeDocument_lower(_ value: Document) -> RustBuffer {
-    return FfiConverterTypeDocument.lower(value)
+public func FfiConverterTypeJwk_lower(_ value: Jwk) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeJwk.lower(value)
 }
 
 
-public struct Identifier {
-    public var uri: String
-    public var url: String
-    public var method: String
+
+
+public protocol KeyProtocol : AnyObject {
+    
+    func alias() throws  -> String
+    
+    func jwk() throws  -> Jwk
+    
+}
+
+open class Key:
+    KeyProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_fn_clone_key(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_fn_free_key(pointer, $0) }
+    }
+
+    
+
+    
+open func alias()throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_key_alias(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func jwk()throws  -> Jwk {
+    return try  FfiConverterTypeJwk.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_key_jwk(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeKey: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Key
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Key {
+        return Key(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Key) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Key {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Key, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeKey_lift(_ pointer: UnsafeMutableRawPointer) throws -> Key {
+    return try FfiConverterTypeKey.lift(pointer)
+}
+
+public func FfiConverterTypeKey_lower(_ value: Key) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeKey.lower(value)
+}
+
+
+
+
+public protocol KeyManagerProtocol : AnyObject {
+    
+    func exportPrivateKeys() throws  -> [PrivateKey]
+    
+    func generatePrivateKey(curve: Curve, keyAlias: String?) throws  -> String
+    
+    func getPublicKey(keyAlias: String) throws  -> PublicKey
+    
+    func importPrivateKeys(privateKeys: [PrivateKey]) throws 
+    
+    func sign(keyAlias: String, payload: [UInt8]) throws  -> Data
+    
+}
+
+open class KeyManager:
+    KeyManagerProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_fn_clone_keymanager(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_fn_free_keymanager(pointer, $0) }
+    }
+
+    
+
+    
+open func exportPrivateKeys()throws  -> [PrivateKey] {
+    return try  FfiConverterSequenceTypePrivateKey.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_keymanager_export_private_keys(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func generatePrivateKey(curve: Curve, keyAlias: String?)throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_keymanager_generate_private_key(self.uniffiClonePointer(),
+        FfiConverterTypeCurve.lower(curve),
+        FfiConverterOptionString.lower(keyAlias),$0
+    )
+})
+}
+    
+open func getPublicKey(keyAlias: String)throws  -> PublicKey {
+    return try  FfiConverterTypePublicKey.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_keymanager_get_public_key(self.uniffiClonePointer(),
+        FfiConverterString.lower(keyAlias),$0
+    )
+})
+}
+    
+open func importPrivateKeys(privateKeys: [PrivateKey])throws  {try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_keymanager_import_private_keys(self.uniffiClonePointer(),
+        FfiConverterSequenceTypePrivateKey.lower(privateKeys),$0
+    )
+}
+}
+    
+open func sign(keyAlias: String, payload: [UInt8])throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_keymanager_sign(self.uniffiClonePointer(),
+        FfiConverterString.lower(keyAlias),
+        FfiConverterSequenceUInt8.lower(payload),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeKeyManager: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = KeyManager
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> KeyManager {
+        return KeyManager(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: KeyManager) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> KeyManager {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: KeyManager, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeKeyManager_lift(_ pointer: UnsafeMutableRawPointer) throws -> KeyManager {
+    return try FfiConverterTypeKeyManager.lift(pointer)
+}
+
+public func FfiConverterTypeKeyManager_lower(_ value: KeyManager) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeKeyManager.lower(value)
+}
+
+
+
+
+public protocol KeyStoreProtocol : AnyObject {
+    
+    func exportPrivateKeys() throws  -> [PrivateKey]
+    
+    func generateNew(curve: Curve, keyAlias: String?) throws  -> String
+    
+    func getAllAliases() throws  -> [String]
+    
+    func getPublicKey(keyAlias: String) throws  -> PublicKey
+    
+    func importPrivateKeys(privateKeys: [PrivateKey]) throws 
+    
+    func sign(keyAlias: String, payload: [UInt8]) throws  -> Data
+    
+}
+
+open class KeyStore:
+    KeyStoreProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_fn_clone_keystore(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_fn_free_keystore(pointer, $0) }
+    }
+
+    
+
+    
+open func exportPrivateKeys()throws  -> [PrivateKey] {
+    return try  FfiConverterSequenceTypePrivateKey.lift(try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_keystore_export_private_keys(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func generateNew(curve: Curve, keyAlias: String?)throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_keystore_generate_new(self.uniffiClonePointer(),
+        FfiConverterTypeCurve.lower(curve),
+        FfiConverterOptionString.lower(keyAlias),$0
+    )
+})
+}
+    
+open func getAllAliases()throws  -> [String] {
+    return try  FfiConverterSequenceString.lift(try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_keystore_get_all_aliases(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func getPublicKey(keyAlias: String)throws  -> PublicKey {
+    return try  FfiConverterTypePublicKey.lift(try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_keystore_get_public_key(self.uniffiClonePointer(),
+        FfiConverterString.lower(keyAlias),$0
+    )
+})
+}
+    
+open func importPrivateKeys(privateKeys: [PrivateKey])throws  {try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_keystore_import_private_keys(self.uniffiClonePointer(),
+        FfiConverterSequenceTypePrivateKey.lower(privateKeys),$0
+    )
+}
+}
+    
+open func sign(keyAlias: String, payload: [UInt8])throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeKeyStoreError.lift) {
+    uniffi_web5_fn_method_keystore_sign(self.uniffiClonePointer(),
+        FfiConverterString.lower(keyAlias),
+        FfiConverterSequenceUInt8.lower(payload),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeKeyStore: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = KeyStore
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> KeyStore {
+        return KeyStore(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: KeyStore) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> KeyStore {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: KeyStore, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeKeyStore_lift(_ pointer: UnsafeMutableRawPointer) throws -> KeyStore {
+    return try FfiConverterTypeKeyStore.lift(pointer)
+}
+
+public func FfiConverterTypeKeyStore_lower(_ value: KeyStore) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeKeyStore.lower(value)
+}
+
+
+
+
+public protocol LocalKeyManagerProtocol : AnyObject {
+    
+    func exportPrivateKeys() throws  -> [PrivateKey]
+    
+    func generatePrivateKey(curve: Curve, keyAlias: String?) throws  -> String
+    
+    func getPublicKey(keyAlias: String) throws  -> PublicKey
+    
+    func importPrivateKeys(privateKeys: [PrivateKey]) throws 
+    
+    func sign(keyAlias: String, payload: [UInt8]) throws  -> Data
+    
+}
+
+open class LocalKeyManager:
+    LocalKeyManagerProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_fn_clone_localkeymanager(self.pointer, $0) }
+    }
+public convenience init(keyStore: KeyStore) {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_fn_constructor_localkeymanager_new(
+        FfiConverterTypeKeyStore.lower(keyStore),$0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_fn_free_localkeymanager(pointer, $0) }
+    }
+
+    
+public static func newInMemory() -> LocalKeyManager {
+    return try!  FfiConverterTypeLocalKeyManager.lift(try! rustCall() {
+    uniffi_web5_fn_constructor_localkeymanager_new_in_memory($0
+    )
+})
+}
+    
+
+    
+open func exportPrivateKeys()throws  -> [PrivateKey] {
+    return try  FfiConverterSequenceTypePrivateKey.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_localkeymanager_export_private_keys(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func generatePrivateKey(curve: Curve, keyAlias: String?)throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_localkeymanager_generate_private_key(self.uniffiClonePointer(),
+        FfiConverterTypeCurve.lower(curve),
+        FfiConverterOptionString.lower(keyAlias),$0
+    )
+})
+}
+    
+open func getPublicKey(keyAlias: String)throws  -> PublicKey {
+    return try  FfiConverterTypePublicKey.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_localkeymanager_get_public_key(self.uniffiClonePointer(),
+        FfiConverterString.lower(keyAlias),$0
+    )
+})
+}
+    
+open func importPrivateKeys(privateKeys: [PrivateKey])throws  {try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_localkeymanager_import_private_keys(self.uniffiClonePointer(),
+        FfiConverterSequenceTypePrivateKey.lower(privateKeys),$0
+    )
+}
+}
+    
+open func sign(keyAlias: String, payload: [UInt8])throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeKeyManagerError.lift) {
+    uniffi_web5_fn_method_localkeymanager_sign(self.uniffiClonePointer(),
+        FfiConverterString.lower(keyAlias),
+        FfiConverterSequenceUInt8.lower(payload),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeLocalKeyManager: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = LocalKeyManager
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> LocalKeyManager {
+        return LocalKeyManager(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: LocalKeyManager) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> LocalKeyManager {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: LocalKeyManager, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeLocalKeyManager_lift(_ pointer: UnsafeMutableRawPointer) throws -> LocalKeyManager {
+    return try FfiConverterTypeLocalKeyManager.lift(pointer)
+}
+
+public func FfiConverterTypeLocalKeyManager_lower(_ value: LocalKeyManager) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeLocalKeyManager.lower(value)
+}
+
+
+
+
+public protocol PrivateKeyProtocol : AnyObject {
+    
+    func sign(payload: [UInt8]) throws  -> Data
+    
+    func toPublic() throws  -> PublicKey
+    
+}
+
+open class PrivateKey:
+    PrivateKeyProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_fn_clone_privatekey(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_fn_free_privatekey(pointer, $0) }
+    }
+
+    
+
+    
+open func sign(payload: [UInt8])throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_privatekey_sign(self.uniffiClonePointer(),
+        FfiConverterSequenceUInt8.lower(payload),$0
+    )
+})
+}
+    
+open func toPublic()throws  -> PublicKey {
+    return try  FfiConverterTypePublicKey.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_privatekey_to_public(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypePrivateKey: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = PrivateKey
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> PrivateKey {
+        return PrivateKey(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: PrivateKey) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PrivateKey {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: PrivateKey, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypePrivateKey_lift(_ pointer: UnsafeMutableRawPointer) throws -> PrivateKey {
+    return try FfiConverterTypePrivateKey.lift(pointer)
+}
+
+public func FfiConverterTypePrivateKey_lower(_ value: PrivateKey) -> UnsafeMutableRawPointer {
+    return FfiConverterTypePrivateKey.lower(value)
+}
+
+
+
+
+public protocol PublicKeyProtocol : AnyObject {
+    
+    func verify(payload: [UInt8], signature: [UInt8]) throws 
+    
+}
+
+open class PublicKey:
+    PublicKeyProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_fn_clone_publickey(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_fn_free_publickey(pointer, $0) }
+    }
+
+    
+
+    
+open func verify(payload: [UInt8], signature: [UInt8])throws  {try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_publickey_verify(self.uniffiClonePointer(),
+        FfiConverterSequenceUInt8.lower(payload),
+        FfiConverterSequenceUInt8.lower(signature),$0
+    )
+}
+}
+    
+
+}
+
+public struct FfiConverterTypePublicKey: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = PublicKey
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> PublicKey {
+        return PublicKey(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: PublicKey) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PublicKey {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: PublicKey, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypePublicKey_lift(_ pointer: UnsafeMutableRawPointer) throws -> PublicKey {
+    return try FfiConverterTypePublicKey.lift(pointer)
+}
+
+public func FfiConverterTypePublicKey_lower(_ value: PublicKey) -> UnsafeMutableRawPointer {
+    return FfiConverterTypePublicKey.lower(value)
+}
+
+
+
+
+public protocol VerifiableCredentialProtocol : AnyObject {
+    
+    func sign(bearerDid: BearerDid, keySelector: KeySelector) throws  -> String
+    
+}
+
+open class VerifiableCredential:
+    VerifiableCredentialProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_fn_clone_verifiablecredential(self.pointer, $0) }
+    }
+public convenience init(context: [String], id: String, type: [String], issuer: String, issuanceDate: Int64, expirationDate: Int64?, credentialSubject: CredentialSubject) {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_fn_constructor_verifiablecredential_new(
+        FfiConverterSequenceString.lower(context),
+        FfiConverterString.lower(id),
+        FfiConverterSequenceString.lower(type),
+        FfiConverterString.lower(issuer),
+        FfiConverterInt64.lower(issuanceDate),
+        FfiConverterOptionInt64.lower(expirationDate),
+        FfiConverterTypeCredentialSubject.lower(credentialSubject),$0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_fn_free_verifiablecredential(pointer, $0) }
+    }
+
+    
+
+    
+open func sign(bearerDid: BearerDid, keySelector: KeySelector)throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeCredentialError.lift) {
+    uniffi_web5_fn_method_verifiablecredential_sign(self.uniffiClonePointer(),
+        FfiConverterTypeBearerDid.lower(bearerDid),
+        FfiConverterTypeKeySelector.lower(keySelector),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeVerifiableCredential: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = VerifiableCredential
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> VerifiableCredential {
+        return VerifiableCredential(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: VerifiableCredential) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VerifiableCredential {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: VerifiableCredential, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeVerifiableCredential_lift(_ pointer: UnsafeMutableRawPointer) throws -> VerifiableCredential {
+    return try FfiConverterTypeVerifiableCredential.lift(pointer)
+}
+
+public func FfiConverterTypeVerifiableCredential_lower(_ value: VerifiableCredential) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeVerifiableCredential.lower(value)
+}
+
+
+public struct CredentialSubject {
     public var id: String
     public var params: [String: String]?
-    public var path: String?
-    public var query: String?
-    public var fragment: String?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(uri: String, url: String, method: String, id: String, params: [String: String]?, path: String?, query: String?, fragment: String?) {
-        self.uri = uri
-        self.url = url
-        self.method = method
+    public init(id: String, params: [String: String]?) {
         self.id = id
         self.params = params
-        self.path = path
-        self.query = query
-        self.fragment = fragment
     }
 }
 
 
 
-extension Identifier: Equatable, Hashable {
-    public static func ==(lhs: Identifier, rhs: Identifier) -> Bool {
-        if lhs.uri != rhs.uri {
-            return false
-        }
-        if lhs.url != rhs.url {
-            return false
-        }
-        if lhs.method != rhs.method {
-            return false
-        }
+extension CredentialSubject: Equatable, Hashable {
+    public static func ==(lhs: CredentialSubject, rhs: CredentialSubject) -> Bool {
         if lhs.id != rhs.id {
             return false
         }
         if lhs.params != rhs.params {
             return false
         }
-        if lhs.path != rhs.path {
-            return false
-        }
-        if lhs.query != rhs.query {
-            return false
-        }
-        if lhs.fragment != rhs.fragment {
-            return false
-        }
         return true
     }
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(uri)
-        hasher.combine(url)
-        hasher.combine(method)
         hasher.combine(id)
         hasher.combine(params)
-        hasher.combine(path)
-        hasher.combine(query)
-        hasher.combine(fragment)
     }
 }
 
 
-public struct FfiConverterTypeIdentifier: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Identifier {
+public struct FfiConverterTypeCredentialSubject: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CredentialSubject {
         return
-            try Identifier(
-                uri: FfiConverterString.read(from: &buf), 
-                url: FfiConverterString.read(from: &buf), 
-                method: FfiConverterString.read(from: &buf), 
+            try CredentialSubject(
                 id: FfiConverterString.read(from: &buf), 
-                params: FfiConverterOptionDictionaryStringString.read(from: &buf), 
-                path: FfiConverterOptionString.read(from: &buf), 
-                query: FfiConverterOptionString.read(from: &buf), 
-                fragment: FfiConverterOptionString.read(from: &buf)
+                params: FfiConverterOptionDictionaryStringString.read(from: &buf)
         )
     }
 
-    public static func write(_ value: Identifier, into buf: inout [UInt8]) {
-        FfiConverterString.write(value.uri, into: &buf)
-        FfiConverterString.write(value.url, into: &buf)
-        FfiConverterString.write(value.method, into: &buf)
+    public static func write(_ value: CredentialSubject, into buf: inout [UInt8]) {
         FfiConverterString.write(value.id, into: &buf)
         FfiConverterOptionDictionaryStringString.write(value.params, into: &buf)
-        FfiConverterOptionString.write(value.path, into: &buf)
-        FfiConverterOptionString.write(value.query, into: &buf)
-        FfiConverterOptionString.write(value.fragment, into: &buf)
     }
 }
 
 
-public func FfiConverterTypeIdentifier_lift(_ buf: RustBuffer) throws -> Identifier {
-    return try FfiConverterTypeIdentifier.lift(buf)
+public func FfiConverterTypeCredentialSubject_lift(_ buf: RustBuffer) throws -> CredentialSubject {
+    return try FfiConverterTypeCredentialSubject.lift(buf)
 }
 
-public func FfiConverterTypeIdentifier_lower(_ value: Identifier) -> RustBuffer {
-    return FfiConverterTypeIdentifier.lower(value)
-}
-
-
-public struct Jwk {
-    public var alg: String
-    public var kty: String
-    public var crv: String
-    public var d: String?
-    public var x: String
-    public var y: String?
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(alg: String, kty: String, crv: String, d: String?, x: String, y: String?) {
-        self.alg = alg
-        self.kty = kty
-        self.crv = crv
-        self.d = d
-        self.x = x
-        self.y = y
-    }
+public func FfiConverterTypeCredentialSubject_lower(_ value: CredentialSubject) -> RustBuffer {
+    return FfiConverterTypeCredentialSubject.lower(value)
 }
 
 
-
-extension Jwk: Equatable, Hashable {
-    public static func ==(lhs: Jwk, rhs: Jwk) -> Bool {
-        if lhs.alg != rhs.alg {
-            return false
-        }
-        if lhs.kty != rhs.kty {
-            return false
-        }
-        if lhs.crv != rhs.crv {
-            return false
-        }
-        if lhs.d != rhs.d {
-            return false
-        }
-        if lhs.x != rhs.x {
-            return false
-        }
-        if lhs.y != rhs.y {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(alg)
-        hasher.combine(kty)
-        hasher.combine(crv)
-        hasher.combine(d)
-        hasher.combine(x)
-        hasher.combine(y)
-    }
-}
-
-
-public struct FfiConverterTypeJwk: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Jwk {
-        return
-            try Jwk(
-                alg: FfiConverterString.read(from: &buf), 
-                kty: FfiConverterString.read(from: &buf), 
-                crv: FfiConverterString.read(from: &buf), 
-                d: FfiConverterOptionString.read(from: &buf), 
-                x: FfiConverterString.read(from: &buf), 
-                y: FfiConverterOptionString.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: Jwk, into buf: inout [UInt8]) {
-        FfiConverterString.write(value.alg, into: &buf)
-        FfiConverterString.write(value.kty, into: &buf)
-        FfiConverterString.write(value.crv, into: &buf)
-        FfiConverterOptionString.write(value.d, into: &buf)
-        FfiConverterString.write(value.x, into: &buf)
-        FfiConverterOptionString.write(value.y, into: &buf)
-    }
-}
-
-
-public func FfiConverterTypeJwk_lift(_ buf: RustBuffer) throws -> Jwk {
-    return try FfiConverterTypeJwk.lift(buf)
-}
-
-public func FfiConverterTypeJwk_lower(_ value: Jwk) -> RustBuffer {
-    return FfiConverterTypeJwk.lower(value)
-}
-
-
-public struct Service {
-    public var id: String
-    public var type: String
-    public var serviceEndpoint: String
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(id: String, type: String, serviceEndpoint: String) {
-        self.id = id
-        self.type = type
-        self.serviceEndpoint = serviceEndpoint
-    }
-}
-
-
-
-extension Service: Equatable, Hashable {
-    public static func ==(lhs: Service, rhs: Service) -> Bool {
-        if lhs.id != rhs.id {
-            return false
-        }
-        if lhs.type != rhs.type {
-            return false
-        }
-        if lhs.serviceEndpoint != rhs.serviceEndpoint {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-        hasher.combine(type)
-        hasher.combine(serviceEndpoint)
-    }
-}
-
-
-public struct FfiConverterTypeService: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Service {
-        return
-            try Service(
-                id: FfiConverterString.read(from: &buf), 
-                type: FfiConverterString.read(from: &buf), 
-                serviceEndpoint: FfiConverterString.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: Service, into buf: inout [UInt8]) {
-        FfiConverterString.write(value.id, into: &buf)
-        FfiConverterString.write(value.type, into: &buf)
-        FfiConverterString.write(value.serviceEndpoint, into: &buf)
-    }
-}
-
-
-public func FfiConverterTypeService_lift(_ buf: RustBuffer) throws -> Service {
-    return try FfiConverterTypeService.lift(buf)
-}
-
-public func FfiConverterTypeService_lower(_ value: Service) -> RustBuffer {
-    return FfiConverterTypeService.lower(value)
-}
-
-
-public struct VerificationMethod {
-    public var id: String
-    public var type: String
-    public var controller: String
-    public var publicKeyJwk: Jwk
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(id: String, type: String, controller: String, publicKeyJwk: Jwk) {
-        self.id = id
-        self.type = type
-        self.controller = controller
-        self.publicKeyJwk = publicKeyJwk
-    }
-}
-
-
-
-extension VerificationMethod: Equatable, Hashable {
-    public static func ==(lhs: VerificationMethod, rhs: VerificationMethod) -> Bool {
-        if lhs.id != rhs.id {
-            return false
-        }
-        if lhs.type != rhs.type {
-            return false
-        }
-        if lhs.controller != rhs.controller {
-            return false
-        }
-        if lhs.publicKeyJwk != rhs.publicKeyJwk {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-        hasher.combine(type)
-        hasher.combine(controller)
-        hasher.combine(publicKeyJwk)
-    }
-}
-
-
-public struct FfiConverterTypeVerificationMethod: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VerificationMethod {
-        return
-            try VerificationMethod(
-                id: FfiConverterString.read(from: &buf), 
-                type: FfiConverterString.read(from: &buf), 
-                controller: FfiConverterString.read(from: &buf), 
-                publicKeyJwk: FfiConverterTypeJwk.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: VerificationMethod, into buf: inout [UInt8]) {
-        FfiConverterString.write(value.id, into: &buf)
-        FfiConverterString.write(value.type, into: &buf)
-        FfiConverterString.write(value.controller, into: &buf)
-        FfiConverterTypeJwk.write(value.publicKeyJwk, into: &buf)
-    }
-}
-
-
-public func FfiConverterTypeVerificationMethod_lift(_ buf: RustBuffer) throws -> VerificationMethod {
-    return try FfiConverterTypeVerificationMethod.lift(buf)
-}
-
-public func FfiConverterTypeVerificationMethod_lower(_ value: VerificationMethod) -> RustBuffer {
-    return FfiConverterTypeVerificationMethod.lower(value)
-}
-
-
-public enum CryptoError {
+public enum BearerDidError {
 
     
     
-    case MissingPrivateKey(message: String)
+    case VerificationMethodNotFound(message: String)
     
-    case DecodeError(message: String)
+    case KeyManagerError(message: String)
     
-    case InvalidKeyLength(message: String)
+    case KeyError(message: String)
     
-    case InvalidSignatureLength(message: String)
+    case DocumentError(message: String)
     
-    case PublicKeyFailure(message: String)
+    case ResolutionError(message: String)
     
-    case PrivateKeyFailure(message: String)
-    
-    case VerificationFailure(message: String)
-    
-    case SignFailure(message: String)
+    case IdentifierError(message: String)
     
 }
 
 
-public struct FfiConverterTypeCryptoError: FfiConverterRustBuffer {
-    typealias SwiftType = CryptoError
+public struct FfiConverterTypeBearerDidError: FfiConverterRustBuffer {
+    typealias SwiftType = BearerDidError
 
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CryptoError {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BearerDidError {
         let variant: Int32 = try readInt(&buf)
         switch variant {
 
         
 
         
-        case 1: return .MissingPrivateKey(
+        case 1: return .VerificationMethodNotFound(
             message: try FfiConverterString.read(from: &buf)
         )
         
-        case 2: return .DecodeError(
+        case 2: return .KeyManagerError(
             message: try FfiConverterString.read(from: &buf)
         )
         
-        case 3: return .InvalidKeyLength(
+        case 3: return .KeyError(
             message: try FfiConverterString.read(from: &buf)
         )
         
-        case 4: return .InvalidSignatureLength(
+        case 4: return .DocumentError(
             message: try FfiConverterString.read(from: &buf)
         )
         
-        case 5: return .PublicKeyFailure(
+        case 5: return .ResolutionError(
             message: try FfiConverterString.read(from: &buf)
         )
         
-        case 6: return .PrivateKeyFailure(
-            message: try FfiConverterString.read(from: &buf)
-        )
-        
-        case 7: return .VerificationFailure(
-            message: try FfiConverterString.read(from: &buf)
-        )
-        
-        case 8: return .SignFailure(
+        case 6: return .IdentifierError(
             message: try FfiConverterString.read(from: &buf)
         )
         
@@ -1116,28 +2012,24 @@ public struct FfiConverterTypeCryptoError: FfiConverterRustBuffer {
         }
     }
 
-    public static func write(_ value: CryptoError, into buf: inout [UInt8]) {
+    public static func write(_ value: BearerDidError, into buf: inout [UInt8]) {
         switch value {
 
         
 
         
-        case .MissingPrivateKey(_ /* message is ignored*/):
+        case .VerificationMethodNotFound(_ /* message is ignored*/):
             writeInt(&buf, Int32(1))
-        case .DecodeError(_ /* message is ignored*/):
+        case .KeyManagerError(_ /* message is ignored*/):
             writeInt(&buf, Int32(2))
-        case .InvalidKeyLength(_ /* message is ignored*/):
+        case .KeyError(_ /* message is ignored*/):
             writeInt(&buf, Int32(3))
-        case .InvalidSignatureLength(_ /* message is ignored*/):
+        case .DocumentError(_ /* message is ignored*/):
             writeInt(&buf, Int32(4))
-        case .PublicKeyFailure(_ /* message is ignored*/):
+        case .ResolutionError(_ /* message is ignored*/):
             writeInt(&buf, Int32(5))
-        case .PrivateKeyFailure(_ /* message is ignored*/):
+        case .IdentifierError(_ /* message is ignored*/):
             writeInt(&buf, Int32(6))
-        case .VerificationFailure(_ /* message is ignored*/):
-            writeInt(&buf, Int32(7))
-        case .SignFailure(_ /* message is ignored*/):
-            writeInt(&buf, Int32(8))
 
         
         }
@@ -1145,9 +2037,65 @@ public struct FfiConverterTypeCryptoError: FfiConverterRustBuffer {
 }
 
 
-extension CryptoError: Equatable, Hashable {}
+extension BearerDidError: Equatable, Hashable {}
 
-extension CryptoError: Error { }
+extension BearerDidError: Error { }
+
+
+public enum CredentialError {
+
+    
+    
+    case JwtError(message: String)
+    
+    case JwsError(message: String)
+    
+}
+
+
+public struct FfiConverterTypeCredentialError: FfiConverterRustBuffer {
+    typealias SwiftType = CredentialError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CredentialError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .JwtError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .JwsError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: CredentialError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        case .JwtError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(1))
+        case .JwsError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(2))
+
+        
+        }
+    }
+}
+
+
+extension CredentialError: Equatable, Hashable {}
+
+extension CredentialError: Error { }
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
@@ -1205,110 +2153,6 @@ extension Curve: Equatable, Hashable {}
 
 
 
-public enum DocumentError {
-
-    
-    
-    case VerificationMethodNotFound(message: String)
-    
-}
-
-
-public struct FfiConverterTypeDocumentError: FfiConverterRustBuffer {
-    typealias SwiftType = DocumentError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DocumentError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .VerificationMethodNotFound(
-            message: try FfiConverterString.read(from: &buf)
-        )
-        
-
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: DocumentError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        case .VerificationMethodNotFound(_ /* message is ignored*/):
-            writeInt(&buf, Int32(1))
-
-        
-        }
-    }
-}
-
-
-extension DocumentError: Equatable, Hashable {}
-
-extension DocumentError: Error { }
-
-
-public enum IdentifierError {
-
-    
-    
-    case RegexPatternFailure(message: String)
-    
-    case ParseFailure(message: String)
-    
-}
-
-
-public struct FfiConverterTypeIdentifierError: FfiConverterRustBuffer {
-    typealias SwiftType = IdentifierError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> IdentifierError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .RegexPatternFailure(
-            message: try FfiConverterString.read(from: &buf)
-        )
-        
-        case 2: return .ParseFailure(
-            message: try FfiConverterString.read(from: &buf)
-        )
-        
-
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: IdentifierError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        case .RegexPatternFailure(_ /* message is ignored*/):
-            writeInt(&buf, Int32(1))
-        case .ParseFailure(_ /* message is ignored*/):
-            writeInt(&buf, Int32(2))
-
-        
-        }
-    }
-}
-
-
-extension IdentifierError: Equatable, Hashable {}
-
-extension IdentifierError: Error { }
-
-
 public enum JwkError {
 
     
@@ -1355,6 +2199,158 @@ public struct FfiConverterTypeJwkError: FfiConverterRustBuffer {
 extension JwkError: Equatable, Hashable {}
 
 extension JwkError: Error { }
+
+
+public enum JwtError {
+
+    
+    
+    case JwsError(message: String)
+    
+    case SerializationError(message: String)
+    
+    case DeserializationError(message: String)
+    
+}
+
+
+public struct FfiConverterTypeJwtError: FfiConverterRustBuffer {
+    typealias SwiftType = JwtError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> JwtError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .JwsError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .SerializationError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 3: return .DeserializationError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: JwtError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        case .JwsError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(1))
+        case .SerializationError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(2))
+        case .DeserializationError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(3))
+
+        
+        }
+    }
+}
+
+
+extension JwtError: Equatable, Hashable {}
+
+extension JwtError: Error { }
+
+
+public enum KeyError {
+
+    
+    
+    case KeyGenerationFailed(message: String)
+    
+    case SerializationFailed(message: String)
+    
+    case CurveNotFound(message: String)
+    
+    case AlgorithmNotFound(message: String)
+    
+    case JwkError(message: String)
+    
+    case CryptoError(message: String)
+    
+}
+
+
+public struct FfiConverterTypeKeyError: FfiConverterRustBuffer {
+    typealias SwiftType = KeyError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> KeyError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .KeyGenerationFailed(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .SerializationFailed(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 3: return .CurveNotFound(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 4: return .AlgorithmNotFound(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 5: return .JwkError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 6: return .CryptoError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: KeyError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        case .KeyGenerationFailed(_ /* message is ignored*/):
+            writeInt(&buf, Int32(1))
+        case .SerializationFailed(_ /* message is ignored*/):
+            writeInt(&buf, Int32(2))
+        case .CurveNotFound(_ /* message is ignored*/):
+            writeInt(&buf, Int32(3))
+        case .AlgorithmNotFound(_ /* message is ignored*/):
+            writeInt(&buf, Int32(4))
+        case .JwkError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(5))
+        case .CryptoError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(6))
+
+        
+        }
+    }
+}
+
+
+extension KeyError: Equatable, Hashable {}
+
+extension KeyError: Error { }
 
 
 public enum KeyManagerError {
@@ -1435,7 +2431,7 @@ public enum KeySelector {
     
     case keyId(keyId: String
     )
-    case methodType(methodType: VerificationMethodType
+    case methodType(verificationMethodType: VerificationMethodType
     )
 }
 
@@ -1450,7 +2446,7 @@ public struct FfiConverterTypeKeySelector: FfiConverterRustBuffer {
         case 1: return .keyId(keyId: try FfiConverterString.read(from: &buf)
         )
         
-        case 2: return .methodType(methodType: try FfiConverterTypeVerificationMethodType.read(from: &buf)
+        case 2: return .methodType(verificationMethodType: try FfiConverterTypeVerificationMethodType.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -1466,9 +2462,9 @@ public struct FfiConverterTypeKeySelector: FfiConverterRustBuffer {
             FfiConverterString.write(keyId, into: &buf)
             
         
-        case let .methodType(methodType):
+        case let .methodType(verificationMethodType):
             writeInt(&buf, Int32(2))
-            FfiConverterTypeVerificationMethodType.write(methodType, into: &buf)
+            FfiConverterTypeVerificationMethodType.write(verificationMethodType, into: &buf)
             
         }
     }
@@ -1488,6 +2484,94 @@ public func FfiConverterTypeKeySelector_lower(_ value: KeySelector) -> RustBuffe
 extension KeySelector: Equatable, Hashable {}
 
 
+
+
+public enum KeyStoreError {
+
+    
+    
+    case InternalKeyStoreError(message: String)
+    
+    case KeyError(message: String)
+    
+    case KeyNotFound(message: String)
+    
+    case CryptoError(message: String)
+    
+    case JwkError(message: String)
+    
+    case UnsupportedOperation(message: String)
+    
+}
+
+
+public struct FfiConverterTypeKeyStoreError: FfiConverterRustBuffer {
+    typealias SwiftType = KeyStoreError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> KeyStoreError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .InternalKeyStoreError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .KeyError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 3: return .KeyNotFound(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 4: return .CryptoError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 5: return .JwkError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 6: return .UnsupportedOperation(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: KeyStoreError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        case .InternalKeyStoreError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(1))
+        case .KeyError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(2))
+        case .KeyNotFound(_ /* message is ignored*/):
+            writeInt(&buf, Int32(3))
+        case .CryptoError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(4))
+        case .JwkError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(5))
+        case .UnsupportedOperation(_ /* message is ignored*/):
+            writeInt(&buf, Int32(6))
+
+        
+        }
+    }
+}
+
+
+extension KeyStoreError: Equatable, Hashable {}
+
+extension KeyStoreError: Error { }
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
@@ -1565,6 +2649,27 @@ extension VerificationMethodType: Equatable, Hashable {}
 
 
 
+fileprivate struct FfiConverterOptionInt64: FfiConverterRustBuffer {
+    typealias SwiftType = Int64?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterInt64.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterInt64.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
     typealias SwiftType = String?
 
@@ -1581,48 +2686,6 @@ fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterString.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-fileprivate struct FfiConverterOptionSequenceString: FfiConverterRustBuffer {
-    typealias SwiftType = [String]?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterSequenceString.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterSequenceString.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-fileprivate struct FfiConverterOptionSequenceTypeService: FfiConverterRustBuffer {
-    typealias SwiftType = [Service]?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterSequenceTypeService.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterSequenceTypeService.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -1649,6 +2712,28 @@ fileprivate struct FfiConverterOptionDictionaryStringString: FfiConverterRustBuf
     }
 }
 
+fileprivate struct FfiConverterSequenceUInt8: FfiConverterRustBuffer {
+    typealias SwiftType = [UInt8]
+
+    public static func write(_ value: [UInt8], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterUInt8.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [UInt8] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [UInt8]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterUInt8.read(from: &buf))
+        }
+        return seq
+    }
+}
+
 fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
     typealias SwiftType = [String]
 
@@ -1671,67 +2756,23 @@ fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
     }
 }
 
-fileprivate struct FfiConverterSequenceTypeJwk: FfiConverterRustBuffer {
-    typealias SwiftType = [Jwk]
+fileprivate struct FfiConverterSequenceTypePrivateKey: FfiConverterRustBuffer {
+    typealias SwiftType = [PrivateKey]
 
-    public static func write(_ value: [Jwk], into buf: inout [UInt8]) {
+    public static func write(_ value: [PrivateKey], into buf: inout [UInt8]) {
         let len = Int32(value.count)
         writeInt(&buf, len)
         for item in value {
-            FfiConverterTypeJwk.write(item, into: &buf)
+            FfiConverterTypePrivateKey.write(item, into: &buf)
         }
     }
 
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [Jwk] {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [PrivateKey] {
         let len: Int32 = try readInt(&buf)
-        var seq = [Jwk]()
+        var seq = [PrivateKey]()
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
-            seq.append(try FfiConverterTypeJwk.read(from: &buf))
-        }
-        return seq
-    }
-}
-
-fileprivate struct FfiConverterSequenceTypeService: FfiConverterRustBuffer {
-    typealias SwiftType = [Service]
-
-    public static func write(_ value: [Service], into buf: inout [UInt8]) {
-        let len = Int32(value.count)
-        writeInt(&buf, len)
-        for item in value {
-            FfiConverterTypeService.write(item, into: &buf)
-        }
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [Service] {
-        let len: Int32 = try readInt(&buf)
-        var seq = [Service]()
-        seq.reserveCapacity(Int(len))
-        for _ in 0 ..< len {
-            seq.append(try FfiConverterTypeService.read(from: &buf))
-        }
-        return seq
-    }
-}
-
-fileprivate struct FfiConverterSequenceTypeVerificationMethod: FfiConverterRustBuffer {
-    typealias SwiftType = [VerificationMethod]
-
-    public static func write(_ value: [VerificationMethod], into buf: inout [UInt8]) {
-        let len = Int32(value.count)
-        writeInt(&buf, len)
-        for item in value {
-            FfiConverterTypeVerificationMethod.write(item, into: &buf)
-        }
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [VerificationMethod] {
-        let len: Int32 = try readInt(&buf)
-        var seq = [VerificationMethod]()
-        seq.reserveCapacity(Int(len))
-        for _ in 0 ..< len {
-            seq.append(try FfiConverterTypeVerificationMethod.read(from: &buf))
+            seq.append(try FfiConverterTypePrivateKey.read(from: &buf))
         }
         return seq
     }
@@ -1759,49 +2800,103 @@ fileprivate struct FfiConverterDictionaryStringString: FfiConverterRustBuffer {
         return dict
     }
 }
-public func computeThumbprint(jwk: Jwk)throws  -> String {
-    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeJwkError.lift) {
-    uniffi_web5_fn_func_compute_thumbprint(
-        FfiConverterTypeJwk.lower(jwk),$0
+private let UNIFFI_RUST_FUTURE_POLL_READY: Int8 = 0
+private let UNIFFI_RUST_FUTURE_POLL_MAYBE_READY: Int8 = 1
+
+fileprivate let uniffiContinuationHandleMap = UniffiHandleMap<UnsafeContinuation<Int8, Never>>()
+
+fileprivate func uniffiRustCallAsync<F, T>(
+    rustFutureFunc: () -> UInt64,
+    pollFunc: (UInt64, @escaping UniffiRustFutureContinuationCallback, UInt64) -> (),
+    completeFunc: (UInt64, UnsafeMutablePointer<RustCallStatus>) -> F,
+    freeFunc: (UInt64) -> (),
+    liftFunc: (F) throws -> T,
+    errorHandler: ((RustBuffer) throws -> Error)?
+) async throws -> T {
+    // Make sure to call uniffiEnsureInitialized() since future creation doesn't have a
+    // RustCallStatus param, so doesn't use makeRustCall()
+    uniffiEnsureInitialized()
+    let rustFuture = rustFutureFunc()
+    defer {
+        freeFunc(rustFuture)
+    }
+    var pollResult: Int8;
+    repeat {
+        pollResult = await withUnsafeContinuation {
+            pollFunc(
+                rustFuture,
+                uniffiFutureContinuationCallback,
+                uniffiContinuationHandleMap.insert(obj: $0)
+            )
+        }
+    } while pollResult != UNIFFI_RUST_FUTURE_POLL_READY
+
+    return try liftFunc(makeRustCall(
+        { completeFunc(rustFuture, $0) },
+        errorHandler: errorHandler
+    ))
+}
+
+// Callback handlers for an async calls.  These are invoked by Rust when the future is ready.  They
+// lift the return value or error and resume the suspended function.
+fileprivate func uniffiFutureContinuationCallback(handle: UInt64, pollResult: Int8) {
+    if let continuation = try? uniffiContinuationHandleMap.remove(handle: handle) {
+        continuation.resume(returning: pollResult)
+    } else {
+        print("uniffiFutureContinuationCallback invalid handle")
+    }
+}
+public func bearerDidFromKeyManager(didUri: String, keyManager: KeyManager)async throws  -> BearerDid {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_web5_fn_func_bearer_did_from_key_manager(FfiConverterString.lower(didUri),FfiConverterTypeKeyManager.lower(keyManager)
+                )
+            },
+            pollFunc: ffi_web5_rust_future_poll_pointer,
+            completeFunc: ffi_web5_rust_future_complete_pointer,
+            freeFunc: ffi_web5_rust_future_free_pointer,
+            liftFunc: FfiConverterTypeBearerDid.lift,
+            errorHandler: FfiConverterTypeBearerDidError.lift
+        )
+}
+public func signJwt(bearerDid: BearerDid, keySelector: KeySelector, encodedHeader: String, encodedPayload: String)throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeJwtError.lift) {
+    uniffi_web5_fn_func_sign_jwt(
+        FfiConverterTypeBearerDid.lower(bearerDid),
+        FfiConverterTypeKeySelector.lower(keySelector),
+        FfiConverterString.lower(encodedHeader),
+        FfiConverterString.lower(encodedPayload),$0
     )
 })
 }
-public func ed25519Generate()throws  -> Jwk {
-    return try  FfiConverterTypeJwk.lift(try rustCallWithError(FfiConverterTypeCryptoError.lift) {
-    uniffi_web5_fn_func_ed25519_generate($0
-    )
-})
+public func verifyJwt(jwt: String)async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_web5_fn_func_verify_jwt(FfiConverterString.lower(jwt)
+                )
+            },
+            pollFunc: ffi_web5_rust_future_poll_void,
+            completeFunc: ffi_web5_rust_future_complete_void,
+            freeFunc: ffi_web5_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeJwtError.lift
+        )
 }
-public func ed25519Sign(privateJwk: Jwk, payload: Data)throws  -> Data {
-    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeCryptoError.lift) {
-    uniffi_web5_fn_func_ed25519_sign(
-        FfiConverterTypeJwk.lower(privateJwk),
-        FfiConverterData.lower(payload),$0
-    )
-})
-}
-public func ed25519Verify(publicJwk: Jwk, payload: Data, signature: Data)throws  {try rustCallWithError(FfiConverterTypeCryptoError.lift) {
-    uniffi_web5_fn_func_ed25519_verify(
-        FfiConverterTypeJwk.lower(publicJwk),
-        FfiConverterData.lower(payload),
-        FfiConverterData.lower(signature),$0
-    )
-}
-}
-public func getVerificationMethod(document: Document, keySelector: KeySelector)throws  -> VerificationMethod {
-    return try  FfiConverterTypeVerificationMethod.lift(try rustCallWithError(FfiConverterTypeDocumentError.lift) {
-    uniffi_web5_fn_func_get_verification_method(
-        FfiConverterTypeDocument.lower(document),
-        FfiConverterTypeKeySelector.lower(keySelector),$0
-    )
-})
-}
-public func identifierParse(didUri: String)throws  -> Identifier {
-    return try  FfiConverterTypeIdentifier.lift(try rustCallWithError(FfiConverterTypeIdentifierError.lift) {
-    uniffi_web5_fn_func_identifier_parse(
-        FfiConverterString.lower(didUri),$0
-    )
-})
+public func verifyVcjwt(jwt: String)async throws  -> VerifiableCredential {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_web5_fn_func_verify_vcjwt(FfiConverterString.lower(jwt)
+                )
+            },
+            pollFunc: ffi_web5_rust_future_poll_pointer,
+            completeFunc: ffi_web5_rust_future_complete_pointer,
+            freeFunc: ffi_web5_rust_future_free_pointer,
+            liftFunc: FfiConverterTypeVerifiableCredential.lift,
+            errorHandler: FfiConverterTypeCredentialError.lift
+        )
 }
 
 private enum InitializationResult {
@@ -1819,40 +2914,142 @@ private var initializationResult: InitializationResult {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_web5_checksum_func_compute_thumbprint() != 41089) {
+    if (uniffi_web5_checksum_func_bearer_did_from_key_manager() != 49693) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_func_ed25519_generate() != 65237) {
+    if (uniffi_web5_checksum_func_sign_jwt() != 3714) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_func_ed25519_sign() != 54460) {
+    if (uniffi_web5_checksum_func_verify_jwt() != 15697) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_func_ed25519_verify() != 12689) {
+    if (uniffi_web5_checksum_func_verify_vcjwt() != 20360) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_func_get_verification_method() != 42866) {
+    if (uniffi_web5_checksum_method_bearerdid_sign() != 16617) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_func_identifier_parse() != 28515) {
+    if (uniffi_web5_checksum_method_claims_encode() != 57871) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_method_localjwkmanager_export_private_keys() != 50556) {
+    if (uniffi_web5_checksum_method_claims_sign() != 25723) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_method_localjwkmanager_generate_private_key() != 3998) {
+    if (uniffi_web5_checksum_method_inmemorykeystore_export_private_keys() != 39747) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_method_localjwkmanager_get_public_key() != 63695) {
+    if (uniffi_web5_checksum_method_inmemorykeystore_generate_new() != 38125) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_method_localjwkmanager_import_private_keys() != 12405) {
+    if (uniffi_web5_checksum_method_inmemorykeystore_get_all_aliases() != 5037) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_method_localjwkmanager_sign() != 36184) {
+    if (uniffi_web5_checksum_method_inmemorykeystore_get_public_key() != 29662) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_constructor_localjwkmanager_new() != 56159) {
+    if (uniffi_web5_checksum_method_inmemorykeystore_import_private_keys() != 30093) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_inmemorykeystore_sign() != 16944) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_alias() != 49978) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_compute_thumbprint() != 48815) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_jwk() != 5992) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_sign() != 61337) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_to_public() != 29912) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_verify() != 11302) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_key_alias() != 42841) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_key_jwk() != 56821) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keymanager_export_private_keys() != 21330) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keymanager_generate_private_key() != 37489) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keymanager_get_public_key() != 33063) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keymanager_import_private_keys() != 17034) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keymanager_sign() != 60994) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keystore_export_private_keys() != 51959) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keystore_generate_new() != 11193) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keystore_get_all_aliases() != 38081) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keystore_get_public_key() != 2805) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keystore_import_private_keys() != 4940) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_keystore_sign() != 52791) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_localkeymanager_export_private_keys() != 123) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_localkeymanager_generate_private_key() != 44974) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_localkeymanager_get_public_key() != 10967) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_localkeymanager_import_private_keys() != 16228) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_localkeymanager_sign() != 33139) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_privatekey_sign() != 45053) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_privatekey_to_public() != 39125) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_publickey_verify() != 12448) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_verifiablecredential_sign() != 29352) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_constructor_claims_new() != 1059) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_constructor_inmemorykeystore_new() != 52462) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_constructor_localkeymanager_new() != 2661) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_constructor_localkeymanager_new_in_memory() != 62693) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_constructor_verifiablecredential_new() != 54017) {
         return InitializationResult.apiChecksumMismatch
     }
 
