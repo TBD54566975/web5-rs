@@ -5,6 +5,9 @@ import PackageDescription
 
 let package = Package(
     name: "SwiftExample",
+    platforms: [
+        .macOS(.v10_15)
+    ],
     dependencies: [
         .package(name: "Web5", path: "../../bindings/swift")
     ],
