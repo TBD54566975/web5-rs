@@ -984,14 +984,14 @@ class LocalJwkManager {
 }
 module.exports.LocalJwkManager = LocalJwkManager;
 
-module.exports.__wbindgen_string_new = function(arg0, arg1) {
-    const ret = getStringFromWasm0(arg0, arg1);
-    return addHeapObject(ret);
-};
-
 module.exports.__wbg_jwk_unwrap = function(arg0) {
     const ret = Jwk.__unwrap(takeObject(arg0));
     return ret;
+};
+
+module.exports.__wbindgen_string_new = function(arg0, arg1) {
+    const ret = getStringFromWasm0(arg0, arg1);
+    return addHeapObject(ret);
 };
 
 module.exports.__wbg_jwk_new = function(arg0) {

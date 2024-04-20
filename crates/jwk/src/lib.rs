@@ -49,7 +49,7 @@ impl Jwk {
 
 #[cfg(test)]
 mod tests {
-    use super::*; // Adjust this line if your JWK struct and impl are in a different module
+    use super::*;
 
     #[test]
     fn test_compute_thumbprint() {

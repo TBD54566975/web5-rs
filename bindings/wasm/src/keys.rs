@@ -32,7 +32,7 @@ impl LocalJwkManager {
 
         let key_alias = self
             .0
-            .generate_private_key(curve, key_alias.as_ref().map(|s| s.as_str()))
+            .generate_private_key(curve, key_alias)
             .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
         Ok(key_alias)
     }

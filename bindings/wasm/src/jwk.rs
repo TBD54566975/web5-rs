@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use jwk::Jwk as InternalJwk;
 use keys::key::{PrivateKey, PublicKey};
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
@@ -8,6 +10,19 @@ pub struct Jwk(InternalJwk);
 impl From<InternalJwk> for Jwk {
     fn from(value: InternalJwk) -> Self {
         Self::new(value.alg, value.kty, value.crv, value.d, value.x, value.y)
+    }
+}
+
+impl From<Arc<InternalJwk>> for Jwk {
+    fn from(value: Arc<InternalJwk>) -> Self {
+        Self::new(
+            value.alg.clone(),
+            value.kty.clone(),
+            value.crv.clone(),
+            value.d.clone(),
+            value.x.clone(),
+            value.y.clone(),
+        )
     }
 }
 

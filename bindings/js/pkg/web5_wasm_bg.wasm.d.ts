@@ -1,13 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export function __wbg_localjwkmanager_free(a: number): void;
-export function localjwkmanager_new(): number;
-export function localjwkmanager_generatePrivateKey(a: number, b: number, c: number, d: number, e: number, f: number): void;
-export function localjwkmanager_getPublicKey(a: number, b: number, c: number, d: number): void;
-export function localjwkmanager_sign(a: number, b: number, c: number, d: number, e: number, f: number): void;
-export function localjwkmanager_exportPrivateKeys(a: number, b: number): void;
-export function localjwkmanager_importPrivateKeys(a: number, b: number, c: number, d: number): void;
 export function __wbg_jwk_free(a: number): void;
 export function jwk_new(a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number): number;
 export function jwk_alg(a: number, b: number): void;
@@ -20,6 +13,13 @@ export function jwk_computeThumbprint(a: number, b: number): void;
 export function jwk_verify(a: number, b: number, c: number, d: number, e: number, f: number): void;
 export function jwk_toPublic(a: number, b: number): void;
 export function jwk_sign(a: number, b: number, c: number, d: number): void;
+export function __wbg_localjwkmanager_free(a: number): void;
+export function localjwkmanager_new(): number;
+export function localjwkmanager_generatePrivateKey(a: number, b: number, c: number, d: number, e: number, f: number): void;
+export function localjwkmanager_getPublicKey(a: number, b: number, c: number, d: number): void;
+export function localjwkmanager_sign(a: number, b: number, c: number, d: number, e: number, f: number): void;
+export function localjwkmanager_exportPrivateKeys(a: number, b: number): void;
+export function localjwkmanager_importPrivateKeys(a: number, b: number, c: number, d: number): void;
 export function __wbg_identifier_free(a: number): void;
 export function identifier_parse(a: number, b: number, c: number): void;
 export function identifier_uri(a: number, b: number): void;
