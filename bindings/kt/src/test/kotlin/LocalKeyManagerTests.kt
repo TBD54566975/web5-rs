@@ -3,7 +3,6 @@ package web5.sdk
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import web5.sdk.LocalKeyManager
-import kotlin.math.sign
 
 class LocalKeyManagerTests {
     @Test
