@@ -1,6 +1,10 @@
 import Foundation
-import UniFFI
+import Web5
 
-print("hello world")
-let keyManager = UniFFI.LocalKeyManager.newInMemory()
-print(keyManager)
+let keyManager = LocalKeyManager.newInMemory()
+let keyAlias = try keyManager.generatePrivateKey(curve: Curve.ed25519, keyAlias: nil)
+let payload = "hello world".data(using: .utf8)!.map { $0 }
+let signature = try keyManager.sign(keyAlias: keyAlias, payload: payload)
+let publicKey = try keyManager.getPublicKey(keyAlias: keyAlias)
+try publicKey.verify(payload: payload, signature: Array(signature))
+print("Success!")
