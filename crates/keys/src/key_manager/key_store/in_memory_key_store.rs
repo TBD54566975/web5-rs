@@ -19,7 +19,11 @@ impl InMemoryKeyStore {
 }
 
 impl KeyStore for InMemoryKeyStore {
-    fn generate_new(&self, curve: Curve, key_alias: Option<String>) -> Result<String, KeyStoreError> {
+    fn generate_new(
+        &self,
+        curve: Curve,
+        key_alias: Option<String>,
+    ) -> Result<String, KeyStoreError> {
         let private_key = Arc::new(match curve {
             Curve::Ed25519 => Ed25199::generate(),
             Curve::Secp256k1 => Secp256k1::generate(),

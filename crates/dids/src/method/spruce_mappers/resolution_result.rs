@@ -1,7 +1,5 @@
 use crate::document::Document;
-use crate::resolver::{
-    DocumentMetadata, ResolutionError, ResolutionMetadata, ResolutionResult,
-};
+use crate::resolver::{DocumentMetadata, ResolutionError, ResolutionMetadata, ResolutionResult};
 use ssi_dids::did_resolve::{
     DocumentMetadata as SpruceDocumentMetadata, ResolutionMetadata as SpruceResolutionMetadata,
 };
