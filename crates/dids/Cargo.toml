@@ -21,4 +21,5 @@ ssi-jwk = "0.1.2"
 thiserror = { workspace = true }
 
 [dev-dependencies]
+chrono = { workspace = true }
 tokio = { version = "1.34.0", features = ["macros", "test-util"] }
