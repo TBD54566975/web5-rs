@@ -31,9 +31,7 @@ impl KeyManager for LocalKeyManager {
         curve: Curve,
         key_alias: Option<String>,
     ) -> Result<String, KeyManagerError> {
-        let key_alias = self
-            .key_store
-            .generate_new(curve, key_alias)?;
+        let key_alias = self.key_store.generate_new(curve, key_alias)?;
         Ok(key_alias)
     }
 

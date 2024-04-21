@@ -51,7 +51,11 @@ impl BearerDid {
         })
     }
 
-    pub fn sign(&self, key_selector: &KeySelector, payload: &[u8]) -> Result<Vec<u8>, BearerDidError> {
+    pub fn sign(
+        &self,
+        key_selector: &KeySelector,
+        payload: &[u8],
+    ) -> Result<Vec<u8>, BearerDidError> {
         let verification_method = self.document.get_verification_method(key_selector)?;
         let key_alias = KeyIdFragment(verification_method.id.clone()).splice_key_alias();
         let signature = self.key_manager.sign(&key_alias, payload)?;
