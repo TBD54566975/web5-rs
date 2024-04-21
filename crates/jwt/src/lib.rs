@@ -52,9 +52,6 @@ impl Claims {
         }
     }
 
-    // todo uniffi will want a constructor so might we well make props private w/ getters only
-    // todo this might be a good use case for dictionary's
-
     pub fn encode(&self) -> Result<String, JwtError> {
         let json_str = serde_json::to_string(&self)
             .map_err(|e| JwtError::SerializationError(e.to_string()))?;
@@ -88,4 +85,70 @@ pub fn sign_jwt(
 pub async fn verify_jwt(jwt: &str) -> Result<(), JwtError> {
     verify_compact_jws(jwt).await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use crypto::Curve;
+    use dids::{
+        document::VerificationMethodType,
+        method::{
+            jwk::{DidJwk, DidJwkCreateOptions},
+            Method,
+        },
+    };
+    use jws::splice_parts;
+    use keys::key_manager::local_key_manager::LocalKeyManager;
+
+    use super::*;
+    use std::sync::Arc;
+
+    #[test]
+    fn test_encode() {
+        let claims = Claims {
+            issuer: Some("did:example:123".to_string()),
+            ..Default::default()
+        };
+        let encoded = claims.encode().expect("failed to encode");
+        assert_ne!(0, encoded.len());
+    }
+
+    #[test]
+    fn test_sign() {
+        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+        let options = DidJwkCreateOptions {
+            curve: Curve::Ed25519,
+        };
+        let bearer_did = DidJwk::create(key_manager, options).unwrap();
+        let key_selector = KeySelector::MethodType {
+            verification_method_type: VerificationMethodType::VerificationMethod,
+        };
+
+        let claims = Claims {
+            issuer: Some("did:example:123".to_string()),
+            ..Default::default()
+        };
+        let signed = claims
+            .sign(&bearer_did, &key_selector)
+            .expect("failed to sign jwt");
+        assert!(signed.len() > 0);
+
+        let encoded_header = splice_parts(&signed).unwrap()[0].clone();
+        let encoded_payload = claims.encode().expect("failed to encode");
+        let signed2 = sign_jwt(
+            &bearer_did,
+            &key_selector,
+            &encoded_header,
+            &encoded_payload,
+        )
+        .expect("failed to sign jwt");
+        assert!(signed2.len() > 0);
+    }
+
+    #[tokio::test]
+    async fn test_verify() {
+        let jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVpIaHlUemhwWjJOaFVuQlRaRlZ0Ylc5QlRXaG1TRE5uVmtOV1kxTkpaWEp6WjBaYU1YUnFYMTlOVlNKOSMwIiwidHlwIjoiSldUIn0.eyJpc3MiOiJkaWQ6ZXhhbXBsZToxMjMifQ.aGu5KNVmNV1o35cyksJ5A1uCbDp5Z1moROPGwnsxNfTKC9aPbmAJVICaE9dB2lU79vIuVTgVFrs_octfB_wvAg";
+        let result = verify_jwt(jwt).await;
+        assert!(result.is_ok());
+    }
 }
