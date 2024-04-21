@@ -48,10 +48,18 @@ impl VerifiableCredential {
         expiration_date: Option<i64>,
         credential_subject: CredentialSubject,
     ) -> Self {
+        let context_with_base = std::iter::once(BASE_CONTEXT.to_string())
+            .chain(context.into_iter().filter(|c| c != BASE_CONTEXT))
+            .collect::<Vec<_>>();
+
+        let type_with_base = std::iter::once(BASE_TYPE.to_string())
+            .chain(r#type.into_iter().filter(|t| t != BASE_TYPE))
+            .collect::<Vec<_>>();
+
         Self {
-            context,
+            context: context_with_base,
             id,
-            r#type,
+            r#type: type_with_base,
             issuer,
             issuance_date,
             expiration_date,
@@ -173,6 +181,55 @@ mod test {
         assert_ne!("", vc.id);
         assert_eq!(1, vc.r#type.len());
         assert_eq!(vc.issuer, bearer_did.identifier.uri);
+    }
+
+    #[test]
+    fn test_new() {
+        let issuer = "did:jwk:something";
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+
+        let vc1 = VerifiableCredential::new(
+            vec![BASE_CONTEXT.to_string()],
+            format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+            vec![BASE_TYPE.to_string()],
+            issuer.to_string(),
+            now,
+            Some(now + 30 * 60),
+            CredentialSubject {
+                id: issuer.to_string(),
+                ..Default::default()
+            },
+        );
+
+        assert_eq!(1, vc1.context.len());
+        assert_eq!(1, vc1.r#type.len());
+        assert_eq!(BASE_CONTEXT, vc1.context[0]);
+        assert_eq!(BASE_TYPE, vc1.r#type[0]);
+        assert_eq!(1, vc1.context.iter().filter(|&c| c == BASE_CONTEXT).count());
+        assert_eq!(1, vc1.r#type.iter().filter(|&t| t == BASE_TYPE).count());
+
+        let vc2 = VerifiableCredential::new(
+            vec!["some-other-context".to_string()],
+            format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+            vec!["some-other-type".to_string()],
+            issuer.to_string(),
+            now,
+            Some(now + 30 * 60),
+            CredentialSubject {
+                id: issuer.to_string(),
+                ..Default::default()
+            },
+        );
+
+        assert_eq!(2, vc2.context.len());
+        assert_eq!(2, vc2.r#type.len());
+        assert_eq!(BASE_CONTEXT, vc2.context[0]);
+        assert_eq!(BASE_TYPE, vc2.r#type[0]);
+        assert_eq!(1, vc2.context.iter().filter(|&c| c == BASE_CONTEXT).count());
+        assert_eq!(1, vc2.r#type.iter().filter(|&t| t == BASE_TYPE).count());
     }
 
     #[tokio::test]
