@@ -45,7 +45,7 @@ impl CurveOperations for Secp256k1 {
     fn verify(public_jwk: &Jwk, payload: &[u8], signature: &[u8]) -> Result<(), CryptoError> {
         let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&public_jwk.x)?;
         let decoded_y = general_purpose::URL_SAFE_NO_PAD.decode(
-            &public_jwk
+            public_jwk
                 .y
                 .as_ref()
                 .ok_or(CryptoError::PublicKeyFailure("missing y".to_string()))?,
@@ -64,7 +64,7 @@ impl CurveOperations for Secp256k1 {
         let s: Signature = Signature::from_bytes(signature.into())
             .map_err(|e| CryptoError::VerificationFailure(e.to_string()))?;
 
-        let _ = verifying_key
+        verifying_key
             .verify(payload, &s)
             .map_err(|e| CryptoError::VerificationFailure(e.to_string()))?;
 

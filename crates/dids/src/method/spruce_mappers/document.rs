@@ -127,11 +127,11 @@ impl VerificationMethod {
                     ),
                 };
                 let jwk = Jwk {
-                    alg: alg,
+                    alg,
                     kty: kty.to_string(),
                     crv: crv.unwrap_or("".to_string()),
                     x: x.as_ref()
-                        .map(|b64| String::from(b64))
+                        .map(String::from)
                         .unwrap_or_else(|| "".to_string()),
                     y: y.map(String::from),
                     ..Default::default()
