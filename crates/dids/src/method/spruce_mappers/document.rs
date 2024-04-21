@@ -66,7 +66,6 @@ impl Document {
                 .collect::<Vec<_>>()
         });
 
-        // Handle the possible error when converting each `SpruceService` to `Service`
         let service = spruce_document
             .service
             .map(|services| {
@@ -75,7 +74,7 @@ impl Document {
                     .map(Service::from_spruce)
                     .collect::<Result<Vec<_>, String>>()
             })
-            .transpose()?; // Use transpose to convert Option<Result<T, E>> to Result<Option<T>, E>
+            .transpose()?;
 
         Ok(Document {
             id: spruce_document.id,
@@ -181,5 +180,98 @@ impl Service {
             r#type,
             service_endpoint,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_document_from_spruce() {
+        let spruce_document_str = r##"{
+            "@context": [
+              "https://www.w3.org/ns/did/v1",
+              "https://w3id.org/security/suites/jws-2020/v1"
+            ],
+            "id": "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiVl9nZWpSRGtOeU9JTDJKMXVhRnVEWXN0YUIxNVpibWc1bWNrUjZHQ2I0TSJ9",
+            "verificationMethod": [
+              {
+                "id": "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiVl9nZWpSRGtOeU9JTDJKMXVhRnVEWXN0YUIxNVpibWc1bWNrUjZHQ2I0TSJ9#0",
+                "type": "JsonWebKey2020",
+                "controller": "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiVl9nZWpSRGtOeU9JTDJKMXVhRnVEWXN0YUIxNVpibWc1bWNrUjZHQ2I0TSJ9",
+                "publicKeyJwk": {
+                  "alg": "EdDSA",
+                  "kty": "OKP",
+                  "crv": "Ed25519",
+                  "x": "V_gejRDkNyOIL2J1uaFuDYstaB15Zbmg5mckR6GCb4M"
+                }
+              }
+            ],
+            "authentication": [
+              "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiVl9nZWpSRGtOeU9JTDJKMXVhRnVEWXN0YUIxNVpibWc1bWNrUjZHQ2I0TSJ9#0"
+            ],
+            "assertionMethod": [
+              "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiVl9nZWpSRGtOeU9JTDJKMXVhRnVEWXN0YUIxNVpibWc1bWNrUjZHQ2I0TSJ9#0"
+            ],
+            "keyAgreement": [
+              "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiVl9nZWpSRGtOeU9JTDJKMXVhRnVEWXN0YUIxNVpibWc1bWNrUjZHQ2I0TSJ9#0"
+            ],
+            "capabilityInvocation": [
+              "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiVl9nZWpSRGtOeU9JTDJKMXVhRnVEWXN0YUIxNVpibWc1bWNrUjZHQ2I0TSJ9#0"
+            ],
+            "capabilityDelegation": [
+              "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiVl9nZWpSRGtOeU9JTDJKMXVhRnVEWXN0YUIxNVpibWc1bWNrUjZHQ2I0TSJ9#0"
+            ]
+          }"##;
+        let spruce_document: SpruceDocument = serde_json::from_str(&spruce_document_str).unwrap();
+        let document = Document::from_spruce(spruce_document).unwrap();
+
+        let expected_did_uri = "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiVl9nZWpSRGtOeU9JTDJKMXVhRnVEWXN0YUIxNVpibWc1bWNrUjZHQ2I0TSJ9".to_string();
+
+        assert_eq!(document.id, expected_did_uri);
+        assert_eq!(
+            document.context,
+            Some(vec![
+                "https://www.w3.org/ns/did/v1".to_string(),
+                "https://w3id.org/security/suites/jws-2020/v1".to_string()
+            ])
+        );
+        assert_eq!(document.controller, None);
+        assert_eq!(document.also_known_as, None);
+        assert_eq!(document.verification_method.len(), 1);
+
+        let vm = &document.verification_method[0];
+        assert_eq!(vm.id, format!("{}#0", expected_did_uri));
+        assert_eq!(vm.r#type, "JsonWebKey2020".to_string());
+        assert_eq!(vm.controller, expected_did_uri);
+        assert_eq!(vm.public_key_jwk.alg, "EdDSA".to_string());
+        assert_eq!(vm.public_key_jwk.kty, "OKP".to_string());
+        assert_eq!(vm.public_key_jwk.crv, "Ed25519".to_string());
+        assert_eq!(
+            vm.public_key_jwk.x,
+            "V_gejRDkNyOIL2J1uaFuDYstaB15Zbmg5mckR6GCb4M".to_string()
+        );
+        assert_eq!(vm.public_key_jwk.y, None);
+    }
+
+    #[test]
+    fn test_service_from_spruce() {
+        let spruce_service = SpruceService {
+            id: "did:example:123#service1".to_string(),
+            type_: OneOrMany::One("Example".to_string()),
+            service_endpoint: Some(OneOrMany::One(SpruceServiceEndpoint::URI(
+                "https://example.com/service1".to_string(),
+            ))),
+            property_set: None,
+        };
+        let service = Service::from_spruce(spruce_service).unwrap();
+
+        assert_eq!(service.id, "did:example:123#service1".to_string());
+        assert_eq!(service.r#type, "Example".to_string());
+        assert_eq!(
+            service.service_endpoint,
+            "https://example.com/service1".to_string()
+        );
     }
 }
