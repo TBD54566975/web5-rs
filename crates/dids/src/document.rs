@@ -150,4 +150,71 @@ impl Document {
     }
 }
 
-// todo tests for serialization which enforce web5-spec data types
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_key_id_fragment() {
+        let fragment = KeyIdFragment("did:example:123#key1".to_string());
+        assert_eq!(fragment.splice_key_alias(), "key1".to_string());
+        assert_eq!(fragment.splice_uri(), "did:example:123".to_string());
+
+        let fragment = KeyIdFragment("did:example:123".to_string());
+        assert_eq!(fragment.splice_key_alias(), "did:example:123".to_string());
+        assert_eq!(fragment.splice_uri(), "did:example:123".to_string());
+    }
+
+    #[test]
+    fn test_get_verification_method() {
+        let document = Document {
+            id: "did:example:123".to_string(),
+            verification_method: vec![
+                VerificationMethod {
+                    id: "did:example:123#key1".to_string(),
+                    r#type: "JsonWebKey2020".to_string(),
+                    controller: "did:example:123".to_string(),
+                    public_key_jwk: Jwk::default(),
+                },
+                VerificationMethod {
+                    id: "did:example:123#key2".to_string(),
+                    r#type: "JsonWebKey2020".to_string(),
+                    controller: "did:example:123".to_string(),
+                    public_key_jwk: Jwk::default(),
+                },
+            ],
+            authentication: Some(vec!["did:example:123#key1".to_string()]),
+            ..Default::default()
+        };
+
+        let key_selector = KeySelector::KeyId {
+            key_id: "did:example:123#key1".to_string(),
+        };
+        let vm = document.get_verification_method(&key_selector).unwrap();
+        assert_eq!(vm.id, "did:example:123#key1".to_string());
+
+        let key_selector = KeySelector::MethodType {
+            verification_method_type: VerificationMethodType::VerificationMethod,
+        };
+        let vm = document.get_verification_method(&key_selector).unwrap();
+        assert_eq!(vm.id, "did:example:123#key1".to_string());
+
+        let key_selector = KeySelector::MethodType {
+            verification_method_type: VerificationMethodType::Authentication,
+        };
+        let vm = document.get_verification_method(&key_selector).unwrap();
+        assert_eq!(vm.id, "did:example:123#key1".to_string());
+
+        let key_selector = KeySelector::KeyId {
+            key_id: "did:example:123#key3".to_string(),
+        };
+        let err = document.get_verification_method(&key_selector).unwrap_err();
+        assert_eq!(err, DocumentError::VerificationMethodNotFound);
+
+        let key_selector = KeySelector::MethodType {
+            verification_method_type: VerificationMethodType::AssertionMethod,
+        };
+        let err = document.get_verification_method(&key_selector).unwrap_err();
+        assert_eq!(err, DocumentError::VerificationMethodNotFound);
+    }
+}
