@@ -51,7 +51,7 @@ impl JwsHeader {
 
     pub fn from_encoded_part(encoded_part: &str) -> Result<Self, JwsError> {
         let decoded_bytes = general_purpose::URL_SAFE_NO_PAD
-            .decode(&encoded_part)
+            .decode(encoded_part)
             .map_err(|e| JwsError::DecodingError(e.to_string()))?;
         let jws_header = serde_json::from_slice(&decoded_bytes)
             .map_err(|e| JwsError::DeserializationError(e.to_string()))?;

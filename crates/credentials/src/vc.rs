@@ -79,10 +79,7 @@ impl VerifiableCredential {
                 jti: Some(self.id.clone()),
                 subject: Some(self.credential_subject.id.clone()),
                 not_before: Some(self.issuance_date),
-                expiration: match self.expiration_date {
-                    Some(exp) => Some(exp),
-                    None => None,
-                },
+                expiration: self.expiration_date,
                 ..Default::default()
             },
             vc: self.clone(),
@@ -97,7 +94,7 @@ impl VerifiableCredential {
 }
 
 pub async fn verify_vcjwt(jwt: &str) -> Result<Arc<VerifiableCredential>, CredentialError> {
-    let _ = verify_jwt(jwt).await?;
+    verify_jwt(jwt).await?;
     let claims = VcJwtClaims::new_from_compact_jws(jwt)?;
     Ok(Arc::new(claims.vc))
 }
@@ -130,8 +127,6 @@ impl VcJwtClaims {
 
 #[cfg(test)]
 mod test {
-    use std::time::{SystemTime, UNIX_EPOCH};
-
     use super::*;
     use crypto::Curve;
     use dids::{
@@ -142,6 +137,7 @@ mod test {
         },
     };
     use keys::key_manager::local_key_manager::LocalKeyManager;
+    use std::time::{SystemTime, UNIX_EPOCH};
     use uuid::Uuid;
 
     fn create_bearer_did() -> BearerDid {

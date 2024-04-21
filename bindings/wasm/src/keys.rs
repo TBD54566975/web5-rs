@@ -11,6 +11,12 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 #[wasm_bindgen]
 pub struct LocalJwkManager(InternalLocalKeyManager);
 
+impl Default for LocalJwkManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[wasm_bindgen]
 impl LocalJwkManager {
     #[wasm_bindgen(constructor)]

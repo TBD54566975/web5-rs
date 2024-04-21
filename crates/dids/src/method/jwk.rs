@@ -10,7 +10,6 @@ use serde_json::from_str;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 use ssi_dids::{DIDMethod, Source};
 use ssi_jwk::JWK as SpruceJwk;
-use std::future::Future;
 use std::sync::Arc;
 
 /// Concrete implementation for a did:jwk DID
@@ -65,20 +64,18 @@ impl Method<DidJwkCreateOptions> for DidJwk {
         Ok(bearer_did)
     }
 
-    fn resolve(did_uri: &str) -> impl Future<Output = ResolutionResult> {
-        async move {
-            let input_metadata = ResolutionInputMetadata::default();
-            let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
-                SpruceDidJwkMethod.resolve(did_uri, &input_metadata).await;
+    async fn resolve(did_uri: &str) -> ResolutionResult {
+        let input_metadata = ResolutionInputMetadata::default();
+        let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
+            SpruceDidJwkMethod.resolve(did_uri, &input_metadata).await;
 
-            match ResolutionResult::from_spruce(
-                spruce_resolution_metadata,
-                spruce_document,
-                spruce_document_metadata,
-            ) {
-                Ok(r) => r,
-                Err(e) => ResolutionResult::from_error(e),
-            }
+        match ResolutionResult::from_spruce(
+            spruce_resolution_metadata,
+            spruce_document,
+            spruce_document_metadata,
+        ) {
+            Ok(r) => r,
+            Err(e) => ResolutionResult::from_error(e),
         }
     }
 }

@@ -61,7 +61,7 @@ impl Identifier {
             Some(params) => {
                 let obj = Object::new();
                 for (key, value) in params {
-                    Reflect::set(&obj, &JsValue::from_str(&key), &JsValue::from_str(&value))
+                    Reflect::set(&obj, &JsValue::from_str(key), &JsValue::from_str(value))
                         .unwrap();
                 }
                 obj.into()

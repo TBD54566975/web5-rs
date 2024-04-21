@@ -86,6 +86,6 @@ pub fn sign_jwt(
 }
 
 pub async fn verify_jwt(jwt: &str) -> Result<(), JwtError> {
-    let _ = verify_compact_jws(jwt).await?;
+    verify_compact_jws(jwt).await?;
     Ok(())
 }

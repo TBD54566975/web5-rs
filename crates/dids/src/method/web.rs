@@ -5,7 +5,7 @@ use crate::{
 use did_web::DIDWeb as SpruceDidWebMethod;
 use keys::key_manager::KeyManager;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
-use std::{future::Future, sync::Arc};
+use std::sync::Arc;
 
 /// Concrete implementation for a did:web DID
 pub struct DidWeb {}
@@ -26,20 +26,18 @@ impl Method<DidWebCreateOptions> for DidWeb {
         ))
     }
 
-    fn resolve(did_uri: &str) -> impl Future<Output = ResolutionResult> {
-        async move {
-            let input_metadata = ResolutionInputMetadata::default();
-            let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
-                SpruceDidWebMethod.resolve(did_uri, &input_metadata).await;
+    async fn resolve(did_uri: &str) -> ResolutionResult {
+        let input_metadata = ResolutionInputMetadata::default();
+        let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
+            SpruceDidWebMethod.resolve(did_uri, &input_metadata).await;
 
-            match ResolutionResult::from_spruce(
-                spruce_resolution_metadata,
-                spruce_document,
-                spruce_document_metadata,
-            ) {
-                Ok(r) => r,
-                Err(e) => ResolutionResult::from_error(e),
-            }
+        match ResolutionResult::from_spruce(
+            spruce_resolution_metadata,
+            spruce_document,
+            spruce_document_metadata,
+        ) {
+            Ok(r) => r,
+            Err(e) => ResolutionResult::from_error(e),
         }
     }
 }

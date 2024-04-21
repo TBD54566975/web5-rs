@@ -23,8 +23,8 @@ impl CurveOperations for Ed25199 {
             alg: "EdDSA".to_string(),
             kty: "OKP".to_string(),
             crv: "Ed25519".to_string(),
-            x: general_purpose::URL_SAFE_NO_PAD.encode(&public_key_bytes),
-            d: Some(general_purpose::URL_SAFE_NO_PAD.encode(&private_key_bytes)),
+            x: general_purpose::URL_SAFE_NO_PAD.encode(public_key_bytes),
+            d: Some(general_purpose::URL_SAFE_NO_PAD.encode(private_key_bytes)),
             ..Default::default()
         })
     }
