@@ -15,7 +15,6 @@ pub struct BearerDid {
     pub document: Document,
 }
 
-// todo more precise errors
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum BearerDidError {
     #[error("verfication method not found")]
@@ -60,5 +59,65 @@ impl BearerDid {
         let key_alias = KeyIdFragment(verification_method.id.clone()).splice_key_alias();
         let signature = self.key_manager.sign(&key_alias, payload)?;
         Ok(signature)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::{
+        document::VerificationMethodType,
+        method::{
+            jwk::{DidJwk, DidJwkCreateOptions},
+            Method,
+        },
+    };
+    use crypto::Curve;
+    use keys::{key::PublicKey, key_manager::local_key_manager::LocalKeyManager};
+
+    #[tokio::test]
+    async fn test_from_key_manager() {
+        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+        let options = DidJwkCreateOptions {
+            curve: Curve::Ed25519,
+        };
+        let did_jwk_bearer_did = DidJwk::create(key_manager.clone(), options).unwrap();
+        let private_keys = key_manager.export_private_keys().unwrap();
+
+        let bearer_did =
+            BearerDid::from_key_manager(&did_jwk_bearer_did.identifier.uri, key_manager)
+                .await
+                .unwrap();
+        let bearer_did_private_keys = bearer_did.key_manager.export_private_keys().unwrap();
+
+        assert_eq!(bearer_did.identifier.uri, did_jwk_bearer_did.identifier.uri);
+        assert_eq!(private_keys.len(), bearer_did_private_keys.len());
+        assert_eq!(
+            private_keys[0].jwk().unwrap().d,
+            bearer_did_private_keys[0].jwk().unwrap().d
+        );
+    }
+
+    #[test]
+    fn test_sign() {
+        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+        let options = DidJwkCreateOptions {
+            curve: Curve::Ed25519,
+        };
+        let bearer_did = DidJwk::create(key_manager.clone(), options).unwrap();
+
+        let payload = b"hello world";
+        let key_selector = KeySelector::MethodType {
+            verification_method_type: VerificationMethodType::VerificationMethod,
+        };
+        let signature = bearer_did.sign(&key_selector, payload).unwrap();
+
+        assert_ne!(0, signature.len());
+
+        let vm = bearer_did
+            .document
+            .get_verification_method(&key_selector)
+            .unwrap();
+        vm.public_key_jwk.verify(payload, &signature).unwrap();
     }
 }
