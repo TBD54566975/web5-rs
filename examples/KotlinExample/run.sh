@@ -2,7 +2,10 @@
 
 set -e
 
-(cd ../../bindings/kt; ./install.sh)
+# TODO the `sudo cp` command below is not what we want
+(cd ../../bindings/kt; \
+  sudo cp src/main/resources/natives/libweb5.dylib ~/Library/Java/JavaVirtualMachines/jdk-17.0.8_7.jdk/Contents/Home/bin; \
+  mvn clean install)
 
 mvn clean compile
 mvn package
