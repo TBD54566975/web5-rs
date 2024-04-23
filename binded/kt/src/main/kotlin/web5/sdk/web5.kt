@@ -38,6 +38,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.nio.file.Files
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -979,11 +980,17 @@ internal open class UniffiVTableCallbackInterfacePublicKey(
 internal interface UniffiLib : Library {
     companion object {
         internal val INSTANCE: UniffiLib by lazy {
-            loadIndirect<UniffiLib>(componentName = "web5")
-            .also { lib: UniffiLib ->
-                uniffiCheckContractApiVersion(lib)
-                uniffiCheckApiChecksums(lib)
-                }
+            val tempDir = Files.createTempDirectory("library")
+            val libraryPath = tempDir.resolve("libweb5.dylib")
+            Thread.currentThread().contextClassLoader.getResourceAsStream("natives/libweb5.dylib").use { input ->
+                Files.copy(input, libraryPath)
+            }
+            libraryPath.toFile().deleteOnExit()
+            val lib = Native.load(libraryPath.toString(), UniffiLib::class.java)
+            lib.also {
+                uniffiCheckContractApiVersion(it)
+                uniffiCheckApiChecksums(it)
+            }
         }
         
         // The Cleaner for the whole library
