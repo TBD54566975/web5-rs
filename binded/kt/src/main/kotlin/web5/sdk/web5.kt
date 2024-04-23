@@ -987,10 +987,9 @@ internal interface UniffiLib : Library {
             }
             libraryPath.toFile().deleteOnExit()
             val lib = Native.load(libraryPath.toString(), UniffiLib::class.java)
-            lib.also {
-                uniffiCheckContractApiVersion(it)
-                uniffiCheckApiChecksums(it)
-            }
+            lib.also {                uniffiCheckContractApiVersion(lib)
+                uniffiCheckApiChecksums(lib)
+                }
         }
         
         // The Cleaner for the whole library

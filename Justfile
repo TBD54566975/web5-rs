@@ -31,6 +31,7 @@ bind-kotlin:
     --out-dir target/bindgen-kotlin
   cp target/release/libweb5.dylib binded/kt/src/main/resources/natives
   cp target/bindgen-kotlin/web5/sdk/web5.kt binded/kt/src/main/kotlin/web5/sdk
+  cd binded/kt && ./fix-load.sh
 
 bind-swift:
   cargo build --release --package web5-uniffi
