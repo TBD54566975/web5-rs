@@ -5,6 +5,9 @@
       "path": "."
     },
     {
+      "path": "binded"
+    },
+    {
       "path": "bindings"
     },
     {

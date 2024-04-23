@@ -9,7 +9,7 @@ let package = Package(
         .macOS(.v10_15)
     ],
     dependencies: [
-        .package(name: "Web5", path: "../../bindings/swift")
+        .package(name: "Web5", path: "../../binded/swift")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
