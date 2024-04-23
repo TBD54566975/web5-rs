@@ -60,8 +60,10 @@ test-ts:
 test-kotlin:
   # TODO the `sudo cp` is not what we want
   cd binded/kt && \
-    sudo cp src/main/resources/natives/libweb5.dylib ~/Library/Java/JavaVirtualMachines/jdk-17.0.8_7.jdk/Contents/Home/bin && \
-    mvn clean test
+  LATEST_JDK=$(ls -v ~/Library/Java/JavaVirtualMachines/ | grep jdk | tail -1) && \
+  sudo cp src/main/resources/natives/libweb5.dylib ~/Library/Java/JavaVirtualMachines/${LATEST_JDK}/Contents/Home/bin && \
+  mvn clean test
+
 
 test-swift:
   cd binded/swift && \
