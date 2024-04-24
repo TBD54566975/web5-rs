@@ -30,7 +30,10 @@ impl Method<DidJwkCreateOptions> for DidJwk {
         let key_alias = key_manager.generate_private_key(options.curve, Some("0".to_string()))?;
         let public_key = key_manager.get_public_key(&key_alias)?;
         let public_jwk = public_key.jwk()?;
-        let jwk_string = serde_json::to_string(public_jwk.as_ref()).map_err(|_| {
+        // spruce doesn't allow the fully-specific Ed25519 so we have to clone and override
+        let mut spruce_public_jwk = (*public_jwk).clone();
+        spruce_public_jwk.alg = "EdDSA".to_string();
+        let jwk_string = serde_json::to_string(&spruce_public_jwk).map_err(|_| {
             MethodError::DidCreationFailure("failed to serialize public jwk".to_string())
         })?;
         let spruce_jwk: SpruceJwk =

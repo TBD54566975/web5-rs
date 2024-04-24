@@ -20,7 +20,8 @@ impl CurveOperations for Ed25199 {
         let public_key_bytes = verifying_key.to_bytes();
 
         Ok(Jwk {
-            alg: "EdDSA".to_string(),
+            // Ed25519 is fully specified as opposed to EdDSA https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-02.html
+            alg: "Ed25519".to_string(),
             kty: "OKP".to_string(),
             crv: "Ed25519".to_string(),
             x: general_purpose::URL_SAFE_NO_PAD.encode(public_key_bytes),
@@ -79,7 +80,7 @@ mod tests {
     #[test]
     fn test_generate_keys() {
         let jwk = Ed25199::generate().unwrap();
-        assert_eq!(jwk.alg, "EdDSA");
+        assert_eq!(jwk.alg, "Ed25519");
         assert_eq!(jwk.kty, "OKP");
         assert_eq!(jwk.crv, "Ed25519");
         assert_eq!(jwk.x.len(), 43);

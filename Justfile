@@ -50,7 +50,7 @@ bind-swift:
     -headers target/xcframework-staging \
     -output binded/swift/libweb5-rs.xcframework
 
-test-bindings:
+test-binded:
   just test-ts
   just test-kotlin
   just test-swift

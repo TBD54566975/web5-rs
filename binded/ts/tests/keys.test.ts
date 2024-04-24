@@ -32,7 +32,7 @@ describe('LocalJwkManager', () => {
 
     const publicKey = keyManager.getPublicKey(keyAlias)
     expect(publicKey).toBeDefined()
-    expect(publicKey.alg).toBe('EdDSA')
+    expect(publicKey.alg).toBe('Ed25519')
     expect(publicKey.kty).toBe('OKP')
     expect(publicKey.crv).toBe('Ed25519')
     expect(publicKey.x).toBeDefined()

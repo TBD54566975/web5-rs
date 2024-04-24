@@ -105,7 +105,7 @@ impl VerificationMethod {
                 let spruce_jwk = ssi_vmm.get_jwk()?;
                 let alg = match spruce_jwk.algorithm {
                     Some(Algorithm::ES256K) => "ES256K",
-                    Some(Algorithm::EdDSA) => "EdDSA",
+                    Some(Algorithm::EdDSA) => "Ed25519", // https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-02.html
                     _ => "",
                 }
                 .to_string();
@@ -245,7 +245,7 @@ mod tests {
         assert_eq!(vm.id, format!("{}#0", expected_did_uri));
         assert_eq!(vm.r#type, "JsonWebKey2020".to_string());
         assert_eq!(vm.controller, expected_did_uri);
-        assert_eq!(vm.public_key_jwk.alg, "EdDSA".to_string());
+        assert_eq!(vm.public_key_jwk.alg, "Ed25519".to_string());
         assert_eq!(vm.public_key_jwk.kty, "OKP".to_string());
         assert_eq!(vm.public_key_jwk.crv, "Ed25519".to_string());
         assert_eq!(

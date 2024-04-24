@@ -10,7 +10,7 @@ describe('crypto', () => {
   test('should generate Ed25519 key', () => {
     const key = generateEd25519Key()
     expect(key).toBeDefined()
-    expect(key.alg).toBe('EdDSA')
+    expect(key.alg).toBe('Ed25519')
     expect(key.kty).toBe('OKP')
     expect(key.crv).toBe('Ed25519')
     expect(key.d).toBeDefined()

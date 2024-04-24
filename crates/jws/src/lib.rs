@@ -67,7 +67,7 @@ impl JwsHeader {
         let kid = verification_method.id;
         let alg = match verification_method.public_key_jwk.crv.as_str() {
             "secp256k1" => "ES256K".to_string(),
-            "Ed25519" => "EdDSA".to_string(),
+            "Ed25519" => "Ed25519".to_string(),
             _ => return Err(JwsError::AlgorithmNotFound(kid)),
         };
         Ok(Self {
@@ -138,6 +138,7 @@ pub async fn verify_compact_jws(compact_jws: &str) -> Result<(), JwsError> {
         .map_err(|e| JwsError::DecodingError(e.to_string()))?;
     match alg.as_str() {
         "EdDSA" => Ed25199::verify(&public_key, &to_verify.into_bytes(), &decoded_signature),
+        "Ed25519" => Ed25199::verify(&public_key, &to_verify.into_bytes(), &decoded_signature),
         "ES256K" => Secp256k1::verify(&public_key, &to_verify.into_bytes(), &decoded_signature),
         _ => return Err(JwsError::AlgorithmNotFound(alg)),
     }?;
@@ -182,7 +183,7 @@ mod test {
         let jws_header = JwsHeader::from_bearer_did(&bearer_did, &key_selector, "JWT")
             .expect("failed to instantiate JwsHeader from bearer did");
 
-        assert_eq!(jws_header.alg, "EdDSA".to_string());
+        assert_eq!(jws_header.alg, "Ed25519".to_string());
         assert_eq!(
             jws_header.kid,
             bearer_did
@@ -196,7 +197,7 @@ mod test {
 
     #[test]
     fn test_encode() {
-        let jws_header = JwsHeader::new("EdDSA".to_string(), "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoickFvSzNDbGF3U0ZXSFBuOEF2NklqbGpCU3dsZDFva0JyX24zY01adUd4YyJ9#0".to_string(), "JWT".to_string());
+        let jws_header = JwsHeader::new("Ed25519".to_string(), "did:jwk:eyJhbGciOiJFZERTQSIsImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoickFvSzNDbGF3U0ZXSFBuOEF2NklqbGpCU3dsZDFva0JyX24zY01adUd4YyJ9#0".to_string(), "JWT".to_string());
         let encoded = jws_header.encode().expect("failed to encode jws header");
         assert!(encoded.len() > 0);
 
