@@ -2,6 +2,7 @@ use crate::any::Any;
 use credentials::vc::{CredentialSubject, VerifiableCredential};
 use std::sync::Arc;
 
+#[allow(clippy::too_many_arguments)]
 pub fn new_verifiable_credential(
     context: Vec<String>,
     id: String,

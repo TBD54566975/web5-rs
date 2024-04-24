@@ -41,6 +41,7 @@ pub struct CredentialSubject {
 }
 
 impl VerifiableCredential {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         context: Vec<String>,
         id: String,

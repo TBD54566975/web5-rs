@@ -1,4 +1,4 @@
-use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
 #[derive(thiserror::Error, Debug)]
@@ -33,12 +33,6 @@ impl<'de> Deserialize<'de> for Any {
 impl Any {
     pub fn from_json_string(json_string: String) -> Result<Self, AnyError> {
         let value: Value = serde_json::from_str(&json_string)?;
-        Ok(Self { value })
-    }
-
-    pub fn from_generic<T: Serialize + DeserializeOwned>(any: T) -> Result<Self, AnyError> {
-        let json_str = serde_json::to_string(&any)?;
-        let value = serde_json::from_str(&json_str)?;
         Ok(Self { value })
     }
 }
@@ -85,43 +79,5 @@ mod tests {
         let json_str = "not a valid json";
         let result = Any::from_json_string(json_str.to_string());
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_from_generic_conversion() {
-        let data = vec![1, 2, 3];
-        let any = Any::from_generic(data).unwrap();
-        assert_eq!(any.value, json!([1, 2, 3]));
-    }
-
-    #[derive(Serialize, Deserialize, PartialEq, Debug)]
-    struct TestStruct {
-        id: u32,
-        name: String,
-    }
-
-    #[test]
-    fn test_serialize_custom_struct() {
-        let test_struct = TestStruct {
-            id: 123,
-            name: "Alice".to_string(),
-        };
-        let any = Any::from_generic(test_struct).unwrap();
-        let serialized = serde_json::to_string(&any).unwrap();
-        assert_eq!(serialized, "{\"id\":123,\"name\":\"Alice\"}");
-    }
-
-    #[test]
-    fn test_deserialize_custom_struct() {
-        let json_str = "{\"id\":123,\"name\":\"Alice\"}";
-        let any: Any = serde_json::from_str(json_str).unwrap();
-        let deserialized: TestStruct = serde_json::from_value(any.value).unwrap();
-        assert_eq!(
-            deserialized,
-            TestStruct {
-                id: 123,
-                name: "Alice".to_string()
-            }
-        );
     }
 }
