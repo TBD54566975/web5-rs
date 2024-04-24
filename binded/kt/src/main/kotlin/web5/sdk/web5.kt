@@ -1116,7 +1116,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_fn_free_verifiablecredential(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_fn_constructor_verifiablecredential_new(`context`: RustBuffer.ByValue,`id`: RustBuffer.ByValue,`type`: RustBuffer.ByValue,`issuer`: RustBuffer.ByValue,`issuanceDate`: Long,`expirationDate`: RustBuffer.ByValue,`credentialSubject`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_fn_constructor_verifiablecredential_new(`context`: RustBuffer.ByValue,`id`: RustBuffer.ByValue,`type`: RustBuffer.ByValue,`issuer`: RustBuffer.ByValue,`issuanceDate`: Long,`expirationDate`: RustBuffer.ByValue,`credentialSubject`: RustBuffer.ByValue,`evidenceJson`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_fn_method_verifiablecredential_sign(`ptr`: Pointer,`bearerDid`: Pointer,`keySelector`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -1484,7 +1484,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_checksum_constructor_localkeymanager_new_in_memory() != 62693.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_checksum_constructor_verifiablecredential_new() != 54017.toShort()) {
+    if (lib.uniffi_web5_checksum_constructor_verifiablecredential_new() != 56116.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -4605,11 +4605,11 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`context`: List<kotlin.String>, `id`: kotlin.String, `type`: List<kotlin.String>, `issuer`: kotlin.String, `issuanceDate`: kotlin.Long, `expirationDate`: kotlin.Long?, `credentialSubject`: CredentialSubject) :
+    constructor(`context`: List<kotlin.String>, `id`: kotlin.String, `type`: List<kotlin.String>, `issuer`: kotlin.String, `issuanceDate`: kotlin.Long, `expirationDate`: kotlin.Long?, `credentialSubject`: CredentialSubject, `evidenceJson`: kotlin.String?) :
         this(
-    uniffiRustCall() { _status ->
+    uniffiRustCallWithError(CredentialException) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_fn_constructor_verifiablecredential_new(
-        FfiConverterSequenceString.lower(`context`),FfiConverterString.lower(`id`),FfiConverterSequenceString.lower(`type`),FfiConverterString.lower(`issuer`),FfiConverterLong.lower(`issuanceDate`),FfiConverterOptionalLong.lower(`expirationDate`),FfiConverterTypeCredentialSubject.lower(`credentialSubject`),_status)
+        FfiConverterSequenceString.lower(`context`),FfiConverterString.lower(`id`),FfiConverterSequenceString.lower(`type`),FfiConverterString.lower(`issuer`),FfiConverterLong.lower(`issuanceDate`),FfiConverterOptionalLong.lower(`expirationDate`),FfiConverterTypeCredentialSubject.lower(`credentialSubject`),FfiConverterOptionalString.lower(`evidenceJson`),_status)
 }
     )
 
@@ -4835,6 +4835,8 @@ sealed class CredentialException(message: String): Exception(message) {
         
         class JwsException(message: String) : CredentialException(message)
         
+        class EvidenceParsingException(message: String) : CredentialException(message)
+        
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<CredentialException> {
         override fun lift(error_buf: RustBuffer.ByValue): CredentialException = FfiConverterTypeCredentialError.lift(error_buf)
@@ -4847,6 +4849,7 @@ public object FfiConverterTypeCredentialError : FfiConverterRustBuffer<Credentia
             return when(buf.getInt()) {
             1 -> CredentialException.JwtException(FfiConverterString.read(buf))
             2 -> CredentialException.JwsException(FfiConverterString.read(buf))
+            3 -> CredentialException.EvidenceParsingException(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -4864,6 +4867,10 @@ public object FfiConverterTypeCredentialError : FfiConverterRustBuffer<Credentia
             }
             is CredentialException.JwsException -> {
                 buf.putInt(2)
+                Unit
+            }
+            is CredentialException.EvidenceParsingException -> {
+                buf.putInt(3)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }

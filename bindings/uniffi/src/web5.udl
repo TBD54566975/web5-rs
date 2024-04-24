@@ -206,10 +206,12 @@ dictionary CredentialSubject {
 enum CredentialError {
   "JwtError",
   "JwsError",
+  "EvidenceParsingError",
 };
 
 interface VerifiableCredential {
-  constructor(sequence<string> context, string id, sequence<string> type, string issuer, i64 issuance_date, i64? expiration_date, CredentialSubject credential_subject);
+  [Throws=CredentialError]
+  constructor(sequence<string> context, string id, sequence<string> type, string issuer, i64 issuance_date, i64? expiration_date, CredentialSubject credential_subject, string? evidence_json);
   [Throws=CredentialError]
   string sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector);
 };

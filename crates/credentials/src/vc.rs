@@ -4,6 +4,10 @@ use jws::{splice_parts, JwsError, JwsHeader};
 use jwt::{sign_jwt, verify_jwt, Claims, JwtError};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
+use serde_json::Value;
+
+#[cfg(test)]
+use serde_json::json;
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 const BASE_TYPE: &str = "VerifiableCredential";
@@ -14,6 +18,8 @@ pub enum CredentialError {
     JwtError(#[from] JwtError),
     #[error(transparent)]
     JwsError(#[from] JwsError),
+    #[error("Error parsing evidence: {0}")]
+    EvidenceParsingError(String),
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -26,9 +32,11 @@ pub struct VerifiableCredential {
     pub issuer: String,
     #[serde(rename = "issuanceDate")]
     pub issuance_date: i64,
-    #[serde(rename = "expirationDate")]
+    #[serde(rename = "expirationDate", skip_serializing_if = "Option::is_none")]
     pub expiration_date: Option<i64>,
     pub credential_subject: CredentialSubject,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub evidence: Option<Vec<Value>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -47,7 +55,8 @@ impl VerifiableCredential {
         issuance_date: i64,
         expiration_date: Option<i64>,
         credential_subject: CredentialSubject,
-    ) -> Self {
+        evidence_json: Option<String>,
+    ) -> Result<Self, CredentialError> {
         let context_with_base = std::iter::once(BASE_CONTEXT.to_string())
             .chain(context.into_iter().filter(|c| c != BASE_CONTEXT))
             .collect::<Vec<_>>();
@@ -56,7 +65,15 @@ impl VerifiableCredential {
             .chain(r#type.into_iter().filter(|t| t != BASE_TYPE))
             .collect::<Vec<_>>();
 
-        Self {
+        let evidence = evidence_json
+            .filter(|data| !data.is_empty())
+            .map(|data| {
+                serde_json::from_str::<Vec<serde_json::Value>>(&data)
+                    .map_err(|e| CredentialError::EvidenceParsingError(e.to_string()))
+            })
+            .transpose()?; // Use transpose to convert Option<Result<_>> to Result<Option<_>>
+
+        Ok(VerifiableCredential {
             context: context_with_base,
             id,
             r#type: type_with_base,
@@ -64,7 +81,8 @@ impl VerifiableCredential {
             issuance_date,
             expiration_date,
             credential_subject,
-        }
+            evidence,
+        })
     }
 
     pub fn sign(
@@ -166,7 +184,8 @@ mod test {
                 id: issuer.to_string(),
                 ..Default::default()
             },
-        )
+            None,
+        ).unwrap()
     }
 
     #[test]
@@ -180,12 +199,45 @@ mod test {
     }
 
     #[test]
+    fn test_new_with_invalid_json() {
+        let issuer = "did:jwk:something";
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+        let invalid_json = "This is not valid JSON".to_string();
+
+        let result = VerifiableCredential::new(
+            vec![BASE_CONTEXT.to_string()],
+            format!("urn:vc:uuid:{}", Uuid::new_v4().to_string()),
+            vec![BASE_TYPE.to_string()],
+            issuer.to_string(),
+            now,
+            Some(now + 30 * 60),
+            CredentialSubject {
+                id: issuer.to_string(),
+                ..Default::default()
+            },
+            Some(invalid_json),
+        );
+
+        assert!(matches!(result, Err(CredentialError::EvidenceParsingError(_))), "Expected EvidenceParsingError");
+    }
+
+    #[test]
     fn test_new() {
         let issuer = "did:jwk:something";
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs() as i64;
+
+        let evidence_json = serde_json::to_string(&vec![
+            json!({
+                "evidence_type": "DocumentVerification",
+                "description": "This is a description of the document being verified."
+            })
+        ]).unwrap();
 
         let vc1 = VerifiableCredential::new(
             vec![BASE_CONTEXT.to_string()],
@@ -198,7 +250,8 @@ mod test {
                 id: issuer.to_string(),
                 ..Default::default()
             },
-        );
+            Some(evidence_json),
+        ).unwrap();
 
         assert_eq!(1, vc1.context.len());
         assert_eq!(1, vc1.r#type.len());
@@ -206,6 +259,11 @@ mod test {
         assert_eq!(BASE_TYPE, vc1.r#type[0]);
         assert_eq!(1, vc1.context.iter().filter(|&c| c == BASE_CONTEXT).count());
         assert_eq!(1, vc1.r#type.iter().filter(|&t| t == BASE_TYPE).count());
+
+        assert_eq!(vc1.evidence.as_ref().unwrap().len(), 1, "There should be exactly one evidence item");
+        let evidence_item = &vc1.evidence.as_ref().unwrap()[0];
+        assert_eq!(evidence_item["evidence_type"], "DocumentVerification", "The evidence_type should match");
+        assert_eq!(evidence_item["description"], "This is a description of the document being verified.", "The description should match");
 
         let vc2 = VerifiableCredential::new(
             vec!["some-other-context".to_string()],
@@ -218,7 +276,8 @@ mod test {
                 id: issuer.to_string(),
                 ..Default::default()
             },
-        );
+            None,
+        ).unwrap();
 
         assert_eq!(2, vc2.context.len());
         assert_eq!(2, vc2.r#type.len());
@@ -226,6 +285,7 @@ mod test {
         assert_eq!(BASE_TYPE, vc2.r#type[0]);
         assert_eq!(1, vc2.context.iter().filter(|&c| c == BASE_CONTEXT).count());
         assert_eq!(1, vc2.r#type.iter().filter(|&t| t == BASE_TYPE).count());
+        assert!(vc2.evidence.is_none(), "Evidence should be None");
     }
 
     #[tokio::test]

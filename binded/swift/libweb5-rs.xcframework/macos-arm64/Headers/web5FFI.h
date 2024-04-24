@@ -728,7 +728,7 @@ void uniffi_web5_fn_free_verifiablecredential(void*_Nonnull ptr, RustCallStatus 
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_CONSTRUCTOR_VERIFIABLECREDENTIAL_NEW
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_CONSTRUCTOR_VERIFIABLECREDENTIAL_NEW
-void*_Nonnull uniffi_web5_fn_constructor_verifiablecredential_new(RustBuffer context, RustBuffer id, RustBuffer type, RustBuffer issuer, int64_t issuance_date, RustBuffer expiration_date, RustBuffer credential_subject, RustCallStatus *_Nonnull out_status
+void*_Nonnull uniffi_web5_fn_constructor_verifiablecredential_new(RustBuffer context, RustBuffer id, RustBuffer type, RustBuffer issuer, int64_t issuance_date, RustBuffer expiration_date, RustBuffer credential_subject, RustBuffer evidence_json, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_VERIFIABLECREDENTIAL_SIGN
