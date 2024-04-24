@@ -3,6 +3,7 @@ use dids::{bearer::BearerDid, document::KeySelector};
 use jws::{splice_parts, JwsError, JwsHeader};
 use jwt::{sign_jwt, verify_jwt, Claims, JwtError};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::{collections::HashMap, sync::Arc};
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
@@ -29,6 +30,7 @@ pub struct VerifiableCredential {
     #[serde(rename = "expirationDate")]
     pub expiration_date: Option<i64>,
     pub credential_subject: CredentialSubject,
+    pub evidence: Option<Value>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -47,6 +49,7 @@ impl VerifiableCredential {
         issuance_date: i64,
         expiration_date: Option<i64>,
         credential_subject: CredentialSubject,
+        evidence: Option<Value>,
     ) -> Self {
         let context_with_base = std::iter::once(BASE_CONTEXT.to_string())
             .chain(context.into_iter().filter(|c| c != BASE_CONTEXT))
@@ -64,6 +67,7 @@ impl VerifiableCredential {
             issuance_date,
             expiration_date,
             credential_subject,
+            evidence,
         }
     }
 
@@ -166,6 +170,7 @@ mod test {
                 id: issuer.to_string(),
                 ..Default::default()
             },
+            None,
         )
     }
 
@@ -198,6 +203,7 @@ mod test {
                 id: issuer.to_string(),
                 ..Default::default()
             },
+            None,
         );
 
         assert_eq!(1, vc1.context.len());
@@ -218,6 +224,7 @@ mod test {
                 id: issuer.to_string(),
                 ..Default::default()
             },
+            None,
         );
 
         assert_eq!(2, vc2.context.len());

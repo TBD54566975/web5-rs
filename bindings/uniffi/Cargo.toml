@@ -13,6 +13,9 @@ dids = { path = "../../crates/dids" }
 jwk = { path = "../../crates/jwk" }
 jwt = { path = "../../crates/jwt" }
 keys = { path = "../../crates/keys" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
 uniffi = { version = "0.27.1", features = ["cli"] }
 
 [build-dependencies]

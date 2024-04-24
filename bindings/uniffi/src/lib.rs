@@ -1,3 +1,6 @@
+pub mod any;
+pub mod credentials;
+
 use ::credentials::vc::{verify_vcjwt, CredentialError, CredentialSubject, VerifiableCredential};
 use ::crypto::Curve;
 use ::dids::{
@@ -14,6 +17,8 @@ use ::keys::{
         KeyManager, KeyManagerError,
     },
 };
+use any::{Any, AnyError};
+use credentials::new_verifiable_credential;
 use std::sync::Arc;
 
 pub async fn bearer_did_from_key_manager(

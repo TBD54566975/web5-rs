@@ -9,6 +9,18 @@ namespace web5 {
 
   [Throws=CredentialError, Async]
   VerifiableCredential verify_vcjwt([ByRef] string jwt);
+
+  VerifiableCredential new_verifiable_credential(sequence<string> context, string id, sequence<string> type, string issuer, i64 issuance_date, i64? expiration_date, CredentialSubject credential_subject, Any? evidence);
+};
+
+[Error]
+enum AnyError {
+  "SerdeError",
+};
+
+interface Any {
+  [Name=from_json_string, Throws=AnyError]
+  constructor(string json_string);
 };
 
 [Error]
@@ -209,7 +221,6 @@ enum CredentialError {
 };
 
 interface VerifiableCredential {
-  constructor(sequence<string> context, string id, sequence<string> type, string issuer, i64 issuance_date, i64? expiration_date, CredentialSubject credential_subject);
   [Throws=CredentialError]
   string sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector);
 };
