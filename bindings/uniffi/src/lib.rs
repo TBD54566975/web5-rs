@@ -1,5 +1,5 @@
 use ::credentials::vc::{verify_vcjwt, CredentialError, CredentialSubject, VerifiableCredential};
-use ::crypto::Curve;
+use ::crypto::{ed25519::Ed25199, Curve};
 use ::dids::{
     bearer::{BearerDid, BearerDidError},
     document::{KeySelector, VerificationMethodType},
@@ -14,7 +14,13 @@ use ::keys::{
         KeyManager, KeyManagerError,
     },
 };
+use crypto::{CryptoError, CurveOperations};
 use std::sync::Arc;
+
+pub fn ed25519_generate() -> Result<Arc<Jwk>, CryptoError> {
+    let jwk = Ed25199::generate()?;
+    Ok(Arc::new(jwk))
+}
 
 pub async fn bearer_did_from_key_manager(
     did_uri: &str,

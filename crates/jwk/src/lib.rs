@@ -45,6 +45,18 @@ impl Jwk {
 
         Ok(thumbprint)
     }
+
+    pub fn get_alg(&self) -> String {
+        self.alg.clone()
+    }
+
+    pub fn get_kty(&self) -> String {
+        self.kty.clone()
+    }
+
+    pub fn get_crv(&self) -> String {
+        self.crv.clone()
+    }
 }
 
 #[cfg(test)]

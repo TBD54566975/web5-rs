@@ -1,4 +1,7 @@
 namespace web5 {
+  [Throws=CryptoError]
+  Jwk ed25519_generate();
+
   [Throws=BearerDidError, Async]
   BearerDid bearer_did_from_key_manager([ByRef] string did_uri, KeyManager key_manager);
 
@@ -9,6 +12,18 @@ namespace web5 {
 
   [Throws=CredentialError, Async]
   VerifiableCredential verify_vcjwt([ByRef] string jwt);
+};
+
+[Error]
+enum CryptoError {
+  "MissingPrivateKey",
+  "DecodeError",
+  "InvalidKeyLength",
+  "InvalidSignatureLength",
+  "PublicKeyFailure",
+  "PrivateKeyFailure",
+  "VerificationFailure",
+  "SignFailure",
 };
 
 [Error]
@@ -49,6 +64,10 @@ enum JwkError {
 };
 
 interface Jwk {
+  string get_alg();
+  string get_kty();
+  string get_crv();
+
   [Throws=JwkError]
   string compute_thumbprint();
 

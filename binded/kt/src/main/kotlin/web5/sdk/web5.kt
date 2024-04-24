@@ -974,6 +974,14 @@ internal open class UniffiVTableCallbackInterfacePublicKey(
 
 
 
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1039,6 +1047,12 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_fn_method_jwk_alias(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_method_jwk_compute_thumbprint(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_method_jwk_get_alg(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_method_jwk_get_crv(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_method_jwk_get_kty(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_method_jwk_jwk(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1128,6 +1142,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_func_bearer_did_from_key_manager(`didUri`: RustBuffer.ByValue,`keyManager`: Pointer,
     ): Long
+    fun uniffi_web5_fn_func_ed25519_generate(uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_fn_func_sign_jwt(`bearerDid`: Pointer,`keySelector`: RustBuffer.ByValue,`encodedHeader`: RustBuffer.ByValue,`encodedPayload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_func_verify_jwt(`jwt`: RustBuffer.ByValue,
@@ -1248,6 +1264,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_checksum_func_bearer_did_from_key_manager(
     ): Short
+    fun uniffi_web5_checksum_func_ed25519_generate(
+    ): Short
     fun uniffi_web5_checksum_func_sign_jwt(
     ): Short
     fun uniffi_web5_checksum_func_verify_jwt(
@@ -1275,6 +1293,12 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_checksum_method_jwk_alias(
     ): Short
     fun uniffi_web5_checksum_method_jwk_compute_thumbprint(
+    ): Short
+    fun uniffi_web5_checksum_method_jwk_get_alg(
+    ): Short
+    fun uniffi_web5_checksum_method_jwk_get_crv(
+    ): Short
+    fun uniffi_web5_checksum_method_jwk_get_kty(
     ): Short
     fun uniffi_web5_checksum_method_jwk_jwk(
     ): Short
@@ -1358,6 +1382,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_checksum_func_bearer_did_from_key_manager() != 49693.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_web5_checksum_func_ed25519_generate() != 32039.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_checksum_func_sign_jwt() != 3714.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1398,6 +1425,15 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_jwk_compute_thumbprint() != 48815.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_jwk_get_alg() != 28520.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_jwk_get_crv() != 2521.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_jwk_get_kty() != 29011.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_jwk_jwk() != 5992.toShort()) {
@@ -2649,6 +2685,12 @@ public interface JwkInterface {
     
     fun `computeThumbprint`(): kotlin.String
     
+    fun `getAlg`(): kotlin.String
+    
+    fun `getCrv`(): kotlin.String
+    
+    fun `getKty`(): kotlin.String
+    
     fun `jwk`(): Jwk
     
     fun `sign`(`payload`: List<kotlin.UByte>): kotlin.ByteArray
@@ -2760,6 +2802,42 @@ open class Jwk: Disposable, AutoCloseable, JwkInterface {
     callWithPointer {
     uniffiRustCallWithError(JwkException) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_fn_method_jwk_compute_thumbprint(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `getAlg`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_method_jwk_get_alg(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `getCrv`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_method_jwk_get_crv(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `getKty`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_method_jwk_get_kty(
         it, _status)
 }
     }
@@ -4880,6 +4958,94 @@ public object FfiConverterTypeCredentialError : FfiConverterRustBuffer<Credentia
 
 
 
+
+sealed class CryptoException(message: String): Exception(message) {
+        
+        class MissingPrivateKey(message: String) : CryptoException(message)
+        
+        class DecodeException(message: String) : CryptoException(message)
+        
+        class InvalidKeyLength(message: String) : CryptoException(message)
+        
+        class InvalidSignatureLength(message: String) : CryptoException(message)
+        
+        class PublicKeyFailure(message: String) : CryptoException(message)
+        
+        class PrivateKeyFailure(message: String) : CryptoException(message)
+        
+        class VerificationFailure(message: String) : CryptoException(message)
+        
+        class SignFailure(message: String) : CryptoException(message)
+        
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<CryptoException> {
+        override fun lift(error_buf: RustBuffer.ByValue): CryptoException = FfiConverterTypeCryptoError.lift(error_buf)
+    }
+}
+
+public object FfiConverterTypeCryptoError : FfiConverterRustBuffer<CryptoException> {
+    override fun read(buf: ByteBuffer): CryptoException {
+        
+            return when(buf.getInt()) {
+            1 -> CryptoException.MissingPrivateKey(FfiConverterString.read(buf))
+            2 -> CryptoException.DecodeException(FfiConverterString.read(buf))
+            3 -> CryptoException.InvalidKeyLength(FfiConverterString.read(buf))
+            4 -> CryptoException.InvalidSignatureLength(FfiConverterString.read(buf))
+            5 -> CryptoException.PublicKeyFailure(FfiConverterString.read(buf))
+            6 -> CryptoException.PrivateKeyFailure(FfiConverterString.read(buf))
+            7 -> CryptoException.VerificationFailure(FfiConverterString.read(buf))
+            8 -> CryptoException.SignFailure(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: CryptoException): ULong {
+        return 4UL
+    }
+
+    override fun write(value: CryptoException, buf: ByteBuffer) {
+        when(value) {
+            is CryptoException.MissingPrivateKey -> {
+                buf.putInt(1)
+                Unit
+            }
+            is CryptoException.DecodeException -> {
+                buf.putInt(2)
+                Unit
+            }
+            is CryptoException.InvalidKeyLength -> {
+                buf.putInt(3)
+                Unit
+            }
+            is CryptoException.InvalidSignatureLength -> {
+                buf.putInt(4)
+                Unit
+            }
+            is CryptoException.PublicKeyFailure -> {
+                buf.putInt(5)
+                Unit
+            }
+            is CryptoException.PrivateKeyFailure -> {
+                buf.putInt(6)
+                Unit
+            }
+            is CryptoException.VerificationFailure -> {
+                buf.putInt(7)
+                Unit
+            }
+            is CryptoException.SignFailure -> {
+                buf.putInt(8)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
+
 enum class Curve {
     
     SECP256K1,
@@ -5519,6 +5685,16 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
         BearerDidException.ErrorHandler,
     )
     }
+
+    @Throws(CryptoException::class) fun `ed25519Generate`(): Jwk {
+            return FfiConverterTypeJwk.lift(
+    uniffiRustCallWithError(CryptoException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_func_ed25519_generate(
+        _status)
+}
+    )
+    }
+    
 
     @Throws(JwtException::class) fun `signJwt`(`bearerDid`: BearerDid, `keySelector`: KeySelector, `encodedHeader`: kotlin.String, `encodedPayload`: kotlin.String): kotlin.String {
             return FfiConverterString.lift(
