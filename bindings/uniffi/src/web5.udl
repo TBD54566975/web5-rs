@@ -48,6 +48,11 @@ interface Key {
 interface PublicKey {
   [Throws=KeyError]
   void verify([ByRef] sequence<u8> payload, [ByRef] sequence<u8> signature);
+
+  [Throws=KeyError]
+  string alias();
+  [Throws=KeyError]
+  Jwk jwk();
 };
 
 [Trait]
@@ -56,6 +61,11 @@ interface PrivateKey {
   PublicKey to_public();
   [Throws=KeyError]
   bytes sign([ByRef] sequence<u8> payload);
+
+  [Throws=KeyError]
+  string alias();
+  [Throws=KeyError]
+  Jwk jwk();
 };
 
 [Error]

@@ -681,12 +681,24 @@ internal interface UniffiCallbackInterfaceKeyStoreMethod5 : com.sun.jna.Callback
     fun callback(`uniffiHandle`: Long,`keyAlias`: RustBuffer.ByValue,`payload`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfacePrivateKeyMethod0 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`payload`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfacePrivateKeyMethod1 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: PointerByReference,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfacePrivateKeyMethod2 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`payload`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfacePrivateKeyMethod3 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: PointerByReference,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfacePublicKeyMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfacePublicKeyMethod1 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: PointerByReference,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfacePublicKeyMethod2 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`payload`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 @Structure.FieldOrder("alias", "jwk", "uniffiFree")
@@ -767,41 +779,61 @@ internal open class UniffiVTableCallbackInterfaceKeyStore(
     }
 
 }
-@Structure.FieldOrder("sign", "toPublic", "uniffiFree")
+@Structure.FieldOrder("alias", "jwk", "sign", "toPublic", "uniffiFree")
 internal open class UniffiVTableCallbackInterfacePrivateKey(
-    @JvmField internal var `sign`: UniffiCallbackInterfacePrivateKeyMethod0? = null,
-    @JvmField internal var `toPublic`: UniffiCallbackInterfacePrivateKeyMethod1? = null,
+    @JvmField internal var `alias`: UniffiCallbackInterfacePrivateKeyMethod0? = null,
+    @JvmField internal var `jwk`: UniffiCallbackInterfacePrivateKeyMethod1? = null,
+    @JvmField internal var `sign`: UniffiCallbackInterfacePrivateKeyMethod2? = null,
+    @JvmField internal var `toPublic`: UniffiCallbackInterfacePrivateKeyMethod3? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
 ) : Structure() {
     class UniffiByValue(
-        `sign`: UniffiCallbackInterfacePrivateKeyMethod0? = null,
-        `toPublic`: UniffiCallbackInterfacePrivateKeyMethod1? = null,
+        `alias`: UniffiCallbackInterfacePrivateKeyMethod0? = null,
+        `jwk`: UniffiCallbackInterfacePrivateKeyMethod1? = null,
+        `sign`: UniffiCallbackInterfacePrivateKeyMethod2? = null,
+        `toPublic`: UniffiCallbackInterfacePrivateKeyMethod3? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfacePrivateKey(`sign`,`toPublic`,`uniffiFree`,), Structure.ByValue
+    ): UniffiVTableCallbackInterfacePrivateKey(`alias`,`jwk`,`sign`,`toPublic`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfacePrivateKey) {
+        `alias` = other.`alias`
+        `jwk` = other.`jwk`
         `sign` = other.`sign`
         `toPublic` = other.`toPublic`
         `uniffiFree` = other.`uniffiFree`
     }
 
 }
-@Structure.FieldOrder("verify", "uniffiFree")
+@Structure.FieldOrder("alias", "jwk", "verify", "uniffiFree")
 internal open class UniffiVTableCallbackInterfacePublicKey(
-    @JvmField internal var `verify`: UniffiCallbackInterfacePublicKeyMethod0? = null,
+    @JvmField internal var `alias`: UniffiCallbackInterfacePublicKeyMethod0? = null,
+    @JvmField internal var `jwk`: UniffiCallbackInterfacePublicKeyMethod1? = null,
+    @JvmField internal var `verify`: UniffiCallbackInterfacePublicKeyMethod2? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
 ) : Structure() {
     class UniffiByValue(
-        `verify`: UniffiCallbackInterfacePublicKeyMethod0? = null,
+        `alias`: UniffiCallbackInterfacePublicKeyMethod0? = null,
+        `jwk`: UniffiCallbackInterfacePublicKeyMethod1? = null,
+        `verify`: UniffiCallbackInterfacePublicKeyMethod2? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfacePublicKey(`verify`,`uniffiFree`,), Structure.ByValue
+    ): UniffiVTableCallbackInterfacePublicKey(`alias`,`jwk`,`verify`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfacePublicKey) {
+        `alias` = other.`alias`
+        `jwk` = other.`jwk`
         `verify` = other.`verify`
         `uniffiFree` = other.`uniffiFree`
     }
 
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -1122,6 +1154,10 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_fn_free_privatekey(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_web5_fn_method_privatekey_alias(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_method_privatekey_jwk(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_fn_method_privatekey_sign(`ptr`: Pointer,`payload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_method_privatekey_to_public(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1130,6 +1166,10 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_fn_free_publickey(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_web5_fn_method_publickey_alias(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_method_publickey_jwk(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_fn_method_publickey_verify(`ptr`: Pointer,`payload`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_web5_fn_clone_verifiablecredential(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1344,9 +1384,17 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_checksum_method_localkeymanager_sign(
     ): Short
+    fun uniffi_web5_checksum_method_privatekey_alias(
+    ): Short
+    fun uniffi_web5_checksum_method_privatekey_jwk(
+    ): Short
     fun uniffi_web5_checksum_method_privatekey_sign(
     ): Short
     fun uniffi_web5_checksum_method_privatekey_to_public(
+    ): Short
+    fun uniffi_web5_checksum_method_publickey_alias(
+    ): Short
+    fun uniffi_web5_checksum_method_publickey_jwk(
     ): Short
     fun uniffi_web5_checksum_method_publickey_verify(
     ): Short
@@ -1502,10 +1550,22 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_checksum_method_localkeymanager_sign() != 33139.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_web5_checksum_method_privatekey_alias() != 48667.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_privatekey_jwk() != 9008.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_checksum_method_privatekey_sign() != 45053.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_privatekey_to_public() != 39125.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_publickey_alias() != 54878.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_publickey_jwk() != 35766.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_publickey_verify() != 12448.toShort()) {
@@ -4187,6 +4247,10 @@ public object FfiConverterTypeLocalKeyManager: FfiConverter<LocalKeyManager, Poi
 
 public interface PrivateKeyInterface {
     
+    fun `alias`(): kotlin.String
+    
+    fun `jwk`(): Jwk
+    
     fun `sign`(`payload`: List<kotlin.UByte>): kotlin.ByteArray
     
     fun `toPublic`(): PublicKey
@@ -4274,6 +4338,32 @@ open class PrivateKey: Disposable, AutoCloseable, PrivateKeyInterface {
             UniffiLib.INSTANCE.uniffi_web5_fn_clone_privatekey(pointer!!, status)
         }
     }
+
+    
+    @Throws(KeyException::class)override fun `alias`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(KeyException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_method_privatekey_alias(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    @Throws(KeyException::class)override fun `jwk`(): Jwk {
+            return FfiConverterTypeJwk.lift(
+    callWithPointer {
+    uniffiRustCallWithError(KeyException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_method_privatekey_jwk(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
     @Throws(KeyException::class)override fun `sign`(`payload`: List<kotlin.UByte>): kotlin.ByteArray {
@@ -4435,6 +4525,10 @@ public object FfiConverterTypePrivateKey: FfiConverter<PrivateKey, Pointer> {
 
 public interface PublicKeyInterface {
     
+    fun `alias`(): kotlin.String
+    
+    fun `jwk`(): Jwk
+    
     fun `verify`(`payload`: List<kotlin.UByte>, `signature`: List<kotlin.UByte>)
     
     companion object
@@ -4520,6 +4614,32 @@ open class PublicKey: Disposable, AutoCloseable, PublicKeyInterface {
             UniffiLib.INSTANCE.uniffi_web5_fn_clone_publickey(pointer!!, status)
         }
     }
+
+    
+    @Throws(KeyException::class)override fun `alias`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(KeyException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_method_publickey_alias(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    @Throws(KeyException::class)override fun `jwk`(): Jwk {
+            return FfiConverterTypeJwk.lift(
+    callWithPointer {
+    uniffiRustCallWithError(KeyException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_method_publickey_jwk(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
     @Throws(KeyException::class)override fun `verify`(`payload`: List<kotlin.UByte>, `signature`: List<kotlin.UByte>)

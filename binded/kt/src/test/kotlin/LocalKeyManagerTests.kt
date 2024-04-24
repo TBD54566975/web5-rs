@@ -8,21 +8,28 @@ class LocalKeyManagerTests {
     fun `can generate a Ed25519 key`() {
         val keyManager = LocalKeyManager.newInMemory()
         val keyAlias = keyManager.generatePrivateKey(Curve.ED25519, null)
-        assertNotEquals(0, keyAlias.length)
+        val publicKey = keyManager.getPublicKey(keyAlias)
+        val jwk = publicKey.jwk()
+        assertEquals("EdDSA", jwk.getAlg())
+        assertEquals("OKP", jwk.getKty())
+        assertEquals("Ed25519", jwk.getCrv())
     }
 
     @Test
     fun `can generate a secp256k1 key`() {
         val keyManager = LocalKeyManager.newInMemory()
         val keyAlias = keyManager.generatePrivateKey(Curve.SECP256K1, null)
-        assertNotEquals(0, keyAlias.length)
+        val publicKey = keyManager.getPublicKey(keyAlias)
+        val jwk = publicKey.jwk()
+        assertEquals("ES256K", jwk.getAlg())
+        assertEquals("EC", jwk.getKty())
+        assertEquals("secp256k1", jwk.getCrv())
     }
 
     @Test
     fun `can sign and verify`() {
         val keyManager = LocalKeyManager.newInMemory()
         val keyAlias = keyManager.generatePrivateKey(Curve.ED25519, null)
-        assertNotEquals(0, keyAlias.length)
 
         val payload = "hello world".toByteArray().map { it.toUByte() }
         val signature = keyManager.sign(keyAlias, payload)
