@@ -859,6 +859,18 @@ public protocol JwkProtocol : AnyObject {
     
     func computeThumbprint() throws  -> String
     
+    func getAlg()  -> String
+    
+    func getCrv()  -> String
+    
+    func getD()  -> String?
+    
+    func getKty()  -> String
+    
+    func getX()  -> String
+    
+    func getY()  -> String?
+    
     func jwk() throws  -> Jwk
     
     func sign(payload: [UInt8]) throws  -> Data
@@ -920,6 +932,48 @@ open func alias()throws  -> String {
 open func computeThumbprint()throws  -> String {
     return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeJwkError.lift) {
     uniffi_web5_fn_method_jwk_compute_thumbprint(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func getAlg() -> String {
+    return try!  FfiConverterString.lift(try! rustCall() {
+    uniffi_web5_fn_method_jwk_get_alg(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func getCrv() -> String {
+    return try!  FfiConverterString.lift(try! rustCall() {
+    uniffi_web5_fn_method_jwk_get_crv(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func getD() -> String? {
+    return try!  FfiConverterOptionString.lift(try! rustCall() {
+    uniffi_web5_fn_method_jwk_get_d(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func getKty() -> String {
+    return try!  FfiConverterString.lift(try! rustCall() {
+    uniffi_web5_fn_method_jwk_get_kty(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func getX() -> String {
+    return try!  FfiConverterString.lift(try! rustCall() {
+    uniffi_web5_fn_method_jwk_get_x(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func getY() -> String? {
+    return try!  FfiConverterOptionString.lift(try! rustCall() {
+    uniffi_web5_fn_method_jwk_get_y(self.uniffiClonePointer(),$0
     )
 })
 }
@@ -1568,6 +1622,10 @@ public func FfiConverterTypeLocalKeyManager_lower(_ value: LocalKeyManager) -> U
 
 public protocol PrivateKeyProtocol : AnyObject {
     
+    func alias() throws  -> String
+    
+    func jwk() throws  -> Jwk
+    
     func sign(payload: [UInt8]) throws  -> Data
     
     func toPublic() throws  -> PublicKey
@@ -1614,6 +1672,20 @@ open class PrivateKey:
 
     
 
+    
+open func alias()throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_privatekey_alias(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func jwk()throws  -> Jwk {
+    return try  FfiConverterTypeJwk.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_privatekey_jwk(self.uniffiClonePointer(),$0
+    )
+})
+}
     
 open func sign(payload: [UInt8])throws  -> Data {
     return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
@@ -1680,6 +1752,10 @@ public func FfiConverterTypePrivateKey_lower(_ value: PrivateKey) -> UnsafeMutab
 
 public protocol PublicKeyProtocol : AnyObject {
     
+    func alias() throws  -> String
+    
+    func jwk() throws  -> Jwk
+    
     func verify(payload: [UInt8], signature: [UInt8]) throws 
     
 }
@@ -1724,6 +1800,20 @@ open class PublicKey:
 
     
 
+    
+open func alias()throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_publickey_alias(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func jwk()throws  -> Jwk {
+    return try  FfiConverterTypeJwk.lift(try rustCallWithError(FfiConverterTypeKeyError.lift) {
+    uniffi_web5_fn_method_publickey_jwk(self.uniffiClonePointer(),$0
+    )
+})
+}
     
 open func verify(payload: [UInt8], signature: [UInt8])throws  {try rustCallWithError(FfiConverterTypeKeyError.lift) {
     uniffi_web5_fn_method_publickey_verify(self.uniffiClonePointer(),
@@ -2096,6 +2186,110 @@ public struct FfiConverterTypeCredentialError: FfiConverterRustBuffer {
 extension CredentialError: Equatable, Hashable {}
 
 extension CredentialError: Error { }
+
+
+public enum CryptoError {
+
+    
+    
+    case MissingPrivateKey(message: String)
+    
+    case DecodeError(message: String)
+    
+    case InvalidKeyLength(message: String)
+    
+    case InvalidSignatureLength(message: String)
+    
+    case PublicKeyFailure(message: String)
+    
+    case PrivateKeyFailure(message: String)
+    
+    case VerificationFailure(message: String)
+    
+    case SignFailure(message: String)
+    
+}
+
+
+public struct FfiConverterTypeCryptoError: FfiConverterRustBuffer {
+    typealias SwiftType = CryptoError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CryptoError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .MissingPrivateKey(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .DecodeError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 3: return .InvalidKeyLength(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 4: return .InvalidSignatureLength(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 5: return .PublicKeyFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 6: return .PrivateKeyFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 7: return .VerificationFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 8: return .SignFailure(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: CryptoError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        case .MissingPrivateKey(_ /* message is ignored*/):
+            writeInt(&buf, Int32(1))
+        case .DecodeError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(2))
+        case .InvalidKeyLength(_ /* message is ignored*/):
+            writeInt(&buf, Int32(3))
+        case .InvalidSignatureLength(_ /* message is ignored*/):
+            writeInt(&buf, Int32(4))
+        case .PublicKeyFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(5))
+        case .PrivateKeyFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(6))
+        case .VerificationFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(7))
+        case .SignFailure(_ /* message is ignored*/):
+            writeInt(&buf, Int32(8))
+
+        
+        }
+    }
+}
+
+
+extension CryptoError: Equatable, Hashable {}
+
+extension CryptoError: Error { }
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
@@ -2860,6 +3054,28 @@ public func bearerDidFromKeyManager(didUri: String, keyManager: KeyManager)async
             errorHandler: FfiConverterTypeBearerDidError.lift
         )
 }
+public func ed25519Generate()throws  -> Jwk {
+    return try  FfiConverterTypeJwk.lift(try rustCallWithError(FfiConverterTypeCryptoError.lift) {
+    uniffi_web5_fn_func_ed25519_generate($0
+    )
+})
+}
+public func ed25519Sign(privateJwk: Jwk, payload: [UInt8])throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeCryptoError.lift) {
+    uniffi_web5_fn_func_ed25519_sign(
+        FfiConverterTypeJwk.lower(privateJwk),
+        FfiConverterSequenceUInt8.lower(payload),$0
+    )
+})
+}
+public func ed25519Verify(publicJwk: Jwk, payload: [UInt8], signature: [UInt8])throws  {try rustCallWithError(FfiConverterTypeCryptoError.lift) {
+    uniffi_web5_fn_func_ed25519_verify(
+        FfiConverterTypeJwk.lower(publicJwk),
+        FfiConverterSequenceUInt8.lower(payload),
+        FfiConverterSequenceUInt8.lower(signature),$0
+    )
+}
+}
 public func signJwt(bearerDid: BearerDid, keySelector: KeySelector, encodedHeader: String, encodedPayload: String)throws  -> String {
     return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeJwtError.lift) {
     uniffi_web5_fn_func_sign_jwt(
@@ -2917,6 +3133,15 @@ private var initializationResult: InitializationResult {
     if (uniffi_web5_checksum_func_bearer_did_from_key_manager() != 49693) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_web5_checksum_func_ed25519_generate() != 32039) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_func_ed25519_sign() != 29503) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_func_ed25519_verify() != 21301) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_web5_checksum_func_sign_jwt() != 3714) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -2957,6 +3182,24 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_method_jwk_compute_thumbprint() != 48815) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_get_alg() != 28520) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_get_crv() != 2521) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_get_d() != 54214) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_get_kty() != 29011) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_get_x() != 38558) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_jwk_get_y() != 59486) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_method_jwk_jwk() != 5992) {
@@ -3025,10 +3268,22 @@ private var initializationResult: InitializationResult {
     if (uniffi_web5_checksum_method_localkeymanager_sign() != 33139) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_web5_checksum_method_privatekey_alias() != 48667) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_privatekey_jwk() != 9008) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_web5_checksum_method_privatekey_sign() != 45053) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_method_privatekey_to_public() != 39125) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_publickey_alias() != 54878) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_method_publickey_jwk() != 35766) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_method_publickey_verify() != 12448) {

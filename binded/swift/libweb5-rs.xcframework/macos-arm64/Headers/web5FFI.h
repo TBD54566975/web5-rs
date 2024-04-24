@@ -344,7 +344,7 @@ typedef void (*UniffiCallbackInterfaceKeyStoreMethod5)(uint64_t, RustBuffer, Rus
 #endif
 #ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_PRIVATE_KEY_METHOD0
 #define UNIFFI_FFIDEF_CALLBACK_INTERFACE_PRIVATE_KEY_METHOD0
-typedef void (*UniffiCallbackInterfacePrivateKeyMethod0)(uint64_t, RustBuffer, RustBuffer* _Nonnull, 
+typedef void (*UniffiCallbackInterfacePrivateKeyMethod0)(uint64_t, RustBuffer* _Nonnull, 
         RustCallStatus *_Nonnull uniffiCallStatus
     );
 
@@ -356,9 +356,37 @@ typedef void (*UniffiCallbackInterfacePrivateKeyMethod1)(uint64_t, void*_Nonnull
     );
 
 #endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_PRIVATE_KEY_METHOD2
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_PRIVATE_KEY_METHOD2
+typedef void (*UniffiCallbackInterfacePrivateKeyMethod2)(uint64_t, RustBuffer, RustBuffer* _Nonnull, 
+        RustCallStatus *_Nonnull uniffiCallStatus
+    );
+
+#endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_PRIVATE_KEY_METHOD3
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_PRIVATE_KEY_METHOD3
+typedef void (*UniffiCallbackInterfacePrivateKeyMethod3)(uint64_t, void*_Nonnull* _Nonnull, 
+        RustCallStatus *_Nonnull uniffiCallStatus
+    );
+
+#endif
 #ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_PUBLIC_KEY_METHOD0
 #define UNIFFI_FFIDEF_CALLBACK_INTERFACE_PUBLIC_KEY_METHOD0
-typedef void (*UniffiCallbackInterfacePublicKeyMethod0)(uint64_t, RustBuffer, RustBuffer, void* _Nonnull, 
+typedef void (*UniffiCallbackInterfacePublicKeyMethod0)(uint64_t, RustBuffer* _Nonnull, 
+        RustCallStatus *_Nonnull uniffiCallStatus
+    );
+
+#endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_PUBLIC_KEY_METHOD1
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_PUBLIC_KEY_METHOD1
+typedef void (*UniffiCallbackInterfacePublicKeyMethod1)(uint64_t, void*_Nonnull* _Nonnull, 
+        RustCallStatus *_Nonnull uniffiCallStatus
+    );
+
+#endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_PUBLIC_KEY_METHOD2
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_PUBLIC_KEY_METHOD2
+typedef void (*UniffiCallbackInterfacePublicKeyMethod2)(uint64_t, RustBuffer, RustBuffer, void* _Nonnull, 
         RustCallStatus *_Nonnull uniffiCallStatus
     );
 
@@ -400,8 +428,10 @@ typedef struct UniffiVTableCallbackInterfaceKeyStore {
 #ifndef UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_PRIVATE_KEY
 #define UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_PRIVATE_KEY
 typedef struct UniffiVTableCallbackInterfacePrivateKey {
-    UniffiCallbackInterfacePrivateKeyMethod0 _Nonnull sign;
-    UniffiCallbackInterfacePrivateKeyMethod1 _Nonnull toPublic;
+    UniffiCallbackInterfacePrivateKeyMethod0 _Nonnull alias;
+    UniffiCallbackInterfacePrivateKeyMethod1 _Nonnull jwk;
+    UniffiCallbackInterfacePrivateKeyMethod2 _Nonnull sign;
+    UniffiCallbackInterfacePrivateKeyMethod3 _Nonnull toPublic;
     UniffiCallbackInterfaceFree _Nonnull uniffiFree;
 } UniffiVTableCallbackInterfacePrivateKey;
 
@@ -409,7 +439,9 @@ typedef struct UniffiVTableCallbackInterfacePrivateKey {
 #ifndef UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_PUBLIC_KEY
 #define UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_PUBLIC_KEY
 typedef struct UniffiVTableCallbackInterfacePublicKey {
-    UniffiCallbackInterfacePublicKeyMethod0 _Nonnull verify;
+    UniffiCallbackInterfacePublicKeyMethod0 _Nonnull alias;
+    UniffiCallbackInterfacePublicKeyMethod1 _Nonnull jwk;
+    UniffiCallbackInterfacePublicKeyMethod2 _Nonnull verify;
     UniffiCallbackInterfaceFree _Nonnull uniffiFree;
 } UniffiVTableCallbackInterfacePublicKey;
 
@@ -518,6 +550,36 @@ RustBuffer uniffi_web5_fn_method_jwk_alias(void*_Nonnull ptr, RustCallStatus *_N
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_COMPUTE_THUMBPRINT
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_COMPUTE_THUMBPRINT
 RustBuffer uniffi_web5_fn_method_jwk_compute_thumbprint(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_ALG
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_ALG
+RustBuffer uniffi_web5_fn_method_jwk_get_alg(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_CRV
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_CRV
+RustBuffer uniffi_web5_fn_method_jwk_get_crv(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_D
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_D
+RustBuffer uniffi_web5_fn_method_jwk_get_d(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_KTY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_KTY
+RustBuffer uniffi_web5_fn_method_jwk_get_kty(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_X
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_X
+RustBuffer uniffi_web5_fn_method_jwk_get_x(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_Y
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_GET_Y
+RustBuffer uniffi_web5_fn_method_jwk_get_y(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_JWK_JWK
@@ -691,6 +753,16 @@ void*_Nonnull uniffi_web5_fn_clone_privatekey(void*_Nonnull ptr, RustCallStatus 
 void uniffi_web5_fn_free_privatekey(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PRIVATEKEY_ALIAS
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PRIVATEKEY_ALIAS
+RustBuffer uniffi_web5_fn_method_privatekey_alias(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PRIVATEKEY_JWK
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PRIVATEKEY_JWK
+void*_Nonnull uniffi_web5_fn_method_privatekey_jwk(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PRIVATEKEY_SIGN
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PRIVATEKEY_SIGN
 RustBuffer uniffi_web5_fn_method_privatekey_sign(void*_Nonnull ptr, RustBuffer payload, RustCallStatus *_Nonnull out_status
@@ -709,6 +781,16 @@ void*_Nonnull uniffi_web5_fn_clone_publickey(void*_Nonnull ptr, RustCallStatus *
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FREE_PUBLICKEY
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FREE_PUBLICKEY
 void uniffi_web5_fn_free_publickey(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PUBLICKEY_ALIAS
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PUBLICKEY_ALIAS
+RustBuffer uniffi_web5_fn_method_publickey_alias(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PUBLICKEY_JWK
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PUBLICKEY_JWK
+void*_Nonnull uniffi_web5_fn_method_publickey_jwk(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_METHOD_PUBLICKEY_VERIFY
@@ -739,6 +821,22 @@ RustBuffer uniffi_web5_fn_method_verifiablecredential_sign(void*_Nonnull ptr, vo
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_BEARER_DID_FROM_KEY_MANAGER
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_BEARER_DID_FROM_KEY_MANAGER
 uint64_t uniffi_web5_fn_func_bearer_did_from_key_manager(RustBuffer did_uri, void*_Nonnull key_manager
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_ED25519_GENERATE
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_ED25519_GENERATE
+void*_Nonnull uniffi_web5_fn_func_ed25519_generate(RustCallStatus *_Nonnull out_status
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_ED25519_SIGN
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_ED25519_SIGN
+RustBuffer uniffi_web5_fn_func_ed25519_sign(void*_Nonnull private_jwk, RustBuffer payload, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_ED25519_VERIFY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_ED25519_VERIFY
+void uniffi_web5_fn_func_ed25519_verify(void*_Nonnull public_jwk, RustBuffer payload, RustBuffer signature, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_SIGN_JWT
@@ -1042,6 +1140,24 @@ uint16_t uniffi_web5_checksum_func_bearer_did_from_key_manager(void
     
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_ED25519_GENERATE
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_ED25519_GENERATE
+uint16_t uniffi_web5_checksum_func_ed25519_generate(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_ED25519_SIGN
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_ED25519_SIGN
+uint16_t uniffi_web5_checksum_func_ed25519_sign(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_ED25519_VERIFY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_ED25519_VERIFY
+uint16_t uniffi_web5_checksum_func_ed25519_verify(void
+    
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_SIGN_JWT
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_SIGN_JWT
 uint16_t uniffi_web5_checksum_func_sign_jwt(void
@@ -1123,6 +1239,42 @@ uint16_t uniffi_web5_checksum_method_jwk_alias(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_COMPUTE_THUMBPRINT
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_COMPUTE_THUMBPRINT
 uint16_t uniffi_web5_checksum_method_jwk_compute_thumbprint(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_ALG
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_ALG
+uint16_t uniffi_web5_checksum_method_jwk_get_alg(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_CRV
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_CRV
+uint16_t uniffi_web5_checksum_method_jwk_get_crv(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_D
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_D
+uint16_t uniffi_web5_checksum_method_jwk_get_d(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_KTY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_KTY
+uint16_t uniffi_web5_checksum_method_jwk_get_kty(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_X
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_X
+uint16_t uniffi_web5_checksum_method_jwk_get_x(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_Y
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_JWK_GET_Y
+uint16_t uniffi_web5_checksum_method_jwk_get_y(void
     
 );
 #endif
@@ -1258,6 +1410,18 @@ uint16_t uniffi_web5_checksum_method_localkeymanager_sign(void
     
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PRIVATEKEY_ALIAS
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PRIVATEKEY_ALIAS
+uint16_t uniffi_web5_checksum_method_privatekey_alias(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PRIVATEKEY_JWK
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PRIVATEKEY_JWK
+uint16_t uniffi_web5_checksum_method_privatekey_jwk(void
+    
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PRIVATEKEY_SIGN
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PRIVATEKEY_SIGN
 uint16_t uniffi_web5_checksum_method_privatekey_sign(void
@@ -1267,6 +1431,18 @@ uint16_t uniffi_web5_checksum_method_privatekey_sign(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PRIVATEKEY_TO_PUBLIC
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PRIVATEKEY_TO_PUBLIC
 uint16_t uniffi_web5_checksum_method_privatekey_to_public(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PUBLICKEY_ALIAS
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PUBLICKEY_ALIAS
+uint16_t uniffi_web5_checksum_method_publickey_alias(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PUBLICKEY_JWK
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_METHOD_PUBLICKEY_JWK
+uint16_t uniffi_web5_checksum_method_publickey_jwk(void
     
 );
 #endif

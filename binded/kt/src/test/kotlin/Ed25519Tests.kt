@@ -2,7 +2,6 @@ package web5.sdk
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import kotlin.math.sign
 
 class Ed25519Tests {
     @Test
