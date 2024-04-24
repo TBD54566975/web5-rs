@@ -1,0 +1,4 @@
+run:
+  swift package clean
+  swift build
+  swift run
