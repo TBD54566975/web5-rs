@@ -12,6 +12,16 @@ namespace web5 {
 };
 
 [Error]
+enum AnyError {
+  "SerdeError",
+};
+
+interface Any {
+  [Name=from_json_string, Throws=AnyError]
+  constructor(string json_string);
+};
+
+[Error]
 enum KeyError {
     "KeyGenerationFailed",
     "SerializationFailed",

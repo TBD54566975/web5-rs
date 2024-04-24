@@ -1,3 +1,4 @@
+use ::any::{Any, AnyError};
 use ::credentials::vc::{verify_vcjwt, CredentialError, CredentialSubject, VerifiableCredential};
 use ::crypto::Curve;
 use ::dids::{
