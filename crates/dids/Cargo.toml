@@ -7,15 +7,19 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-async-trait = "0.1.74"
 crypto = { path = "../crypto" }
 did-jwk = "0.1.1"
-did-method-key = "0.2.2"
 did-web = "0.2.2"
+jwk = { path = "../jwk" }
+keys = { path = "../keys" }
+regex = "1.10.4"
 serde = { workspace = true }
 serde_json = { workspace = true }
+ssi-core = "0.1.0"
 ssi-dids = "0.1.1"
+ssi-jwk = "0.1.2"
 thiserror = { workspace = true }
 
 [dev-dependencies]
+chrono = { workspace = true }
 tokio = { version = "1.34.0", features = ["macros", "test-util"] }

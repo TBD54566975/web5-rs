@@ -1,0 +1,19 @@
+[package]
+name = "jws"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+base64 = { workspace = true }
+crypto = { path = "../crypto" }
+dids = { path = "../dids" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+keys = { path = "../keys" }
+tokio = { version = "1.34.0", features = ["macros", "test-util"] }

@@ -1,0 +1,19 @@
+[package]
+name = "web5-wasm"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+crypto = { path = "../../crates/crypto" }
+dids = { path = "../../crates/dids" }
+js-sys = "0.3.69"
+jwk = { path = "../../crates/jwk" }
+keys = { path = "../../crates/keys" }
+wasm-bindgen = { version = "0.2.92",features = ["serde-serialize"] }
+
+[lib]
+name = "web5_wasm"
+crate-type = ["cdylib"]
