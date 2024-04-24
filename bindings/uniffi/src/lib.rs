@@ -22,6 +22,18 @@ pub fn ed25519_generate() -> Result<Arc<Jwk>, CryptoError> {
     Ok(Arc::new(jwk))
 }
 
+pub fn ed25519_sign(private_jwk: &Jwk, payload: &[u8]) -> Result<Vec<u8>, CryptoError> {
+    Ed25199::sign(private_jwk, payload)
+}
+
+pub fn ed25519_verify(
+    public_jwk: &Jwk,
+    payload: &[u8],
+    signature: &[u8],
+) -> Result<(), CryptoError> {
+    Ed25199::verify(public_jwk, payload, signature)
+}
+
 pub async fn bearer_did_from_key_manager(
     did_uri: &str,
     key_manager: Arc<dyn KeyManager>,

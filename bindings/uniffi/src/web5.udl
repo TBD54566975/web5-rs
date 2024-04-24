@@ -1,6 +1,10 @@
 namespace web5 {
   [Throws=CryptoError]
   Jwk ed25519_generate();
+  [Throws=CryptoError]
+  bytes ed25519_sign([ByRef] Jwk private_jwk, [ByRef] sequence<u8> payload);
+  [Throws=CryptoError]
+  void ed25519_verify([ByRef] Jwk public_jwk, [ByRef] sequence<u8> payload, [ByRef] sequence<u8> signature);
 
   [Throws=BearerDidError, Async]
   BearerDid bearer_did_from_key_manager([ByRef] string did_uri, KeyManager key_manager);

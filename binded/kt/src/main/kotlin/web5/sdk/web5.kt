@@ -1020,6 +1020,10 @@ internal open class UniffiVTableCallbackInterfacePublicKey(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1196,6 +1200,10 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_web5_fn_func_ed25519_generate(uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_web5_fn_func_ed25519_sign(`privateJwk`: Pointer,`payload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_func_ed25519_verify(`publicJwk`: Pointer,`payload`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_web5_fn_func_sign_jwt(`bearerDid`: Pointer,`keySelector`: RustBuffer.ByValue,`encodedHeader`: RustBuffer.ByValue,`encodedPayload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_func_verify_jwt(`jwt`: RustBuffer.ByValue,
@@ -1317,6 +1325,10 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_checksum_func_bearer_did_from_key_manager(
     ): Short
     fun uniffi_web5_checksum_func_ed25519_generate(
+    ): Short
+    fun uniffi_web5_checksum_func_ed25519_sign(
+    ): Short
+    fun uniffi_web5_checksum_func_ed25519_verify(
     ): Short
     fun uniffi_web5_checksum_func_sign_jwt(
     ): Short
@@ -1449,6 +1461,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_func_ed25519_generate() != 32039.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_func_ed25519_sign() != 29503.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_func_ed25519_verify() != 21301.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_func_sign_jwt() != 3714.toShort()) {
@@ -5883,6 +5901,25 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
 }
     )
     }
+    
+
+    @Throws(CryptoException::class) fun `ed25519Sign`(`privateJwk`: Jwk, `payload`: List<kotlin.UByte>): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    uniffiRustCallWithError(CryptoException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_func_ed25519_sign(
+        FfiConverterTypeJwk.lower(`privateJwk`),FfiConverterSequenceUByte.lower(`payload`),_status)
+}
+    )
+    }
+    
+
+    @Throws(CryptoException::class) fun `ed25519Verify`(`publicJwk`: Jwk, `payload`: List<kotlin.UByte>, `signature`: List<kotlin.UByte>)
+        = 
+    uniffiRustCallWithError(CryptoException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_func_ed25519_verify(
+        FfiConverterTypeJwk.lower(`publicJwk`),FfiConverterSequenceUByte.lower(`payload`),FfiConverterSequenceUByte.lower(`signature`),_status)
+}
+    
     
 
     @Throws(JwtException::class) fun `signJwt`(`bearerDid`: BearerDid, `keySelector`: KeySelector, `encodedHeader`: kotlin.String, `encodedPayload`: kotlin.String): kotlin.String {
