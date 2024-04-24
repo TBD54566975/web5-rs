@@ -31,6 +31,7 @@ bind-kotlin:
     --out-dir target/bindgen-kotlin
   cp target/release/libweb5.dylib binded/kt/src/main/resources/natives
   cp target/bindgen-kotlin/web5/sdk/web5.kt binded/kt/src/main/kotlin/web5/sdk
+  cd binded/kt && ./fix-load.sh
 
 bind-swift:
   cargo build --release --package web5-uniffi
@@ -58,10 +59,7 @@ test-ts:
   cd binded/ts && npm i && npm test
 
 test-kotlin:
-  # TODO the `sudo cp` is not what we want
-  cd binded/kt && \
-    sudo cp src/main/resources/natives/libweb5.dylib ~/Library/Java/JavaVirtualMachines/jdk-17.0.8_7.jdk/Contents/Home/bin && \
-    mvn clean test
+  cd binded/kt && mvn clean test
 
 test-swift:
   cd binded/swift && \
