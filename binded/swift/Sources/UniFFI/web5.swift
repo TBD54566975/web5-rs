@@ -1815,9 +1815,9 @@ open class VerifiableCredential:
     public func uniffiClonePointer() -> UnsafeMutableRawPointer {
         return try! rustCall { uniffi_web5_fn_clone_verifiablecredential(self.pointer, $0) }
     }
-public convenience init(context: [String], id: String, type: [String], issuer: String, issuanceDate: Int64, expirationDate: Int64?, credentialSubject: CredentialSubject) {
+public convenience init(context: [String], id: String, type: [String], issuer: String, issuanceDate: Int64, expirationDate: Int64?, credentialSubject: CredentialSubject, evidenceJson: String?)throws  {
     let pointer =
-        try! rustCall() {
+        try rustCallWithError(FfiConverterTypeCredentialError.lift) {
     uniffi_web5_fn_constructor_verifiablecredential_new(
         FfiConverterSequenceString.lower(context),
         FfiConverterString.lower(id),
@@ -1825,7 +1825,8 @@ public convenience init(context: [String], id: String, type: [String], issuer: S
         FfiConverterString.lower(issuer),
         FfiConverterInt64.lower(issuanceDate),
         FfiConverterOptionInt64.lower(expirationDate),
-        FfiConverterTypeCredentialSubject.lower(credentialSubject),$0
+        FfiConverterTypeCredentialSubject.lower(credentialSubject),
+        FfiConverterOptionString.lower(evidenceJson),$0
     )
 }
     self.init(unsafeFromRawPointer: pointer)
@@ -2050,6 +2051,8 @@ public enum CredentialError {
     
     case JwsError(message: String)
     
+    case EvidenceParsingError(message: String)
+    
 }
 
 
@@ -2071,6 +2074,10 @@ public struct FfiConverterTypeCredentialError: FfiConverterRustBuffer {
             message: try FfiConverterString.read(from: &buf)
         )
         
+        case 3: return .EvidenceParsingError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+        
 
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -2086,6 +2093,8 @@ public struct FfiConverterTypeCredentialError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(1))
         case .JwsError(_ /* message is ignored*/):
             writeInt(&buf, Int32(2))
+        case .EvidenceParsingError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(3))
 
         
         }
@@ -3049,7 +3058,7 @@ private var initializationResult: InitializationResult {
     if (uniffi_web5_checksum_constructor_localkeymanager_new_in_memory() != 62693) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_web5_checksum_constructor_verifiablecredential_new() != 54017) {
+    if (uniffi_web5_checksum_constructor_verifiablecredential_new() != 56116) {
         return InitializationResult.apiChecksumMismatch
     }
 
