@@ -11,6 +11,10 @@ class Ed25519Tests {
             assertEquals("EdDSA", jwk.getAlg())
             assertEquals("OKP", jwk.getKty())
             assertEquals("Ed25519", jwk.getCrv())
+            assertNotNull(jwk.getD())
+            assertNotEquals(0, jwk.getD()?.length)
+            assertNotEquals(0, jwk.getX().length)
+            assertNull(jwk.getY())
         }
     }
 }

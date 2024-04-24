@@ -77,6 +77,9 @@ interface Jwk {
   string get_alg();
   string get_kty();
   string get_crv();
+  string? get_d();
+  string get_x();
+  string? get_y();
 
   [Throws=JwkError]
   string compute_thumbprint();

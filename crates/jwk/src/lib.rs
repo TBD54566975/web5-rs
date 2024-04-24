@@ -57,6 +57,18 @@ impl Jwk {
     pub fn get_crv(&self) -> String {
         self.crv.clone()
     }
+
+    pub fn get_d(&self) -> Option<String> {
+        self.d.clone()
+    }
+
+    pub fn get_x(&self) -> String {
+        self.x.clone()
+    }
+
+    pub fn get_y(&self) -> Option<String> {
+        self.y.clone()
+    }
 }
 
 #[cfg(test)]

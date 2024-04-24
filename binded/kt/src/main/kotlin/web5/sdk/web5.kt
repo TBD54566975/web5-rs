@@ -1014,6 +1014,12 @@ internal open class UniffiVTableCallbackInterfacePublicKey(
 
 
 
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1084,7 +1090,13 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_method_jwk_get_crv(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_web5_fn_method_jwk_get_d(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_web5_fn_method_jwk_get_kty(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_method_jwk_get_x(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_fn_method_jwk_get_y(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_method_jwk_jwk(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1338,7 +1350,13 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_checksum_method_jwk_get_crv(
     ): Short
+    fun uniffi_web5_checksum_method_jwk_get_d(
+    ): Short
     fun uniffi_web5_checksum_method_jwk_get_kty(
+    ): Short
+    fun uniffi_web5_checksum_method_jwk_get_x(
+    ): Short
+    fun uniffi_web5_checksum_method_jwk_get_y(
     ): Short
     fun uniffi_web5_checksum_method_jwk_jwk(
     ): Short
@@ -1481,7 +1499,16 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_checksum_method_jwk_get_crv() != 2521.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_web5_checksum_method_jwk_get_d() != 54214.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_checksum_method_jwk_get_kty() != 29011.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_jwk_get_x() != 38558.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_method_jwk_get_y() != 59486.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_method_jwk_jwk() != 5992.toShort()) {
@@ -2749,7 +2776,13 @@ public interface JwkInterface {
     
     fun `getCrv`(): kotlin.String
     
+    fun `getD`(): kotlin.String?
+    
     fun `getKty`(): kotlin.String
+    
+    fun `getX`(): kotlin.String
+    
+    fun `getY`(): kotlin.String?
     
     fun `jwk`(): Jwk
     
@@ -2893,11 +2926,47 @@ open class Jwk: Disposable, AutoCloseable, JwkInterface {
     }
     
 
+    override fun `getD`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_method_jwk_get_d(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
     override fun `getKty`(): kotlin.String {
             return FfiConverterString.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_web5_fn_method_jwk_get_kty(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `getX`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_method_jwk_get_x(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `getY`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_method_jwk_get_y(
         it, _status)
 }
     }
