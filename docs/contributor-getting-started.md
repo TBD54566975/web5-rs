@@ -31,3 +31,7 @@ In the case wherein an unknown type must cross the binding boundary (for example
 ### idiomatic
 
 Idiomatic is the layer in which the non-rust project is built for developer consumption.
+
+## The Problem of DX & Cross-Language-Binding
+
+![Binding Problem](./binding-problem.png)
