@@ -1,11 +1,10 @@
 [workspace]
 members = [ 
-    "crates/*",
-    "bindings/uniffi", 
-    "bindings/wasm",
+    "core/*",
+    "bindings", 
 ]
 default-members = [
-    "crates/*",
+    "core/*",
 ]
 resolver = "2"
 

@@ -1,0 +1,13 @@
+[package]
+name = "keys"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+crypto = { path = "../crypto" }
+jwk = { path = "../jwk" }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

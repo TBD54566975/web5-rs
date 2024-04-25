@@ -14,25 +14,25 @@
       "path": "examples"
     },
     {
-      "path": "crates/credentials"
+      "path": "core/credentials"
     },
     {
-      "path": "crates/crypto"
+      "path": "core/crypto"
     },
     {
-      "path": "crates/dids"
+      "path": "core/dids"
     },
     {
-      "path": "crates/jwk"
+      "path": "core/jwk"
     },
     {
-      "path": "crates/jws"
+      "path": "core/jws"
     },
     {
-      "path": "crates/jwt"
+      "path": "core/jwt"
     },
     {
-      "path": "crates/keys"
+      "path": "core/keys"
     }
   ],
   "settings": {
