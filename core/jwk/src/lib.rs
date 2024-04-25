@@ -45,6 +45,18 @@ impl Jwk {
 
         Ok(thumbprint)
     }
+
+    pub fn new(alg: String, kty: String) -> Jwk {
+        Jwk {
+            alg,
+            kty,
+            ..Default::default()
+        }
+    }
+
+    pub fn get_alg(&self) -> String {
+        self.alg.clone()
+    }
 }
 
 #[cfg(test)]
