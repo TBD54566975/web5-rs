@@ -7,18 +7,24 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
+base64 = { workspace = true }
+byteorder = "1.5.0"
+chrono = { workspace = true }
 crypto = { path = "../crypto" }
 did-jwk = "0.1.1"
 did-web = "0.2.2"
 jwk = { path = "../jwk" }
 keys = { path = "../keys" }
+pkarr = "1.1.5"
 regex = "1.10.4"
+reqwest = { version = "0.11", features = ["blocking"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 ssi-core = "0.1.0"
 ssi-dids = "0.1.1"
 ssi-jwk = "0.1.2"
 thiserror = { workspace = true }
+zbase32 = "0.1.2"
 
 [dev-dependencies]
 chrono = { workspace = true }
