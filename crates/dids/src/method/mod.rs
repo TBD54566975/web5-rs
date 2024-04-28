@@ -1,3 +1,4 @@
+pub mod dht;
 pub mod jwk;
 pub mod spruce_mappers;
 pub mod web;
@@ -19,6 +20,8 @@ pub enum MethodError {
     KeyError(#[from] KeyError),
     #[error("Failure creating DID: {0}")]
     DidCreationFailure(String),
+    #[error("Failure publishing DID: {0}")]
+    DidPublishingFailure(String)
 }
 
 /// A trait with common behavior across all DID methods.
