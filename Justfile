@@ -37,7 +37,7 @@ bind-kotlin: setup
     --language kotlin \
     --out-dir target/bindgen-kotlin
   cp target/release/libweb5.dylib binded/kt/src/main/resources/natives
-  cp target/bindgen-kotlin/web5/sdk/web5.kt binded/kt/src/main/kotlin/web5/sdk
+  cp target/bindgen-kotlin/web5/sdk/core/web5.kt binded/kt/src/main/kotlin/web5/sdk/core
   cd binded/kt && ./fix-load.sh
 
 bind-swift: setup

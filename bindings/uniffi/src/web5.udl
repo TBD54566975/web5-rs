@@ -13,12 +13,12 @@ namespace web5 {
 
 [Error]
 enum KeyError {
-    "KeyGenerationFailed",
-    "SerializationFailed",
-    "CurveNotFound",
-    "AlgorithmNotFound",
-    "JwkError",
-    "CryptoError",
+  "KeyGenerationFailed",
+  "SerializationFailed",
+  "CurveNotFound",
+  "AlgorithmNotFound",
+  "JwkError",
+  "CryptoError",
 };
 
 [Trait]
@@ -49,6 +49,15 @@ enum JwkError {
 };
 
 interface Jwk {
+  constructor(string alg, string kty, string crv, string? d, string x, string? y);
+
+  string get_alg();
+  string get_kty();
+  string get_crv();
+  string? get_d();
+  string get_x();
+  string? get_y();  
+
   [Throws=JwkError]
   string compute_thumbprint();
 

@@ -45,6 +45,48 @@ impl Jwk {
 
         Ok(thumbprint)
     }
+
+    pub fn new(
+        alg: String,
+        kty: String,
+        crv: String,
+        d: Option<String>,
+        x: String,
+        y: Option<String>,
+    ) -> Self {
+        Self {
+            alg,
+            kty,
+            crv,
+            d,
+            x,
+            y,
+        }
+    }
+
+    pub fn get_alg(&self) -> String {
+        self.alg.clone()
+    }
+
+    pub fn get_kty(&self) -> String {
+        self.kty.clone()
+    }
+
+    pub fn get_crv(&self) -> String {
+        self.crv.clone()
+    }
+
+    pub fn get_d(&self) -> Option<String> {
+        self.d.clone()
+    }
+
+    pub fn get_x(&self) -> String {
+        self.x.clone()
+    }
+
+    pub fn get_y(&self) -> Option<String> {
+        self.y.clone()
+    }
 }
 
 #[cfg(test)]
