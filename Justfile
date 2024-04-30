@@ -1,28 +1,35 @@
 set shell := ["bash", "-uc"]
 
-build:
+# Setup local development environment
+setup:
+  #!/bin/bash
+  if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
+    rustup default stable
+  fi
+
+build: setup
   cargo build --release
 
-test:
+test: setup
   cargo test
 
-lint:
+lint: setup
   cargo clippy --workspace
   cargo fmt
 
-bind:
+bind: setup
   just bind-ts
   just bind-kotlin
   just bind-swift
 
-bind-ts:
+bind-ts: setup
   cargo build --release --package web5-wasm
   if ! command -v wasm-pack &> /dev/null; then cargo install wasm-pack; fi
   wasm-pack build --target nodejs --out-dir ../../binded/ts/pkg bindings/wasm
   rm binded/LICENSE
   rm binded/ts/pkg/.gitignore
 
-bind-kotlin:
+bind-kotlin: setup
   cargo build --release --package web5-uniffi
   cargo run --package web5-uniffi \
     --bin uniffi-bindgen \
@@ -33,7 +40,7 @@ bind-kotlin:
   cp target/bindgen-kotlin/web5/sdk/web5.kt binded/kt/src/main/kotlin/web5/sdk
   cd binded/kt && ./fix-load.sh
 
-bind-swift:
+bind-swift: setup
   cargo build --release --package web5-uniffi
   cargo run --package web5-uniffi \
     --bin uniffi-bindgen \
@@ -50,18 +57,18 @@ bind-swift:
     -headers target/xcframework-staging \
     -output binded/swift/libweb5-rs.xcframework
 
-test-binded:
+test-binded: setup
   just test-ts
   just test-kotlin
   just test-swift
 
-test-ts:
+test-ts: setup
   cd binded/ts && npm i && npm test
 
-test-kotlin:
+test-kotlin: setup
   cd binded/kt && mvn clean test
 
-test-swift:
+test-swift: setup
   cd binded/swift && \
     swift package clean && \
     swift test
