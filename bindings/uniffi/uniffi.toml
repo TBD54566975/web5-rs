@@ -1,2 +1,2 @@
 [bindings.kotlin]
-package_name = "web5.sdk"
+package_name = "web5.sdk.core"

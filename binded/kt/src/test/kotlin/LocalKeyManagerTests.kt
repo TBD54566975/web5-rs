@@ -1,8 +1,8 @@
-package web5.sdk
+package web5.sdk.core
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import web5.sdk.LocalKeyManager
+import web5.sdk.core.LocalKeyManager
 
 class LocalKeyManagerTests {
     @Test
