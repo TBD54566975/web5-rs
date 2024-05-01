@@ -132,7 +132,7 @@ pub async fn verify_compact_jws(compact_jws: &str) -> Result<(), JwsError> {
     }?;
     let public_key = verification_method.public_key_jwk.clone();
     let to_verify = format!("{}.{}", parts[0], parts[1]);
-    let alg: String = jws_header.alg.clone();
+    let alg = jws_header.alg.clone();
     let decoded_signature = general_purpose::URL_SAFE_NO_PAD
         .decode(&parts[2])
         .map_err(|e| JwsError::DecodingError(e.to_string()))?;
