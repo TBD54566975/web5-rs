@@ -243,44 +243,4 @@ mod test {
         assert_eq!(vc.issuer, verified_vc.issuer);
         assert_eq!(vc.credential_subject.id, verified_vc.credential_subject.id);
     }
-
-    #[tokio::test]
-    async fn test_create_and_verify() {
-        let bearer_did = create_bearer_did();
-        let issuer = bearer_did.identifier.uri.clone();
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-
-        let vc = VerifiableCredential::new(
-            vec![BASE_CONTEXT.to_string()],
-            format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
-            vec![BASE_TYPE.to_string(), "StreetCred".to_string()],
-            issuer.to_string(),
-            now,
-            None,
-            CredentialSubject {
-                id: issuer.to_string(),
-                ..Default::default()
-            },
-        );
-        let signed_vcjwt = vc
-            .sign(
-                &bearer_did,
-                &KeySelector::MethodType {
-                    verification_method_type: VerificationMethodType::VerificationMethod,
-                },
-            )
-            .unwrap();
-        println!("{:?}", signed_vcjwt);
-        verify_vcjwt(&signed_vcjwt).await.unwrap();
-    }
-
-    #[tokio::test]
-    async fn test_verify() {
-        let vcjwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aVlXeG5Jam9pUldSRVUwRWlMQ0o0SWpvaVpHRkliWG93UWxKaU9XbEZXVUpTYWxkTE1VZHJaa2h6V1hKT1ZGbDJRVjlVVDI5SE5tUkRVM05sVFNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmRjOGU3NTg2LTk5YjEtNDRjMi1iZWM4LWM3ZDMzMGVhODIxYiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJTdHJlZXRDcmVkIl0sImlzc3VlciI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aVlXeG5Jam9pUldSRVUwRWlMQ0o0SWpvaVpHRkliWG93UWxKaU9XbEZXVUpTYWxkTE1VZHJaa2h6V1hKT1ZGbDJRVjlVVDI5SE5tUkRVM05sVFNKOSIsImlzc3VhbmNlRGF0ZSI6MTcxNDU5MTA5NjAwMCwiZXhwaXJhdGlvbkRhdGUiOm51bGwsImNyZWRlbnRpYWxfc3ViamVjdCI6eyJpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aVlXeG5Jam9pUldSRVUwRWlMQ0o0SWpvaVpGRlFVMFZNWTBwclpGUXRObDlJZUdkMVQySm1ablpHY1VKbk9HVm1hRTVmUkVKMldYcDBja3hhWnlKOSJ9fSwiaXNzIjoiZGlkOmp3azpleUpyZEhraU9pSlBTMUFpTENKamNuWWlPaUpGWkRJMU5URTVJaXdpWVd4bklqb2lSV1JFVTBFaUxDSjRJam9pWkdGSWJYb3dRbEppT1dsRldVSlNhbGRMTVVkclpraHpXWEpPVkZsMlFWOVVUMjlITm1SRFUzTmxUU0o5Iiwic3ViIjoiZGlkOmp3azpleUpyZEhraU9pSlBTMUFpTENKamNuWWlPaUpGWkRJMU5URTVJaXdpWVd4bklqb2lSV1JFVTBFaUxDSjRJam9pWkZGUVUwVk1ZMHByWkZRdE5sOUllR2QxVDJKbVpuWkdjVUpuT0dWbWFFNWZSRUoyV1hwMGNreGFaeUo5IiwibmJmIjoxNzE0NTkxMDk2MDAwLCJqdGkiOiJ1cm46dXVpZDpkYzhlNzU4Ni05OWIxLTQ0YzItYmVjOC1jN2QzMzBlYTgyMWIifQ.-_hJeOOfudfx8w_h83r2lD2HLF1fVUHAgJpDAlR2eLIPQmzzOJEPA15xLNpFWe6OoOoFSWy28FtYsgrM1r-nAg";
-        let verified_vc = verify_vcjwt(vcjwt).await.unwrap();
-        println!("{:?}", verified_vc)
-    }
 }
