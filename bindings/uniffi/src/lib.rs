@@ -3,6 +3,10 @@ use ::crypto::Curve;
 use ::dids::{
     bearer::{BearerDid, BearerDidError},
     document::{KeySelector, VerificationMethodType},
+    method::{
+        jwk::{DidJwk, DidJwkCreateOptions},
+        Method, MethodError,
+    },
 };
 use ::jwk::{Jwk, JwkError};
 use ::jwt::{sign_jwt, verify_jwt, Claims, JwtError};
@@ -22,6 +26,18 @@ pub async fn bearer_did_from_key_manager(
 ) -> Result<Arc<BearerDid>, BearerDidError> {
     let bearer_did = BearerDid::from_key_manager(did_uri, key_manager).await?;
     Ok(Arc::new(bearer_did))
+}
+
+pub fn create_did_jwk(
+    key_manager: Arc<LocalKeyManager>,
+    options: DidJwkCreateOptions,
+) -> Result<Arc<BearerDid>, MethodError> {
+    let bearer_did = DidJwk::create(key_manager, options)?;
+    Ok(Arc::new(bearer_did))
+}
+
+pub fn private_key_from_jwk(jwk: Arc<Jwk>) -> Arc<dyn PrivateKey> {
+    return jwk;
 }
 
 uniffi::include_scaffolding!("web5");
