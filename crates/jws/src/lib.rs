@@ -104,10 +104,8 @@ pub fn sign_compact_jws(
     encoded_payload: &str,
 ) -> Result<String, JwsError> {
     let to_sign = format!("{}.{}", encoded_header, encoded_payload);
-    println!("KW DBG key selector {:?}", key_selector);
     let signature = bearer_did.sign(key_selector, &to_sign.into_bytes())?;
     let encoded_signature = general_purpose::URL_SAFE_NO_PAD.encode(signature);
-    println!("KW DBG signing encoded signature {:?}", encoded_signature);
     let compact_jws = format!(
         "{}.{}.{}",
         encoded_header, encoded_payload, encoded_signature
@@ -138,7 +136,6 @@ pub async fn verify_compact_jws(compact_jws: &str) -> Result<(), JwsError> {
     let decoded_signature = general_purpose::URL_SAFE_NO_PAD
         .decode(&parts[2])
         .map_err(|e| JwsError::DecodingError(e.to_string()))?;
-    println!("KW DBG verifying signature {:?}", parts[2]);
     match alg.as_str() {
         "EdDSA" => Ed25199::verify(&public_key, &to_verify.into_bytes(), &decoded_signature),
         "ES256K" => Secp256k1::verify(&public_key, &to_verify.into_bytes(), &decoded_signature),

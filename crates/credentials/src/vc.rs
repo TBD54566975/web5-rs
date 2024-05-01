@@ -72,7 +72,6 @@ impl VerifiableCredential {
         bearer_did: &BearerDid,
         key_selector: &KeySelector,
     ) -> Result<String, CredentialError> {
-        println!("KW DBG sign bearer did vm {:?}", bearer_did.document.verification_method);
         let header = JwsHeader::from_bearer_did(bearer_did, key_selector, "JWT")?;
         let claims = VcJwtClaims {
             base_claims: Claims {
