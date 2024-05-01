@@ -1,6 +1,6 @@
 namespace web5 {
   [Throws=BearerDidError, Async]
-  BearerDid bearer_did_from_key_manager([ByRef] string did_uri, LocalKeyManager key_manager);
+  BearerDid bearer_did_from_key_manager([ByRef] string did_uri, KeyManager key_manager);
 
   [Throws=MethodError]
   BearerDid create_did_jwk(LocalKeyManager key_manager, DidJwkCreateOptions options);
@@ -14,6 +14,8 @@ namespace web5 {
   VerifiableCredential verify_vcjwt([ByRef] string jwt);
 
   PrivateKey private_key_from_jwk(Jwk jwk);
+
+  KeyManager key_manager_from_local_key_manager(LocalKeyManager local_key_manager);
 };
 
 [Error]

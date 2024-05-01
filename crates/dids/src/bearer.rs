@@ -57,6 +57,7 @@ impl BearerDid {
     ) -> Result<Vec<u8>, BearerDidError> {
         let verification_method = self.document.get_verification_method(key_selector)?;
         let key_alias = KeyIdFragment(verification_method.id.clone()).splice_key_alias();
+        println!("KW DBG vm and key_alias {:?} {:?}", verification_method, key_alias);
         let signature = self.key_manager.sign(&key_alias, payload)?;
         Ok(signature)
     }

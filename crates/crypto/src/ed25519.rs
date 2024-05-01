@@ -48,6 +48,8 @@ impl CurveOperations for Ed25199 {
     fn verify(public_jwk: &Jwk, payload: &[u8], signature: &[u8]) -> Result<(), CryptoError> {
         let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&public_jwk.x)?;
 
+        println!("KW DBG verifying {:?}", public_jwk);
+
         if decoded_x.len() != PUBLIC_KEY_LENGTH {
             return Err(CryptoError::InvalidKeyLength(PUBLIC_KEY_LENGTH.to_string()));
         }

@@ -57,6 +57,19 @@ impl KeyStore for InMemoryKeyStore {
 
         let signed_payload = private_key.sign(payload)?;
 
+        let private_key_jwk = (*private_key.jwk().unwrap()).clone();
+        let private_key_json = serde_json::to_string(&private_key_jwk).unwrap();
+        println!(
+            "KW DBG signing {:?} {:?} {:?}",
+            key_alias,
+            payload.len(),
+            private_key_json
+        );
+
+        for (key, value) in map_lock.iter() {
+            println!("KW DBG Key: {}, Value: {:?}", key, value.jwk());
+        }
+
         Ok(signed_payload)
     }
 
