@@ -1024,6 +1024,8 @@ internal open class UniffiVTableCallbackInterfacePublicKey(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1202,6 +1204,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_web5_fn_func_create_did_jwk(`keyManager`: Pointer,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_web5_fn_func_key_manager_from_local_key_manager(`localKeyManager`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_fn_func_private_key_from_jwk(`jwk`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_fn_func_sign_jwt(`bearerDid`: Pointer,`keySelector`: RustBuffer.ByValue,`encodedHeader`: RustBuffer.ByValue,`encodedPayload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1325,6 +1329,8 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_checksum_func_bearer_did_from_key_manager(
     ): Short
     fun uniffi_web5_checksum_func_create_did_jwk(
+    ): Short
+    fun uniffi_web5_checksum_func_key_manager_from_local_key_manager(
     ): Short
     fun uniffi_web5_checksum_func_private_key_from_jwk(
     ): Short
@@ -1457,10 +1463,13 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_web5_checksum_func_bearer_did_from_key_manager() != 54356.toShort()) {
+    if (lib.uniffi_web5_checksum_func_bearer_did_from_key_manager() != 49693.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_func_create_did_jwk() != 23177.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_func_key_manager_from_local_key_manager() != 65128.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_func_private_key_from_jwk() != 1337.toShort()) {
@@ -5877,9 +5886,9 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
 
     @Throws(BearerDidException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-     suspend fun `bearerDidFromKeyManager`(`didUri`: kotlin.String, `keyManager`: LocalKeyManager) : BearerDid {
+     suspend fun `bearerDidFromKeyManager`(`didUri`: kotlin.String, `keyManager`: KeyManager) : BearerDid {
         return uniffiRustCallAsync(
-        UniffiLib.INSTANCE.uniffi_web5_fn_func_bearer_did_from_key_manager(FfiConverterString.lower(`didUri`),FfiConverterTypeLocalKeyManager.lower(`keyManager`),),
+        UniffiLib.INSTANCE.uniffi_web5_fn_func_bearer_did_from_key_manager(FfiConverterString.lower(`didUri`),FfiConverterTypeKeyManager.lower(`keyManager`),),
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_web5_rust_future_poll_pointer(future, callback, continuation) },
         { future, continuation -> UniffiLib.INSTANCE.ffi_web5_rust_future_complete_pointer(future, continuation) },
         { future -> UniffiLib.INSTANCE.ffi_web5_rust_future_free_pointer(future) },
@@ -5895,6 +5904,15 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
     uniffiRustCallWithError(MethodException) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_fn_func_create_did_jwk(
         FfiConverterTypeLocalKeyManager.lower(`keyManager`),FfiConverterTypeDidJwkCreateOptions.lower(`options`),_status)
+}
+    )
+    }
+    
+ fun `keyManagerFromLocalKeyManager`(`localKeyManager`: LocalKeyManager): KeyManager {
+            return FfiConverterTypeKeyManager.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_func_key_manager_from_local_key_manager(
+        FfiConverterTypeLocalKeyManager.lower(`localKeyManager`),_status)
 }
     )
     }

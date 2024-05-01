@@ -37,7 +37,13 @@ pub fn create_did_jwk(
 }
 
 pub fn private_key_from_jwk(jwk: Arc<Jwk>) -> Arc<dyn PrivateKey> {
-    return jwk;
+    jwk
+}
+
+pub fn key_manager_from_local_key_manager(
+    local_key_manager: Arc<LocalKeyManager>,
+) -> Arc<dyn KeyManager> {
+    local_key_manager
 }
 
 uniffi::include_scaffolding!("web5");
