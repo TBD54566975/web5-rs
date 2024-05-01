@@ -1,6 +1,9 @@
 namespace web5 {
   [Throws=BearerDidError, Async]
-  BearerDid bearer_did_from_key_manager([ByRef] string did_uri, KeyManager key_manager);
+  BearerDid bearer_did_from_key_manager([ByRef] string did_uri, LocalKeyManager key_manager);
+
+  [Throws=MethodError]
+  BearerDid create_did_jwk(LocalKeyManager key_manager, DidJwkCreateOptions options);
 
   [Throws=JwtError]
   string sign_jwt([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector, [ByRef] string encoded_header, [ByRef] string encoded_payload);
@@ -9,6 +12,8 @@ namespace web5 {
 
   [Throws=CredentialError, Async]
   VerifiableCredential verify_vcjwt([ByRef] string jwt);
+
+  PrivateKey private_key_from_jwk(Jwk jwk);
 };
 
 [Error]
@@ -33,6 +38,11 @@ interface Key {
 interface PublicKey {
   [Throws=KeyError]
   void verify([ByRef] sequence<u8> payload, [ByRef] sequence<u8> signature);
+
+  [Throws=KeyError]
+  string alias();
+  [Throws=KeyError]
+  Jwk jwk();
 };
 
 [Trait]
@@ -41,6 +51,11 @@ interface PrivateKey {
   PublicKey to_public();
   [Throws=KeyError]
   bytes sign([ByRef] sequence<u8> payload);
+
+  [Throws=KeyError]
+  string alias();
+  [Throws=KeyError]
+  Jwk jwk();
 };
 
 [Error]
@@ -221,4 +236,15 @@ interface VerifiableCredential {
   constructor(sequence<string> context, string id, sequence<string> type, string issuer, i64 issuance_date, i64? expiration_date, CredentialSubject credential_subject);
   [Throws=CredentialError]
   string sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector);
+};
+
+dictionary DidJwkCreateOptions {
+  Curve curve;
+};
+
+[Error]
+enum MethodError {
+  "KeyManagerError",
+  "KeyError",
+  "DidCreationFailure",
 };
