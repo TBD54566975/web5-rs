@@ -18,16 +18,8 @@ lint: setup
   cargo fmt
 
 bind: setup
-  just bind-ts
   just bind-kotlin
   just bind-swift
-
-bind-ts: setup
-  cargo build --release --package web5-wasm
-  if ! command -v wasm-pack &> /dev/null; then cargo install wasm-pack; fi
-  wasm-pack build --target nodejs --out-dir ../../binded/ts/pkg bindings/wasm
-  rm binded/LICENSE
-  rm binded/ts/pkg/.gitignore
 
 bind-kotlin: setup
   cargo build --release --package web5-uniffi
@@ -58,12 +50,8 @@ bind-swift: setup
     -output binded/swift/libweb5-rs.xcframework
 
 test-binded: setup
-  just test-ts
   just test-kotlin
   just test-swift
-
-test-ts: setup
-  cd binded/ts && npm i && npm test
 
 test-kotlin: setup
   cd binded/kt && mvn clean test
