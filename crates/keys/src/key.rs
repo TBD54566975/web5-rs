@@ -1,4 +1,4 @@
-use crypto::{ed25519::Ed25199, secp256k1::Secp256k1, CryptoError, CurveOperations};
+use crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CryptoError, CurveOperations};
 use jwk::{Jwk, JwkError};
 use std::sync::Arc;
 
@@ -50,7 +50,7 @@ impl Key for Jwk {
 impl PublicKey for Jwk {
     fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<(), KeyError> {
         match self.crv.as_str() {
-            "Ed25519" => Ed25199::verify(self, payload, signature),
+            "Ed25519" => Ed25519::verify(self, payload, signature),
             "secp256k1" => Secp256k1::verify(self, payload, signature),
             _ => return Err(KeyError::CurveNotFound),
         }?;
@@ -74,7 +74,7 @@ impl PrivateKey for Jwk {
 
     fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyError> {
         let signature = match self.crv.as_str() {
-            "Ed25519" => Ed25199::sign(self, payload),
+            "Ed25519" => Ed25519::sign(self, payload),
             "secp256k1" => Secp256k1::sign(self, payload),
             _ => return Err(KeyError::CurveNotFound),
         }?;
@@ -84,13 +84,13 @@ impl PrivateKey for Jwk {
 
 #[cfg(test)]
 mod tests {
-    use crypto::{ed25519::Ed25199, CurveOperations};
+    use crypto::{ed25519::Ed25519, CurveOperations};
 
     use super::*;
 
     #[test]
     fn test_verify() {
-        let private_key = Ed25199::generate().unwrap();
+        let private_key = Ed25519::generate().unwrap();
         let payload = b"hello world";
         let signature = private_key.sign(payload).unwrap();
 
@@ -100,12 +100,12 @@ mod tests {
 
     #[test]
     fn test_verify_failure() {
-        let private_key = Ed25199::generate().unwrap();
+        let private_key = Ed25519::generate().unwrap();
         let payload: &[u8] = b"hello world";
         let signature = private_key.sign(payload).unwrap();
 
         // public_key is unrelated to the private_key used to sign the payload, so it should fail
-        let private_key_2 = Ed25199::generate().unwrap();
+        let private_key_2 = Ed25519::generate().unwrap();
         let public_key = private_key_2.to_public().unwrap();
         let verification_warnings = public_key.verify(payload, &signature);
         assert!(verification_warnings.is_err());
@@ -113,7 +113,7 @@ mod tests {
 
     #[test]
     fn test_to_public() {
-        let private_key = Ed25199::generate().unwrap();
+        let private_key = Ed25519::generate().unwrap();
         let public_key = private_key.to_public().unwrap().jwk().unwrap();
 
         assert_eq!(private_key.x, public_key.x);
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_sign() {
-        let private_key = Ed25199::generate().unwrap();
+        let private_key = Ed25519::generate().unwrap();
         let payload: &[u8] = b"hello world";
         let signature = private_key.sign(payload).unwrap();
 

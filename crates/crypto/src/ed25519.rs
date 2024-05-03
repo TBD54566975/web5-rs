@@ -7,11 +7,11 @@ use ed25519_dalek::{
 use jwk::Jwk;
 use rand::rngs::OsRng;
 
-pub struct Ed25199;
+pub struct Ed25519;
 
-impl Ed25199 {}
+impl Ed25519 {}
 
-impl CurveOperations for Ed25199 {
+impl CurveOperations for Ed25519 {
     fn generate() -> Result<Jwk, CryptoError> {
         let signing_key = SigningKey::generate(&mut OsRng {});
         let verifying_key = signing_key.verifying_key();
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_generate_keys() {
-        let jwk = Ed25199::generate().unwrap();
+        let jwk = Ed25519::generate().unwrap();
         assert_eq!(jwk.alg, "EdDSA");
         assert_eq!(jwk.kty, "OKP");
         assert_eq!(jwk.crv, "Ed25519");
@@ -95,43 +95,43 @@ mod tests {
 
     #[test]
     fn test_sign_and_verify() {
-        let jwk = Ed25199::generate().unwrap();
+        let jwk = Ed25519::generate().unwrap();
         let payload = b"test payload";
-        let signature = Ed25199::sign(&jwk, payload).unwrap();
-        assert!(Ed25199::verify(&jwk, payload, &signature).is_ok());
+        let signature = Ed25519::sign(&jwk, payload).unwrap();
+        assert!(Ed25519::verify(&jwk, payload, &signature).is_ok());
     }
 
     #[test]
     fn test_sign_with_invalid_private_key_length() {
-        let mut jwk = Ed25199::generate().unwrap();
+        let mut jwk = Ed25519::generate().unwrap();
         let payload = b"another test payload";
         // Alter the private key to an invalid length
         jwk.d = Some(general_purpose::URL_SAFE_NO_PAD.encode(&[0u8; 31])); // one byte short
 
-        assert!(Ed25199::sign(&jwk, payload).is_err());
+        assert!(Ed25519::sign(&jwk, payload).is_err());
     }
 
     #[test]
     fn test_verification_failure_with_invalid_public_key_length() {
-        let jwk = Ed25199::generate().unwrap();
+        let jwk = Ed25519::generate().unwrap();
         let payload = b"test payload again";
-        let signature = Ed25199::sign(&jwk, payload).unwrap();
+        let signature = Ed25519::sign(&jwk, payload).unwrap();
 
         let mut jwk_modified = jwk.clone();
         // Alter the public key to an invalid length
         jwk_modified.x = general_purpose::URL_SAFE_NO_PAD.encode(&[0u8; 31]); // one byte short
 
-        assert!(Ed25199::verify(&jwk_modified, payload, &signature).is_err());
+        assert!(Ed25519::verify(&jwk_modified, payload, &signature).is_err());
     }
 
     #[test]
     fn test_verification_failure_with_modified_signature() {
-        let jwk = Ed25199::generate().unwrap();
+        let jwk = Ed25519::generate().unwrap();
         let payload = b"yet another test payload";
-        let mut signature = Ed25199::sign(&jwk, payload).unwrap();
+        let mut signature = Ed25519::sign(&jwk, payload).unwrap();
         // Introduce an error in the signature
         signature[0] ^= 0xff;
 
-        assert!(Ed25199::verify(&jwk, payload, &signature).is_err());
+        assert!(Ed25519::verify(&jwk, payload, &signature).is_err());
     }
 }
