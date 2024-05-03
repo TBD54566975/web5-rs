@@ -1,5 +1,5 @@
 use base64::{engine::general_purpose, Engine as _};
-use crypto::{ed25519::Ed25199, secp256k1::Secp256k1, CryptoError, CurveOperations};
+use crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CryptoError, CurveOperations};
 use dids::{
     bearer::{BearerDid, BearerDidError},
     document::{DocumentError, KeyIdFragment, KeySelector},
@@ -137,7 +137,7 @@ pub async fn verify_compact_jws(compact_jws: &str) -> Result<(), JwsError> {
         .decode(&parts[2])
         .map_err(|e| JwsError::DecodingError(e.to_string()))?;
     match alg.as_str() {
-        "EdDSA" => Ed25199::verify(&public_key, &to_verify.into_bytes(), &decoded_signature),
+        "EdDSA" => Ed25519::verify(&public_key, &to_verify.into_bytes(), &decoded_signature),
         "ES256K" => Secp256k1::verify(&public_key, &to_verify.into_bytes(), &decoded_signature),
         _ => return Err(JwsError::AlgorithmNotFound(alg)),
     }?;

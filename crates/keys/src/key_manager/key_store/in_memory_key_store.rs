@@ -1,6 +1,6 @@
 use crate::key::{PrivateKey, PublicKey};
 use crate::key_manager::key_store::{KeyStore, KeyStoreError};
-use crypto::ed25519::Ed25199;
+use crypto::ed25519::Ed25519;
 use crypto::secp256k1::Secp256k1;
 use crypto::{Curve, CurveOperations};
 use std::collections::HashMap;
@@ -25,7 +25,7 @@ impl KeyStore for InMemoryKeyStore {
         key_alias: Option<String>,
     ) -> Result<String, KeyStoreError> {
         let private_key = Arc::new(match curve {
-            Curve::Ed25519 => Ed25199::generate(),
+            Curve::Ed25519 => Ed25519::generate(),
             Curve::Secp256k1 => Secp256k1::generate(),
         }?);
         let key_alias = match key_alias {
