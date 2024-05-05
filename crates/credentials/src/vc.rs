@@ -133,7 +133,7 @@ mod test {
         document::VerificationMethodType,
         method::{
             jwk::{DidJwk, DidJwkCreateOptions},
-            Method,
+            Create,
         },
     };
     use keys::key_manager::local_key_manager::LocalKeyManager;

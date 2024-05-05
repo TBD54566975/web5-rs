@@ -94,7 +94,7 @@ mod test {
         document::VerificationMethodType,
         method::{
             jwk::{DidJwk, DidJwkCreateOptions},
-            Method,
+            Create,
         },
     };
     use jws::splice_parts;

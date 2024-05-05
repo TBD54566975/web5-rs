@@ -3,8 +3,11 @@ pub mod spruce_mappers;
 pub mod web;
 
 use crate::resolver::ResolutionResult;
-use keys::{key::KeyError, key_manager::KeyManagerError};
-use std::future::Future;
+use keys::{
+    key::KeyError,
+    key_manager::{KeyManager, KeyManagerError},
+};
+use std::{future::Future, sync::Arc};
 
 /// Errors that can occur when working with DID methods.
 #[derive(thiserror::Error, Debug)]
@@ -33,4 +36,11 @@ pub trait Method {
     /// Resolve a DID URI to a [`DidResolutionResult`], as specified in
     /// [Resolving a DID](https://w3c-ccg.github.io/did-resolution/#resolving).
     fn resolve(did_uri: &str) -> impl Future<Output = ResolutionResult>;
+}
+
+pub trait Create<O> {
+    fn create(
+        key_manager: Arc<dyn KeyManager>,
+        opts: O,
+    ) -> Result<crate::bearer::BearerDid, MethodError>;
 }

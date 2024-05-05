@@ -1,20 +1,9 @@
-use crate::{
-    bearer::BearerDid,
-    method::{Method, MethodError, ResolutionResult},
-};
+use crate::method::{Method, ResolutionResult};
 use did_web::DIDWeb as SpruceDidWebMethod;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 
 /// Concrete implementation for a did:web DID
 pub struct DidWeb {}
-
-impl DidWeb {
-    pub fn create() -> Result<BearerDid, MethodError> {
-        Err(MethodError::DidCreationFailure(
-            "create operation not supported for did:web".to_string(),
-        ))
-    }
-}
 
 impl Method for DidWeb {
     const NAME: &'static str = "web";
@@ -38,12 +27,6 @@ impl Method for DidWeb {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn create_fails() {
-        let result = DidWeb::create();
-        assert!(result.is_err());
-    }
 
     #[tokio::test]
     async fn resolution_success() {

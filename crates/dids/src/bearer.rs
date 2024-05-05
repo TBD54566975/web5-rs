@@ -69,7 +69,7 @@ mod test {
         document::VerificationMethodType,
         method::{
             jwk::{DidJwk, DidJwkCreateOptions},
-            Method,
+            Create,
         },
     };
     use crypto::Curve;

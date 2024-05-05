@@ -1,8 +1,10 @@
-use crate::bearer::BearerDid;
+use std::sync::Arc;
+
 use crate::document::{Document, VerificationMethod};
 use crate::identifier::Identifier;
 use crate::method::{Method, MethodError};
 use crate::resolver::ResolutionResult;
+use crate::{bearer::BearerDid, method::Create};
 use crypto::Curve;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;
 use keys::key_manager::KeyManager;
@@ -10,7 +12,6 @@ use serde_json::from_str;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 use ssi_dids::{DIDMethod, Source};
 use ssi_jwk::JWK as SpruceJwk;
-use std::sync::Arc;
 
 /// Concrete implementation for a did:jwk DID
 pub struct DidJwk;
@@ -20,8 +21,8 @@ pub struct DidJwkCreateOptions {
     pub curve: Curve,
 }
 
-impl DidJwk {
-    pub fn create(
+impl Create<DidJwkCreateOptions> for DidJwk {
+    fn create(
         key_manager: Arc<dyn KeyManager>,
         options: DidJwkCreateOptions,
     ) -> Result<BearerDid, MethodError> {
