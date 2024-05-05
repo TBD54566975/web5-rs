@@ -21,6 +21,19 @@ pub enum MethodError {
 }
 
 /// A trait with common behavior across all DID methods.
+pub trait Resolve {
+    /// Resolve a DID URI to a [`DidResolutionResult`], as specified in
+    /// [Resolving a DID](https://w3c-ccg.github.io/did-resolution/#resolving).
+    fn resolve(did_uri: &str) -> impl Future<Output = ResolutionResult>;
+}
+
+pub trait Create<O> {
+    fn create(
+        key_manager: Arc<dyn KeyManager>,
+        opts: O,
+    ) -> Result<crate::bearer::BearerDid, MethodError>;
+}
+
 pub trait Method {
     /// The name of the implemented DID method (e.g. `jwk`).
     ///
@@ -32,15 +45,4 @@ pub trait Method {
     /// (`jwk` in this example) is compared against each [`DidMethod`]'s `NAME` constant. If a match
     /// is found, the corresponding [`DidMethod`] is used to resolve the DID URI.
     const NAME: &'static str;
-
-    /// Resolve a DID URI to a [`DidResolutionResult`], as specified in
-    /// [Resolving a DID](https://w3c-ccg.github.io/did-resolution/#resolving).
-    fn resolve(did_uri: &str) -> impl Future<Output = ResolutionResult>;
-}
-
-pub trait Create<O> {
-    fn create(
-        key_manager: Arc<dyn KeyManager>,
-        opts: O,
-    ) -> Result<crate::bearer::BearerDid, MethodError>;
 }

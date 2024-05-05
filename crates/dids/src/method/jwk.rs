@@ -1,10 +1,13 @@
 use std::sync::Arc;
 
-use crate::document::{Document, VerificationMethod};
 use crate::identifier::Identifier;
-use crate::method::{Method, MethodError};
+use crate::method::{MethodError, Resolve};
 use crate::resolver::ResolutionResult;
 use crate::{bearer::BearerDid, method::Create};
+use crate::{
+    document::{Document, VerificationMethod},
+    method::Method,
+};
 use crypto::Curve;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;
 use keys::key_manager::KeyManager;
@@ -19,6 +22,10 @@ pub struct DidJwk;
 /// Options that can be used to create a did:jwk DID
 pub struct DidJwkCreateOptions {
     pub curve: Curve,
+}
+
+impl Method for DidJwk {
+    const NAME: &'static str = "jwk";
 }
 
 impl Create<DidJwkCreateOptions> for DidJwk {
@@ -64,9 +71,7 @@ impl Create<DidJwkCreateOptions> for DidJwk {
     }
 }
 
-impl Method for DidJwk {
-    const NAME: &'static str = "jwk";
-
+impl Resolve for DidJwk {
     async fn resolve(did_uri: &str) -> ResolutionResult {
         let input_metadata = ResolutionInputMetadata::default();
         let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =

@@ -1,4 +1,4 @@
-use crate::method::{Method, ResolutionResult};
+use crate::method::{Method, ResolutionResult, Resolve};
 use did_web::DIDWeb as SpruceDidWebMethod;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 
@@ -7,7 +7,9 @@ pub struct DidWeb {}
 
 impl Method for DidWeb {
     const NAME: &'static str = "web";
+}
 
+impl Resolve for DidWeb {
     async fn resolve(did_uri: &str) -> ResolutionResult {
         let input_metadata = ResolutionInputMetadata::default();
         let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
