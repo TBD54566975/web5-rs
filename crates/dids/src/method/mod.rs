@@ -34,7 +34,7 @@ pub trait Create<O> {
     ) -> Result<crate::bearer::BearerDid, MethodError>;
 }
 
-pub trait Method {
+pub trait Method<T: Resolve = Self> {
     /// The name of the implemented DID method (e.g. `jwk`).
     ///
     /// This is used to identify the [`DidMethod`] responsible for creating/resolving an arbitrary
