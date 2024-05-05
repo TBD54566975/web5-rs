@@ -20,10 +20,8 @@ pub struct DidJwkCreateOptions {
     pub curve: Curve,
 }
 
-impl Method<DidJwkCreateOptions> for DidJwk {
-    const NAME: &'static str = "jwk";
-
-    fn create(
+impl DidJwk {
+    pub fn create(
         key_manager: Arc<dyn KeyManager>,
         options: DidJwkCreateOptions,
     ) -> Result<BearerDid, MethodError> {
@@ -63,6 +61,10 @@ impl Method<DidJwkCreateOptions> for DidJwk {
 
         Ok(bearer_did)
     }
+}
+
+impl Method for DidJwk {
+    const NAME: &'static str = "jwk";
 
     async fn resolve(did_uri: &str) -> ResolutionResult {
         let input_metadata = ResolutionInputMetadata::default();
