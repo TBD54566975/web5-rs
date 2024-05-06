@@ -46,19 +46,29 @@ impl Method<DidJwkCreateOptions> for DidJwk {
             MethodError::DidCreationFailure(format!("Failed to parse did:jwk uri {} {}", &uri, e))
         })?;
 
+        let verification_method_id = format!("{}#0", uri);
+
+        let verification_method = VerificationMethod {
+            id: verification_method_id.clone(),
+            r#type: "JsonWebKey".to_string(),
+            controller: uri.clone(),
+            public_key_jwk: public_jwk.as_ref().clone(),
+        };
+
+        let document = Document {
+            id: uri.clone(),
+            verification_method: vec![verification_method.clone()],
+            authentication: Some(vec![verification_method_id.clone()]),
+            assertion_method: Some(vec![verification_method_id.clone()]),
+            capability_invocation: Some(vec![verification_method_id.clone()]),
+            capability_delegation: Some(vec![verification_method_id.clone()]),
+            ..Default::default()
+        };
+
         let bearer_did = BearerDid {
             identifier,
             key_manager,
-            document: Document {
-                id: uri.clone(),
-                verification_method: vec![VerificationMethod {
-                    id: format!("{}#0", uri),
-                    r#type: "JsonWebKey".to_string(),
-                    controller: uri,
-                    public_key_jwk: public_jwk.as_ref().clone(),
-                }],
-                ..Default::default()
-            },
+            document,
         };
 
         Ok(bearer_did)
@@ -101,6 +111,17 @@ mod tests {
         assert!(bearer_did.identifier.uri.starts_with("did:jwk:"));
     }
 
+    #[test]
+    fn create_produces_correct_did_document() {
+        let bearer_did = create_did_jwk();
+
+        let verification_method_id = bearer_did.document.verification_method[0].id.clone();
+        assert_eq!(bearer_did.document.authentication.unwrap()[0], verification_method_id);
+        assert_eq!(bearer_did.document.assertion_method.unwrap()[0], verification_method_id);
+        assert_eq!(bearer_did.document.capability_invocation.unwrap()[0], verification_method_id);
+        assert_eq!(bearer_did.document.capability_delegation.unwrap()[0], verification_method_id);
+    }
+
     #[tokio::test]
     async fn instance_resolve() {
         let did = create_did_jwk();
@@ -119,6 +140,12 @@ mod tests {
 
         let did_document = result.did_document.unwrap();
         assert_eq!(did_document.id, bearer_did.identifier.uri);
+
+        let verification_method_id = did_document.verification_method[0].id.clone();
+        assert_eq!(did_document.authentication.unwrap()[0], verification_method_id);
+        assert_eq!(did_document.assertion_method.unwrap()[0], verification_method_id);
+        assert_eq!(did_document.capability_invocation.unwrap()[0], verification_method_id);
+        assert_eq!(did_document.capability_delegation.unwrap()[0], verification_method_id);
     }
 
     #[tokio::test]
