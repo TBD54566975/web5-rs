@@ -186,7 +186,7 @@ mod tests {
     // TODO https://github.com/TBD54566975/web5-rs/issues/166
     // - not base64 encoded signature
     // - base64 encoded signature but not valid cryptographic signature
-    // - not supported algorithm 
+    // - not supported algorithm
     // - did doc doesn't resolve
     // - did doc missing vm
 }
