@@ -1,6 +1,6 @@
 pub mod v2;
 
-use base64::{engine::general_purpose, DecodeError, Engine as _};
+use base64::{engine::general_purpose, Engine as _};
 use crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CryptoError, CurveOperations};
 use dids::{
     bearer::{BearerDid, BearerDidError},
@@ -29,10 +29,6 @@ pub enum JwsError {
     AlgorithmNotFound(String),
     #[error(transparent)]
     CryptoError(#[from] CryptoError),
-    #[error("serde json error {0}")]
-    SerdeJsonError(String),
-    #[error(transparent)]
-    DecodeError(#[from] DecodeError),
 }
 
 pub fn splice_parts(compact_jws: &str) -> Result<Vec<String>, JwsError> {
