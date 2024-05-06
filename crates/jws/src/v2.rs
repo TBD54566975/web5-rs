@@ -1,12 +1,38 @@
-use crate::JwsError;
-use base64::{engine::general_purpose, Engine as _};
-use crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CurveOperations};
+use base64::{engine::general_purpose, DecodeError, Engine as _};
+use crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CryptoError, CurveOperations};
 use dids::{
-    bearer::BearerDid,
+    bearer::{BearerDid, BearerDidError},
     document::{DocumentError, KeyIdFragment, KeySelector},
-    resolver::Resolver,
+    resolver::{ResolutionError, Resolver},
 };
 use serde::{Deserialize, Serialize};
+use serde_json::Error as SerdeJsonError;
+
+#[derive(thiserror::Error, Debug, Clone, PartialEq)]
+pub enum JwsError {
+    #[error(transparent)]
+    BearerDidError(#[from] BearerDidError),
+    #[error("incorrect number of parts 3 expected {0}")]
+    IncorrectPartsLength(String),
+    #[error(transparent)]
+    DocumentError(#[from] DocumentError),
+    #[error(transparent)]
+    ResolutionError(#[from] ResolutionError),
+    #[error("algorithm not found {0}")]
+    AlgorithmNotFound(String),
+    #[error(transparent)]
+    CryptoError(#[from] CryptoError),
+    #[error("serde json error {0}")]
+    SerdeJsonError(String),
+    #[error(transparent)]
+    DecodeError(#[from] DecodeError),
+}
+
+impl From<SerdeJsonError> for JwsError {
+    fn from(err: SerdeJsonError) -> Self {
+        JwsError::SerdeJsonError(err.to_string())
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct JwsHeader {
@@ -31,8 +57,7 @@ impl CompactJws {
         header: &JwsHeader,
         payload: &[u8], // JSON string as a byte array, TODO add a doc comment for this
     ) -> Result<String, JwsError> {
-        let header_json_string = serde_json::to_string(header)
-            .map_err(|e| JwsError::SerializationError(e.to_string()))?;
+        let header_json_string = serde_json::to_string(header)?;
         let encoded_header = general_purpose::URL_SAFE_NO_PAD.encode(header_json_string.as_bytes());
         let encoded_payload = general_purpose::URL_SAFE_NO_PAD.encode(payload);
 
@@ -52,15 +77,10 @@ impl CompactJws {
             return Err(JwsError::IncorrectPartsLength(compact_jws.to_string()));
         }
 
-        let decoded_header = general_purpose::URL_SAFE_NO_PAD
-            .decode(&parts[0])
-            .map_err(|e| JwsError::DecodingError(e.to_string()))?;
-        let header: JwsHeader = serde_json::from_slice(&decoded_header)
-            .map_err(|e| JwsError::DeserializationError(e.to_string()))?;
+        let decoded_header = general_purpose::URL_SAFE_NO_PAD.decode(&parts[0])?;
+        let header = serde_json::from_slice::<JwsHeader>(&decoded_header)?;
 
-        let decoded_payload = general_purpose::URL_SAFE_NO_PAD
-            .decode(&parts[1])
-            .map_err(|e| JwsError::DecodingError(e.to_string()))?;
+        let decoded_payload = general_purpose::URL_SAFE_NO_PAD.decode(&parts[1])?;
 
         Ok(JwsDecoded {
             header,
@@ -92,9 +112,7 @@ impl CompactJws {
         let public_key = verification_method.public_key_jwk.clone();
         let to_verify = format!("{}.{}", jws_decoded.parts[0], jws_decoded.parts[1]);
         let alg = jws_decoded.header.alg.clone();
-        let decoded_signature = general_purpose::URL_SAFE_NO_PAD
-            .decode(&jws_decoded.parts[2])
-            .map_err(|e| JwsError::DecodingError(e.to_string()))?;
+        let decoded_signature = general_purpose::URL_SAFE_NO_PAD.decode(&jws_decoded.parts[2])?;
         match alg.as_str() {
             "EdDSA" => Ed25519::verify(&public_key, &to_verify.into_bytes(), &decoded_signature),
             "ES256K" => Secp256k1::verify(&public_key, &to_verify.into_bytes(), &decoded_signature),
