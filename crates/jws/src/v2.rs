@@ -121,3 +121,72 @@ impl CompactJws {
         Ok(jws_decoded)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crypto::Curve;
+    use dids::method::{
+        jwk::{DidJwk, DidJwkCreateOptions},
+        Method,
+    };
+    use keys::key_manager::local_key_manager::LocalKeyManager;
+    use serde_json::json;
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_jws_sign_and_verify() {
+        let key_manager = LocalKeyManager::new_in_memory();
+        let bearer_did = DidJwk::create(
+            Arc::new(key_manager),
+            DidJwkCreateOptions {
+                curve: Curve::Ed25519,
+            },
+        )
+        .expect("failed to create bearer did");
+
+        let key_id = bearer_did.document.verification_method[0].id.clone();
+
+        let header = JwsHeader {
+            alg: "EdDSA".to_string(),
+            kid: key_id.clone(),
+            typ: "JWT".to_string(),
+        };
+        let payload = json!({
+            "sub": "1234567890",
+            "name": "John Doe",
+            "iat": 1516239022
+        })
+        .to_string()
+        .into_bytes();
+
+        let compact_jws = CompactJws::sign(
+            &bearer_did,
+            &KeySelector::KeyId {
+                key_id: key_id.clone(),
+            },
+            &header,
+            &payload,
+        )
+        .unwrap();
+
+        let verified_jws = CompactJws::verify(&compact_jws).await.unwrap();
+
+        assert_eq!(verified_jws.header, header);
+        assert_eq!(verified_jws.payload, payload);
+    }
+
+    #[test]
+    fn test_jws_decode_error() {
+        let invalid_jws = "invalid.jws";
+        let result = CompactJws::decode(invalid_jws);
+        assert!(matches!(result, Err(JwsError::IncorrectPartsLength(_))));
+    }
+
+    // TODO https://github.com/TBD54566975/web5-rs/issues/166
+    // - not base64 encoded signature
+    // - base64 encoded signature but not valid cryptographic signature
+    // - not supported algorithm 
+    // - did doc doesn't resolve
+    // - did doc missing vm
+}
