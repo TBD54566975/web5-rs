@@ -1,3 +1,5 @@
+pub mod v2;
+
 use base64::{engine::general_purpose, Engine as _};
 use crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CryptoError, CurveOperations};
 use dids::{
