@@ -93,6 +93,7 @@ pub async fn verify_jwt(jwt: &str) -> Result<(), JwtError> {
 
 #[cfg(test)]
 mod test {
+    use ::jws::splice_parts;
     use crypto::Curve;
     use dids::{
         document::VerificationMethodType,
@@ -101,7 +102,6 @@ mod test {
             Method,
         },
     };
-    use ::jws::splice_parts;
     use keys::key_manager::local_key_manager::LocalKeyManager;
 
     use super::*;
