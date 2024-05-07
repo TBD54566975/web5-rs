@@ -116,10 +116,22 @@ mod tests {
         let bearer_did = create_did_jwk();
 
         let verification_method_id = bearer_did.document.verification_method[0].id.clone();
-        assert_eq!(bearer_did.document.authentication.unwrap()[0], verification_method_id);
-        assert_eq!(bearer_did.document.assertion_method.unwrap()[0], verification_method_id);
-        assert_eq!(bearer_did.document.capability_invocation.unwrap()[0], verification_method_id);
-        assert_eq!(bearer_did.document.capability_delegation.unwrap()[0], verification_method_id);
+        assert_eq!(
+            bearer_did.document.authentication.unwrap()[0],
+            verification_method_id
+        );
+        assert_eq!(
+            bearer_did.document.assertion_method.unwrap()[0],
+            verification_method_id
+        );
+        assert_eq!(
+            bearer_did.document.capability_invocation.unwrap()[0],
+            verification_method_id
+        );
+        assert_eq!(
+            bearer_did.document.capability_delegation.unwrap()[0],
+            verification_method_id
+        );
     }
 
     #[tokio::test]
@@ -142,10 +154,22 @@ mod tests {
         assert_eq!(did_document.id, bearer_did.identifier.uri);
 
         let verification_method_id = did_document.verification_method[0].id.clone();
-        assert_eq!(did_document.authentication.unwrap()[0], verification_method_id);
-        assert_eq!(did_document.assertion_method.unwrap()[0], verification_method_id);
-        assert_eq!(did_document.capability_invocation.unwrap()[0], verification_method_id);
-        assert_eq!(did_document.capability_delegation.unwrap()[0], verification_method_id);
+        assert_eq!(
+            did_document.authentication.unwrap()[0],
+            verification_method_id
+        );
+        assert_eq!(
+            did_document.assertion_method.unwrap()[0],
+            verification_method_id
+        );
+        assert_eq!(
+            did_document.capability_invocation.unwrap()[0],
+            verification_method_id
+        );
+        assert_eq!(
+            did_document.capability_delegation.unwrap()[0],
+            verification_method_id
+        );
     }
 
     #[tokio::test]
