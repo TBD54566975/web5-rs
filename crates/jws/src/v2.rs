@@ -73,7 +73,14 @@ impl CompactJws {
     pub async fn verify(compact_jws: &str) -> Result<JwsDecoded, JwsError> {
         let jws_decoded = CompactJws::decode(compact_jws)?;
 
-        // TODO https://github.com/TBD54566975/web5-rs/issues/149
+        // Validate header fields
+        if jws_decoded.header.alg.is_empty() {
+            return Err(JwsError::MalformedHeader("alg field is required".to_string()));
+        }
+
+        if jws_decoded.header.kid.is_empty() {
+            return Err(JwsError::MalformedHeader("kid field is required for verification processing".to_string()));
+        }
 
         let key_id = jws_decoded.header.kid.clone();
         let did_uri = KeyIdFragment(key_id.clone()).splice_uri();
