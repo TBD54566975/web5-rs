@@ -1,7 +1,9 @@
-use base64::{engine::general_purpose, Engine as _};
 use dids::{bearer::BearerDid, document::KeySelector};
-use jws::{splice_parts, JwsError, JwsHeader};
-use jwt::{sign_jwt, verify_jwt, Claims, JwtError};
+use jws::v2::JwsError;
+use jwt::{
+    jws::Jwt,
+    lib_v2::{Claims, JwtError, RegisteredClaims},
+};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
@@ -72,9 +74,8 @@ impl VerifiableCredential {
         bearer_did: &BearerDid,
         key_selector: &KeySelector,
     ) -> Result<String, CredentialError> {
-        let header = JwsHeader::from_bearer_did(bearer_did, key_selector, "JWT")?;
         let claims = VcJwtClaims {
-            base_claims: Claims {
+            registered_claims: RegisteredClaims {
                 issuer: Some(self.issuer.clone()),
                 jti: Some(self.id.clone()),
                 subject: Some(self.credential_subject.id.clone()),
@@ -85,45 +86,40 @@ impl VerifiableCredential {
             vc: self.clone(),
         };
 
-        let encoded_header = header.encode()?;
-        let encoded_claims = claims.encode()?;
+        let jwt = Jwt::sign(bearer_did, key_selector, None, &claims)?;
 
-        let vcjwt = sign_jwt(bearer_did, key_selector, &encoded_header, &encoded_claims)?;
-        Ok(vcjwt)
+        Ok(jwt)
+    }
+
+    pub async fn verify(jwt: &str) -> Result<Self, CredentialError> {
+        let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
+
+        // TODO Implement semantic VC verification rules https://github.com/TBD54566975/web5-rs/issues/151
+
+        Ok(jwt_decoded.claims.vc)
+    }
+
+    pub fn decode(jwt: &str) -> Result<Self, CredentialError> {
+        let jwt_decoded = Jwt::decode::<VcJwtClaims>(jwt)?;
+
+        Ok(jwt_decoded.claims.vc)
     }
 }
 
+// todo we should remove this altogether in the follow-up PR, but it would break bindings so leaving it for now
 pub async fn verify_vcjwt(jwt: &str) -> Result<Arc<VerifiableCredential>, CredentialError> {
-    verify_jwt(jwt).await?;
-    let claims = VcJwtClaims::new_from_compact_jws(jwt)?;
-    Ok(Arc::new(claims.vc))
+    let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
+    Ok(Arc::new(jwt_decoded.claims.vc))
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct VcJwtClaims {
-    vc: VerifiableCredential,
+    pub vc: VerifiableCredential,
     #[serde(flatten)]
-    base_claims: Claims,
+    pub registered_claims: RegisteredClaims,
 }
 
-impl VcJwtClaims {
-    pub fn new_from_compact_jws(compact_jws: &str) -> Result<Self, CredentialError> {
-        let parts = splice_parts(compact_jws)?;
-        let decoded_bytes = general_purpose::URL_SAFE_NO_PAD
-            .decode(&parts[1])
-            .map_err(|e| JwsError::DecodingError(e.to_string()))?;
-        let claims: Self = serde_json::from_slice(&decoded_bytes)
-            .map_err(|e| JwsError::DeserializationError(e.to_string()))?;
-        Ok(claims)
-    }
-
-    pub fn encode(&self) -> Result<String, CredentialError> {
-        let json_str = serde_json::to_string(&self)
-            .map_err(|e| JwsError::SerializationError(e.to_string()))?;
-        let encoded_str = general_purpose::URL_SAFE_NO_PAD.encode(json_str.as_bytes());
-        Ok(encoded_str)
-    }
-}
+impl Claims for VcJwtClaims {}
 
 #[cfg(test)]
 mod test {
@@ -238,7 +234,7 @@ mod test {
         let vcjwt = vc.sign(&bearer_did, &key_selector).unwrap();
         assert!(!vcjwt.is_empty());
 
-        let verified_vc = verify_vcjwt(&vcjwt).await.unwrap();
+        let verified_vc = VerifiableCredential::verify(&vcjwt).await.unwrap();
         assert_eq!(vc.id, verified_vc.id);
         assert_eq!(vc.issuer, verified_vc.issuer);
         assert_eq!(vc.credential_subject.id, verified_vc.credential_subject.id);
