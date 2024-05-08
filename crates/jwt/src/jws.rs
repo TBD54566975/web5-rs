@@ -1,5 +1,5 @@
 use crate::{Claims, JwtError};
-use ::jws::{CompactJws, JwsHeader};
+use ::jws::{JwsCompactSerialized, JwsHeader};
 use dids::{bearer::BearerDid, document::KeySelector};
 
 // A JWT can be implemented as either a JWS or JWE, this module is the implementation of a JWT as a JWS
@@ -36,12 +36,12 @@ impl Jwt {
 
         let serialized_claims = serde_json::to_string(claims)?.into_bytes();
 
-        let jwt = CompactJws::sign(bearer_did, key_selector, &jws_header, &serialized_claims)?;
+        let jwt = JwsCompactSerialized::sign(bearer_did, key_selector, &jws_header, &serialized_claims)?;
         Ok(jwt)
     }
 
     pub fn decode<T: Claims>(jwt: &str) -> Result<JwtDecoded<T>, JwtError> {
-        let jws_decoded = CompactJws::decode(jwt)?;
+        let jws_decoded = JwsCompactSerialized::decode(jwt)?;
 
         let claims = serde_json::from_slice::<T>(&jws_decoded.payload)?;
 
@@ -54,7 +54,7 @@ impl Jwt {
     }
 
     pub async fn verify<T: Claims>(jwt: &str) -> Result<JwtDecoded<T>, JwtError> {
-        let jws_decoded = CompactJws::verify(jwt).await?;
+        let jws_decoded = JwsCompactSerialized::verify(jwt).await?;
 
         let claims = serde_json::from_slice::<T>(&jws_decoded.payload)?;
 

@@ -12,7 +12,7 @@ use ::keys::{
         KeyManager, KeyManagerError,
     },
 };
-use jws::{CompactJws, JwsDecoded, JwsError, JwsHeader};
+use jws::{JwsCompactSerialized, JwsDecoded, JwsError, JwsHeader};
 use std::sync::Arc;
 
 pub async fn bearer_did_from_key_manager(
@@ -29,15 +29,15 @@ pub fn compactjws_sign(
     header: &JwsHeader,
     payload: &[u8], // JSON string as a byte array, TODO add a doc comment for this
 ) -> Result<String, JwsError> {
-    CompactJws::sign(bearer_did, key_selector, header, payload)
+    JwsCompactSerialized::sign(bearer_did, key_selector, header, payload)
 }
 
 pub fn compactjws_decode(compact_jws: &str) -> Result<JwsDecoded, JwsError> {
-    CompactJws::decode(compact_jws)
+    JwsCompactSerialized::decode(compact_jws)
 }
 
 pub async fn compactjws_verify(compact_jws: &str) -> Result<JwsDecoded, JwsError> {
-    CompactJws::verify(compact_jws).await
+    JwsCompactSerialized::verify(compact_jws).await
 }
 
 uniffi::include_scaffolding!("web5");
