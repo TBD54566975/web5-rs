@@ -22,7 +22,7 @@ impl From<SerdeJsonError> for JwtError {
 pub trait Claims: Serialize + DeserializeOwned {}
 
 #[derive(Serialize, Deserialize, Debug, Default)]
-pub struct BaseClaims {
+pub struct RegisteredClaims {
     #[serde(rename = "iss", skip_serializing_if = "Option::is_none")]
     pub issuer: Option<String>,
     #[serde(rename = "sub", skip_serializing_if = "Option::is_none")]
@@ -39,4 +39,4 @@ pub struct BaseClaims {
     pub jti: Option<String>,
 }
 
-impl Claims for BaseClaims {}
+impl Claims for RegisteredClaims {}

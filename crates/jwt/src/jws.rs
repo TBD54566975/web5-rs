@@ -2,6 +2,8 @@ use crate::lib_v2::{Claims, JwtError};
 use dids::{bearer::BearerDid, document::KeySelector};
 use jws::v2::{CompactJws, JwsHeader};
 
+// A JWT can be implemented as either a JWS or JWE, this module is the implementation of a JWT as a JWS
+
 pub struct JwtDecoded<T: Claims> {
     pub header: JwsHeader,
     pub claims: T,
@@ -68,7 +70,7 @@ impl Jwt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lib_v2::BaseClaims;
+    use crate::lib_v2::RegisteredClaims;
     use crypto::Curve;
     use dids::{
         document::KeySelector,
@@ -91,7 +93,7 @@ mod tests {
         )
         .expect("failed to create bearer did");
 
-        let claims = BaseClaims {
+        let claims = RegisteredClaims {
             issuer: Some(bearer_did.identifier.uri.clone()),
             ..Default::default()
         };
@@ -107,7 +109,7 @@ mod tests {
         )
         .unwrap();
 
-        let jwt_decoded = Jwt::verify::<BaseClaims>(&jwt).await.unwrap();
+        let jwt_decoded = Jwt::verify::<RegisteredClaims>(&jwt).await.unwrap();
 
         // default JwsHeader
         assert_eq!("JWT".to_string(), jwt_decoded.header.typ);
