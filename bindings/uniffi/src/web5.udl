@@ -9,6 +9,8 @@ namespace web5 {
 
   [Throws=CredentialError, Async]
   VerifiableCredential verify_vcjwt([ByRef] string jwt);
+  [Throws=CredentialError]
+  VerifiableCredential decode_vcjwt([ByRef] string jwt);
 };
 
 [Error]

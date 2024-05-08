@@ -2860,6 +2860,13 @@ public func bearerDidFromKeyManager(didUri: String, keyManager: KeyManager)async
             errorHandler: FfiConverterTypeBearerDidError.lift
         )
 }
+public func decodeVcjwt(jwt: String)throws  -> VerifiableCredential {
+    return try  FfiConverterTypeVerifiableCredential.lift(try rustCallWithError(FfiConverterTypeCredentialError.lift) {
+    uniffi_web5_fn_func_decode_vcjwt(
+        FfiConverterString.lower(jwt),$0
+    )
+})
+}
 public func signJwt(bearerDid: BearerDid, keySelector: KeySelector, encodedHeader: String, encodedPayload: String)throws  -> String {
     return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeJwtError.lift) {
     uniffi_web5_fn_func_sign_jwt(
@@ -2915,6 +2922,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.contractVersionMismatch
     }
     if (uniffi_web5_checksum_func_bearer_did_from_key_manager() != 49693) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_checksum_func_decode_vcjwt() != 61942) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_web5_checksum_func_sign_jwt() != 3714) {

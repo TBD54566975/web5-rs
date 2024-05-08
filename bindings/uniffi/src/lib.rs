@@ -1,4 +1,4 @@
-use ::credentials::vc::{verify_vcjwt, CredentialError, CredentialSubject, VerifiableCredential};
+use ::credentials::vc::{CredentialError, CredentialSubject, VerifiableCredential};
 use ::crypto::Curve;
 use ::dids::{
     bearer::{BearerDid, BearerDidError},
@@ -22,6 +22,16 @@ pub async fn bearer_did_from_key_manager(
 ) -> Result<Arc<BearerDid>, BearerDidError> {
     let bearer_did = BearerDid::from_key_manager(did_uri, key_manager).await?;
     Ok(Arc::new(bearer_did))
+}
+
+pub async fn verify_vcjwt(jwt: &str) -> Result<Arc<VerifiableCredential>, CredentialError> {
+    let vc = VerifiableCredential::verify(jwt).await?;
+    Ok(Arc::new(vc))
+}
+
+pub fn decode_vcjwt(jwt: &str) -> Result<Arc<VerifiableCredential>, CredentialError> {
+    let vc = VerifiableCredential::decode(jwt)?;
+    Ok(Arc::new(vc))
 }
 
 uniffi::include_scaffolding!("web5");

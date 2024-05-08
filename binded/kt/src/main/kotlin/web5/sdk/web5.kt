@@ -974,6 +974,8 @@ internal open class UniffiVTableCallbackInterfacePublicKey(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1128,6 +1130,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_func_bearer_did_from_key_manager(`didUri`: RustBuffer.ByValue,`keyManager`: Pointer,
     ): Long
+    fun uniffi_web5_fn_func_decode_vcjwt(`jwt`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_fn_func_sign_jwt(`bearerDid`: Pointer,`keySelector`: RustBuffer.ByValue,`encodedHeader`: RustBuffer.ByValue,`encodedPayload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_fn_func_verify_jwt(`jwt`: RustBuffer.ByValue,
@@ -1248,6 +1252,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_checksum_func_bearer_did_from_key_manager(
     ): Short
+    fun uniffi_web5_checksum_func_decode_vcjwt(
+    ): Short
     fun uniffi_web5_checksum_func_sign_jwt(
     ): Short
     fun uniffi_web5_checksum_func_verify_jwt(
@@ -1356,6 +1362,9 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_checksum_func_bearer_did_from_key_manager() != 49693.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_checksum_func_decode_vcjwt() != 61942.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_checksum_func_sign_jwt() != 3714.toShort()) {
@@ -5519,6 +5528,16 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
         BearerDidException.ErrorHandler,
     )
     }
+
+    @Throws(CredentialException::class) fun `decodeVcjwt`(`jwt`: kotlin.String): VerifiableCredential {
+            return FfiConverterTypeVerifiableCredential.lift(
+    uniffiRustCallWithError(CredentialException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_fn_func_decode_vcjwt(
+        FfiConverterString.lower(`jwt`),_status)
+}
+    )
+    }
+    
 
     @Throws(JwtException::class) fun `signJwt`(`bearerDid`: BearerDid, `keySelector`: KeySelector, `encodedHeader`: kotlin.String, `encodedPayload`: kotlin.String): kotlin.String {
             return FfiConverterString.lift(

@@ -741,6 +741,11 @@ RustBuffer uniffi_web5_fn_method_verifiablecredential_sign(void*_Nonnull ptr, vo
 uint64_t uniffi_web5_fn_func_bearer_did_from_key_manager(RustBuffer did_uri, void*_Nonnull key_manager
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_DECODE_VCJWT
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_DECODE_VCJWT
+void*_Nonnull uniffi_web5_fn_func_decode_vcjwt(RustBuffer jwt, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_SIGN_JWT
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_FN_FUNC_SIGN_JWT
 RustBuffer uniffi_web5_fn_func_sign_jwt(void*_Nonnull bearer_did, RustBuffer key_selector, RustBuffer encoded_header, RustBuffer encoded_payload, RustCallStatus *_Nonnull out_status
@@ -1039,6 +1044,12 @@ void ffi_web5_rust_future_complete_void(uint64_t handle, RustCallStatus *_Nonnul
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_BEARER_DID_FROM_KEY_MANAGER
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_BEARER_DID_FROM_KEY_MANAGER
 uint16_t uniffi_web5_checksum_func_bearer_did_from_key_manager(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_DECODE_VCJWT
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_CHECKSUM_FUNC_DECODE_VCJWT
+uint16_t uniffi_web5_checksum_func_decode_vcjwt(void
     
 );
 #endif
