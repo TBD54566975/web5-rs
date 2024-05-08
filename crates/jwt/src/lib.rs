@@ -1,6 +1,10 @@
+pub mod jwe;
+pub mod jws;
+pub mod lib_v2;
+
+use ::jws::{sign_compact_jws, verify_compact_jws, JwsError, JwsHeader};
 use base64::{engine::general_purpose, Engine as _};
 use dids::{bearer::BearerDid, document::KeySelector};
-use jws::{sign_compact_jws, verify_compact_jws, JwsError, JwsHeader};
 use serde::{Deserialize, Serialize};
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
@@ -89,6 +93,7 @@ pub async fn verify_jwt(jwt: &str) -> Result<(), JwtError> {
 
 #[cfg(test)]
 mod test {
+    use ::jws::splice_parts;
     use crypto::Curve;
     use dids::{
         document::VerificationMethodType,
@@ -97,7 +102,6 @@ mod test {
             Method,
         },
     };
-    use jws::splice_parts;
     use keys::key_manager::local_key_manager::LocalKeyManager;
 
     use super::*;
