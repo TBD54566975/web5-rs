@@ -4,7 +4,7 @@ set shell := ["bash", "-uc"]
 setup:
   #!/bin/bash
   if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
-    rustup default stable
+    rustup default 1.78.0
   fi
 
 build: setup
