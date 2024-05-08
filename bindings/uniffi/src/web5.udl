@@ -2,13 +2,12 @@ namespace web5 {
   [Throws=BearerDidError, Async]
   BearerDid bearer_did_from_key_manager([ByRef] string did_uri, KeyManager key_manager);
 
-  [Throws=JwtError]
-  string sign_jwt([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector, [ByRef] string encoded_header, [ByRef] string encoded_payload);
-  [Throws=JwtError, Async]
-  void verify_jwt([ByRef] string jwt);
-
-  [Throws=CredentialError, Async]
-  VerifiableCredential verify_vcjwt([ByRef] string jwt);
+  [Throws=JwsError]
+  string compactjws_sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector, [ByRef] JwsHeader header, [ByRef] sequence<u8> payload);
+  [Throws=JwsError]
+  JwsDecoded compactjws_decode([ByRef] string compact_jws);
+  [Throws=JwsError, Async]
+  JwsDecoded compactjws_verify([ByRef] string compact_jws);
 };
 
 [Error]
@@ -183,33 +182,26 @@ interface BearerDid {
 };
 
 [Error]
-enum JwtError {
-  "JwsError",
-  "SerializationError",
-  "DeserializationError",
+enum JwsError {
+  "BearerDidError",
+  "IncorrectPartsLength",
+  "DocumentError",
+  "ResolutionError",
+  "AlgorithmNotFound",
+  "CryptoError",
+  "SerdeJsonError",
+  "DecodeError",
 };
 
-interface Claims {
-  constructor(string? issuer, string? subject, string? audience, i64? expiration, i64? not_before, i64? issued_at, string? jti);
-  [Throws=JwtError]
-  string encode();
-  [Throws=JwtError]
-  string sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector);
+dictionary JwsHeader {
+  string alg;
+  string kid;
+  string typ;
 };
 
-dictionary CredentialSubject {
-  string id;
-  record<string, string>? params;
-};
-
-[Error]
-enum CredentialError {
-  "JwtError",
-  "JwsError",
-};
-
-interface VerifiableCredential {
-  constructor(sequence<string> context, string id, sequence<string> type, string issuer, i64 issuance_date, i64? expiration_date, CredentialSubject credential_subject);
-  [Throws=CredentialError]
-  string sign([ByRef] BearerDid bearer_did, [ByRef] KeySelector key_selector);
+dictionary JwsDecoded {
+  JwsHeader header;
+  sequence<u8> payload;
+  string signature;
+  sequence<string> parts;
 };

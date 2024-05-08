@@ -1,11 +1,9 @@
-use ::credentials::vc::{verify_vcjwt, CredentialError, CredentialSubject, VerifiableCredential};
 use ::crypto::Curve;
 use ::dids::{
     bearer::{BearerDid, BearerDidError},
     document::{KeySelector, VerificationMethodType},
 };
 use ::jwk::{Jwk, JwkError};
-use ::jwt::{sign_jwt, verify_jwt, Claims, JwtError};
 use ::keys::{
     key::{Key, KeyError, PrivateKey, PublicKey},
     key_manager::{
@@ -14,6 +12,7 @@ use ::keys::{
         KeyManager, KeyManagerError,
     },
 };
+use jws::{CompactJws, JwsDecoded, JwsError, JwsHeader};
 use std::sync::Arc;
 
 pub async fn bearer_did_from_key_manager(
@@ -22,6 +21,23 @@ pub async fn bearer_did_from_key_manager(
 ) -> Result<Arc<BearerDid>, BearerDidError> {
     let bearer_did = BearerDid::from_key_manager(did_uri, key_manager).await?;
     Ok(Arc::new(bearer_did))
+}
+
+pub fn compactjws_sign(
+    bearer_did: &BearerDid,
+    key_selector: &KeySelector,
+    header: &JwsHeader,
+    payload: &[u8], // JSON string as a byte array, TODO add a doc comment for this
+) -> Result<String, JwsError> {
+    CompactJws::sign(bearer_did, key_selector, header, payload)
+}
+
+pub fn compactjws_decode(compact_jws: &str) -> Result<JwsDecoded, JwsError> {
+    CompactJws::decode(compact_jws)
+}
+
+pub async fn compactjws_verify(compact_jws: &str) -> Result<JwsDecoded, JwsError> {
+    CompactJws::verify(compact_jws).await
 }
 
 uniffi::include_scaffolding!("web5");
