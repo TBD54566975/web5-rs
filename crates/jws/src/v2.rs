@@ -97,11 +97,15 @@ impl CompactJws {
 
         // Validate header fields
         if jws_decoded.header.alg.is_empty() {
-            return Err(JwsError::MalformedHeader("alg field is required".to_string()));
+            return Err(JwsError::MalformedHeader(
+                "alg field is required".to_string(),
+            ));
         }
 
         if jws_decoded.header.kid.is_empty() {
-            return Err(JwsError::MalformedHeader("kid field is required for verification processing".to_string()));
+            return Err(JwsError::MalformedHeader(
+                "kid field is required for verification processing".to_string(),
+            ));
         }
 
         let key_id = jws_decoded.header.kid.clone();
@@ -152,7 +156,7 @@ mod tests {
                 curve: Curve::Ed25519,
             },
         )
-            .expect("failed to create bearer did");
+        .expect("failed to create bearer did");
 
         let key_id = bearer_did.document.verification_method[0].id.clone();
 
@@ -166,8 +170,8 @@ mod tests {
             "name": "John Doe",
             "iat": 1516239022
         })
-            .to_string()
-            .into_bytes();
+        .to_string()
+        .into_bytes();
 
         let compact_jws = CompactJws::sign(
             &bearer_did,
@@ -177,7 +181,7 @@ mod tests {
             &header,
             &payload,
         )
-            .unwrap();
+        .unwrap();
 
         let verified_jws = CompactJws::verify(&compact_jws).await.unwrap();
 
