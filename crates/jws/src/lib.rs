@@ -29,6 +29,8 @@ pub enum JwsError {
     AlgorithmNotFound(String),
     #[error(transparent)]
     CryptoError(#[from] CryptoError),
+    #[error("deserialization error {0}")]
+    MalformedHeader(String),
 }
 
 pub fn splice_parts(compact_jws: &str) -> Result<Vec<String>, JwsError> {

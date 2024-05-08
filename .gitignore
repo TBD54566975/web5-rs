@@ -16,3 +16,4 @@ Cargo.lock
 # -- developer added
 
 .hermit/
+.idea/
