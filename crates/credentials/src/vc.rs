@@ -6,16 +6,52 @@ use jwt::{
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
+use chrono::Utc;
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 const BASE_TYPE: &str = "VerifiableCredential";
 
 #[derive(thiserror::Error, Debug)]
 pub enum CredentialError {
+    // JWT specific errors
     #[error(transparent)]
     JwtError(#[from] JwtError),
     #[error(transparent)]
     JwsError(#[from] JwsError),
+
+    // Credential-specific validation errors
+    #[error("Expiration date mismatch")]
+    ExpirationDateMismatch,
+    #[error("Issuer mismatch")]
+    IssuerMismatch,
+    #[error("Issuance date is in the future")]
+    IssuanceDateInFuture,
+    #[error("Issuance date mismatch")]
+    IssuanceDateMismatch,
+    #[error("ID mismatch")]
+    IdMismatch,
+    #[error("Subject mismatch")]
+    SubjectMismatch,
+    #[error("Missing issuer")]
+    MissingIssuer,
+    #[error("Misconfigured expiration date: {0}")]
+    MisconfiguredExpirationDate(String),
+
+    // Data model validation error
+    #[error("Validation error: {0}")]
+    ValidationError(CredentialDataModelValidationError),
+}
+
+
+#[derive(Debug)]
+pub enum CredentialDataModelValidationError {
+    MissingContext,
+    MissingId,
+    MissingType,
+    MissingIssuer,
+    MissingIssuanceDate,
+    InvalidIssuanceDate,
+    InvalidExpirationDate
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -90,13 +126,69 @@ impl VerifiableCredential {
 
         Ok(jwt)
     }
-
     pub async fn verify(jwt: &str) -> Result<Self, CredentialError> {
         let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
 
-        // TODO Implement semantic VC verification rules https://github.com/TBD54566975/web5-rs/issues/151
+        let mut vc = jwt_decoded.claims.vc;
 
-        Ok(jwt_decoded.claims.vc)
+        validate_vc_data_model(&vc).map_err(CredentialError::ValidationError)?;
+
+        // exp MUST represent the expirationDate property, encoded as a UNIX timestamp (NumericDate).
+        if let Some(exp) = jwt_decoded.claims.registered_claims.expiration {
+            if let Some(expiration_date) = vc.expiration_date {
+                if exp != expiration_date {
+                    return Err(CredentialError::ExpirationDateMismatch);
+                }
+            } else {
+                vc.expiration_date = Some(exp);
+            }
+        } else if vc.expiration_date.is_some() {
+            return Err(CredentialError::MisconfiguredExpirationDate(
+                "vc has expiration date but no exp in registered claims".to_string(),
+            ));
+        }
+
+        // iss MUST represent the issuer property of a verifiable credential or the holder property of a verifiable presentation.
+        if let Some(iss) = jwt_decoded.claims.registered_claims.issuer {
+            if iss != vc.issuer {
+                return Err(CredentialError::IssuerMismatch);
+            }
+        } else {
+            return Err(CredentialError::MissingIssuer);
+        }
+
+        // nbf cannot be in the future, not a valid vc yet
+        if let Some(nbf) = jwt_decoded.claims.registered_claims.not_before {
+            let current_timestamp = Utc::now().timestamp();
+            if nbf > current_timestamp {
+                return Err(CredentialError::IssuanceDateInFuture);
+            }
+        }
+
+        // nbf MUST represent issuanceDate, encoded as a UNIX timestamp (NumericDate).
+        if let Some(nbf) = jwt_decoded.claims.registered_claims.not_before {
+            if nbf != vc.issuance_date {
+                return Err(CredentialError::IssuanceDateMismatch);
+            } else {
+                vc.issuance_date = nbf
+            }
+        }
+
+        // sub MUST represent the id property contained in the credentialSubject.
+        if let Some(sub) = jwt_decoded.claims.registered_claims.subject {
+            if vc.credential_subject.id != sub {
+                return Err(CredentialError::SubjectMismatch);
+            }
+        }
+
+        // jti MUST represent the id property of the verifiable credential or verifiable presentation.
+        if let Some(jti) = jwt_decoded.claims.registered_claims.jti {
+            if jti != vc.id {
+                return Err(CredentialError::IdMismatch);
+            }
+        }
+
+        Ok(vc)
     }
 
     pub fn decode(jwt: &str) -> Result<Self, CredentialError> {
@@ -104,6 +196,42 @@ impl VerifiableCredential {
 
         Ok(jwt_decoded.claims.vc)
     }
+}
+
+pub fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialDataModelValidationError> {
+
+    // Required fields
+    if vc.context.is_empty() {
+        return Err(CredentialDataModelValidationError::MissingContext);
+    }
+
+    if vc.id.trim().is_empty() {
+        return Err(CredentialDataModelValidationError::MissingId);
+    }
+
+    if vc.r#type.is_empty() {
+        return Err(CredentialDataModelValidationError::MissingType);
+    }
+
+    if vc.issuer.is_empty() {
+        return Err(CredentialDataModelValidationError::MissingIssuer);
+    }
+
+    if vc.issuance_date.is_negative() {
+        return Err(CredentialDataModelValidationError::InvalidIssuanceDate);
+    }
+
+    // Validate expiration date if it exists
+    if let Some(expiration_date) = vc.expiration_date {
+        if expiration_date.is_negative() {
+            return Err(CredentialDataModelValidationError::InvalidExpirationDate);
+        }
+    }
+
+    // TODO: Add validations to credential_status, credential_schema, and evidence once they are added to the VcDataModel
+    // https://github.com/TBD54566975/web5-rs/issues/112
+
+    Ok(())
 }
 
 // todo we should remove this altogether in the follow-up PR, but it would break bindings so leaving it for now
