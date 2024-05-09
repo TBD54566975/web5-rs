@@ -141,7 +141,7 @@ mod tests {
     use crypto::Curve;
     use dids::method::{
         jwk::{DidJwk, DidJwkCreateOptions},
-        Method,
+        Create,
     };
     use keys::key_manager::local_key_manager::LocalKeyManager;
     use serde_json::json;
