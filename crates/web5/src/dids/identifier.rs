@@ -12,7 +12,7 @@ pub enum IdentifierError {
     ParseFailure(String),
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Identifier {
     // URI represents the complete Decentralized Identifier (DID) URI.
     // Spec: https://www.w3.org/TR/did-core/#did-syntax
