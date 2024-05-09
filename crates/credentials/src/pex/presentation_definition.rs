@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use base64::{engine::general_purpose, Engine as _};
 use hex;
 use jsonpath_rust::{
     JsonPathFinder,
@@ -58,7 +59,8 @@ pub struct Field {
     pub purpose: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filter: Option<Filter>,
-    pub optional: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub optional: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub predicate: Option<Optionality>,
 }
@@ -105,7 +107,6 @@ impl PresentationDefinition {
     }
 }
 
-// #[derive(Copy)]
 struct TokenizedField<'a> {
     pub token: String,
     pub path: &'a String,
@@ -144,12 +145,24 @@ impl InputDescriptor {
         for vc_jwt in vc_jwts {
             let mut selection_candidate: Map<String, Value> = Map::new();
 
+            let parts: Vec<&str> = vc_jwt.split('.').collect();
+            let base64_encoded_payload = if let Some(part) = parts.get(1) {
+                part
+            } else {
+                continue;
+            };
+            let payload = if let Ok(decoded) = general_purpose::URL_SAFE_NO_PAD.decode(base64_encoded_payload) {
+                String::from_utf8(decoded).unwrap() // todo unwrap ugh
+            } else {
+                continue;
+            };
+
             for tokenized_field in &tokenized_fields {
                 if selection_candidate.contains_key(&tokenized_field.token) {
                     continue;
                 }
 
-                let finder = if let Ok(f) = JsonPathFinder::from_str(&vc_jwt, tokenized_field.path)
+                let finder = if let Ok(f) = JsonPathFinder::from_str(&payload, tokenized_field.path)
                 {
                     f
                 } else {
@@ -206,7 +219,7 @@ impl JsonSchemaBuilder {
     }
 
     pub fn add_property(&mut self, name: String, property: Value) {
-        self.properties[&name] = property;
+        self.properties.insert(name.clone(), property);
         self.required.push(name);
     }
 
@@ -222,5 +235,58 @@ impl JsonSchemaBuilder {
 
 #[cfg(test)]
 mod tests {
-    // todo
+    use std::collections::HashSet;
+    use std::fs;
+
+    use super::PresentationDefinition;
+
+    #[derive(Debug, serde::Deserialize)]
+    struct SelectCredentialsVectorInput {
+        #[serde(rename = "presentationDefinition")]
+        pub presentation_definition: PresentationDefinition,
+        #[serde(rename = "credentialJwts")]
+        pub credential_jwts: Vec<String>
+    }
+
+    #[derive(Debug, serde::Deserialize)]
+    struct SelectCredentialsVectorOutput {
+        #[serde(rename = "selectedCredentials")]
+        pub selected_credentials: Vec<String>
+    }
+
+    #[derive(Debug, serde::Deserialize)]
+    struct SelectCredentialsVector {
+        pub description: String,
+        pub input: SelectCredentialsVectorInput,
+        pub output: SelectCredentialsVectorOutput,
+    }
+
+    #[derive(Debug, serde::Deserialize)]
+    struct Vectors {
+        pub vectors: Vec<SelectCredentialsVector>
+    }
+
+    fn load_json_fixture(file_path: &str) -> Vectors {
+        let data = fs::read_to_string(file_path).unwrap();
+        let json = serde_json::from_str(&data).unwrap();
+        json
+    }
+
+    #[test]
+    fn test_specific_json_object() {
+        let json_path = "../../web5-spec/test-vectors/presentation_exchange/select_credentials.json";
+        let vectors = load_json_fixture(json_path);
+
+        for vector in vectors.vectors {
+            let presentation_definition = vector.input.presentation_definition;
+            let vc_jwts = vector.input.credential_jwts;
+            let error_msg = format!("Selected Credential test vector ({}) should not have thrown error", vector.description);
+
+            let selected_credentials = presentation_definition.select_credentials(&vc_jwts).expect(&error_msg);
+
+            let set1: HashSet<_> = selected_credentials.iter().collect();
+            let set2: HashSet<_> = vector.output.selected_credentials.iter().collect();
+            assert_eq!(set1, set2, "Vectors do not contain the same elements: {}", error_msg);
+        }
+    }
 }
