@@ -82,10 +82,10 @@ impl Document {
 
         // 1.1 Add identity key verification method
         let identity_key_id = format!("{}#0", did_uri);
-        let id_key_vm = self
-            .verification_method
-            .iter()
-            .find(|vm| vm.id == identity_key_id);
+        let id_key_vm = match self.verification_method {
+            None => None,
+            Some(ref vms) => vms.iter().find(|vm| vm.id == identity_key_id),
+        };
         match id_key_vm {
             None => {
                 return Err(DocumentPacketError::DocumentError(
@@ -104,22 +104,26 @@ impl Document {
 
         // 1.2 Add all other verification methods
         let mut idx = 1;
-        self.verification_method
-            .iter()
-            .try_for_each(|vm| -> Result<(), DocumentPacketError> {
-                // skip identity key because we already added it
-                if vm.id == identity_key_id {
-                    return Ok(());
-                }
+        match self.verification_method {
+            None => {}
+            Some(ref vms) => {
+                vms.iter()
+                    .try_for_each(|vm| -> Result<(), DocumentPacketError> {
+                        // skip identity key because we already added it
+                        if vm.id == identity_key_id {
+                            return Ok(());
+                        }
 
-                let vm_record = vm.to_resource_record(did_uri, idx)?.to_owned();
-                answers.push(vm_record);
-                root_record.vm.push(idx);
-                vm_id_to_idx.insert(vm.id.clone(), idx);
+                        let vm_record = vm.to_resource_record(did_uri, idx)?.to_owned();
+                        answers.push(vm_record);
+                        root_record.vm.push(idx);
+                        vm_id_to_idx.insert(vm.id.clone(), idx);
 
-                idx += 1;
-                Ok(())
-            })?;
+                        idx += 1;
+                        Ok(())
+                    })?;
+            }
+        }
 
         // 2. Add verification relationships to root_record
         // 2.1 Add assertion methods to root_record
@@ -310,7 +314,7 @@ impl Document {
             context: None,
             controller,
             also_known_as,
-            verification_method: verification_methods,
+            verification_method: Some(verification_methods),
             authentication,
             assertion_method,
             key_agreement,
@@ -369,7 +373,7 @@ mod tests {
     fn test_to_and_from_packet_full_featured() {
         let did_uri = "did:dht:123";
 
-        let verification_method1 = generate_identity_key_vm(&did_uri);
+        let verification_method1 = generate_identity_key_vm(did_uri);
         let verification_method2 = generate_additional_vm(did_uri);
 
         let service = Service {
@@ -403,7 +407,7 @@ mod tests {
                 verification_method2.id.clone(),
             ]),
             service: Some(vec![service]),
-            verification_method: vec![verification_method1, verification_method2],
+            verification_method: Some(vec![verification_method1, verification_method2]),
         };
 
         let packet = document
@@ -420,10 +424,10 @@ mod tests {
     fn test_to_and_from_packet() {
         let did_uri = "did:dht:123";
 
-        let verification_method = generate_identity_key_vm(&did_uri);
+        let verification_method = generate_identity_key_vm(did_uri);
         let document = Document {
             id: did_uri.to_string(),
-            verification_method: vec![verification_method],
+            verification_method: Some(vec![verification_method]),
             ..Default::default()
         };
 

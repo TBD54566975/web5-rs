@@ -158,7 +158,9 @@ mod tests {
         )
         .expect("failed to create bearer did");
 
-        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_id = bearer_did.document.verification_method.clone().unwrap()[0]
+            .id
+            .clone();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -200,7 +202,9 @@ mod tests {
         )
         .expect("failed to create bearer did");
 
-        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_id = bearer_did.document.verification_method.clone().unwrap()[0]
+            .id
+            .clone();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -251,7 +255,9 @@ mod tests {
         )
         .expect("failed to create bearer did");
 
-        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_id = bearer_did.document.verification_method.clone().unwrap()[0]
+            .id
+            .clone();
 
         let header = JwsHeader {
             alg: "".to_string(),
@@ -292,7 +298,9 @@ mod tests {
         )
         .expect("failed to create bearer did");
 
-        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_id = bearer_did.document.verification_method.clone().unwrap()[0]
+            .id
+            .clone();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -333,7 +341,9 @@ mod tests {
         )
         .expect("failed to create bearer did");
 
-        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_id = bearer_did.document.verification_method.clone().unwrap()[0]
+            .id
+            .clone();
 
         let header = JwsHeader {
             alg: "UNSUPPORTED_ALG".to_string(),
@@ -374,7 +384,9 @@ mod tests {
         )
         .expect("failed to create bearer did");
 
-        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_id = bearer_did.document.verification_method.clone().unwrap()[0]
+            .id
+            .clone();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -415,7 +427,9 @@ mod tests {
         )
         .expect("failed to create bearer did");
 
-        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_id = bearer_did.document.verification_method.clone().unwrap()[0]
+            .id
+            .clone();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -456,7 +470,9 @@ mod tests {
         )
         .expect("failed to create bearer did");
 
-        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_id = bearer_did.document.verification_method.clone().unwrap()[0]
+            .id
+            .clone();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -498,7 +514,9 @@ mod tests {
         )
         .expect("failed to create bearer did");
 
-        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_id = bearer_did.document.verification_method.clone().unwrap()[0]
+            .id
+            .clone();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -521,7 +539,11 @@ mod tests {
             },
         )
         .expect("failed to create bearer did");
-        let invalid_key_id = invalid_bearer_did.document.verification_method[0]
+        let invalid_key_id = invalid_bearer_did
+            .document
+            .verification_method
+            .clone()
+            .unwrap()[0]
             .id
             .clone();
 
