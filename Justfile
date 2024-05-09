@@ -8,10 +8,10 @@ setup:
   fi
 
 build: setup
-  cargo build --release
+  cargo build --workspace
 
 test: setup
-  cargo test
+  cargo test --workspace
 
 lint: setup
   cargo clippy --workspace
