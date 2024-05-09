@@ -1,6 +1,6 @@
-use crate::lib_v2::{Claims, JwtError};
+use crate::{Claims, JwtError};
 use dids::{bearer::BearerDid, document::KeySelector};
-use jws::v2::JwsHeader;
+use jws::JwsHeader;
 
 // A JWT can be implemented as either a JWS or JWE, this module is the implementation of a JWT as a JWE
 
