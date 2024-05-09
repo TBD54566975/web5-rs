@@ -1,6 +1,6 @@
-use crate::lib_v2::{Claims, JwtError};
+use crate::{Claims, JwtError};
+use ::jws::{CompactJws, JwsHeader};
 use dids::{bearer::BearerDid, document::KeySelector};
-use jws::v2::{CompactJws, JwsHeader};
 
 // A JWT can be implemented as either a JWS or JWE, this module is the implementation of a JWT as a JWS
 
@@ -70,7 +70,7 @@ impl Jwt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lib_v2::RegisteredClaims;
+    use crate::RegisteredClaims;
     use crypto::Curve;
     use dids::{
         document::KeySelector,
