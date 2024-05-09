@@ -1,12 +1,10 @@
-name: SDK Rust CI
+name: CI
 
 on:
   push:
     branches:
       - main
   pull_request:
-    branches:
-      - '*'
 
 env:
   CARGO_TERM_COLOR: always
@@ -14,40 +12,43 @@ env:
   RUSTFLAGS: "-Dwarnings"
 
 jobs:
-  clippy:
+  build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust: [ stable, nightly ]
     steps:
-      - uses: actions/checkout@v3
-      - name: Run Clippy
-        run: cargo clippy --workspace
+      - uses: actions/checkout@v4
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: Setup
+        run: just setup
+      - name: Build
+        run: just build
   test:
-    name: cargo test
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, macos-latest ] # TODO add back windows-latest https://github.com/TBD54566975/web5-rs/issues/189
         rust: [ stable, nightly ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
         with:
-          toolchain: ${{ matrix.rust }}
+          cache: true
+      - name: Setup
+        run: just setup
       - name: Test
-        run: cargo test --workspace
-  format:
-    name: cargo fmt
+        run: just test
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Rustfmt
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
         with:
-          toolchain: stable
-          components: rustfmt
-      - name: Rustfmt Check
-        id: rustfmt-check
-        uses: actions-rust-lang/rustfmt@v1
+          cache: true
+      - name: Setup
+        run: just setup
+      - name: Lint
+        run: just lint

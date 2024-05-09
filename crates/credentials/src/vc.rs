@@ -1,9 +1,9 @@
 use core::fmt;
 use dids::{bearer::BearerDid, document::KeySelector};
-use jws::v2::JwsError;
+use jws::JwsError;
 use jwt::{
     jws::Jwt,
-    lib_v2::{Claims, JwtError, RegisteredClaims},
+    {Claims, JwtError, RegisteredClaims},
 };
 use serde::{Deserialize, Serialize};
 use std::{
