@@ -136,12 +136,13 @@ impl CompactJws {
 }
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests {
     use super::*;
     use crypto::Curve;
-    use dids::method::jwk::{DidJwk, DidJwkCreateOptions};
-    use dids::method::Create;
+    use dids::method::{
+        jwk::{DidJwk, DidJwkCreateOptions},
+        Create,
+    };
     use keys::key_manager::local_key_manager::LocalKeyManager;
     use serde_json::json;
     use std::sync::Arc;
