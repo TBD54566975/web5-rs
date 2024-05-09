@@ -1,15 +1,14 @@
 use std::collections::HashSet;
 
 use base64::{engine::general_purpose, Engine as _};
-use hex;
 use jsonpath_rust::{
     JsonPathFinder,
     JsonPathValue::{NewValue, NoValue, Slice},
 };
 use jsonschema::JSONSchema;
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, to_value, Map, Value};
+use uuid::Uuid;
 
 use crate::pex::PexError;
 
@@ -86,9 +85,7 @@ pub struct Filter {
 }
 
 fn generate_token() -> String {
-    let mut rng = rand::thread_rng();
-    let bytes: Vec<u8> = (0..16).map(|_| rng.gen_range(0..256) as u8).collect();
-    hex::encode(bytes)
+    Uuid::new_v4().to_string()
 }
 
 impl PresentationDefinition {
