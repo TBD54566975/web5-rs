@@ -1,3 +1,4 @@
+use core::fmt;
 use dids::{bearer::BearerDid, document::KeySelector};
 use jws::v2::JwsError;
 use jwt::{
@@ -5,7 +6,11 @@ use jwt::{
     lib_v2::{Claims, JwtError, RegisteredClaims},
 };
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    fmt::{Display, Formatter},
+    sync::Arc,
+};
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 const BASE_TYPE: &str = "VerifiableCredential";
@@ -18,14 +23,45 @@ pub enum CredentialError {
     JwsError(#[from] JwsError),
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+pub struct NamedIssuer {
+    pub id: String,
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(untagged)]
+pub enum Issuer {
+    String(String),
+    Object(NamedIssuer),
+}
+
+impl<I> From<I> for Issuer
+where
+    I: Into<String>,
+{
+    fn from(s: I) -> Self {
+        Issuer::String(s.into())
+    }
+}
+
+impl Display for Issuer {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            Issuer::String(s) => write!(f, "{}", s),
+            Issuer::Object(ni) => write!(f, "{}", ni.id),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VerifiableCredential {
     #[serde(rename = "@context")]
     pub context: Vec<String>,
     pub id: String,
     #[serde(rename = "type")]
     pub r#type: Vec<String>,
-    pub issuer: String,
+    pub issuer: Issuer,
     #[serde(rename = "issuanceDate")]
     pub issuance_date: i64,
     #[serde(rename = "expirationDate")]
@@ -45,7 +81,7 @@ impl VerifiableCredential {
         context: Vec<String>,
         id: String,
         r#type: Vec<String>,
-        issuer: String,
+        issuer: Issuer,
         issuance_date: i64,
         expiration_date: Option<i64>,
         credential_subject: CredentialSubject,
@@ -76,7 +112,7 @@ impl VerifiableCredential {
     ) -> Result<String, CredentialError> {
         let claims = VcJwtClaims {
             registered_claims: RegisteredClaims {
-                issuer: Some(self.issuer.clone()),
+                issuer: Some(self.issuer.to_string()),
                 jti: Some(self.id.clone()),
                 subject: Some(self.credential_subject.id.clone()),
                 not_before: Some(self.issuance_date),
@@ -112,7 +148,7 @@ pub async fn verify_vcjwt(jwt: &str) -> Result<Arc<VerifiableCredential>, Creden
     Ok(Arc::new(jwt_decoded.claims.vc))
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct VcJwtClaims {
     pub vc: VerifiableCredential,
     #[serde(flatten)]
@@ -145,7 +181,7 @@ mod test {
         bearer_did
     }
 
-    fn create_vc(issuer: &str) -> VerifiableCredential {
+    fn create_vc(issuer: Issuer) -> VerifiableCredential {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -155,7 +191,7 @@ mod test {
             vec![BASE_CONTEXT.to_string()],
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
             vec![BASE_TYPE.to_string()],
-            issuer.to_string(),
+            issuer.clone(),
             now,
             Some(now + 30 * 60),
             CredentialSubject {
@@ -168,16 +204,32 @@ mod test {
     #[test]
     fn test_create() {
         let bearer_did = create_bearer_did();
-        let vc = create_vc(&bearer_did.identifier.uri);
+        let vc = create_vc((&bearer_did.identifier.uri).into());
         assert_eq!(1, vc.context.len());
         assert_ne!("", vc.id);
         assert_eq!(1, vc.r#type.len());
-        assert_eq!(vc.issuer, bearer_did.identifier.uri);
+        assert_eq!(vc.issuer, Issuer::String(bearer_did.identifier.uri.clone()));
+
+        let vc2 = create_vc(Issuer::Object(NamedIssuer {
+            id: bearer_did.identifier.uri.clone(),
+            name: bearer_did.identifier.id.clone(),
+        }));
+        assert_eq!(1, vc2.context.len());
+        assert_ne!("", vc2.id);
+        assert_eq!(1, vc2.r#type.len());
+        assert_eq!(
+            vc2.issuer,
+            Issuer::Object(NamedIssuer {
+                id: bearer_did.identifier.uri.clone(),
+                name: bearer_did.identifier.id,
+            })
+        );
     }
 
     #[test]
     fn test_new() {
         let issuer = "did:jwk:something";
+        let issuer_name = "marvin-paranoid-robot";
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -187,7 +239,7 @@ mod test {
             vec![BASE_CONTEXT.to_string()],
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
             vec![BASE_TYPE.to_string()],
-            issuer.to_string(),
+            Issuer::String(issuer.to_string()),
             now,
             Some(now + 30 * 60),
             CredentialSubject {
@@ -207,7 +259,7 @@ mod test {
             vec!["some-other-context".to_string()],
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
             vec!["some-other-type".to_string()],
-            issuer.to_string(),
+            Issuer::String(issuer.to_string()),
             now,
             Some(now + 30 * 60),
             CredentialSubject {
@@ -222,12 +274,42 @@ mod test {
         assert_eq!(BASE_TYPE, vc2.r#type[0]);
         assert_eq!(1, vc2.context.iter().filter(|&c| c == BASE_CONTEXT).count());
         assert_eq!(1, vc2.r#type.iter().filter(|&t| t == BASE_TYPE).count());
+
+        let vc3 = VerifiableCredential::new(
+            vec![BASE_CONTEXT.to_string()],
+            format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+            vec![BASE_TYPE.to_string()],
+            Issuer::Object(NamedIssuer {
+                id: issuer.to_string(),
+                name: issuer_name.to_string(),
+            }),
+            now,
+            Some(now + 30 * 60),
+            CredentialSubject {
+                id: issuer.to_string(),
+                ..Default::default()
+            },
+        );
+
+        assert_eq!(1, vc3.context.len());
+        assert_eq!(1, vc3.r#type.len());
+        assert_eq!(BASE_CONTEXT, vc3.context[0]);
+        assert_eq!(BASE_TYPE, vc3.r#type[0]);
+        assert_eq!(1, vc3.context.iter().filter(|&c| c == BASE_CONTEXT).count());
+        assert_eq!(1, vc3.r#type.iter().filter(|&t| t == BASE_TYPE).count());
+        assert_eq!(
+            Issuer::Object(NamedIssuer {
+                id: issuer.to_string(),
+                name: issuer_name.to_string(),
+            }),
+            vc3.issuer,
+        );
     }
 
     #[tokio::test]
     async fn test_sign_and_verify() {
         let bearer_did = create_bearer_did();
-        let vc = create_vc(&bearer_did.identifier.uri);
+        let vc = create_vc((&bearer_did.identifier.uri).into());
         let key_selector = KeySelector::MethodType {
             verification_method_type: VerificationMethodType::VerificationMethod,
         };
