@@ -270,7 +270,7 @@ mod tests {
     }
 
     #[test]
-    fn test_specific_json_object() {
+    fn test_web5_spec_test_vectors() {
         let json_path = "../../web5-spec/test-vectors/presentation_exchange/select_credentials.json";
         let vectors = load_json_fixture(json_path);
 
