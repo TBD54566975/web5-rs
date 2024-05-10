@@ -6,7 +6,7 @@ use jwt::{
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
-use chrono::Utc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 const BASE_TYPE: &str = "VerifiableCredential";
@@ -22,35 +22,57 @@ pub enum CredentialError {
     // Credential-specific validation errors
     #[error("Expiration date mismatch")]
     ExpirationDateMismatch,
+    #[error("Credential expired: {0}")]
+    CredentialExpired(String),
     #[error("Issuer mismatch")]
     IssuerMismatch,
     #[error("Issuance date is in the future")]
     IssuanceDateInFuture,
     #[error("Issuance date mismatch")]
     IssuanceDateMismatch,
-    #[error("ID mismatch")]
+    #[error("Credential ID mismatch")]
     IdMismatch,
     #[error("Subject mismatch")]
     SubjectMismatch,
     #[error("Missing issuer")]
     MissingIssuer,
+    #[error("Missing issuance date")]
+    MissingIssuanceDate,
+    #[error("Missing subject")]
+    MissingSubject,
+    #[error("Missing credential ID")]
+    MissingId,
     #[error("Misconfigured expiration date: {0}")]
     MisconfiguredExpirationDate(String),
 
     // Data model validation error
+    #[error("Missing Iss")]
+    MissingIss,
+    #[error("Missing Nbf")]
+    MissingNbf,
+    #[error("Missing Sub")]
+    MissingSub,
+    #[error("Missing Jti")]
+    MissingJti,
     #[error("Validation error: {0}")]
-    ValidationError(CredentialDataModelValidationError),
+    ValidationError(#[from] CredentialDataModelValidationError),
 }
 
-
-#[derive(Debug)]
+#[derive(thiserror::Error, Debug)]
 pub enum CredentialDataModelValidationError {
+    #[error("Missing context")]
     MissingContext,
+    #[error("Missing ID")]
     MissingId,
+    #[error("Missing type")]
     MissingType,
+    #[error("Missing issuer")]
     MissingIssuer,
+    #[error("Missing issuance date")]
     MissingIssuanceDate,
+    #[error("Invalid issuance date")]
     InvalidIssuanceDate,
+    #[error("Invalid expiration date")]
     InvalidExpirationDate
 }
 
@@ -128,88 +150,63 @@ impl VerifiableCredential {
     }
     pub async fn verify(jwt: &str) -> Result<Self, CredentialError> {
         let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
-
         let mut vc = jwt_decoded.claims.vc;
+        let reg_claims = jwt_decoded.claims.registered_claims;
 
-        validate_vc_data_model(&vc).map_err(CredentialError::ValidationError)?;
+        // Check each claim using the helper function
+        check_claim(&mut vc.issuer, reg_claims.issuer, CredentialError::MissingIss, CredentialError::IssuerMismatch)?;
+        check_claim(&mut vc.issuance_date, reg_claims.not_before, CredentialError::MissingNbf, CredentialError::IssuanceDateMismatch)?;
+        check_claim(&mut vc.credential_subject.id, reg_claims.subject, CredentialError::MissingSub, CredentialError::SubjectMismatch)?;
+        check_claim(&mut vc.id, reg_claims.jti, CredentialError::MissingJti, CredentialError::IdMismatch)?;
 
-        // exp MUST represent the expirationDate property, encoded as a UNIX timestamp (NumericDate).
-        if let Some(exp) = jwt_decoded.claims.registered_claims.expiration {
-            if let Some(expiration_date) = vc.expiration_date {
-                if exp != expiration_date {
-                    return Err(CredentialError::ExpirationDateMismatch);
-                }
-            } else {
-                vc.expiration_date = Some(exp);
+        // Additional checks for expiration dates
+        if let (Some(exp), Some(vc_exp)) = (reg_claims.expiration, vc.expiration_date) {
+            if exp != vc_exp {
+                return Err(CredentialError::ExpirationDateMismatch);
             }
-        } else if vc.expiration_date.is_some() {
+
+            // Check if the current time is after the expiration date
+            let now = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs() as i64;
+
+            if now > vc_exp {
+                return Err(CredentialError::CredentialExpired(
+                    "The verifiable credential has expired".to_string(),
+                ));
+            }
+        }
+        if reg_claims.expiration.is_none() && vc.expiration_date.is_some() {
             return Err(CredentialError::MisconfiguredExpirationDate(
-                "vc has expiration date but no exp in registered claims".to_string(),
+                "VC has expiration date but no exp in registered claims".to_string(),
             ));
         }
 
-        // iss MUST represent the issuer property of a verifiable credential or the holder property of a verifiable presentation.
-        if let Some(iss) = jwt_decoded.claims.registered_claims.issuer {
-            if iss != vc.issuer {
-                return Err(CredentialError::IssuerMismatch);
-            }
-        } else {
-            return Err(CredentialError::MissingIssuer);
-        }
-
-        // nbf cannot be in the future, not a valid vc yet
-        if let Some(nbf) = jwt_decoded.claims.registered_claims.not_before {
-            let current_timestamp = Utc::now().timestamp();
-            if nbf > current_timestamp {
-                return Err(CredentialError::IssuanceDateInFuture);
-            }
-        }
-
-        // nbf MUST represent issuanceDate, encoded as a UNIX timestamp (NumericDate).
-        if let Some(nbf) = jwt_decoded.claims.registered_claims.not_before {
-            if nbf != vc.issuance_date {
-                return Err(CredentialError::IssuanceDateMismatch);
-            } else {
-                vc.issuance_date = nbf
-            }
-        }
-
-        // sub MUST represent the id property contained in the credentialSubject.
-        if let Some(sub) = jwt_decoded.claims.registered_claims.subject {
-            if vc.credential_subject.id != sub {
-                return Err(CredentialError::SubjectMismatch);
-            }
-        }
-
-        // jti MUST represent the id property of the verifiable credential or verifiable presentation.
-        if let Some(jti) = jwt_decoded.claims.registered_claims.jti {
-            if jti != vc.id {
-                return Err(CredentialError::IdMismatch);
-            }
-        }
+        // It is important to validate after the claims check because the vc data model may be updated from the claims
+        validate_vc_data_model(&vc).map_err(CredentialError::ValidationError)?;
 
         Ok(vc)
     }
 
     pub fn decode(jwt: &str) -> Result<Self, CredentialError> {
         let jwt_decoded = Jwt::decode::<VcJwtClaims>(jwt)?;
-
         Ok(jwt_decoded.claims.vc)
     }
 }
 
-pub fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialDataModelValidationError> {
+fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialDataModelValidationError> {
 
     // Required fields
-    if vc.context.is_empty() {
-        return Err(CredentialDataModelValidationError::MissingContext);
-    }
-
-    if vc.id.trim().is_empty() {
+    if vc.id.is_empty() {
         return Err(CredentialDataModelValidationError::MissingId);
     }
 
-    if vc.r#type.is_empty() {
+    if vc.context.first().map_or(true, |v| v != BASE_CONTEXT) {
+        return Err(CredentialDataModelValidationError::MissingContext);
+    }
+
+    if vc.r#type.first().map_or(true, |v| v != BASE_TYPE) {
         return Err(CredentialDataModelValidationError::MissingType);
     }
 
@@ -234,10 +231,30 @@ pub fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), Credentia
     Ok(())
 }
 
-// todo we should remove this altogether in the follow-up PR, but it would break bindings so leaving it for now
-pub async fn verify_vcjwt(jwt: &str) -> Result<Arc<VerifiableCredential>, CredentialError> {
-    let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
-    Ok(Arc::new(jwt_decoded.claims.vc))
+/// Validates or updates a property of a verifiable credential (VC) based on a JWT claim.
+///
+/// This function checks a JWT claim and compares it against a corresponding property in the VC.
+/// If the VC property is either unset or set to its default value, the property is updated to the value of the JWT claim.
+/// If the VC property is already set and does not match the JWT claim, an error is returned.
+fn check_claim<T: PartialEq + Clone + Default>(
+    vc_property: &mut T,
+    jwt_claim: Option<T>,
+    error_on_missing: CredentialError,
+    error_on_mismatch: CredentialError
+) -> Result<(), CredentialError> {
+    match jwt_claim {
+        Some(claim_value) => {
+            if *vc_property == T::default() {
+                // If the current value is default, update it without error.
+                *vc_property = claim_value;
+            } else if *vc_property != claim_value {
+                // If the value is not default and does not match the JWT claim, return mismatch error.
+                return Err(error_on_mismatch);
+            }
+            Ok(())
+        },
+        None => Err(error_on_missing),
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -366,5 +383,45 @@ mod test {
         assert_eq!(vc.id, verified_vc.id);
         assert_eq!(vc.issuer, verified_vc.issuer);
         assert_eq!(vc.credential_subject.id, verified_vc.credential_subject.id);
+    }
+
+    #[tokio::test]
+    async fn test_verify_with_expired_exp() {
+        let bearer_did = create_bearer_did();
+        let key_selector = KeySelector::MethodType {
+            verification_method_type: VerificationMethodType::VerificationMethod,
+        };
+
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+
+        let vc = VerifiableCredential::new(
+            vec![BASE_CONTEXT.to_string()],
+            format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+            vec![BASE_TYPE.to_string()],
+            bearer_did.identifier.uri.to_string(),
+            now,
+            Some(now.clone() - 300000),
+            CredentialSubject {
+                id: bearer_did.identifier.uri.to_string(),
+                ..Default::default()
+            },
+        );
+
+        let vc_jwt = vc.sign(&bearer_did, &key_selector).unwrap();
+        assert!(!vc_jwt.is_empty());
+
+        let result = VerifiableCredential::verify(&vc_jwt).await;
+        assert!(matches!(result, Err(CredentialError::CredentialExpired(_))), "Expected expiration error, but found different or no error");
+    }
+
+    #[tokio::test]
+    async fn test_verify_mismatched_iss() {
+        let mismatched_issuer_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOjQwNmYxNjhlLTg4Y2QtNGVhMS05ZTBmLWFkZTUyMDFjODY4YyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5IiwiaXNzdWFuY2VEYXRlIjoxNzE1MzU4NjQ2LCJleHBpcmF0aW9uRGF0ZSI6MTcxNTMyODY0NiwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5In19LCJpc3MiOiJ3cm9uZ2lzc3VlciIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSIsImV4cCI6MTcxNTMyODY0NiwibmJmIjoxNzE1MzU4NjQ2LCJqdGkiOiJ1cm46dmM6dXVpZDo0MDZmMTY4ZS04OGNkLTRlYTEtOWUwZi1hZGU1MjAxYzg2OGMifQ.gX3trvOMBzRX3vC2t1d3FEDj4RFNVrmotvIFgrLPoJVP2co4arz8jRT_VQ9-g7CRqWQ65uyhgAMQjZ_HWwk2DA";
+
+        let result = VerifiableCredential::verify(&mismatched_issuer_vc_jwt).await;
+        assert!(matches!(result, Err(CredentialError::IssuerMismatch)), "Expected mismatch issuer error, but found different or no error");
     }
 }
