@@ -203,7 +203,7 @@ impl InputDescriptor {
 
 struct JsonSchemaBuilder {
     schema: String,
-    _type: String,
+    r#type: String,
     properties: Map<String, Value>,
     required: Vec<String>,
 }
@@ -212,7 +212,7 @@ impl JsonSchemaBuilder {
     pub fn new() -> Self {
         JsonSchemaBuilder {
             schema: "http://json-schema.org/draft-07/schema#".to_string(),
-            _type: "object".to_string(),
+            r#type: "object".to_string(),
             properties: Map::new(),
             required: Vec::new(),
         }
@@ -226,7 +226,7 @@ impl JsonSchemaBuilder {
     pub fn to_json(&self) -> Value {
         json!({
             "$schema": self.schema,
-            "type": self._type,
+            "type": self.r#type,
             "properties": self.properties,
             "required": self.required,
         })
