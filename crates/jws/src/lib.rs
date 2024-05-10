@@ -445,7 +445,95 @@ mod tests {
         assert!(matches!(result, Err(JwsError::DocumentError(_))));
     }
 
-    // TODO https://github.com/TBD54566975/web5-rs/issues/166
-    // - not base64 encoded signature
-    // - base64 encoded signature but not valid cryptographic signature
+    #[tokio::test]
+    async fn test_jws_verify_signature_decode_error() {
+        let key_manager = LocalKeyManager::new_in_memory();
+        let bearer_did = DidJwk::create(
+            Arc::new(key_manager),
+            DidJwkCreateOptions {
+                curve: Curve::Ed25519,
+            },
+        )
+        .expect("failed to create bearer did");
+
+        let key_id = bearer_did.document.verification_method[0].id.clone();
+
+        let header = JwsHeader {
+            alg: "EdDSA".to_string(),
+            kid: key_id.clone(),
+            typ: "JWT".to_string(),
+        };
+        let payload = json!({
+            "sub": "1234567890",
+            "name": "John Doe",
+            "iat": 1516239022
+        })
+        .to_string()
+        .into_bytes();
+
+        let compact_jws = CompactJws::sign(
+            &bearer_did,
+            &KeySelector::KeyId {
+                key_id: key_id.clone(),
+            },
+            &header,
+            &payload,
+        )
+        .unwrap() + "123";
+
+        let result = CompactJws::verify(&compact_jws).await;
+
+        assert!(matches!(result, Err(JwsError::DecodeError(_))));
+    }
+
+    #[tokio::test]
+    async fn test_jws_verify_signature_crypto_error() {
+        let key_manager = LocalKeyManager::new_in_memory();
+        let bearer_did = DidJwk::create(
+            Arc::new(key_manager),
+            DidJwkCreateOptions {
+                curve: Curve::Ed25519,
+            },
+        )
+        .expect("failed to create bearer did");
+
+        let key_id = bearer_did.document.verification_method[0].id.clone();
+
+        let header = JwsHeader {
+            alg: "EdDSA".to_string(),
+            kid: key_id.clone(),
+            typ: "JWT".to_string(),
+        };
+        let payload = json!({
+            "sub": "1234567890",
+            "name": "John Doe",
+            "iat": 1516239022
+        })
+        .to_string()
+        .into_bytes();
+
+        let invalid_key_manager = LocalKeyManager::new_in_memory();
+        let invalid_bearer_did = DidJwk::create(
+            Arc::new(invalid_key_manager),
+            DidJwkCreateOptions {
+                curve: Curve::Ed25519,
+            },
+        )
+        .expect("failed to create bearer did");
+        let invalid_key_id = invalid_bearer_did.document.verification_method[0].id.clone();
+
+        let compact_jws = CompactJws::sign(
+            &invalid_bearer_did,
+            &KeySelector::KeyId {
+                key_id: invalid_key_id.clone(),
+            },
+            &header,
+            &payload,
+        )
+        .unwrap();
+
+        let result = CompactJws::verify(&compact_jws).await;
+
+        assert!(matches!(result, Err(JwsError::CryptoError(_))));
+    }
 }
