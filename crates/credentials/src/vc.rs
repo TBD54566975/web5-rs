@@ -1,12 +1,19 @@
+use core::fmt;
 use dids::{bearer::BearerDid, document::KeySelector};
-use jws::v2::JwsError;
+use jws::JwsError;
 use jwt::{
     jws::Jwt,
-    lib_v2::{Claims, JwtError, RegisteredClaims},
+    {Claims, JwtError, RegisteredClaims},
 };
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
+use std::cmp::PartialEq;
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    collections::HashMap,
+    fmt::{Display, Formatter},
+    sync::Arc,
+};
+use uuid::Uuid;
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 const BASE_TYPE: &str = "VerifiableCredential";
@@ -73,17 +80,57 @@ pub enum CredentialDataModelValidationError {
     #[error("Invalid issuance date")]
     InvalidIssuanceDate,
     #[error("Invalid expiration date")]
-    InvalidExpirationDate
+    InvalidExpirationDate,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+pub struct NamedIssuer {
+    pub id: String,
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(untagged)]
+pub enum Issuer {
+    String(String),
+    Object(NamedIssuer),
+}
+
+impl<I> From<I> for Issuer
+where
+    I: Into<String>,
+{
+    fn from(s: I) -> Self {
+        Issuer::String(s.into())
+    }
+}
+
+impl Display for Issuer {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            Issuer::String(s) => write!(f, "{}", s),
+            Issuer::Object(ni) => write!(f, "{}", ni.id),
+        }
+    }
+}
+
+impl Issuer {
+    pub fn get_id(&self) -> &str {
+        match self {
+            Issuer::String(s) => s,
+            Issuer::Object(obj) => &obj.id,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VerifiableCredential {
     #[serde(rename = "@context")]
     pub context: Vec<String>,
     pub id: String,
     #[serde(rename = "type")]
     pub r#type: Vec<String>,
-    pub issuer: String,
+    pub issuer: Issuer,
     #[serde(rename = "issuanceDate")]
     pub issuance_date: i64,
     #[serde(rename = "expirationDate")]
@@ -100,10 +147,10 @@ pub struct CredentialSubject {
 
 impl VerifiableCredential {
     pub fn new(
-        context: Vec<String>,
         id: String,
+        context: Vec<String>,
         r#type: Vec<String>,
-        issuer: String,
+        issuer: Issuer,
         issuance_date: i64,
         expiration_date: Option<i64>,
         credential_subject: CredentialSubject,
@@ -132,60 +179,127 @@ impl VerifiableCredential {
         bearer_did: &BearerDid,
         key_selector: &KeySelector,
     ) -> Result<String, CredentialError> {
+
+        // todo remove:
+
+        let lolvc = VerifiableCredential::new(
+            "".to_string(),
+            vec![BASE_CONTEXT.to_string()],
+            vec![BASE_TYPE.to_string()],
+            Issuer::from(String::default()),
+            i64::default(),
+            Some(i64::default()),
+            CredentialSubject {
+                ..Default::default()
+            },
+        );
+
+
         let claims = VcJwtClaims {
             registered_claims: RegisteredClaims {
-                issuer: Some(self.issuer.clone()),
+                issuer: Some(self.issuer.to_string()),
                 jti: Some(self.id.clone()),
                 subject: Some(self.credential_subject.id.clone()),
                 not_before: Some(self.issuance_date),
                 expiration: self.expiration_date,
                 ..Default::default()
             },
-            vc: self.clone(),
+            vc: lolvc.clone(),
         };
 
         let jwt = Jwt::sign(bearer_did, key_selector, None, &claims)?;
 
         Ok(jwt)
     }
+
     pub async fn verify(jwt: &str) -> Result<Self, CredentialError> {
         let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
         let mut vc = jwt_decoded.claims.vc;
-        let reg_claims = jwt_decoded.claims.registered_claims;
+        let registered_claims = jwt_decoded.claims.registered_claims;
 
-        // Check each claim using the helper function
-        check_claim(&mut vc.issuer, reg_claims.issuer, CredentialError::MissingIss, CredentialError::IssuerMismatch)?;
-        check_claim(&mut vc.issuance_date, reg_claims.not_before, CredentialError::MissingNbf, CredentialError::IssuanceDateMismatch)?;
-        check_claim(&mut vc.credential_subject.id, reg_claims.subject, CredentialError::MissingSub, CredentialError::SubjectMismatch)?;
-        check_claim(&mut vc.id, reg_claims.jti, CredentialError::MissingJti, CredentialError::IdMismatch)?;
+        // registered claims checks
+        if registered_claims.issuer.is_none() {
+            return Err(CredentialError::MissingIss);
+        }
+        if registered_claims.subject.is_none() {
+            return Err(CredentialError::MissingSub);
+        }
+        if registered_claims.not_before.is_none() {
+            return Err(CredentialError::MissingNbf);
+        }
+        if registered_claims.jti.is_none() {
+            return Err(CredentialError::MissingJti);
+        }
 
-        // Additional checks for expiration dates
-        if let (Some(exp), Some(vc_exp)) = (reg_claims.expiration, vc.expiration_date) {
-            if exp != vc_exp {
+        // check claims match expected values
+        if vc.id == String::default() {
+            vc.id = registered_claims.jti.clone().unwrap();
+        } else if vc.id != registered_claims.jti.unwrap() {
+            return Err(CredentialError::IdMismatch);
+        }
+
+        if vc.credential_subject.id == String::default() {
+            vc.credential_subject.id = registered_claims.subject.clone().unwrap();
+        } else if vc.credential_subject.id != registered_claims.subject.unwrap() {
+            return Err(CredentialError::SubjectMismatch);
+        }
+
+        if vc.issuance_date == i64::default() {
+            vc.issuance_date = registered_claims.not_before.clone().unwrap();
+        } else if vc.issuance_date != registered_claims.not_before.unwrap() {
+            return Err(CredentialError::IssuanceDateMismatch);
+        }
+
+        if vc.expiration_date.unwrap() == i64::default() {
+            vc.expiration_date = Some(registered_claims.expiration.clone().unwrap())
+        } else if vc.expiration_date != Some(registered_claims.expiration.unwrap()) {
+            return Err(CredentialError::ExpirationDateMismatch);
+        }
+
+        // issuer check
+        let iss = registered_claims.issuer.as_ref().unwrap();
+        match &mut vc.issuer {
+            Issuer::String(id) => {
+                if id.is_empty() {
+                    *id = iss.clone();
+                } else if id != iss {
+                    return Err(CredentialError::IssuerMismatch);
+                }
+            }
+            Issuer::Object(named) => {
+                if &named.id != iss {
+                    return Err(CredentialError::IssuerMismatch);
+                }
+            }
+        }
+
+        // optional expiration date check
+        if let (Some(exp), Some(vc_exp)) = (registered_claims.expiration, vc.expiration_date) {
+            if vc_exp == i64::default()
+            {
+                vc.expiration_date = Option::from(exp);
+            }
+            else if exp != vc_exp {
                 return Err(CredentialError::ExpirationDateMismatch);
             }
 
-            // Check if the current time is after the expiration date
             let now = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs() as i64;
 
-            if now > vc_exp {
+            if now > vc.expiration_date.unwrap() {
                 return Err(CredentialError::CredentialExpired(
                     "The verifiable credential has expired".to_string(),
                 ));
             }
-        }
-        if reg_claims.expiration.is_none() && vc.expiration_date.is_some() {
+        } else if registered_claims.expiration.is_none() && vc.expiration_date.is_some() {
             return Err(CredentialError::MisconfiguredExpirationDate(
                 "VC has expiration date but no exp in registered claims".to_string(),
             ));
         }
 
-        // It is important to validate after the claims check because the vc data model may be updated from the claims
         validate_vc_data_model(&vc).map_err(CredentialError::ValidationError)?;
-
         Ok(vc)
     }
 
@@ -195,7 +309,9 @@ impl VerifiableCredential {
     }
 }
 
-fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialDataModelValidationError> {
+fn validate_vc_data_model(
+    vc: &VerifiableCredential,
+) -> Result<(), CredentialDataModelValidationError> {
 
     // Required fields
     if vc.id.is_empty() {
@@ -210,7 +326,7 @@ fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialDat
         return Err(CredentialDataModelValidationError::MissingType);
     }
 
-    if vc.issuer.is_empty() {
+    if vc.issuer.get_id().is_empty() {
         return Err(CredentialDataModelValidationError::MissingIssuer);
     }
 
@@ -231,33 +347,7 @@ fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialDat
     Ok(())
 }
 
-/// Validates or updates a property of a verifiable credential (VC) based on a JWT claim.
-///
-/// This function checks a JWT claim and compares it against a corresponding property in the VC.
-/// If the VC property is either unset or set to its default value, the property is updated to the value of the JWT claim.
-/// If the VC property is already set and does not match the JWT claim, an error is returned.
-fn check_claim<T: PartialEq + Clone + Default>(
-    vc_property: &mut T,
-    jwt_claim: Option<T>,
-    error_on_missing: CredentialError,
-    error_on_mismatch: CredentialError
-) -> Result<(), CredentialError> {
-    match jwt_claim {
-        Some(claim_value) => {
-            if *vc_property == T::default() {
-                // If the current value is default, update it without error.
-                *vc_property = claim_value;
-            } else if *vc_property != claim_value {
-                // If the value is not default and does not match the JWT claim, return mismatch error.
-                return Err(error_on_mismatch);
-            }
-            Ok(())
-        },
-        None => Err(error_on_missing),
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct VcJwtClaims {
     pub vc: VerifiableCredential,
     #[serde(flatten)]
@@ -274,7 +364,7 @@ mod test {
         document::VerificationMethodType,
         method::{
             jwk::{DidJwk, DidJwkCreateOptions},
-            Method,
+            Create,
         },
     };
     use keys::key_manager::local_key_manager::LocalKeyManager;
@@ -290,17 +380,17 @@ mod test {
         bearer_did
     }
 
-    fn create_vc(issuer: &str) -> VerifiableCredential {
+    fn create_vc(issuer: Issuer) -> VerifiableCredential {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs() as i64;
 
         VerifiableCredential::new(
-            vec![BASE_CONTEXT.to_string()],
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+            vec![BASE_CONTEXT.to_string()],
             vec![BASE_TYPE.to_string()],
-            issuer.to_string(),
+            issuer.clone(),
             now,
             Some(now + 30 * 60),
             CredentialSubject {
@@ -313,26 +403,42 @@ mod test {
     #[test]
     fn test_create() {
         let bearer_did = create_bearer_did();
-        let vc = create_vc(&bearer_did.identifier.uri);
+        let vc = create_vc((&bearer_did.identifier.uri).into());
         assert_eq!(1, vc.context.len());
         assert_ne!("", vc.id);
         assert_eq!(1, vc.r#type.len());
-        assert_eq!(vc.issuer, bearer_did.identifier.uri);
+        assert_eq!(vc.issuer, Issuer::String(bearer_did.identifier.uri.clone()));
+
+        let vc2 = create_vc(Issuer::Object(NamedIssuer {
+            id: bearer_did.identifier.uri.clone(),
+            name: bearer_did.identifier.id.clone(),
+        }));
+        assert_eq!(1, vc2.context.len());
+        assert_ne!("", vc2.id);
+        assert_eq!(1, vc2.r#type.len());
+        assert_eq!(
+            vc2.issuer,
+            Issuer::Object(NamedIssuer {
+                id: bearer_did.identifier.uri.clone(),
+                name: bearer_did.identifier.id,
+            })
+        );
     }
 
     #[test]
     fn test_new() {
         let issuer = "did:jwk:something";
+        let issuer_name = "marvin-paranoid-robot";
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs() as i64;
 
         let vc1 = VerifiableCredential::new(
-            vec![BASE_CONTEXT.to_string()],
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+            vec![BASE_CONTEXT.to_string()],
             vec![BASE_TYPE.to_string()],
-            issuer.to_string(),
+            Issuer::String(issuer.to_string()),
             now,
             Some(now + 30 * 60),
             CredentialSubject {
@@ -349,10 +455,10 @@ mod test {
         assert_eq!(1, vc1.r#type.iter().filter(|&t| t == BASE_TYPE).count());
 
         let vc2 = VerifiableCredential::new(
-            vec!["some-other-context".to_string()],
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+            vec!["some-other-context".to_string()],
             vec!["some-other-type".to_string()],
-            issuer.to_string(),
+            Issuer::String(issuer.to_string()),
             now,
             Some(now + 30 * 60),
             CredentialSubject {
@@ -367,12 +473,42 @@ mod test {
         assert_eq!(BASE_TYPE, vc2.r#type[0]);
         assert_eq!(1, vc2.context.iter().filter(|&c| c == BASE_CONTEXT).count());
         assert_eq!(1, vc2.r#type.iter().filter(|&t| t == BASE_TYPE).count());
+
+        let vc3 = VerifiableCredential::new(
+            format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+            vec![BASE_CONTEXT.to_string()],
+            vec![BASE_TYPE.to_string()],
+            Issuer::Object(NamedIssuer {
+                id: issuer.to_string(),
+                name: issuer_name.to_string(),
+            }),
+            now,
+            Some(now + 30 * 60),
+            CredentialSubject {
+                id: issuer.to_string(),
+                ..Default::default()
+            },
+        );
+
+        assert_eq!(1, vc3.context.len());
+        assert_eq!(1, vc3.r#type.len());
+        assert_eq!(BASE_CONTEXT, vc3.context[0]);
+        assert_eq!(BASE_TYPE, vc3.r#type[0]);
+        assert_eq!(1, vc3.context.iter().filter(|&c| c == BASE_CONTEXT).count());
+        assert_eq!(1, vc3.r#type.iter().filter(|&t| t == BASE_TYPE).count());
+        assert_eq!(
+            Issuer::Object(NamedIssuer {
+                id: issuer.to_string(),
+                name: issuer_name.to_string(),
+            }),
+            vc3.issuer,
+        );
     }
 
     #[tokio::test]
     async fn test_sign_and_verify() {
         let bearer_did = create_bearer_did();
-        let vc = create_vc(&bearer_did.identifier.uri);
+        let vc = create_vc((&bearer_did.identifier.uri).into());
         let key_selector = KeySelector::MethodType {
             verification_method_type: VerificationMethodType::VerificationMethod,
         };
@@ -397,11 +533,16 @@ mod test {
             .unwrap()
             .as_secs() as i64;
 
+        let issuer = Issuer::Object(NamedIssuer {
+            id: bearer_did.identifier.uri.clone(),
+            name: bearer_did.identifier.id.clone(),
+        });
+
         let vc = VerifiableCredential::new(
-            vec![BASE_CONTEXT.to_string()],
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+            vec![BASE_CONTEXT.to_string()],
             vec![BASE_TYPE.to_string()],
-            bearer_did.identifier.uri.to_string(),
+            issuer.clone(),
             now,
             Some(now.clone() - 300000),
             CredentialSubject {
@@ -414,7 +555,10 @@ mod test {
         assert!(!vc_jwt.is_empty());
 
         let result = VerifiableCredential::verify(&vc_jwt).await;
-        assert!(matches!(result, Err(CredentialError::CredentialExpired(_))), "Expected expiration error, but found different or no error");
+        assert!(
+            matches!(result, Err(CredentialError::CredentialExpired(_))),
+            "Expected expiration error, but found different or no error"
+        );
     }
 
     #[tokio::test]
@@ -422,6 +566,26 @@ mod test {
         let mismatched_issuer_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOjQwNmYxNjhlLTg4Y2QtNGVhMS05ZTBmLWFkZTUyMDFjODY4YyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5IiwiaXNzdWFuY2VEYXRlIjoxNzE1MzU4NjQ2LCJleHBpcmF0aW9uRGF0ZSI6MTcxNTMyODY0NiwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5In19LCJpc3MiOiJ3cm9uZ2lzc3VlciIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSIsImV4cCI6MTcxNTMyODY0NiwibmJmIjoxNzE1MzU4NjQ2LCJqdGkiOiJ1cm46dmM6dXVpZDo0MDZmMTY4ZS04OGNkLTRlYTEtOWUwZi1hZGU1MjAxYzg2OGMifQ.gX3trvOMBzRX3vC2t1d3FEDj4RFNVrmotvIFgrLPoJVP2co4arz8jRT_VQ9-g7CRqWQ65uyhgAMQjZ_HWwk2DA";
 
         let result = VerifiableCredential::verify(&mismatched_issuer_vc_jwt).await;
-        assert!(matches!(result, Err(CredentialError::IssuerMismatch)), "Expected mismatch issuer error, but found different or no error");
+        assert!(
+            matches!(result, Err(CredentialError::IssuerMismatch)),
+            "Expected mismatch issuer error, but found different or no error"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_minified_jwt() {
+        let minified_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVJFNU5kRGhyWVVOUGFubFNWbms0UVdoSGJWVmxkbTUzUkZGTlJYTlVkemxQY2s1M05DMHlOWFJ5VlNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6IiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiIiwiaXNzdWFuY2VEYXRlIjowLCJleHBpcmF0aW9uRGF0ZSI6MCwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiIn19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lSRTVOZERocllVTlBhbmxTVm5rNFFXaEhiVlZsZG01M1JGRk5SWE5VZHpsUGNrNTNOQzB5TlhSeVZTSjkiLCJzdWIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lSRTVOZERocllVTlBhbmxTVm5rNFFXaEhiVlZsZG01M1JGRk5SWE5VZHpsUGNrNTNOQzB5TlhSeVZTSjkiLCJleHAiOjE3MTUzNzA1OTIsIm5iZiI6MTcxNTM2ODc5MiwianRpIjoidXJuOnZjOnV1aWQ6MTMwMjMwOWMtMDcyOS00YTAwLThmNDAtOTNkZjc3ZDQxODg5In0.u5SCPyx6Una88BYmztZ3-fbWnfDHCXIU6vBHva0SZtZQ8CYUaSjMvWRRCYY7j99JgHZU7R5wPHR1f7sb10qEBw";
+
+        let jwt_decoded = Jwt::verify::<VcJwtClaims>(&minified_vc_jwt).await.unwrap();
+        let registered_claims = jwt_decoded.claims.registered_claims;
+
+        let verify_result = VerifiableCredential::verify(minified_vc_jwt).await;
+        let verify_vc = verify_result.unwrap();
+
+        assert_eq!(registered_claims.jti.unwrap(), verify_vc.id);
+        assert_eq!(registered_claims.issuer.unwrap(), verify_vc.issuer.get_id());
+        assert_eq!(registered_claims.subject.unwrap(), verify_vc.credential_subject.id);
+        assert_eq!(registered_claims.not_before.unwrap(), verify_vc.issuance_date);
+        assert_eq!(registered_claims.expiration.unwrap(), verify_vc.expiration_date.unwrap());
     }
 }

@@ -1,31 +1,15 @@
-use crate::{
-    bearer::BearerDid,
-    method::{Method, MethodError, ResolutionResult},
-};
+use crate::method::{Method, ResolutionResult, Resolve};
 use did_web::DIDWeb as SpruceDidWebMethod;
-use keys::key_manager::KeyManager;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
-use std::sync::Arc;
 
 /// Concrete implementation for a did:web DID
 pub struct DidWeb {}
 
-/// Options that can be used to create a did:web DID.
-/// This is currently a unit struct because did:web does not support key creation.
-pub struct DidWebCreateOptions;
-
-impl Method<DidWebCreateOptions> for DidWeb {
+impl Method for DidWeb {
     const NAME: &'static str = "web";
+}
 
-    fn create(
-        _key_manager: Arc<dyn KeyManager>,
-        _options: DidWebCreateOptions,
-    ) -> Result<BearerDid, MethodError> {
-        Err(MethodError::DidCreationFailure(
-            "create operation not supported for did:web".to_string(),
-        ))
-    }
-
+impl Resolve for DidWeb {
     async fn resolve(did_uri: &str) -> ResolutionResult {
         let input_metadata = ResolutionInputMetadata::default();
         let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
@@ -45,14 +29,6 @@ impl Method<DidWebCreateOptions> for DidWeb {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use keys::key_manager::local_key_manager::LocalKeyManager;
-
-    #[test]
-    fn create_fails() {
-        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
-        let result = DidWeb::create(key_manager, DidWebCreateOptions);
-        assert!(result.is_err());
-    }
 
     #[tokio::test]
     async fn resolution_success() {

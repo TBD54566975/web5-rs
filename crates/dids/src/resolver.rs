@@ -2,7 +2,7 @@ use crate::document::Document;
 use crate::identifier::Identifier;
 use crate::method::jwk::DidJwk;
 use crate::method::web::DidWeb;
-use crate::method::Method;
+use crate::method::{Method, Resolve};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]

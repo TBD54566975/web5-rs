@@ -3,15 +3,16 @@ set shell := ["bash", "-uc"]
 # Setup local development environment
 setup:
   #!/bin/bash
+  git submodule update --init --recursive
   if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
-    rustup default stable
+    rustup default 1.78.0
   fi
 
 build: setup
-  cargo build --release
+  cargo build --workspace
 
 test: setup
-  cargo test
+  cargo test --workspace
 
 lint: setup
   cargo clippy --workspace
