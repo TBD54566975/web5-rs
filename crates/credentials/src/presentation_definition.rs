@@ -116,18 +116,9 @@ struct TokenizedField<'a> {
 }
 
 fn get_value_at_json_path(json: &str, path: &str) -> Option<Value> {
-    let finder = if let Ok(f) = JsonPathFinder::from_str(&json, path) {
-        f
-    } else {
-        return None;
-    };
-
+    let finder = JsonPathFinder::from_str(json, path).ok()?;
     let json_path_matches = finder.find_slice();
-    let json_path_value = if let Some(val) = json_path_matches.first() {
-        val
-    } else {
-        return None;
-    };
+    let json_path_value = json_path_matches.first()?;
 
     let val = match json_path_value {
         Slice(val, _) => (*val).clone(),
@@ -150,7 +141,7 @@ impl InputDescriptor {
             for path in &field.path {
                 tokenized_fields.push(TokenizedField {
                     token: token.clone(),
-                    path: path,
+                    path,
                 });
             }
 
@@ -194,14 +185,14 @@ impl InputDescriptor {
                     continue;
                 }
 
-                if let Some(val) = get_value_at_json_path(&payload_json, &tokenized_field.path) {
+                if let Some(val) = get_value_at_json_path(&payload_json, tokenized_field.path) {
                     selection_candidate.insert(tokenized_field.token.clone(), val);
                 }
             }
 
             let json_value = Value::from(selection_candidate);
             let validation_result = schema.validate(&json_value);
-            if let Ok(_) = validation_result {
+            if validation_result.is_ok() {
                 selected_jwts.insert(vc_jwt.clone());
             }
         }
