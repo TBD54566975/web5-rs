@@ -63,6 +63,10 @@ impl Jwk {
 
         Ok(thumbprint)
     }
+
+    pub fn get_alg(&self) -> String {
+        self.alg.clone()
+    }
 }
 
 #[cfg(test)]
