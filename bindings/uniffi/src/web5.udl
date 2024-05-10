@@ -1,3 +1,15 @@
 namespace web5 {
   void hello_world();  
 };
+
+[Error]
+enum JwkError {
+  "ThumbprintFailed",
+};
+
+interface Jwk {
+  constructor(string alg, string kty, string crv, string? d, string x, string? y);
+
+  [Throws=JwkError]
+  string compute_thumbprint();
+};
