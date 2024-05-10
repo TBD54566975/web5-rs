@@ -1,18 +1,25 @@
 use std::collections::HashSet;
 
-use base64::{engine::general_purpose, Engine as _};
 use jsonpath_rust::{
     JsonPathFinder,
     JsonPathValue::{NewValue, NoValue, Slice},
 };
 use jsonschema::JSONSchema;
+use jws::{CompactJws, JwsError};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, to_value, Map, Value};
 use uuid::Uuid;
 
-use crate::pex::PexError;
+#[derive(thiserror::Error, Debug)]
+pub enum PexError {
+    #[error(transparent)]
+    JwsError(#[from] JwsError),
+    #[error("Failed to parse JSON: {0}")]
+    JsonError(String),
+}
 
-use super::Result;
+type Result<T> = std::result::Result<T, PexError>;
+
 
 /// Represents a DIF Presentation Definition defined [here](https://identity.foundation/presentation-exchange/#presentation-definition).
 /// Presentation Definitions are objects that articulate what proofs a Verifier requires.
@@ -109,11 +116,38 @@ struct TokenizedField<'a> {
     pub path: &'a String,
 }
 
+fn get_value_at_json_path(json: &str, path: &str) -> Option<Value> {
+    let finder =
+    if let Ok(f) = JsonPathFinder::from_str(&json, path) {
+        f
+    } else {
+        return None;
+    };
+
+    let json_path_matches = finder.find_slice();
+    let json_path_value =
+    if let Some(val) = json_path_matches.first() {
+        val
+    } else {
+        return None;
+    };
+
+    let val = match json_path_value {
+        Slice(val, _) => (*val).clone(),
+        NewValue(val) => val.clone(),
+        NoValue => return None,
+    };
+
+    Some(val)
+}
+
 impl InputDescriptor {
     pub fn select_credentials(&self, vc_jwts: &Vec<String>) -> Result<Vec<String>> {
         let mut tokenized_fields: Vec<TokenizedField> = vec![];
         let mut json_schema_builder = JsonSchemaBuilder::new();
 
+        // Create a single JSON Schema from InputDescriptor and
+        // generate tokens for each field.paths array
         for field in &self.constraints.fields {
             let token = generate_token();
             for path in &field.path {
@@ -123,6 +157,7 @@ impl InputDescriptor {
                 });
             }
 
+            // Add each field to "properties" of json schema, including filter if it is present
             match &field.filter {
                 Some(filter) => {
                     let json_value = to_value(filter).map_err(|_| {
@@ -137,56 +172,34 @@ impl InputDescriptor {
             }
         }
 
-        let mut selected_jwts: HashSet<String> = HashSet::new();
+        let schema = JSONSchema::compile(&json_schema_builder.to_json()).map_err(|_| {
+            PexError::JsonError(format!(
+                "Failed to create json schema from {}",
+                json_schema_builder.to_json()
+            ))
+        })?;
 
+        // Validate each vc_jwt against the constructed json schema
+        let mut selected_jwts: HashSet<String> = HashSet::new();
         for vc_jwt in vc_jwts {
             let mut selection_candidate: Map<String, Value> = Map::new();
 
-            let parts: Vec<&str> = vc_jwt.split('.').collect();
-            let base64_encoded_payload = if let Some(part) = parts.get(1) {
-                part
-            } else {
-                continue;
-            };
-            let payload = if let Ok(decoded) = general_purpose::URL_SAFE_NO_PAD.decode(base64_encoded_payload) {
-                String::from_utf8(decoded).unwrap() // todo unwrap ugh
-            } else {
-                continue;
-            };
+            let decoded_jws = CompactJws::decode(vc_jwt)?;
+            let payload_json = String::from_utf8(decoded_jws.payload).map_err(|_|
+                PexError::JsonError("Could not create json string from vc jwt payload bytes".to_string())
+            )?;
 
+            // Extract a value from the vc_jwt for each tokenized field
             for tokenized_field in &tokenized_fields {
                 if selection_candidate.contains_key(&tokenized_field.token) {
                     continue;
                 }
 
-                let finder = if let Ok(f) = JsonPathFinder::from_str(&payload, tokenized_field.path)
-                {
-                    f
-                } else {
-                    continue;
-                };
-
-                let json_path_matches = finder.find_slice();
-                let json_path_value = if let Some(val) = json_path_matches.first() {
-                    val
-                } else {
-                    continue;
-                };
-
-                let val = match json_path_value {
-                    Slice(val, _) => (*val).clone(),
-                    NewValue(val) => val.clone(),
-                    NoValue => continue,
-                };
-                selection_candidate.insert(tokenized_field.token.clone(), val);
+                if let Some(val) = get_value_at_json_path(&payload_json, &tokenized_field.path) {
+                    selection_candidate.insert(tokenized_field.token.clone(), val);
+                }
             }
 
-            let schema = JSONSchema::compile(&json_schema_builder.to_json()).map_err(|_| {
-                PexError::JsonError(format!(
-                    "Failed to create json schema from {}",
-                    json_schema_builder.to_json()
-                ))
-            })?;
             let json_value = Value::from(selection_candidate);
             let validation_result = schema.validate(&json_value);
             if let Ok(_) = validation_result {
