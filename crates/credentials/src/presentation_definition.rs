@@ -20,7 +20,6 @@ pub enum PexError {
 
 type Result<T> = std::result::Result<T, PexError>;
 
-
 /// Represents a DIF Presentation Definition defined [here](https://identity.foundation/presentation-exchange/#presentation-definition).
 /// Presentation Definitions are objects that articulate what proofs a Verifier requires.
 #[derive(Debug, Serialize, Deserialize)]
@@ -117,16 +116,14 @@ struct TokenizedField<'a> {
 }
 
 fn get_value_at_json_path(json: &str, path: &str) -> Option<Value> {
-    let finder =
-    if let Ok(f) = JsonPathFinder::from_str(&json, path) {
+    let finder = if let Ok(f) = JsonPathFinder::from_str(&json, path) {
         f
     } else {
         return None;
     };
 
     let json_path_matches = finder.find_slice();
-    let json_path_value =
-    if let Some(val) = json_path_matches.first() {
+    let json_path_value = if let Some(val) = json_path_matches.first() {
         val
     } else {
         return None;
@@ -185,9 +182,11 @@ impl InputDescriptor {
             let mut selection_candidate: Map<String, Value> = Map::new();
 
             let decoded_jws = CompactJws::decode(vc_jwt)?;
-            let payload_json = String::from_utf8(decoded_jws.payload).map_err(|_|
-                PexError::JsonError("Could not create json string from vc jwt payload bytes".to_string())
-            )?;
+            let payload_json = String::from_utf8(decoded_jws.payload).map_err(|_| {
+                PexError::JsonError(
+                    "Could not create json string from vc jwt payload bytes".to_string(),
+                )
+            })?;
 
             // Extract a value from the vc_jwt for each tokenized field
             for tokenized_field in &tokenized_fields {
@@ -255,13 +254,13 @@ mod tests {
         #[serde(rename = "presentationDefinition")]
         pub presentation_definition: PresentationDefinition,
         #[serde(rename = "credentialJwts")]
-        pub credential_jwts: Vec<String>
+        pub credential_jwts: Vec<String>,
     }
 
     #[derive(Debug, serde::Deserialize)]
     struct SelectCredentialsVectorOutput {
         #[serde(rename = "selectedCredentials")]
-        pub selected_credentials: Vec<String>
+        pub selected_credentials: Vec<String>,
     }
 
     #[derive(Debug, serde::Deserialize)]
@@ -273,7 +272,7 @@ mod tests {
 
     #[derive(Debug, serde::Deserialize)]
     struct Vectors {
-        pub vectors: Vec<SelectCredentialsVector>
+        pub vectors: Vec<SelectCredentialsVector>,
     }
 
     fn load_json_fixture(file_path: &str) -> Vectors {
@@ -284,19 +283,29 @@ mod tests {
 
     #[test]
     fn test_web5_spec_test_vectors() {
-        let json_path = "../../web5-spec/test-vectors/presentation_exchange/select_credentials.json";
+        let json_path =
+            "../../web5-spec/test-vectors/presentation_exchange/select_credentials.json";
         let vectors = load_json_fixture(json_path);
 
         for vector in vectors.vectors {
             let presentation_definition = vector.input.presentation_definition;
             let vc_jwts = vector.input.credential_jwts;
-            let error_msg = format!("Selected Credential test vector ({}) should not have thrown error", vector.description);
+            let error_msg = format!(
+                "Selected Credential test vector ({}) should not have thrown error",
+                vector.description
+            );
 
-            let selected_credentials = presentation_definition.select_credentials(&vc_jwts).expect(&error_msg);
+            let selected_credentials = presentation_definition
+                .select_credentials(&vc_jwts)
+                .expect(&error_msg);
 
             let set1: HashSet<_> = selected_credentials.iter().collect();
             let set2: HashSet<_> = vector.output.selected_credentials.iter().collect();
-            assert_eq!(set1, set2, "Vectors do not contain the same elements: {}", error_msg);
+            assert_eq!(
+                set1, set2,
+                "Vectors do not contain the same elements: {}",
+                error_msg
+            );
         }
     }
 }
