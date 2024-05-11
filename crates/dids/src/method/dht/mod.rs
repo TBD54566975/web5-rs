@@ -1,6 +1,6 @@
 mod bep44;
 mod convert;
-mod registered_types;
+pub mod registered_types;
 
 use std::sync::Arc;
 
@@ -12,7 +12,6 @@ use crate::{
     bearer::BearerDid,
     document::{Document, Service, VerificationMethod},
     identifier::Identifier,
-    resolver::{ResolutionMetadata, ResolutionResult},
 };
 
 use self::{
@@ -20,12 +19,9 @@ use self::{
     registered_types::RegisteredDidType,
 };
 
-use super::{Method, MethodError};
+use super::{Create, MethodError};
 
-const DEFAULT_TTL: u32 = 7200; // seconds
 const DEFAULT_GATEWAY_URL: &str = "https://diddht.tbddev.org";
-const DID_DHT_SPEC_VERSION: u32 = 0;
-const NAME: &'static str = "dht";
 
 /// Concrete implementation for a did:dht DID
 pub struct DidDht;
@@ -41,9 +37,7 @@ pub struct DidDhtCreateOptions {
     pub verification_methods: Option<Vec<VerificationMethod>>,
 }
 
-impl Method<DidDhtCreateOptions> for DidDht {
-    const NAME: &'static str = "dht";
-
+impl Create<DidDhtCreateOptions> for DidDht {
     fn create(
         key_manager: Arc<dyn KeyManager>,
         options: DidDhtCreateOptions,
@@ -61,7 +55,7 @@ impl Method<DidDhtCreateOptions> for DidDht {
             MethodError::DidCreationFailure("failed to serialize public jwk".to_string())
         })?;
         let identifier = zbase32::encode_full_bytes(jwk_string.as_bytes());
-        let uri = format!("did:{}:{}", Self::NAME, identifier);
+        let uri = format!("did:dht:{}", identifier);
         let identifier = Identifier::parse(&uri).map_err(|e| {
             MethodError::DidCreationFailure(format!("Failed to parse did:jwk uri {} {}", &uri, e))
         })?;
@@ -87,21 +81,15 @@ impl Method<DidDhtCreateOptions> for DidDht {
 
         // Publish to gateway
         if options.publish {
-            let packet = document_to_packet(&document).map_err(|e| {
-                MethodError::DidCreationFailure(format!(
-                    "Failed to convert did document to DNS packet: {}",
-                    e
-                ))
-            })?;
+            let packet = document_to_packet(&document)?;
 
-            let packet_bytes: Vec<u8> = packet
+            let packet_bytes = packet
                 .build_bytes_vec_compressed()
                 .map_err(|_| -> MethodError {
-                    MethodError::DidCreationFailure(
+                    MethodError::DidPublishingFailure(
                         "Failed to serialize DNS packet to bytes".to_string(),
                     )
-                })?
-                .into();
+                })?;
 
             let bep44_message = encode_bep44_message(&packet_bytes, |payload| {
                 key_manager.sign(&key_alias, &payload)
@@ -115,34 +103,24 @@ impl Method<DidDhtCreateOptions> for DidDht {
                 .body(bep44_message)
                 .send()
                 .map_err(|e| {
-                    MethodError::DidCreationFailure(format!(
+                    MethodError::DidPublishingFailure(format!(
                         "Failed to publish did {} to gateway {}: {}",
                         uri, DEFAULT_GATEWAY_URL, e
                     ))
                 })?;
 
             response.error_for_status().map_err(|e| {
-                MethodError::DidCreationFailure(format!(
+                MethodError::DidPublishingFailure(format!(
                     "Failed to publish did {} to gateway {}: {}",
                     uri, DEFAULT_GATEWAY_URL, e
                 ))
             })?;
         }
 
-        return Ok(BearerDid {
-            identifier: identifier,
-            key_manager: key_manager,
-            document: document,
-        });
-    }
-
-    // TODO(diehuxx)
-    async fn resolve(_did_uri: &str) -> ResolutionResult {
-        ResolutionResult {
-            context: None,
-            did_resolution_metadata: ResolutionMetadata { error: None },
-            did_document: None,
-            did_document_metadata: None,
-        }
+        Ok(BearerDid {
+            identifier,
+            key_manager,
+            document,
+        })
     }
 }

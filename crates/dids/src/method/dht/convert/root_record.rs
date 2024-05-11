@@ -80,59 +80,15 @@ impl RootRecord {
             .collect::<Vec<_>>()
             .join(";");
 
-        let mut txt_record = TXT::new();
-        txt_record.add_string(&parts)?;
+        let name = Name::new_unchecked(&format!("_did.{}", did_id)).into_owned();
+
+        let txt_record = TXT::new().with_string(&parts)?.into_owned();
 
         Ok(ResourceRecord::new(
-            Name::new_unchecked(&format!("_did.{}", did_id)),
+            name,
             pkarr::dns::CLASS::IN,
             DEFAULT_TTL,
             RData::TXT(txt_record),
         ))
     }
 }
-
-// impl TryFrom<RootRecord> for ResourceRecord {
-//   type Error = std::error::Error; // todo: better error type
-
-//   fn try_from(record: RootRecord) -> Result<Self, Error> {
-//     let fields = [
-//       ("vm", &record.vm),
-//       ("asm", &record.asm),
-//       ("inv", &record.inv),
-//       ("del", &record.del),
-//       ("auth", &record.auth),
-//       ("agm", &record.agm),
-//       ("srv", &record.srv),
-//     ];
-
-//     let parts = fields.iter()
-//       .filter_map(|(name, values)| {
-//           if !values.is_empty() {
-//               Some(format!("{}={}", name, values.join(",")))
-//           } else {
-//               None
-//           }
-//       })
-//       .collect::<Vec<_>>()
-//       .join(";");
-
-//     let mut txt_record = TXT::new();
-//     txt_record.add_string(&parts)?;
-
-//     Ok(ResourceRecord::new(
-//       Name::new_unchecked(&format!("_did.{}", did_id)),
-//       pkarr::dns::CLASS::IN,
-//       DEFAULT_TTL,
-//       RData::TXT(txt_record),
-//     ))
-//   }
-// }
-
-// impl ResourceRecord {
-//   fn to_root_record(&self, did: String) -> RootRecord {
-//       RootRecord {
-//           data: self.content.clone() + &did,
-//       }
-//   }
-// }
