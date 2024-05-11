@@ -20,7 +20,7 @@ pub enum KeyError {
 
 pub trait Key: Send + Sync {
     fn alias(&self) -> Result<String, KeyError>;
-    fn jwk(&self) -> Result<Arc<Jwk>, KeyError>;
+    fn jwk(&self) -> Result<Jwk, KeyError>;
 }
 
 pub trait PublicKey: Key + Send + Sync {
@@ -42,8 +42,8 @@ impl Key for Jwk {
         Ok(thumbprint)
     }
 
-    fn jwk(&self) -> Result<Arc<Jwk>, KeyError> {
-        Ok(Arc::new(self.clone()))
+    fn jwk(&self) -> Result<Jwk, KeyError> {
+        Ok(self.clone())
     }
 }
 

@@ -36,7 +36,7 @@ impl Create<DidJwkCreateOptions> for DidJwk {
         let key_alias = key_manager.generate_private_key(options.curve, Some("0".to_string()))?;
         let public_key = key_manager.get_public_key(&key_alias)?;
         let public_jwk = public_key.jwk()?;
-        let jwk_string = serde_json::to_string(public_jwk.as_ref()).map_err(|_| {
+        let jwk_string = serde_json::to_string(&public_jwk).map_err(|_| {
             MethodError::DidCreationFailure("failed to serialize public jwk".to_string())
         })?;
         let spruce_jwk: SpruceJwk =
@@ -58,7 +58,7 @@ impl Create<DidJwkCreateOptions> for DidJwk {
             id: verification_method_id.clone(),
             r#type: "JsonWebKey".to_string(),
             controller: uri.clone(),
-            public_key_jwk: public_jwk.as_ref().clone(),
+            public_key_jwk: public_jwk.clone(),
         };
 
         let document = Document {
