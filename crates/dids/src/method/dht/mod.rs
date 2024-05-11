@@ -45,7 +45,7 @@ impl Create<DidDhtCreateOptions> for DidDht {
         // Generate private and public keypair
         let key_alias = key_manager.generate_private_key(
             Curve::Ed25519,
-            Some("0".to_string()), // PR review: i copied this from jwk.rs. do we want this to be None?
+            Some("0".to_string()),
         )?;
         let public_key = key_manager.get_public_key(&key_alias)?;
 
