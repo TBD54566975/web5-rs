@@ -236,12 +236,13 @@ impl JsonSchemaBuilder {
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
-    use std::fs;
+
+    use test_helpers::TestVectorFile;
 
     use super::PresentationDefinition;
 
     #[derive(Debug, serde::Deserialize)]
-    struct SelectCredentialsVectorInput {
+    struct VectorInput {
         #[serde(rename = "presentationDefinition")]
         pub presentation_definition: PresentationDefinition,
         #[serde(rename = "credentialJwts")]
@@ -249,34 +250,16 @@ mod tests {
     }
 
     #[derive(Debug, serde::Deserialize)]
-    struct SelectCredentialsVectorOutput {
+    struct VectorOutput {
         #[serde(rename = "selectedCredentials")]
         pub selected_credentials: Vec<String>,
     }
 
-    #[derive(Debug, serde::Deserialize)]
-    struct SelectCredentialsVector {
-        pub description: String,
-        pub input: SelectCredentialsVectorInput,
-        pub output: SelectCredentialsVectorOutput,
-    }
-
-    #[derive(Debug, serde::Deserialize)]
-    struct Vectors {
-        pub vectors: Vec<SelectCredentialsVector>,
-    }
-
-    fn load_json_fixture(file_path: &str) -> Vectors {
-        let data = fs::read_to_string(file_path).unwrap();
-        let json = serde_json::from_str(&data).unwrap();
-        json
-    }
-
     #[test]
     fn test_web5_spec_test_vectors() {
-        let json_path =
-            "../../web5-spec/test-vectors/presentation_exchange/select_credentials.json";
-        let vectors = load_json_fixture(json_path);
+        let path = "presentation_exchange/select_credentials.json";
+        let vectors: TestVectorFile<VectorInput, VectorOutput> =
+            TestVectorFile::load_from_path(path);
 
         for vector in vectors.vectors {
             let presentation_definition = vector.input.presentation_definition;

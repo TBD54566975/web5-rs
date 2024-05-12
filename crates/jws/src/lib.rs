@@ -479,7 +479,8 @@ mod tests {
             &header,
             &payload,
         )
-        .unwrap() + "123";
+        .unwrap()
+            + "123";
 
         let result = CompactJws::verify(&compact_jws).await;
 
@@ -520,7 +521,9 @@ mod tests {
             },
         )
         .expect("failed to create bearer did");
-        let invalid_key_id = invalid_bearer_did.document.verification_method[0].id.clone();
+        let invalid_key_id = invalid_bearer_did.document.verification_method[0]
+            .id
+            .clone();
 
         let compact_jws = CompactJws::sign(
             &invalid_bearer_did,
