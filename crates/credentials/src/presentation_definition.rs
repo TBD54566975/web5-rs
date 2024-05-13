@@ -262,7 +262,7 @@ mod tests {
             TestVectorFile::load_from_path(path);
 
         for vector in vectors.vectors {
-            let presentation_definition = vector.input.presentation_definition;
+        let presentation_definition = vector.input.presentation_definition;
             let vc_jwts = vector.input.credential_jwts;
             let error_msg = format!(
                 "Selected Credential test vector ({}) should not have thrown error",
