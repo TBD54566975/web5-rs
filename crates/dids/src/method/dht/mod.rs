@@ -54,8 +54,8 @@ impl Create<DidDhtCreateOptions> for DidDht {
         let jwk_string = serde_json::to_string(public_jwk.as_ref()).map_err(|_| {
             MethodError::DidCreationFailure("failed to serialize public jwk".to_string())
         })?;
-        let identifier = zbase32::encode_full_bytes(jwk_string.as_bytes());
-        let uri = format!("did:dht:{}", identifier);
+        let suffix = zbase32::encode_full_bytes(jwk_string.as_bytes());
+        let uri = format!("did:dht:{}", suffix);
         let identifier = Identifier::parse(&uri).map_err(|e| {
             MethodError::DidCreationFailure(format!("Failed to parse did:jwk uri {} {}", &uri, e))
         })?;
