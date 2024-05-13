@@ -22,6 +22,14 @@ impl LocalKeyManager {
             map: RwLock::new(HashMap::new()),
         }
     }
+
+    pub fn export_private_keys(&self) -> Result<Vec<Arc<dyn PrivateKey>>, KeyManagerError> {
+        let map_lock = self.map.read().map_err(|e| {
+            KeyManagerError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
+        })?;
+        let private_keys = map_lock.values().cloned().collect();
+        Ok(private_keys)
+    }
 }
 
 impl KeyManager for LocalKeyManager {
@@ -57,9 +65,13 @@ impl KeyManager for LocalKeyManager {
     }
 
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError> {
-        let map_lock: std::sync::RwLockReadGuard<HashMap<String, Arc<dyn PrivateKey>>> = self.map.read().map_err(|e| {
-            KeyManagerError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
-        })?;
+        let map_lock: std::sync::RwLockReadGuard<HashMap<String, Arc<dyn PrivateKey>>> =
+            self.map.read().map_err(|e| {
+                KeyManagerError::InternalKeyStoreError(format!(
+                    "Unable to acquire Mutex lock: {}",
+                    e
+                ))
+            })?;
         let private_key = map_lock
             .get(key_alias)
             .ok_or(KeyManagerError::KeyNotFound(key_alias.to_string()))?;
@@ -86,14 +98,11 @@ impl KeyImporter for LocalKeyManager {
     }
 }
 
-
-
 impl Default for LocalKeyManager {
     fn default() -> Self {
         Self::new()
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -135,7 +144,7 @@ mod tests {
 
     #[test]
     fn test_sign() {
-        let key_manager: LocalKeyManager = LocalKeyManager::new();
+        let key_manager = LocalKeyManager::new();
         let key_alias = key_manager
             .generate_private_key(Curve::Ed25519, None)
             .unwrap();
@@ -154,15 +163,21 @@ mod tests {
         let key_manager = LocalKeyManager::new();
         let private_key = Arc::new(Ed25519::generate().unwrap());
 
-        let key_alias = key_manager.import(private_key.clone()).expect("Failed to import private key");
-        let default_alias = private_key.alias().expect("Failed to generate private key alias");
+        let key_alias = key_manager
+            .import(private_key.clone())
+            .expect("Failed to import private key");
+        let default_alias = private_key
+            .alias()
+            .expect("Failed to generate private key alias");
         assert_eq!(key_alias, default_alias);
 
-        let key_manager_public_key = key_manager.get_public_key(&key_alias)
+        let key_manager_public_key = key_manager
+            .get_public_key(&key_alias)
             .expect("Failed to get public key")
             .jwk()
             .expect("Failed to get alias of public key");
-        let public_key = private_key.to_public()
+        let public_key = private_key
+            .to_public()
             .expect("Failed to convert private key to public")
             .jwk()
             .expect("Failed to get alias of public key");
@@ -175,14 +190,17 @@ mod tests {
         let private_key = Arc::new(Ed25519::generate().unwrap());
 
         let key_alias = "1234".to_string();
-        key_manager.import_with_alias(private_key.clone(), &key_alias)
+        key_manager
+            .import_with_alias(private_key.clone(), &key_alias)
             .expect("Failed to import private key with alias");
 
-        let key_manager_public_key = key_manager.get_public_key(&key_alias)
+        let key_manager_public_key = key_manager
+            .get_public_key(&key_alias)
             .expect("Failed to get public key")
             .jwk()
             .expect("Failed to get alias of public key");
-        let public_key = private_key.to_public()
+        let public_key = private_key
+            .to_public()
             .expect("Failed to convert private key to public")
             .jwk()
             .expect("Failed to get alias of public key");

@@ -55,10 +55,7 @@ pub trait KeyImporter: KeyManager {
 
     /// Imports a private key into the key manager using private_key.alias() as the alias
     /// Returns the key alias
-    fn import(
-        &self,
-        private_key: Arc<dyn PrivateKey>
-    ) -> Result<String, KeyManagerError> {
+    fn import(&self, private_key: Arc<dyn PrivateKey>) -> Result<String, KeyManagerError> {
         let key_alias = private_key.alias()?;
         self.import_with_alias(private_key, &key_alias)?;
         Ok(key_alias)

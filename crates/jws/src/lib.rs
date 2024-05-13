@@ -149,9 +149,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_jws_sign_and_verify() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            Arc::new(key_manager),
+            key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -191,9 +191,9 @@ mod tests {
 
     #[test]
     fn test_jws_decode() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            Arc::new(key_manager),
+            key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -242,9 +242,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_jws_verify_malformed_header_alg_error() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            Arc::new(key_manager),
+            key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -283,9 +283,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_jws_verify_malformed_header_kid_error() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            Arc::new(key_manager),
+            key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -324,9 +324,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_jws_verify_algorithm_not_supported_error() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            Arc::new(key_manager),
+            key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -365,9 +365,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_jws_verify_resolution_error() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            Arc::new(key_manager),
+            key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -406,9 +406,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_jws_verify_document_verification_method_error() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            Arc::new(key_manager),
+            key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -447,9 +447,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_jws_verify_signature_decode_error() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            Arc::new(key_manager),
+            key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -489,9 +489,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_jws_verify_signature_crypto_error() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            Arc::new(key_manager),
+            key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -513,9 +513,9 @@ mod tests {
         .to_string()
         .into_bytes();
 
-        let invalid_key_manager = LocalKeyManager::new_in_memory();
+        let invalid_key_manager = Arc::new(LocalKeyManager::new());
         let invalid_bearer_did = DidJwk::create(
-            Arc::new(invalid_key_manager),
+            invalid_key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },

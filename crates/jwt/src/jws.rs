@@ -84,9 +84,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_sign_and_verify() {
-        let key_manager = LocalKeyManager::new_in_memory();
+        let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            Arc::new(key_manager),
+            key_manager,
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },

@@ -105,7 +105,7 @@ mod tests {
     use keys::key_manager::local_key_manager::LocalKeyManager;
 
     fn create_did_jwk() -> BearerDid {
-        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+        let key_manager = Arc::new(LocalKeyManager::new());
         let options = DidJwkCreateOptions {
             curve: Curve::Ed25519,
         };
