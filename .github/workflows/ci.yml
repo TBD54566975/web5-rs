@@ -52,5 +52,7 @@ jobs:
           cache: true
       - name: Setup
         run: just setup
+      - name: Formatting
+        run: cargo fmt --check
       - name: Lint
         run: just lint
