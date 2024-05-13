@@ -229,13 +229,13 @@ impl VerifiableCredential {
         }
 
         if vc.issuance_date == i64::default() {
-            vc.issuance_date = registered_claims.not_before.clone().unwrap();
+            vc.issuance_date = registered_claims.not_before.unwrap();
         } else if vc.issuance_date != registered_claims.not_before.unwrap() {
             return Err(CredentialError::IssuanceDateMismatch);
         }
 
         if vc.expiration_date.unwrap() == i64::default() {
-            vc.expiration_date = Some(registered_claims.expiration.clone().unwrap())
+            vc.expiration_date = Some(registered_claims.expiration.unwrap())
         } else if vc.expiration_date != Some(registered_claims.expiration.unwrap()) {
             return Err(CredentialError::ExpirationDateMismatch);
         }
@@ -245,7 +245,7 @@ impl VerifiableCredential {
         match &mut vc.issuer {
             Issuer::String(id) => {
                 if id.is_empty() {
-                    *id = iss.clone();
+                    id.clone_from(iss);
                 } else if id != iss {
                     return Err(CredentialError::IssuerMismatch);
                 }
