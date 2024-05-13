@@ -95,6 +95,15 @@ pub enum Issuer {
     Object(NamedIssuer),
 }
 
+impl Issuer {
+    pub fn id(&self) -> &str {
+        match self {
+            Issuer::String(s) => s,
+            Issuer::Object(obj) => &obj.id,
+        }
+    }
+}
+
 impl<I> From<I> for Issuer
 where
     I: Into<String>,
@@ -109,15 +118,6 @@ impl Display for Issuer {
         match self {
             Issuer::String(s) => write!(f, "{}", s),
             Issuer::Object(ni) => write!(f, "{}", ni.id),
-        }
-    }
-}
-
-impl Issuer {
-    pub fn get_id(&self) -> &str {
-        match self {
-            Issuer::String(s) => s,
-            Issuer::Object(obj) => &obj.id,
         }
     }
 }
@@ -178,22 +178,6 @@ impl VerifiableCredential {
         bearer_did: &BearerDid,
         key_selector: &KeySelector,
     ) -> Result<String, CredentialError> {
-
-        // todo remove:
-
-        let lolvc = VerifiableCredential::new(
-            "".to_string(),
-            vec![BASE_CONTEXT.to_string()],
-            vec![BASE_TYPE.to_string()],
-            Issuer::from(String::default()),
-            i64::default(),
-            Some(i64::default()),
-            CredentialSubject {
-                ..Default::default()
-            },
-        );
-
-
         let claims = VcJwtClaims {
             registered_claims: RegisteredClaims {
                 issuer: Some(self.issuer.to_string()),
@@ -203,7 +187,7 @@ impl VerifiableCredential {
                 expiration: self.expiration_date,
                 ..Default::default()
             },
-            vc: lolvc.clone(),
+            vc: self.clone(),
         };
 
         let jwt = Jwt::sign(bearer_did, key_selector, None, &claims)?;
@@ -230,6 +214,7 @@ impl VerifiableCredential {
             return Err(CredentialError::MissingJti);
         }
 
+        // TODO: Change this to None after this issue is resolved - https://github.com/TBD54566975/web5-rs/issues/202
         // check claims match expected values
         if vc.id == String::default() {
             vc.id = registered_claims.jti.clone().unwrap();
@@ -274,11 +259,9 @@ impl VerifiableCredential {
 
         // optional expiration date check
         if let (Some(exp), Some(vc_exp)) = (registered_claims.expiration, vc.expiration_date) {
-            if vc_exp == i64::default()
-            {
+            if vc_exp == i64::default() {
                 vc.expiration_date = Option::from(exp);
-            }
-            else if exp != vc_exp {
+            } else if exp != vc_exp {
                 return Err(CredentialError::ExpirationDateMismatch);
             }
 
@@ -298,7 +281,33 @@ impl VerifiableCredential {
             ));
         }
 
+        // check for consistency and validity of expiration dates
+        if let (Some(exp), Some(vc_exp)) = (registered_claims.expiration, vc.expiration_date) {
+            // Update to registered expiration if current is default (0 or another default if defined)
+            if vc_exp == i64::default() {
+                vc.expiration_date = Some(exp);
+            } else if exp != vc_exp {
+                return Err(CredentialError::ExpirationDateMismatch);
+            }
+
+            // Check if the credential has expired
+            let current_time = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs() as i64;
+            if current_time > vc_exp {
+                return Err(CredentialError::CredentialExpired(
+                    "The verifiable credential has expired".to_string(),
+                ));
+            }
+        } else if registered_claims.expiration.is_none() && vc.expiration_date.is_some() {
+            return Err(CredentialError::MisconfiguredExpirationDate(
+                "VC has expiration date but no exp in registered claims".to_string(),
+            ));
+        }
+
         validate_vc_data_model(&vc).map_err(CredentialError::ValidationError)?;
+
         Ok(Arc::new(vc))
     }
 
@@ -311,7 +320,6 @@ impl VerifiableCredential {
 fn validate_vc_data_model(
     vc: &VerifiableCredential,
 ) -> Result<(), CredentialDataModelValidationError> {
-
     // Required fields
     if vc.id.is_empty() {
         return Err(CredentialDataModelValidationError::MissingId);
@@ -325,7 +333,7 @@ fn validate_vc_data_model(
         return Err(CredentialDataModelValidationError::MissingType);
     }
 
-    if vc.issuer.get_id().is_empty() {
+    if vc.issuer.id().is_empty() {
         return Err(CredentialDataModelValidationError::MissingIssuer);
     }
 
