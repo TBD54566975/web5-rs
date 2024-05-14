@@ -7,16 +7,19 @@ use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use crypto::CryptoError;
 use keys::key::{KeyError, PublicKey};
 
+/// Minimum size of a bep44 encoded message
+/// Signature is 64 bytes and seq is 8 byets
 const MIN_MESSAGE_LEN: usize = 72;
-const MAX_MESSAGE_LEN: usize = 1072;
+/// Maximum size of a bep44 v field
+const MAX_V_LEN: usize = 1000;
+/// Maximum size a bep44 encoded message
+const MAX_MESSAGE_LEN: usize = MAX_V_LEN + MIN_MESSAGE_LEN;
 
 /// Errors that can occur when working with Bep44 messages for did:dht.
 #[derive(thiserror::Error, Debug)]
 pub enum Bep44EncodingError {
     #[error(transparent)]
     SystemTimeError(#[from] SystemTimeError),
-    #[error("Could not coerce microseconds since epoch into u64")]
-    TimeError,
     #[error(transparent)]
     CryptoError(#[from] CryptoError),
     #[error("Failure creating DID: {0}")]
@@ -78,11 +81,7 @@ impl Bep44Message {
     where
         F: Fn(Vec<u8>) -> Result<Vec<u8>, KeyError>,
     {
-        let seq: u64 = SystemTime::now()
-            .duration_since(UNIX_EPOCH)?
-            .as_micros()
-            .try_into()
-            .map_err(|_| Bep44EncodingError::TimeError)?;
+        let seq = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
 
         let signable = signable(seq, message);
         let sig = sign(signable)?;
