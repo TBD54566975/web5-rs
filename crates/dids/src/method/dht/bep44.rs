@@ -81,6 +81,11 @@ impl Bep44Message {
     where
         F: Fn(Vec<u8>) -> Result<Vec<u8>, KeyError>,
     {
+        let message_len = message.len();
+        if message_len > MAX_V_LEN {
+            return Err(Bep44EncodingError::SizeError(message_len));
+        }
+
         let seq = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
 
         let signable = signable(seq, message);
@@ -154,6 +159,18 @@ mod tests {
             .expect("Failed to convert private key to public key");
         let verify_result = bep44_message.verify(public_key.as_ref());
         assert!(verify_result.is_ok());
+    }
+
+    #[test]
+    fn test_new_message_too_big() {
+        let too_big = vec![0; 10_000];
+        let error = Bep44Message::new(&too_big, |_| -> Result<Vec<u8>, KeyError> { Ok(vec![]) })
+            .expect_err("Should have returned error for malformed signature");
+
+        match error {
+            Bep44EncodingError::SizeError(size) => assert_eq!(size, 10_000),
+            _ => panic!(),
+        }
     }
 
     #[test]
