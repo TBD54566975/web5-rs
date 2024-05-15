@@ -67,7 +67,7 @@ mod test {
     use super::*;
     use crate::{
         document::VerificationMethodType,
-        method::{
+        methods::{
             jwk::{DidJwk, DidJwkCreateOptions},
             Create,
         },
