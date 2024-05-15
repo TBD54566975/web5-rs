@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use crate::identifier::Identifier;
-use crate::method::{MethodError, Resolve};
+use crate::methods::{MethodError, Resolve};
 use crate::resolver::ResolutionResult;
-use crate::{bearer::BearerDid, method::Create};
+use crate::{bearer::BearerDid, methods::Create};
 use crate::{
     document::{Document, VerificationMethod},
-    method::Method,
+    methods::Method,
 };
 use crypto::Curve;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;

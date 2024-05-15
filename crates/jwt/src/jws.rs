@@ -74,7 +74,7 @@ mod tests {
     use crypto::Curve;
     use dids::{
         document::KeySelector,
-        method::{
+        methods::{
             jwk::{DidJwk, DidJwkCreateOptions},
             Create,
         },

@@ -163,7 +163,7 @@ mod test {
     use crypto::Curve;
     use dids::{
         document::VerificationMethodType,
-        method::{
+        methods::{
             jwk::{DidJwk, DidJwkCreateOptions},
             Create,
         },

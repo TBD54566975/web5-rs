@@ -139,7 +139,7 @@ impl CompactJws {
 mod tests {
     use super::*;
     use crypto::Curve;
-    use dids::method::{
+    use dids::methods::{
         jwk::{DidJwk, DidJwkCreateOptions},
         Create,
     };
