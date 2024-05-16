@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use crate::identifier::Identifier;
-use crate::method::{MethodError, Resolve};
+use crate::methods::{MethodError, Resolve};
 use crate::resolver::ResolutionResult;
-use crate::{bearer::BearerDid, method::Create};
+use crate::{bearer::BearerDid, methods::Create};
 use crate::{
     document::{Document, VerificationMethod},
-    method::Method,
+    methods::Method,
 };
 use crypto::Curve;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;
@@ -36,7 +36,7 @@ impl Create<DidJwkCreateOptions> for DidJwk {
         let key_alias = key_manager.generate_private_key(options.curve, Some("0".to_string()))?;
         let public_key = key_manager.get_public_key(&key_alias)?;
         let public_jwk = public_key.jwk()?;
-        let jwk_string = serde_json::to_string(public_jwk.as_ref()).map_err(|_| {
+        let jwk_string = serde_json::to_string(&public_jwk).map_err(|_| {
             MethodError::DidCreationFailure("failed to serialize public jwk".to_string())
         })?;
         let spruce_jwk: SpruceJwk =
@@ -58,7 +58,7 @@ impl Create<DidJwkCreateOptions> for DidJwk {
             id: verification_method_id.clone(),
             r#type: "JsonWebKey".to_string(),
             controller: uri.clone(),
-            public_key_jwk: public_jwk.as_ref().clone(),
+            public_key_jwk: public_jwk.clone(),
         };
 
         let document = Document {
@@ -105,7 +105,7 @@ mod tests {
     use keys::key_manager::local_key_manager::LocalKeyManager;
 
     fn create_did_jwk() -> BearerDid {
-        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+        let key_manager = Arc::new(LocalKeyManager::new());
         let options = DidJwkCreateOptions {
             curve: Curve::Ed25519,
         };
