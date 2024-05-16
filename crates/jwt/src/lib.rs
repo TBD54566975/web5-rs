@@ -2,7 +2,6 @@ pub mod jwe;
 pub mod jws;
 
 use ::jws::JwsError;
-use dids::document::DocumentError;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
 
@@ -10,8 +9,6 @@ use serde_json::Error as SerdeJsonError;
 pub enum JwtError {
     #[error(transparent)]
     JwsError(#[from] JwsError),
-    #[error(transparent)]
-    DocumentError(#[from] DocumentError),
     #[error("serde json error {0}")]
     SerdeJsonError(String),
 }

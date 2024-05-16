@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use crate::{Claims, JwtError};
 use ::jws::{CompactJws, JwsHeader};
-use dids::{bearer::BearerDid, document::KeySelector};
+use keys::key_manager::Signer;
 
 // A JWT can be implemented as either a JWS or JWE, this module is the implementation of a JWT as a JWS
 
@@ -15,28 +17,12 @@ pub struct Jwt;
 
 impl Jwt {
     pub fn sign<T: Claims>(
-        bearer_did: &BearerDid,
-        key_selector: &KeySelector,
-        header: Option<JwsHeader>,
+        signer: Arc<dyn Signer>,
+        jws_header: JwsHeader,
         claims: &T,
     ) -> Result<String, JwtError> {
-        let jws_header = match header {
-            Some(h) => h,
-            None => {
-                let verification_method =
-                    bearer_did.document.get_verification_method(key_selector)?;
-
-                JwsHeader {
-                    alg: verification_method.public_key_jwk.alg.clone(),
-                    kid: verification_method.id.clone(),
-                    typ: "JWT".to_string(),
-                }
-            }
-        };
-
         let serialized_claims = serde_json::to_string(claims)?.into_bytes();
-
-        let jwt = CompactJws::sign(bearer_did, key_selector, &jws_header, &serialized_claims)?;
+        let jwt = CompactJws::sign(signer, &jws_header, &serialized_claims)?;
         Ok(jwt)
     }
 
@@ -73,20 +59,20 @@ mod tests {
     use crate::RegisteredClaims;
     use crypto::Curve;
     use dids::{
-        document::KeySelector,
+        document::{KeyIdFragment, KeySelector},
         methods::{
             jwk::{DidJwk, DidJwkCreateOptions},
             Create,
         },
     };
-    use keys::key_manager::local_key_manager::LocalKeyManager;
+    use keys::key_manager::{local_key_manager::LocalKeyManager, KeyManager};
     use std::sync::Arc;
 
     #[tokio::test]
     async fn test_sign_and_verify() {
         let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            key_manager,
+            key_manager.clone(),
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -99,15 +85,17 @@ mod tests {
         };
 
         let key_id = bearer_did.document.verification_method[0].id.clone();
-        let jwt = Jwt::sign(
-            &bearer_did,
+        let key_alias = KeyIdFragment(key_id.clone()).splice_key_alias();
+        let signer = key_manager.get_signer(&key_alias).unwrap();
+
+        let jws_header = JwsHeader::from_did_document(
+            &bearer_did.document,
             &KeySelector::KeyId {
                 key_id: key_id.clone(),
             },
-            None,
-            &claims,
         )
         .unwrap();
+        let jwt = Jwt::sign(signer, jws_header, &claims).unwrap();
 
         let jwt_decoded = Jwt::verify::<RegisteredClaims>(&jwt).await.unwrap();
 

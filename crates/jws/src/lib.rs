@@ -1,15 +1,20 @@
+use std::sync::Arc;
+
 use base64::{engine::general_purpose, DecodeError, Engine as _};
 use crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CryptoError, CurveOperations};
 use dids::{
-    bearer::{BearerDid, BearerDidError},
-    document::{DocumentError, KeyIdFragment, KeySelector},
+    bearer::BearerDidError,
+    document::{Document, DocumentError, KeyIdFragment, KeySelector},
     resolver::{ResolutionError, Resolver},
 };
+use keys::key_manager::{KeyManagerError, Signer};
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum JwsError {
+    #[error(transparent)]
+    KeyManagerError(#[from] KeyManagerError),
     #[error(transparent)]
     BearerDidError(#[from] BearerDidError),
     #[error("incorrect number of parts 3 expected {0}")]
@@ -43,6 +48,21 @@ pub struct JwsHeader {
     pub typ: String,
 }
 
+impl JwsHeader {
+    pub fn from_did_document(
+        document: &Document,
+        key_selector: &KeySelector,
+    ) -> Result<Self, JwsError> {
+        let verification_method = document.get_verification_method(key_selector)?;
+
+        Ok(Self {
+            alg: verification_method.public_key_jwk.alg.clone(),
+            kid: verification_method.id.clone(),
+            typ: "JWT".to_string(),
+        })
+    }
+}
+
 pub struct JwsDecoded {
     pub header: JwsHeader,
     pub payload: Vec<u8>,
@@ -54,8 +74,7 @@ pub struct CompactJws;
 
 impl CompactJws {
     pub fn sign(
-        bearer_did: &BearerDid,
-        key_selector: &KeySelector,
+        signer: Arc<dyn Signer>,
         header: &JwsHeader,
         payload: &[u8], // JSON string as a byte array, TODO add a doc comment for this
     ) -> Result<String, JwsError> {
@@ -64,7 +83,7 @@ impl CompactJws {
         let encoded_payload = general_purpose::URL_SAFE_NO_PAD.encode(payload);
 
         let to_sign = format!("{}.{}", encoded_header, encoded_payload);
-        let signature = bearer_did.sign(key_selector, &to_sign.into_bytes())?;
+        let signature = signer.sign(&to_sign.into_bytes())?;
         let encoded_signature = general_purpose::URL_SAFE_NO_PAD.encode(signature);
         let compact_jws = format!(
             "{}.{}.{}",
@@ -143,7 +162,7 @@ mod tests {
         jwk::{DidJwk, DidJwkCreateOptions},
         Create,
     };
-    use keys::key_manager::local_key_manager::LocalKeyManager;
+    use keys::key_manager::{local_key_manager::LocalKeyManager, KeyManager};
     use serde_json::json;
     use std::sync::Arc;
 
@@ -151,7 +170,7 @@ mod tests {
     async fn test_jws_sign_and_verify() {
         let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            key_manager,
+            key_manager.clone(),
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -159,6 +178,8 @@ mod tests {
         .expect("failed to create bearer did");
 
         let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_alias = KeyIdFragment(key_id.clone()).splice_key_alias();
+        let signer = key_manager.get_signer(&key_alias).unwrap();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -173,15 +194,7 @@ mod tests {
         .to_string()
         .into_bytes();
 
-        let compact_jws = CompactJws::sign(
-            &bearer_did,
-            &KeySelector::KeyId {
-                key_id: key_id.clone(),
-            },
-            &header,
-            &payload,
-        )
-        .unwrap();
+        let compact_jws = CompactJws::sign(signer, &header, &payload).unwrap();
 
         let verified_jws = CompactJws::verify(&compact_jws).await.unwrap();
 
@@ -193,7 +206,7 @@ mod tests {
     fn test_jws_decode() {
         let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            key_manager,
+            key_manager.clone(),
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -201,6 +214,8 @@ mod tests {
         .expect("failed to create bearer did");
 
         let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_alias = KeyIdFragment(key_id.clone()).splice_key_alias();
+        let signer = key_manager.get_signer(&key_alias).unwrap();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -215,15 +230,7 @@ mod tests {
         .to_string()
         .into_bytes();
 
-        let compact_jws = CompactJws::sign(
-            &bearer_did,
-            &KeySelector::KeyId {
-                key_id: key_id.clone(),
-            },
-            &header,
-            &payload,
-        )
-        .unwrap();
+        let compact_jws = CompactJws::sign(signer, &header, &payload).unwrap();
 
         let decoded_jws = CompactJws::decode(&compact_jws).unwrap();
 
@@ -244,7 +251,7 @@ mod tests {
     async fn test_jws_verify_malformed_header_alg_error() {
         let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            key_manager,
+            key_manager.clone(),
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -252,6 +259,8 @@ mod tests {
         .expect("failed to create bearer did");
 
         let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_alias = KeyIdFragment(key_id.clone()).splice_key_alias();
+        let signer = key_manager.get_signer(&key_alias).unwrap();
 
         let header = JwsHeader {
             alg: "".to_string(),
@@ -266,15 +275,7 @@ mod tests {
         .to_string()
         .into_bytes();
 
-        let compact_jws = CompactJws::sign(
-            &bearer_did,
-            &KeySelector::KeyId {
-                key_id: key_id.clone(),
-            },
-            &header,
-            &payload,
-        )
-        .unwrap();
+        let compact_jws = CompactJws::sign(signer, &header, &payload).unwrap();
 
         let result = CompactJws::verify(&compact_jws).await;
 
@@ -285,7 +286,7 @@ mod tests {
     async fn test_jws_verify_malformed_header_kid_error() {
         let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            key_manager,
+            key_manager.clone(),
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -293,6 +294,8 @@ mod tests {
         .expect("failed to create bearer did");
 
         let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_alias = KeyIdFragment(key_id.clone()).splice_key_alias();
+        let signer = key_manager.get_signer(&key_alias).unwrap();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -307,15 +310,7 @@ mod tests {
         .to_string()
         .into_bytes();
 
-        let compact_jws = CompactJws::sign(
-            &bearer_did,
-            &KeySelector::KeyId {
-                key_id: key_id.clone(),
-            },
-            &header,
-            &payload,
-        )
-        .unwrap();
+        let compact_jws = CompactJws::sign(signer, &header, &payload).unwrap();
 
         let result = CompactJws::verify(&compact_jws).await;
 
@@ -326,7 +321,7 @@ mod tests {
     async fn test_jws_verify_algorithm_not_supported_error() {
         let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            key_manager,
+            key_manager.clone(),
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -334,6 +329,8 @@ mod tests {
         .expect("failed to create bearer did");
 
         let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_alias = KeyIdFragment(key_id.clone()).splice_key_alias();
+        let signer = key_manager.get_signer(&key_alias).unwrap();
 
         let header = JwsHeader {
             alg: "UNSUPPORTED_ALG".to_string(),
@@ -348,15 +345,7 @@ mod tests {
         .to_string()
         .into_bytes();
 
-        let compact_jws = CompactJws::sign(
-            &bearer_did,
-            &KeySelector::KeyId {
-                key_id: key_id.clone(),
-            },
-            &header,
-            &payload,
-        )
-        .unwrap();
+        let compact_jws = CompactJws::sign(signer, &header, &payload).unwrap();
 
         let result = CompactJws::verify(&compact_jws).await;
 
@@ -367,7 +356,7 @@ mod tests {
     async fn test_jws_verify_resolution_error() {
         let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            key_manager,
+            key_manager.clone(),
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -375,6 +364,8 @@ mod tests {
         .expect("failed to create bearer did");
 
         let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_alias = KeyIdFragment(key_id.clone()).splice_key_alias();
+        let signer = key_manager.get_signer(&key_alias).unwrap();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -389,15 +380,7 @@ mod tests {
         .to_string()
         .into_bytes();
 
-        let compact_jws = CompactJws::sign(
-            &bearer_did,
-            &KeySelector::KeyId {
-                key_id: key_id.clone(),
-            },
-            &header,
-            &payload,
-        )
-        .unwrap();
+        let compact_jws = CompactJws::sign(signer, &header, &payload).unwrap();
 
         let result = CompactJws::verify(&compact_jws).await;
 
@@ -408,7 +391,7 @@ mod tests {
     async fn test_jws_verify_document_verification_method_error() {
         let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            key_manager,
+            key_manager.clone(),
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -416,6 +399,8 @@ mod tests {
         .expect("failed to create bearer did");
 
         let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_alias = KeyIdFragment(key_id.clone()).splice_key_alias();
+        let signer = key_manager.get_signer(&key_alias).unwrap();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -430,15 +415,7 @@ mod tests {
         .to_string()
         .into_bytes();
 
-        let compact_jws = CompactJws::sign(
-            &bearer_did,
-            &KeySelector::KeyId {
-                key_id: key_id.clone(),
-            },
-            &header,
-            &payload,
-        )
-        .unwrap();
+        let compact_jws = CompactJws::sign(signer, &header, &payload).unwrap();
 
         let result = CompactJws::verify(&compact_jws).await;
 
@@ -449,7 +426,7 @@ mod tests {
     async fn test_jws_verify_signature_decode_error() {
         let key_manager = Arc::new(LocalKeyManager::new());
         let bearer_did = DidJwk::create(
-            key_manager,
+            key_manager.clone(),
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -457,6 +434,8 @@ mod tests {
         .expect("failed to create bearer did");
 
         let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_alias = KeyIdFragment(key_id.clone()).splice_key_alias();
+        let signer = key_manager.get_signer(&key_alias).unwrap();
 
         let header = JwsHeader {
             alg: "EdDSA".to_string(),
@@ -471,16 +450,7 @@ mod tests {
         .to_string()
         .into_bytes();
 
-        let compact_jws = CompactJws::sign(
-            &bearer_did,
-            &KeySelector::KeyId {
-                key_id: key_id.clone(),
-            },
-            &header,
-            &payload,
-        )
-        .unwrap()
-            + "123";
+        let compact_jws = CompactJws::sign(signer, &header, &payload).unwrap() + "123";
 
         let result = CompactJws::verify(&compact_jws).await;
 
@@ -515,7 +485,7 @@ mod tests {
 
         let invalid_key_manager = Arc::new(LocalKeyManager::new());
         let invalid_bearer_did = DidJwk::create(
-            invalid_key_manager,
+            invalid_key_manager.clone(),
             DidJwkCreateOptions {
                 curve: Curve::Ed25519,
             },
@@ -524,16 +494,10 @@ mod tests {
         let invalid_key_id = invalid_bearer_did.document.verification_method[0]
             .id
             .clone();
+        let invalid_key_alias = KeyIdFragment(invalid_key_id.clone()).splice_key_alias();
+        let invalid_signer = invalid_key_manager.get_signer(&invalid_key_alias).unwrap();
 
-        let compact_jws = CompactJws::sign(
-            &invalid_bearer_did,
-            &KeySelector::KeyId {
-                key_id: invalid_key_id.clone(),
-            },
-            &header,
-            &payload,
-        )
-        .unwrap();
+        let compact_jws = CompactJws::sign(invalid_signer, &header, &payload).unwrap();
 
         let result = CompactJws::verify(&compact_jws).await;
 

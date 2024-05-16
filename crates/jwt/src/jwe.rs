@@ -1,6 +1,7 @@
 use crate::{Claims, JwtError};
-use dids::{bearer::BearerDid, document::KeySelector};
 use jws::JwsHeader;
+use keys::key_manager::Signer;
+use std::sync::Arc;
 
 // A JWT can be implemented as either a JWS or JWE, this module is the implementation of a JWT as a JWE
 
@@ -16,8 +17,7 @@ pub struct Jwt;
 
 impl Jwt {
     pub fn sign<T: Claims>(
-        _bearer_did: &BearerDid,
-        _key_selector: &KeySelector,
+        _signer: Arc<dyn Signer>,
         _header: Option<JwsHeader>,
         _claims: &T,
     ) -> Result<String, JwtError> {

@@ -6,7 +6,20 @@ use crypto::{Curve, CurveOperations};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-use super::KeyImporter;
+use super::{KeyImporter, Signer};
+
+// TODO doc comments
+struct LocalSigner {
+    private_key: Arc<dyn PrivateKey>,
+}
+
+impl Signer for LocalSigner {
+    fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError> {
+        self.private_key
+            .sign(payload)
+            .map_err(KeyManagerError::from)
+    }
+}
 
 /// Implementation of the [`KeyManager`] trait with key generation local to the device/platform it
 /// is being run. Key storage is provided by a [`KeyStore`] trait implementation, allowing the keys
@@ -64,21 +77,17 @@ impl KeyManager for LocalKeyManager {
         Ok(public_key)
     }
 
-    fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError> {
-        let map_lock: std::sync::RwLockReadGuard<HashMap<String, Arc<dyn PrivateKey>>> =
-            self.map.read().map_err(|e| {
-                KeyManagerError::InternalKeyStoreError(format!(
-                    "Unable to acquire Mutex lock: {}",
-                    e
-                ))
-            })?;
+    fn get_signer(&self, key_alias: &str) -> Result<Arc<dyn Signer>, KeyManagerError> {
+        let map_lock = self.map.read().map_err(|e| {
+            KeyManagerError::InternalKeyStoreError(format!("Unable to acquire Mutex lock: {}", e))
+        })?;
+
         let private_key = map_lock
             .get(key_alias)
-            .ok_or(KeyManagerError::KeyNotFound(key_alias.to_string()))?;
+            .ok_or_else(|| KeyManagerError::KeyNotFound(key_alias.to_string()))?
+            .clone();
 
-        let signed_payload = private_key.sign(payload)?;
-
-        Ok(signed_payload)
+        Ok(Arc::new(LocalSigner { private_key }))
     }
 }
 
@@ -143,7 +152,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sign() {
+    fn test_get_signer() {
         let key_manager = LocalKeyManager::new();
         let key_alias = key_manager
             .generate_private_key(Curve::Ed25519, None)
@@ -151,7 +160,8 @@ mod tests {
 
         // Sign a payload
         let payload: &[u8] = b"hello world";
-        let signature = key_manager.sign(&key_alias, payload).unwrap();
+        let signer = key_manager.get_signer(&key_alias).unwrap();
+        let signature = signer.sign(payload).unwrap();
 
         // Get the public key that was used to sign the payload, and verify with it.
         let public_key = key_manager.get_public_key(&key_alias).unwrap();

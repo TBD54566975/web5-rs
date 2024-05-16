@@ -1,10 +1,10 @@
 use core::fmt;
-use dids::{bearer::BearerDid, document::KeySelector};
-use jws::JwsError;
+use jws::{JwsError, JwsHeader};
 use jwt::{
     jws::Jwt,
     {Claims, JwtError, RegisteredClaims},
 };
+use keys::key_manager::Signer;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -107,8 +107,8 @@ impl VerifiableCredential {
 
     pub fn sign(
         &self,
-        bearer_did: &BearerDid,
-        key_selector: &KeySelector,
+        signer: Arc<dyn Signer>,
+        jws_header: JwsHeader,
     ) -> Result<String, CredentialError> {
         let claims = VcJwtClaims {
             registered_claims: RegisteredClaims {
@@ -122,7 +122,7 @@ impl VerifiableCredential {
             vc: self.clone(),
         };
 
-        let jwt = Jwt::sign(bearer_did, key_selector, None, &claims)?;
+        let jwt = Jwt::sign(signer, jws_header, &claims)?;
 
         Ok(jwt)
     }
@@ -162,7 +162,8 @@ mod test {
     use super::*;
     use crypto::Curve;
     use dids::{
-        document::VerificationMethodType,
+        bearer::BearerDid,
+        document::{KeyIdFragment, KeySelector, VerificationMethodType},
         methods::{
             jwk::{DidJwk, DidJwkCreateOptions},
             Create,
@@ -313,7 +314,14 @@ mod test {
         let key_selector = KeySelector::MethodType {
             verification_method_type: VerificationMethodType::VerificationMethod,
         };
-        let vcjwt = vc.sign(&bearer_did, &key_selector).unwrap();
+
+        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_alias = KeyIdFragment(key_id.clone()).splice_key_alias();
+        let signer = bearer_did.key_manager.get_signer(&key_alias).unwrap();
+
+        let jws_header = JwsHeader::from_did_document(&bearer_did.document, &key_selector).unwrap();
+
+        let vcjwt = vc.sign(signer, jws_header).unwrap();
         assert!(!vcjwt.is_empty());
 
         let verified_vc = VerifiableCredential::verify(&vcjwt).await.unwrap();

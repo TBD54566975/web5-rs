@@ -21,6 +21,11 @@ pub enum KeyManagerError {
     KeyNotFound(String),
 }
 
+// TODO doc comment
+pub trait Signer {
+    fn sign(&self, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
+}
+
 /// A key management trait for generating, storing, and utilizing keys private keys and their
 /// associated public keys.
 ///
@@ -40,8 +45,8 @@ pub trait KeyManager: Send + Sync {
     /// Returns the public key associated with the provided `key_alias`, if one exists.
     fn get_public_key(&self, key_alias: &str) -> Result<Arc<dyn PublicKey>, KeyManagerError>;
 
-    /// Signs the provided payload using the private key identified by the provided `key_alias`.
-    fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
+    /// Returns the Signer for the provided `key_alias`.
+    fn get_signer(&self, key_alias: &str) -> Result<Arc<dyn Signer>, KeyManagerError>;
 }
 
 pub trait KeyImporter: KeyManager {

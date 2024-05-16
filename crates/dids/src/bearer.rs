@@ -1,5 +1,5 @@
 use crate::{
-    document::{Document, DocumentError, KeyIdFragment, KeySelector},
+    document::{Document, DocumentError},
     identifier::{Identifier, IdentifierError},
     resolver::{ResolutionError, Resolver},
 };
@@ -49,31 +49,17 @@ impl BearerDid {
                 .ok_or(ResolutionError::NotFound)?,
         })
     }
-
-    pub fn sign(
-        &self,
-        key_selector: &KeySelector,
-        payload: &[u8],
-    ) -> Result<Vec<u8>, BearerDidError> {
-        let verification_method = self.document.get_verification_method(key_selector)?;
-        let key_alias = KeyIdFragment(verification_method.id.clone()).splice_key_alias();
-        let signature = self.key_manager.sign(&key_alias, payload)?;
-        Ok(signature)
-    }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{
-        document::VerificationMethodType,
-        methods::{
-            jwk::{DidJwk, DidJwkCreateOptions},
-            Create,
-        },
+    use crate::methods::{
+        jwk::{DidJwk, DidJwkCreateOptions},
+        Create,
     };
     use crypto::Curve;
-    use keys::{key::PublicKey, key_manager::local_key_manager::LocalKeyManager};
+    use keys::key_manager::local_key_manager::LocalKeyManager;
 
     #[tokio::test]
     async fn test_from_key_manager() {
@@ -96,28 +82,5 @@ mod test {
             private_keys[0].jwk().unwrap().d,
             bearer_did_private_keys[0].jwk().unwrap().d
         );
-    }
-
-    #[test]
-    fn test_sign() {
-        let key_manager = Arc::new(LocalKeyManager::new());
-        let options = DidJwkCreateOptions {
-            curve: Curve::Ed25519,
-        };
-        let bearer_did = DidJwk::create(key_manager.clone(), options).unwrap();
-
-        let payload = b"hello world";
-        let key_selector = KeySelector::MethodType {
-            verification_method_type: VerificationMethodType::VerificationMethod,
-        };
-        let signature = bearer_did.sign(&key_selector, payload).unwrap();
-
-        assert_ne!(0, signature.len());
-
-        let vm = bearer_did
-            .document
-            .get_verification_method(&key_selector)
-            .unwrap();
-        vm.public_key_jwk.verify(payload, &signature).unwrap();
     }
 }
