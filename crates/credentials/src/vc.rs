@@ -1,3 +1,4 @@
+use chrono::Utc;
 use core::fmt;
 use dids::{bearer::BearerDid, document::KeySelector};
 use jws::JwsError;
@@ -6,12 +7,9 @@ use jwt::{
     {Claims, JwtError, RegisteredClaims},
 };
 use serde::{Deserialize, Serialize};
-use std::cmp::PartialEq;
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
     collections::HashMap,
     fmt::{Display, Formatter},
-    sync::Arc,
 };
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
@@ -78,8 +76,12 @@ pub enum CredentialDataModelValidationError {
     MissingIssuanceDate,
     #[error("Invalid issuance date")]
     InvalidIssuanceDate,
+    #[error("Issuance date in future")]
+    IssuanceDateInFuture,
     #[error("Invalid expiration date")]
     InvalidExpirationDate,
+    #[error("Credential expired")]
+    CredentialExpired,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
@@ -93,15 +95,6 @@ pub struct NamedIssuer {
 pub enum Issuer {
     String(String),
     Object(NamedIssuer),
-}
-
-impl Issuer {
-    pub fn id(&self) -> &str {
-        match self {
-            Issuer::String(s) => s,
-            Issuer::Object(obj) => &obj.id,
-        }
-    }
 }
 
 impl<I> From<I> for Issuer
@@ -195,112 +188,69 @@ impl VerifiableCredential {
         Ok(jwt)
     }
 
-    pub async fn verify(jwt: &str) -> Result<Arc<VerifiableCredential>, CredentialError> {
+    pub async fn verify(jwt: &str) -> Result<VerifiableCredential, CredentialError> {
         let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
         let mut vc = jwt_decoded.claims.vc;
         let registered_claims = jwt_decoded.claims.registered_claims;
 
         // registered claims checks
-        if registered_claims.issuer.is_none() {
-            return Err(CredentialError::MissingIss);
-        }
-        if registered_claims.subject.is_none() {
-            return Err(CredentialError::MissingSub);
-        }
-        if registered_claims.not_before.is_none() {
-            return Err(CredentialError::MissingNbf);
-        }
-        if registered_claims.jti.is_none() {
-            return Err(CredentialError::MissingJti);
-        }
+        let jti = registered_claims.jti.ok_or(CredentialError::MissingJti)?;
+        let iss = registered_claims
+            .issuer
+            .ok_or(CredentialError::MissingIss)?;
+        let sub = registered_claims
+            .subject
+            .ok_or(CredentialError::MissingSub)?;
+        let nbf = registered_claims
+            .not_before
+            .ok_or(CredentialError::MissingNbf)?;
+        let exp = registered_claims.expiration;
 
         // TODO: Change this to None after this issue is resolved - https://github.com/TBD54566975/web5-rs/issues/202
         // check claims match expected values
         if vc.id == String::default() {
-            vc.id = registered_claims.jti.clone().unwrap();
-        } else if vc.id != registered_claims.jti.unwrap() {
+            vc.id = jti;
+        } else if vc.id != jti {
             return Err(CredentialError::IdMismatch);
         }
 
+        let vc_issuer = vc.issuer.to_string();
+        if vc_issuer.is_empty() {
+            vc.issuer = Issuer::String(iss.clone());
+        } else if iss != vc_issuer {
+            return Err(CredentialError::IssuerMismatch);
+        }
+
         if vc.credential_subject.id == String::default() {
-            vc.credential_subject.id = registered_claims.subject.clone().unwrap();
-        } else if vc.credential_subject.id != registered_claims.subject.unwrap() {
+            vc.credential_subject.id = sub;
+        } else if vc.credential_subject.id != sub {
             return Err(CredentialError::SubjectMismatch);
         }
 
         if vc.issuance_date == i64::default() {
-            vc.issuance_date = registered_claims.not_before.unwrap();
-        } else if vc.issuance_date != registered_claims.not_before.unwrap() {
+            vc.issuance_date = nbf;
+        } else if vc.issuance_date != nbf {
             return Err(CredentialError::IssuanceDateMismatch);
         }
 
-        if vc.expiration_date.unwrap() == i64::default() {
-            vc.expiration_date = Some(registered_claims.expiration.unwrap())
-        } else if vc.expiration_date != Some(registered_claims.expiration.unwrap()) {
-            return Err(CredentialError::ExpirationDateMismatch);
-        }
-
-        // issuer check
-        let iss = registered_claims.issuer.as_ref().unwrap();
-        match &mut vc.issuer {
-            Issuer::String(id) => {
-                if id.is_empty() {
-                    id.clone_from(iss);
-                } else if id != iss {
-                    return Err(CredentialError::IssuerMismatch);
+        // if exp exists, make sure there is not a mismatch and assign it to vc expiration date
+        // if vc expiration date exists and exp does not, throw a misconfigured exp error
+        if exp.is_some() {
+            if vc.expiration_date.is_some() {
+                if vc.expiration_date != exp {
+                    return Err(CredentialError::ExpirationDateMismatch);
                 }
-            }
-            Issuer::Object(named) => {
-                if &named.id != iss {
-                    return Err(CredentialError::IssuerMismatch);
+
+                let now = Utc::now().timestamp();
+                if now > exp.unwrap() {
+                    return Err(CredentialError::CredentialExpired(
+                        "The verifiable credential has expired".to_string(),
+                    ));
                 }
-            }
-        }
 
-        // optional expiration date check
-        if let (Some(exp), Some(vc_exp)) = (registered_claims.expiration, vc.expiration_date) {
-            if vc_exp == i64::default() {
-                vc.expiration_date = Option::from(exp);
-            } else if exp != vc_exp {
-                return Err(CredentialError::ExpirationDateMismatch);
+                vc.expiration_date = exp;
             }
-
-            let now = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs() as i64;
-
-            if now > vc.expiration_date.unwrap() {
-                return Err(CredentialError::CredentialExpired(
-                    "The verifiable credential has expired".to_string(),
-                ));
-            }
-        } else if registered_claims.expiration.is_none() && vc.expiration_date.is_some() {
-            return Err(CredentialError::MisconfiguredExpirationDate(
-                "VC has expiration date but no exp in registered claims".to_string(),
-            ));
-        }
-
-        // check for consistency and validity of expiration dates
-        if let (Some(exp), Some(vc_exp)) = (registered_claims.expiration, vc.expiration_date) {
-            // Update to registered expiration if current is default (0 or another default if defined)
-            if vc_exp == i64::default() {
-                vc.expiration_date = Some(exp);
-            } else if exp != vc_exp {
-                return Err(CredentialError::ExpirationDateMismatch);
-            }
-
-            // Check if the credential has expired
-            let current_time = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs() as i64;
-            if current_time > vc_exp {
-                return Err(CredentialError::CredentialExpired(
-                    "The verifiable credential has expired".to_string(),
-                ));
-            }
-        } else if registered_claims.expiration.is_none() && vc.expiration_date.is_some() {
+        } else if vc.expiration_date.is_some() {
             return Err(CredentialError::MisconfiguredExpirationDate(
                 "VC has expiration date but no exp in registered claims".to_string(),
             ));
@@ -308,7 +258,7 @@ impl VerifiableCredential {
 
         validate_vc_data_model(&vc).map_err(CredentialError::ValidationError)?;
 
-        Ok(Arc::new(vc))
+        Ok(vc)
     }
 
     pub fn decode(jwt: &str) -> Result<Self, CredentialError> {
@@ -325,26 +275,36 @@ fn validate_vc_data_model(
         return Err(CredentialDataModelValidationError::MissingId);
     }
 
-    if vc.context.first().map_or(true, |v| v != BASE_CONTEXT) {
+    if vc.context.is_empty() || vc.context[0] != BASE_CONTEXT {
         return Err(CredentialDataModelValidationError::MissingContext);
     }
 
-    if vc.r#type.first().map_or(true, |v| v != BASE_TYPE) {
+    if vc.r#type.is_empty() || vc.r#type[0] != BASE_TYPE {
         return Err(CredentialDataModelValidationError::MissingType);
     }
 
-    if vc.issuer.id().is_empty() {
+    if vc.issuer.to_string().is_empty() {
         return Err(CredentialDataModelValidationError::MissingIssuer);
     }
 
+    let now = Utc::now().timestamp();
+
     if vc.issuance_date.is_negative() {
         return Err(CredentialDataModelValidationError::InvalidIssuanceDate);
+    }
+
+    if vc.issuance_date > now {
+        return Err(CredentialDataModelValidationError::IssuanceDateInFuture);
     }
 
     // Validate expiration date if it exists
     if let Some(expiration_date) = vc.expiration_date {
         if expiration_date.is_negative() {
             return Err(CredentialDataModelValidationError::InvalidExpirationDate);
+        }
+
+        if expiration_date < now {
+            return Err(CredentialDataModelValidationError::CredentialExpired);
         }
     }
 
@@ -375,7 +335,7 @@ mod test {
         },
     };
     use keys::key_manager::local_key_manager::LocalKeyManager;
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use std::sync::Arc;
     use uuid::Uuid;
 
     fn create_bearer_did() -> BearerDid {
@@ -388,10 +348,7 @@ mod test {
     }
 
     fn create_vc(issuer: Issuer) -> VerifiableCredential {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
+        let now = Utc::now().timestamp();
 
         VerifiableCredential::new(
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
@@ -436,10 +393,7 @@ mod test {
     fn test_new() {
         let issuer = "did:jwk:something";
         let issuer_name = "marvin-paranoid-robot";
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
+        let now = Utc::now().timestamp();
 
         let vc1 = VerifiableCredential::new(
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
@@ -519,10 +473,10 @@ mod test {
         let key_selector = KeySelector::MethodType {
             verification_method_type: VerificationMethodType::VerificationMethod,
         };
-        let vcjwt = vc.sign(&bearer_did, &key_selector).unwrap();
-        assert!(!vcjwt.is_empty());
+        let vc_jwt = vc.sign(&bearer_did, &key_selector).unwrap();
+        assert!(!vc_jwt.is_empty());
 
-        let verified_vc = VerifiableCredential::verify(&vcjwt).await.unwrap();
+        let verified_vc = VerifiableCredential::verify(&vc_jwt).await.unwrap();
         assert_eq!(vc.id, verified_vc.id);
         assert_eq!(vc.issuer, verified_vc.issuer);
         assert_eq!(vc.credential_subject.id, verified_vc.credential_subject.id);
@@ -535,10 +489,7 @@ mod test {
             verification_method_type: VerificationMethodType::VerificationMethod,
         };
 
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
+        let now = Utc::now().timestamp();
 
         let issuer = Issuer::Object(NamedIssuer {
             id: bearer_did.identifier.uri.clone(),
