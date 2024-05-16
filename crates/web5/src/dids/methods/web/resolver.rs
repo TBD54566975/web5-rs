@@ -95,5 +95,19 @@ mod tests {
         let did_uri = "did:web:tbd.website:with:path";
         let result = Resolver::new(Identifier::parse(did_uri).unwrap());
         assert_eq!(result.did_url, "https://tbd.website/with/path/did.json");
+
+        let did_uri = "did:web:tbd.website%3A8080";
+        let result = Resolver::new(Identifier::parse(did_uri).unwrap());
+        assert_eq!(
+            result.did_url,
+            "https://tbd.website:8080/.well-known/did.json"
+        );
+
+        let did_uri = "did:web:tbd.website%3A8080:with:path";
+        let result = Resolver::new(Identifier::parse(did_uri).unwrap());
+        assert_eq!(
+            result.did_url,
+            "https://tbd.website:8080/with/path/did.json"
+        );
     }
 }
