@@ -77,7 +77,7 @@ mod test {
 
     #[tokio::test]
     async fn test_from_key_manager() {
-        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+        let key_manager = Arc::new(LocalKeyManager::new());
         let options = DidJwkCreateOptions {
             curve: Curve::Ed25519,
         };
@@ -85,10 +85,10 @@ mod test {
         let private_keys = key_manager.export_private_keys().unwrap();
 
         let bearer_did =
-            BearerDid::from_key_manager(&did_jwk_bearer_did.identifier.uri, key_manager)
+            BearerDid::from_key_manager(&did_jwk_bearer_did.identifier.uri, key_manager.clone())
                 .await
                 .unwrap();
-        let bearer_did_private_keys = bearer_did.key_manager.export_private_keys().unwrap();
+        let bearer_did_private_keys = key_manager.export_private_keys().unwrap();
 
         assert_eq!(bearer_did.identifier.uri, did_jwk_bearer_did.identifier.uri);
         assert_eq!(private_keys.len(), bearer_did_private_keys.len());
@@ -100,7 +100,7 @@ mod test {
 
     #[test]
     fn test_sign() {
-        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+        let key_manager = Arc::new(LocalKeyManager::new());
         let options = DidJwkCreateOptions {
             curve: Curve::Ed25519,
         };

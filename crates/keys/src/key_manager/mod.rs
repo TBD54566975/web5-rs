@@ -1,21 +1,24 @@
-pub mod key_store;
 pub mod local_key_manager;
 
 use crate::key::{KeyError, PrivateKey, PublicKey};
-use crate::key_manager::key_store::KeyStoreError;
-use crypto::Curve;
+use crypto::{CryptoError, Curve};
+use jwk::JwkError;
 use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum KeyManagerError {
+    #[error(transparent)]
+    CryptoError(#[from] CryptoError),
+    #[error(transparent)]
+    JwkError(#[from] JwkError),
     #[error("Key generation failed")]
     KeyGenerationFailed,
-    #[error("Signing key not found in KeyManager")]
-    SigningKeyNotFound,
     #[error(transparent)]
     KeyError(#[from] KeyError),
-    #[error(transparent)]
-    KeyStoreError(#[from] KeyStoreError),
+    #[error("{0}")]
+    InternalKeyStoreError(String),
+    #[error("key not found {0}")]
+    KeyNotFound(String),
 }
 
 /// A key management trait for generating, storing, and utilizing keys private keys and their
@@ -39,23 +42,22 @@ pub trait KeyManager: Send + Sync {
 
     /// Signs the provided payload using the private key identified by the provided `key_alias`.
     fn sign(&self, key_alias: &str, payload: &[u8]) -> Result<Vec<u8>, KeyManagerError>;
+}
 
-    /// Exports all private keys managed by this key manager.
-    /// Default implementation returns an error indicating the feature is not supported.
-    fn export_private_keys(&self) -> Result<Vec<Arc<dyn PrivateKey>>, KeyManagerError> {
-        Err(KeyStoreError::UnsupportedOperation(
-            "exporting private keys is not supported".to_string(),
-        ))?
-    }
-
-    /// Imports a list of private keys into the key manager.
-    /// Default implementation returns an error indicating the feature is not supported.
-    fn import_private_keys(
+pub trait KeyImporter: KeyManager {
+    /// Imports a private key with a custom key alias into the key manager.
+    /// Returns the key alias
+    fn import_with_alias(
         &self,
-        _private_keys: Vec<Arc<dyn PrivateKey>>,
-    ) -> Result<(), KeyManagerError> {
-        Err(KeyStoreError::UnsupportedOperation(
-            "importing private keys is not supported".to_string(),
-        ))?
+        private_key: Arc<dyn PrivateKey>,
+        key_alias: &str,
+    ) -> Result<(), KeyManagerError>;
+
+    /// Imports a private key into the key manager using private_key.alias() as the alias
+    /// Returns the key alias
+    fn import(&self, private_key: Arc<dyn PrivateKey>) -> Result<String, KeyManagerError> {
+        let key_alias = private_key.alias()?;
+        self.import_with_alias(private_key, &key_alias)?;
+        Ok(key_alias)
     }
 }

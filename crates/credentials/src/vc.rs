@@ -173,7 +173,7 @@ mod test {
     use uuid::Uuid;
 
     fn create_bearer_did() -> BearerDid {
-        let key_manager = Arc::new(LocalKeyManager::new_in_memory());
+        let key_manager = Arc::new(LocalKeyManager::new());
         let options = DidJwkCreateOptions {
             curve: Curve::Ed25519,
         };
