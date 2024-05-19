@@ -22,30 +22,34 @@
 - why split `KeySigner` & `KeyImporter` away from `KeyManager`?
 - can we in some way incorporate namespacing here, as a means of constraining scope? for example, would be nice to just have `Jwt` and have it under a `dids` namespace, which would indicate that's a JWT concept constrained to within the concept of a DID.
 - a bunch of examples
+- monad pattern?
+- cryptographic digest's for tbdex
 
-# Web5 API Design <!-- omit in toc -->
+# Web5 Object-Oriented API Design <!-- omit in toc -->
 
-![Binding Constraints](./BINDING_CONSTRAINTS.png)
+This API Design assumes the implementing language supports object-oriented programming (OOP). Static methods which are not for the case of instantiation (a "constructor") are forbidden. Polymorphism is supported through the use of interfaces.
 
 - [JWK](#jwk)
-  - [`Jwk` (class)](#jwk-class)
+  - [`Jwk`](#jwk-1)
 - [Key Management](#key-management)
-  - [`KeyManager` (interface)](#keymanager-interface)
-  - [`Curve` (enum)](#curve-enum)
+  - [`KeyManager` (Interface)](#keymanager-interface)
+  - [`InMemoryKeyManager`](#inmemorykeymanager)
+  - [`Signer`](#signer)
+  - [`Curve`](#curve)
 - [JWS](#jws)
-  - [`Jws` (class)](#jws-class)
-  - [`JwsHeader` (class)](#jwsheader-class)
+  - [`Jws`](#jws-1)
+  - [`JwsHeader`](#jwsheader)
 - [JWT](#jwt)
   - [`Jwt` (class)](#jwt-class)
-  - [`JwtClaims` (class)](#jwtclaims-class)
+  - [`JwtClaims`](#jwtclaims)
 - [DIDs](#dids)
-  - [`Identifier` (class)](#identifier-class)
-  - [`Document` (class)](#document-class)
-  - [`DocumentMetadata` (class)](#documentmetadata-class)
-  - [`ResolutionMetadata` (class)](#resolutionmetadata-class)
-  - [`Resolution` (class)](#resolution-class)
-  - [`BearerDid` (class)](#bearerdid-class)
-  - [`DidJwk` (class)](#didjwk-class)
+  - [`Identifier`](#identifier)
+  - [`Document`](#document)
+  - [`DocumentMetadata`](#documentmetadata)
+  - [`ResolutionMetadata`](#resolutionmetadata)
+  - [`Resolution`](#resolution)
+  - [`BearerDid`](#bearerdid)
+  - [`DidJwk` TODO](#didjwk-todo)
   - [`DidWeb` (class)](#didweb-class)
   - [`DidDht` (class)](#diddht-class)
 - [Credentials](#credentials)
@@ -53,70 +57,98 @@
 
 # JWK
 
-## `Jwk` (class)
+## `Jwk`
 
 Data properties conformant with [RFC7517](https://datatracker.ietf.org/doc/html/rfc7517).
 
-| Function                             | Notes                                  |
-| ------------------------------------ | -------------------------------------- |
-| `compute_thumbprint(self) -> string` | RECOMMENDED to be used as a key alias. |
+| Instance Method                  | Notes                                  |
+| -------------------------------- | -------------------------------------- |
+| `compute_thumbprint() -> string` | RECOMMENDED to be used as a key alias. |
 
 # Key Management
 
-## `KeyManager` (interface)
+## `KeyManager` (Interface)
 
-| Function                                                   | Notes                                    |
-| ---------------------------------------------------------- | ---------------------------------------- |
-| `generate_private_key(self, curve: Curve) -> string`       | Return string is equal to the key alias. |
-| `get_public_key(self, key_alias: string) -> Jwk`           |                                          |
-| `sign(self, key_alias: string, payload: []byte) -> []byte` |                                          |
+| Instance Method                                  | Notes                                    |
+| ------------------------------------------------ | ---------------------------------------- |
+| `generate_private_key(curve: Curve) -> string`   | Return string is equal to the key alias. |
+| `get_public_key(alias: string) -> Jwk `          |                                          |
+| `sign(alias: string, payload: []byte) -> []byte` |                                          |
 
-## `Curve` (enum)
 
-Open Issue [#38](https://github.com/TBD54566975/web5-rs/issues/38).
+## `InMemoryKeyManager`
 
-| Value       |
+Implementation of `KeyManager` which stores key material in-memory.
+
+| Constructor                                      | Notes |
+| ------------------------------------------------ | ----- |
+| `new(private_keys: []Jwk) -> InMemoryKeyManager` |       |
+
+## `Signer`
+
+| Constructor                                             | Notes |
+| ------------------------------------------------------- | ----- |
+| `new(key_manager: KeyManager, alias: string) -> Signer` |       |
+
+| Instance Method                   | Notes |
+| --------------------------------- | ----- |
+| `sign(payload: []byte) -> []byte` |       |
+
+## `Curve`
+
+Open Issue on naming [#38](https://github.com/TBD54566975/web5-rs/issues/38).
+
+| Enumeration |
 | ----------- |
 | `Ed25519`   |
 | `Secp256k1` |
 
 # JWS
 
-## `Jws` (class)
+## `Jws`
 
-| Function                                                                                    | Notes |
-| ------------------------------------------------------------------------------------------- | ----- |
-| `create_compact_jws(header: JwsHeader, payload: []byte, key_manager: KeyManager) -> string` |       |
-| `verify_compact_jws(compact_jws: string, public_key: Jwk) -> bool`                          |       |
+| Property                     | Notes |
+| ---------------------------- | ----- |
+| `header: JwsHeader`          |       |
+| `payload: []byte`            |       |
+| `signature: string`          |       |
+| `compact_serialized: string` |       |
+| `json_serialized: string`    |       |
 
-## `JwsHeader` (class) 
+| Constructor                                                         | Notes                                                                                                                                            |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `create(header: JwsHeader, payload: []byte, signer: Signer) -> Jws` |                                                                                                                                                  |
+| `from_compact_serialized(compact_serialized: string) -> Jws`        | This will perform cryptographic verification by accessing the public key via revolving the DID Document as specified in the `JwsHeader`'s `kid`. |
+
+## `JwsHeader`
 
 Data properties conformant with [Section 4. of RFC7515](https://datatracker.ietf.org/doc/html/rfc7515#section-4).
-
-| Function                                             | Notes |
-| ---------------------------------------------------- | ----- |
-| `from_compact_jws(compact_jws: string) -> JwsHeader` |       |
 
 # JWT
 
 ## `Jwt` (class)
 
-| Function                                                                                             | Notes |
-| ---------------------------------------------------------------------------------------------------- | ----- |
-| `create_as_compact_jws(jws_header: JwsHeader, claims: JwtClaims, key_manager: KeyManager) -> string` |       |
-| `verify(jwt: string, public_key: Jwk) -> bool`                                                       |       |
+| Property            | Notes |
+| ------------------- | ----- |
+| `claims: JwtClaims` |       |
+| `jws: Jws`          |       |
 
-## `JwtClaims` (class)
+| Constructor                                                            | Notes                                                                                                                  |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `new(claims: JwtClaims, jws_header: JwsHeader, signer: Signer) -> Jwt` |                                                                                                                        |
+| `from_jwt(jwt: string) -> Jwt`                                         | This will perform cryptographic verification by accessing the public key from the DID Document resolved via the `kid`. |
 
-Data properties conformant to [RFC7519](https://datatracker.ietf.org/doc/html/rfc7519#section-4).
+## `JwtClaims`
 
-| Function                             | Notes |
-| ------------------------------------ | ----- |
-| `from_jwt(jwt: string) -> JwtClaims` |       |
+Data properties conformant to [RFC7519](https://datatracker.ietf.org/doc/html/rfc7519#section-4). 
+
+| Property                   | Notes |
+| -------------------------- | ----- |
+| `vc: VerifiableCredential` |       |
 
 # DIDs
 
-## `Identifier` (class)
+## `Identifier`
 
 | Property                      | Notes |
 | ----------------------------- | ----- |
@@ -129,24 +161,24 @@ Data properties conformant to [RFC7519](https://datatracker.ietf.org/doc/html/rf
 | `query: string`               |       |
 | `fragment: string`            |       |
 
-| Function                               | Notes |
-| -------------------------------------- | ----- |
-| `parse(did_uri: string) -> Identifier` |       |
+| Constructor                          | Notes |
+| ------------------------------------ | ----- |
+| `new(did_uri: string) -> Identifier` |       |
 
-## `Document` (class)
+## `Document`
 
 Data properties conformant to [DID Document Data Model
  in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-data-model).
 
-## `DocumentMetadata` (class)
+## `DocumentMetadata`
 
 Data properties conformant to the [DID Document Metadata Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-metadata-data-model).
 
-## `ResolutionMetadata` (class)
+## `ResolutionMetadata`
 
 Data properties conformant to [DID Resolution Metadata Data Model in the we5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model).
 
-## `Resolution` (class)
+## `Resolution`
 
 | Property                                  | Notes |
 | ----------------------------------------- | ----- |
@@ -154,11 +186,11 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 | `document_metadata: DocumentMetadata`     |       |
 | `resolution_metadata: ResolutionMetadata` |       |
 
-| Function                                 | Notes |
-| ---------------------------------------- | ----- |
-| `resolve(did_uri: string) -> Resolution` |       |
+| Constructor                          | Notes |
+| ------------------------------------ | ----- |
+| `new(did_uri: string) -> Resolution` |       |
 
-## `BearerDid` (class)
+## `BearerDid`
 
 | Property                  | Notes |
 | ------------------------- | ----- |
@@ -166,11 +198,7 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 | `document: Document`      |       |
 | `key_manager: KeyManager` |       |
 
-| Function                                                                                                  | Notes |
-| --------------------------------------------------------------------------------------------------------- | ----- |
-| `sign_jwt_as_compact_jws(self, jws_header: JwsHeader, claims: JwtClaims, verification_method_id: string)` |       |
-
-## `DidJwk` (class)
+## `DidJwk` TODO
 
 | Function                                                     | Notes |
 | ------------------------------------------------------------ | ----- |
