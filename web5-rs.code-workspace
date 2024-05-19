@@ -11,6 +11,9 @@
       "path": "bindings"
     },
     {
+      "path": "docs"
+    },
+    {
       "path": "examples"
     },
     {
