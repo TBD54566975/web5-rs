@@ -6,6 +6,7 @@ use simple_dns::{
     rdata::{RData, TXT},
     Name, ResourceRecord,
 };
+use url::Url;
 
 use super::{DocumentPacketError, DEFAULT_TTL};
 
@@ -74,11 +75,11 @@ impl Service {
         &self,
         idx: u32,
     ) -> Result<ResourceRecord<'static>, DocumentPacketError> {
-        let service_id_fragment = self
-            .id
-            .split('#')
-            .last()
-            .ok_or(DocumentPacketError::MissingFragment(self.id.to_string()))?;
+        let url = Url::parse(&self.id)
+            .map_err(|_| DocumentPacketError::MissingFragment(self.id.clone()))?;
+        let service_id_fragment = url
+            .fragment()
+            .ok_or(DocumentPacketError::MissingFragment(self.id.clone()))?;
 
         let parts = format!(
             "id={};t={};se={}",
@@ -141,6 +142,30 @@ mod tests {
 
         assert_eq!(service, service2);
     }
+
+    #[test]
+    fn test_to_record_resource_service_id_multiple_sharps() {
+        // The URL spec seems to say that multiple "#" is invalid,
+        // but after trying some actual URL implementations,
+        // this behavior is more common.
+        let did_uri = "did:dht:123";
+        let id = "did:dht:123#hey#ya"; // multiple "#"
+        let r#type = "some_type";
+        let service_endpoint = "foo.tbd.website";
+        let service = Service {
+            id: id.to_string(),
+            r#type: r#type.to_string(),
+            service_endpoint: service_endpoint.to_string(),
+        };
+
+        let resource_record = service
+            .to_resource_record(0)
+            .expect("Expected to create resource record from service");
+        let service2 = Service::from_resource_record(did_uri, resource_record)
+            .expect("msg");
+        assert_eq!(service, service2);
+    }
+
 
     #[test]
     fn test_to_record_resource_missing_fragment() {
