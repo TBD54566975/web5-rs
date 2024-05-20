@@ -306,12 +306,14 @@ impl VerifiableCredential {
             }
         }
 
-        let vc_credential_subject = vc_payload.credential_subject
-            .clone()
-            .unwrap_or_else(|| CredentialSubject {
-                id: sub,
-                params: None,
-            });
+        let vc_credential_subject =
+            vc_payload
+                .credential_subject
+                .clone()
+                .unwrap_or_else(|| CredentialSubject {
+                    id: sub,
+                    params: None,
+                });
 
         let vc = VerifiableCredential {
             context: vc_payload.context.clone(),
@@ -603,20 +605,37 @@ mod test {
     async fn test_full_featured_vc_jwt() {
         let full_featured_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVZHUjVTWGRIUlRobFIyZElNM1J2WkZBMGFrMW1WMHhTYUUxa1FrZzRjVzU2YVc0eFpVNVJVbHB1TUNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOmRkMDU2NjdkLThkODItNDI5ZS1iMzJiLWM1NTdkMjBhNDc5MSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pVkdSNVNYZEhSVGhsUjJkSU0zUnZaRkEwYWsxbVYweFNhRTFrUWtnNGNXNTZhVzR4WlU1UlVscHVNQ0o5IiwiaXNzdWFuY2VEYXRlIjoxNzE2MjM5MjU1LCJleHBpcmF0aW9uRGF0ZSI6MTcxNjI0MTA1NSwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lWR1I1U1hkSFJUaGxSMmRJTTNSdlpGQTBhazFtVjB4U2FFMWtRa2c0Y1c1NmFXNHhaVTVSVWxwdU1DSjkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVZHUjVTWGRIUlRobFIyZElNM1J2WkZBMGFrMW1WMHhTYUUxa1FrZzRjVzU2YVc0eFpVNVJVbHB1TUNKOSIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVZHUjVTWGRIUlRobFIyZElNM1J2WkZBMGFrMW1WMHhTYUUxa1FrZzRjVzU2YVc0eFpVNVJVbHB1TUNKOSIsImV4cCI6MTcxNjI0MTA1NSwibmJmIjoxNzE2MjM5MjU1LCJqdGkiOiJ1cm46dmM6dXVpZDpkZDA1NjY3ZC04ZDgyLTQyOWUtYjMyYi1jNTU3ZDIwYTQ3OTEifQ.Zw7YOuSWQNODPNwhRiRy5qAZg_yutxCSxFW_WJ6knkiu8jvtO921tsRjXBGukPbotUgDWBFt-OQMdbkWcRZhCw";
 
-        let jwt_decoded = Jwt::verify::<VcJwtClaims>(&full_featured_vc_jwt).await.unwrap();
+        let jwt_decoded = Jwt::verify::<VcJwtClaims>(&full_featured_vc_jwt)
+            .await
+            .unwrap();
         let registered_claims = jwt_decoded.claims.registered_claims;
 
         let verify_result = VerifiableCredential::verify(full_featured_vc_jwt).await;
         let verify_vc = verify_result.unwrap();
 
-        assert_eq!(vec!["https://www.w3.org/2018/credentials/v1".to_string()], verify_vc.context);
+        assert_eq!(
+            vec!["https://www.w3.org/2018/credentials/v1".to_string()],
+            verify_vc.context
+        );
         assert_eq!(vec!["VerifiableCredential".to_string()], verify_vc.r#type);
 
         assert_eq!(registered_claims.jti.unwrap(), verify_vc.id);
-        assert_eq!(registered_claims.issuer.unwrap(), verify_vc.issuer.to_string());
-        assert_eq!(registered_claims.subject.unwrap(), verify_vc.credential_subject.id);
-        assert_eq!(registered_claims.not_before.unwrap(), verify_vc.issuance_date);
-        assert_eq!(registered_claims.expiration.unwrap(), verify_vc.expiration_date.unwrap());
+        assert_eq!(
+            registered_claims.issuer.unwrap(),
+            verify_vc.issuer.to_string()
+        );
+        assert_eq!(
+            registered_claims.subject.unwrap(),
+            verify_vc.credential_subject.id
+        );
+        assert_eq!(
+            registered_claims.not_before.unwrap(),
+            verify_vc.issuance_date
+        );
+        assert_eq!(
+            registered_claims.expiration.unwrap(),
+            verify_vc.expiration_date.unwrap()
+        );
     }
 
     #[tokio::test]
@@ -629,13 +648,28 @@ mod test {
         let verify_result = VerifiableCredential::verify(minified_vc_jwt).await;
         let verify_vc = verify_result.unwrap();
 
-        assert_eq!(vec!["https://www.w3.org/2018/credentials/v1".to_string()], verify_vc.context);
+        assert_eq!(
+            vec!["https://www.w3.org/2018/credentials/v1".to_string()],
+            verify_vc.context
+        );
         assert_eq!(vec!["VerifiableCredential".to_string()], verify_vc.r#type);
 
         assert_eq!(registered_claims.jti.unwrap(), verify_vc.id);
-        assert_eq!(registered_claims.issuer.unwrap(), verify_vc.issuer.to_string());
-        assert_eq!(registered_claims.subject.unwrap(), verify_vc.credential_subject.id);
-        assert_eq!(registered_claims.not_before.unwrap(), verify_vc.issuance_date);
-        assert_eq!(registered_claims.expiration.unwrap(), verify_vc.expiration_date.unwrap());
+        assert_eq!(
+            registered_claims.issuer.unwrap(),
+            verify_vc.issuer.to_string()
+        );
+        assert_eq!(
+            registered_claims.subject.unwrap(),
+            verify_vc.credential_subject.id
+        );
+        assert_eq!(
+            registered_claims.not_before.unwrap(),
+            verify_vc.issuance_date
+        );
+        assert_eq!(
+            registered_claims.expiration.unwrap(),
+            verify_vc.expiration_date.unwrap()
+        );
     }
 }
