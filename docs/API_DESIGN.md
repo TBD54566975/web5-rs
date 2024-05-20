@@ -75,21 +75,19 @@ Data properties conformant with [RFC7517](https://datatracker.ietf.org/doc/html/
 | `x: string`   |       |
 | `y?: string`  |       |
 
-🚧 TODO: audit tbdex & kcc for other needs 🚧
-
-| Instance Method                | Notes                                                                    |
-| ------------------------------ | ------------------------------------------------------------------------ |
-| `compute_thumbprint(): string` | RECOMMENDED to be used as a key alias in Key Management implementations. |
+| Instance Method                | Notes                                                                                                                                    |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `compute_thumbprint(): string` | RECOMMENDED to be used as a key alias in Key Management implementations. [Specification](https://datatracker.ietf.org/doc/html/rfc7638). |
+| `to_public(): Jwk`             | Removes any private key material.                                                                                                        |
 
 # Key Management
 
 ## `KeyManager` (Interface)
 
-| Instance Method                                | Notes                                    |
-| ---------------------------------------------- | ---------------------------------------- |
-| `generate_private_key(curve: Curve): string`   | Return string is equal to the key alias. |
-| `get_public_key(alias: string): Jwk `          |                                          |
-| `sign(alias: string, payload: []byte): []byte` |                                          |
+| Instance Method                                | Notes                                                                      |
+| ---------------------------------------------- | -------------------------------------------------------------------------- |
+| `generate_private_key(curve: Curve): Jwk`      | Return `Jwk` must not contain private key material, see `Jwk.to_public()`. |
+| `sign(alias: string, payload: []byte): []byte` |                                                                            |
 
 ## `InMemoryKeyManager`
 
@@ -110,8 +108,6 @@ Implementation of `KeyManager` which stores key material in-memory.
 | `Secp256k1` |
 
 ## `Signer`
-
-🚧 Consider adding properties for key material metadata, eg. `algorithm`, `key_id`, `crv`, etc. 🚧
 
 | Constructor                                           | Notes |
 | ----------------------------------------------------- | ----- |
