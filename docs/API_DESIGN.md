@@ -38,10 +38,14 @@
   - [`KeySigner`](#keysigner)
 - [JWS](#jws)
   - [`JoseHeader`](#joseheader)
+  - [`Jws`](#jws-1)
   - [`JwsSigner` (interface)](#jwssigner-interface)
   - [`Ed25519JwsSigner`](#ed25519jwssigner)
   - [`Secp256k1JwsSigner`](#secp256k1jwssigner)
   - [`JwsVerifier` (interface)](#jwsverifier-interface)
+  - [`Ed25519JwsVerifier`](#ed25519jwsverifier)
+  - [`Secp256k1JwsVerifier`](#secp256k1jwsverifier)
+  - [`UniJwsVerifier`](#unijwsverifier)
 - [Old Thangs](#old-thangs)
 - [JWK](#jwk-1)
   - [`Jwk`](#jwk-2)
@@ -50,8 +54,8 @@
   - [`InMemoryKeyManager`](#inmemorykeymanager-1)
   - [`Curve`](#curve-1)
   - [`Signer`](#signer)
-- [JWS](#jws-1)
-  - [`Jws`](#jws-2)
+- [JWS](#jws-2)
+  - [`Jws`](#jws-3)
   - [`JwsHeader`](#jwsheader)
 - [JWT](#jwt)
   - [`Jwt`](#jwt-1)
@@ -155,6 +159,18 @@ Implementation of `KeyManager` which stores key material in-memory.
 | `kid: string` | Must be a valid Verification Method `id` per [`web5-spec`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model). |
 | `typ: string` |                                                                                                                                                            |
 
+## `Jws`
+
+| Property             | Notes |
+| -------------------- | ----- |
+| `header: JoseHeader` |       |
+| `payload: []byte`    |       |
+| `signature: string`  |       |
+
+| Constructor                        | Notes |
+| ---------------------------------- | ----- |
+| `constructor(compact_jws: string)` |       |
+
 ## `JwsSigner` (interface)
 
 | Instance Method                                          | Notes |
@@ -187,7 +203,24 @@ Implementation of `JwsSigner` interface. The following `JoseHeader` values are s
 
 ## `JwsVerifier` (interface)
 
+| Instance Method                           | Notes |
+| ----------------------------------------- | ----- |
+| `is_match(jose_header: JoseHeader): bool` |       |
+| `verify(jws: Jws)`                        |       |
 
+## `Ed25519JwsVerifier`
+
+## `Secp256k1JwsVerifier`
+
+## `UniJwsVerifier`
+
+| Constructor                                 | Notes |
+| ------------------------------------------- | ----- |
+| `constructor(jws_verifiers: []JwsVerifier)` |       |
+
+| Instance Method                                | Notes                                                                                                                                  |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `verify_compact_jws(compact_jws: string): Jws` | Will automatically detect cryptographic schema from the JOSE Header, resolve the DID Document, and perform cryptographic verification. |
 
 # Old Thangs
 
