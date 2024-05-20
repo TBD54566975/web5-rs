@@ -33,16 +33,28 @@
   - [`KeyManager` (Interface)](#keymanager-interface)
   - [`InMemoryKeyManager`](#inmemorykeymanager)
   - [`Curve`](#curve)
+  - [`Signer`](#signer)
+- [JWS](#jws)
+  - [`Jws`](#jws-1)
+  - [`JwsHeader`](#jwsheader)
+- [JWT](#jwt)
+  - [`Jwt`](#jwt-1)
+  - [`JwtClaims`](#jwtclaims)
 - [DIDs](#dids)
   - [`Identifier`](#identifier)
-  - [`Document`](#document)
-  - [`DocumentMetadata`](#documentmetadata)
-  - [`ResolutionMetadata`](#resolutionmetadata)
-  - [`Resolution`](#resolution)
+  - [Data Model](#data-model)
+    - [`Document`](#document)
+    - [`VerificationMethod`](#verificationmethod)
+    - [`Service`](#service)
+  - [Resolution](#resolution)
+    - [`Resolution`](#resolution-1)
+    - [`DocumentMetadata`](#documentmetadata)
+    - [`ResolutionMetadata`](#resolutionmetadata)
   - [`BearerDid`](#bearerdid)
-  - [`DidJwk`](#didjwk)
-  - [`DidWeb`](#didweb)
-  - [`DidDht`](#diddht)
+  - [Methods](#methods)
+    - [`DidJwk`](#didjwk)
+    - [`DidWeb`](#didweb)
+    - [`DidDht`](#diddht)
 - [Credentials](#credentials)
   - [`VerifiableCredential`](#verifiablecredential)
 
@@ -50,11 +62,24 @@
 
 ## `Jwk`
 
-Data properties conformant with [RFC7517](https://datatracker.ietf.org/doc/html/rfc7517).
+Data properties conformant with [RFC7517](https://datatracker.ietf.org/doc/html/rfc7517). 
 
-| Instance Method                | Notes                                  |
-| ------------------------------ | -------------------------------------- |
-| `compute_thumbprint(): string` | RECOMMENDED to be used as a key alias. |
+🚧 Consider constraining in `web5-spec` 🚧
+
+| Property      | Notes |
+| ------------- | ----- |
+| `alg: string` |       |
+| `kty: string` |       |
+| `crv: string` |       |
+| `d?: string`  |       |
+| `x: string`   |       |
+| `y?: string`  |       |
+
+🚧 TODO: audit tbdex & kcc for other needs 🚧
+
+| Instance Method                | Notes                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------ |
+| `compute_thumbprint(): string` | RECOMMENDED to be used as a key alias in Key Management implementations. |
 
 # Key Management
 
@@ -77,12 +102,92 @@ Implementation of `KeyManager` which stores key material in-memory.
 
 ## `Curve`
 
-Open Issue on naming [#38](https://github.com/TBD54566975/web5-rs/issues/38).
+🚧 Open Issue on naming [#38](https://github.com/TBD54566975/web5-rs/issues/38); we may need to broaden the concept which would impact existing uses 🚧
 
 | Enumeration |
 | ----------- |
 | `Ed25519`   |
 | `Secp256k1` |
+
+## `Signer`
+
+🚧 Consider adding properties for key material metadata, eg. `algorithm`, `key_id`, `crv`, etc. 🚧
+
+| Constructor                                           | Notes |
+| ----------------------------------------------------- | ----- |
+| `constructor(key_manager: KeyManager, alias: string)` |       |
+
+| Instance Method                 | Notes |
+| ------------------------------- | ----- |
+| `sign(payload: []byte): []byte` |       |
+
+# JWS
+
+## `Jws`
+
+| Property                              | Notes |
+| ------------------------------------- | ----- |
+| `header: JwsHeader`                   |       |
+| `payload: []byte`                     |       |
+| `signature: string`                   |       |
+| `compact_serialized: string`          |       |
+| `compact_serialized_detached: string` |       |
+
+| Constructor                                                       | Notes |
+| ----------------------------------------------------------------- | ----- |
+| `constructor(header: JwsHeader, payload: []byte, signer: Signer)` |       |
+
+| Static Method                                                | Notes                                                                                                                              |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `decode_compact_serialized(compact_serialized: string): Jws` |                                                                                                                                    |
+| `verify_compact_serialized(compact_serialized: string): Jws` | This will perform cryptographic verification by resolving the DID Document's Verification Method defined in the `kid` JOSE Header. |
+
+## `JwsHeader`
+
+Data properties conformant with [Section 4. of RFC7515](https://datatracker.ietf.org/doc/html/rfc7515#section-4).
+
+🚧 Consider constraining in `web5-spec` 🚧
+
+| Property | Notes                                                                                                                                                      |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kid`    | Must be a valid Verification Method `id` per [`web5-spec`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model). |
+| `alg`    | Must be `EdDSA`, `Ed25519`, or `ES256K`                                                                                                                    |
+| `typ`    |                                                                                                                                                            |
+
+# JWT
+
+## `Jwt`
+
+| Property            | Notes |
+| ------------------- | ----- |
+| `claims: JwtClaims` |       |
+| `jws: Jws`          |       |
+
+| Constructor                                                             | Notes |
+| ----------------------------------------------------------------------- | ----- |
+| `constructor(claims: JwtClaims, jws_header: JwsHeader, signer: Signer)` |       |
+
+| Static Method                  | Notes                                                                                                                              |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `decode_jwt(jwt: string): Jwt` | This will perform cryptographic verification by resolving the DID Document's Verification Method defined in the `kid` JOSE Header. |
+| `verify_jwt(jwt: string): Jwt` | This will perform cryptographic verification by resolving the DID Document's Verification Method defined in the `kid` JOSE Header. |
+
+## `JwtClaims`
+
+Data properties conformant to [RFC7519](https://datatracker.ietf.org/doc/html/rfc7519#section-4). 
+
+🚧 Consider constraining in `web5-spec` 🚧
+
+| Property                    | Notes |
+| --------------------------- | ----- |
+| `iss?: string`              |       |
+| `sub?: string`              |       |
+| `aud?: string`              |       |
+| `exp?: int`                 |       |
+| `nbf?: int`                 |       |
+| `iat?: int`                 |       |
+| `jti?: string`              |       |
+| `vc?: VerifiableCredential` |       |
 
 # DIDs
 
@@ -103,20 +208,23 @@ Open Issue on naming [#38](https://github.com/TBD54566975/web5-rs/issues/38).
 | -------------------------- | ----- |
 | `constructor(uri: string)` |       |
 
-## `Document`
+## Data Model
 
-Data properties conformant to [DID Document Data Model
- in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-data-model).
+### `Document`
 
-## `DocumentMetadata`
+Data properties conformant to [DID Document Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-data-model).
 
-Data properties conformant to the [DID Document Metadata Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-metadata-data-model).
+### `VerificationMethod`
 
-## `ResolutionMetadata`
+Data properties conformant to [Verification Method Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model).
 
-Data properties conformant to [DID Resolution Metadata Data Model in the we5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model).
+### `Service`
 
-## `Resolution`
+Data properties conformant to [Service Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#service-data-model).
+
+## Resolution
+
+### `Resolution`
 
 | Property                                  | Notes |
 | ----------------------------------------- | ----- |
@@ -128,6 +236,14 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 | ---------------------------------- | ---------------------------------------------------------------------------------- |
 | `resolve(uri: string): Resolution` | Resolution may require networked invocation, and if should should be asynchronous. |
 
+### `DocumentMetadata`
+
+Data properties conformant to the [DID Document Metadata Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-metadata-data-model).
+
+### `ResolutionMetadata`
+
+Data properties conformant to [DID Resolution Metadata Data Model in the we5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model).
+
 ## `BearerDid`
 
 | Property                  | Notes |
@@ -136,20 +252,22 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 | `document: Document`      |       |
 | `key_manager: KeyManager` |       |
 
-## `DidJwk`
+## Methods
+
+### `DidJwk`
 
 | Static Method                                              | Notes |
 | ---------------------------------------------------------- | ----- |
 | `create(key_manager: KeyManager, curve: Curve): BearerDid` |       |
 | `resolve(uri): Resolution`                                 |       |
 
-## `DidWeb`
+### `DidWeb`
 
 | Static Method              | Notes |
 | -------------------------- | ----- |
 | `resolve(uri): Resolution` |       |
 
-## `DidDht`
+### `DidDht`
 
 | Function                                     | Notes                                   |
 | -------------------------------------------- | --------------------------------------- |
