@@ -130,6 +130,52 @@ pub struct VerifiableCredential {
     pub credential_subject: CredentialSubject,
 }
 
+impl VerifiableCredential {
+    fn to_jwt_payload_verifiable_credential(self) -> JwtPayloadVerifiableCredential {
+        JwtPayloadVerifiableCredential {
+            context: self.context,
+            id: Some(self.id),
+            r#type: self.r#type,
+            issuer: Some(self.issuer),
+            issuance_date: Some(self.issuance_date),
+            expiration_date: self.expiration_date,
+            credential_subject: Some(self.credential_subject),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct JwtPayloadVerifiableCredential {
+    #[serde(rename = "@context")]
+    context: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<String>,
+    #[serde(rename = "type")]
+    r#type: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    issuer: Option<Issuer>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "issuanceDate")]
+    issuance_date: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "expirationDate")]
+    expiration_date: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "credentialSubject")]
+    credential_subject: Option<CredentialSubject>,
+}
+
+impl JwtPayloadVerifiableCredential {
+    fn to_verifiable_credential(self) -> VerifiableCredential {
+        VerifiableCredential {
+            context: self.context,
+            id: self.id.unwrap_or_default(),
+            r#type: self.r#type,
+            issuer: self.issuer.unwrap(),
+            issuance_date: self.issuance_date.unwrap_or_default(),
+            expiration_date: self.expiration_date,
+            credential_subject: self.credential_subject.unwrap(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CredentialSubject {
     pub id: String,
@@ -180,7 +226,7 @@ impl VerifiableCredential {
                 expiration: self.expiration_date,
                 ..Default::default()
             },
-            vc: self.clone(),
+            vc_payload: self.clone().to_jwt_payload_verifiable_credential(),
         };
 
         let jwt = Jwt::sign(bearer_did, key_selector, None, &claims)?;
@@ -190,7 +236,7 @@ impl VerifiableCredential {
 
     pub async fn verify(jwt: &str) -> Result<VerifiableCredential, CredentialError> {
         let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
-        let mut vc = jwt_decoded.claims.vc;
+        let vc_payload = jwt_decoded.claims.vc_payload;
         let registered_claims = jwt_decoded.claims.registered_claims;
 
         // registered claims checks
@@ -206,55 +252,76 @@ impl VerifiableCredential {
             .ok_or(CredentialError::MissingNbf)?;
         let exp = registered_claims.expiration;
 
-        // TODO: Change this to None after this issue is resolved - https://github.com/TBD54566975/web5-rs/issues/202
-        // check claims match expected values
-        if vc.id == String::default() {
-            vc.id = jti;
-        } else if vc.id != jti {
-            return Err(CredentialError::IdMismatch);
-        }
-
-        let vc_issuer = vc.issuer.to_string();
-        if vc_issuer.is_empty() {
-            vc.issuer = Issuer::String(iss.clone());
-        } else if iss != vc_issuer {
-            return Err(CredentialError::IssuerMismatch);
-        }
-
-        if vc.credential_subject.id == String::default() {
-            vc.credential_subject.id = sub;
-        } else if vc.credential_subject.id != sub {
-            return Err(CredentialError::SubjectMismatch);
-        }
-
-        if vc.issuance_date == i64::default() {
-            vc.issuance_date = nbf;
-        } else if vc.issuance_date != nbf {
-            return Err(CredentialError::IssuanceDateMismatch);
-        }
-
-        // if exp exists, make sure there is not a mismatch and assign it to vc expiration date
-        // if vc expiration date exists and exp does not, throw a misconfigured exp error
-        if exp.is_some() {
-            if vc.expiration_date.is_some() {
-                if vc.expiration_date != exp {
-                    return Err(CredentialError::ExpirationDateMismatch);
-                }
-
-                let now = Utc::now().timestamp();
-                if now > exp.unwrap() {
-                    return Err(CredentialError::CredentialExpired(
-                        "The verifiable credential has expired".to_string(),
-                    ));
-                }
-
-                vc.expiration_date = exp;
+        if let Some(id) = &vc_payload.id {
+            if id != &jti {
+                return Err(CredentialError::IdMismatch);
             }
-        } else if vc.expiration_date.is_some() {
-            return Err(CredentialError::MisconfiguredExpirationDate(
-                "VC has expiration date but no exp in registered claims".to_string(),
-            ));
         }
+
+        if let Some(issuer) = &vc_payload.issuer {
+            let vc_issuer = issuer.to_string();
+            if iss != vc_issuer {
+                return Err(CredentialError::IssuerMismatch);
+            }
+        }
+
+        if let Some(credential_subject) = &vc_payload.credential_subject {
+            if sub != credential_subject.id {
+                return Err(CredentialError::SubjectMismatch);
+            }
+        }
+
+        if let Some(issuance_date) = &vc_payload.issuance_date {
+            if issuance_date != &nbf {
+                return Err(CredentialError::IssuanceDateMismatch);
+            }
+        }
+
+        if let Some(expiration_date) = &vc_payload.expiration_date {
+            if exp.is_none() {
+                return Err(CredentialError::MisconfiguredExpirationDate(
+                    "VC has expiration date but no exp in registered claims".to_string(),
+                ));
+            }
+
+            if expiration_date != &exp.unwrap() {
+                return Err(CredentialError::IssuanceDateMismatch);
+            }
+        }
+
+        if exp.is_some() {
+            let now = Utc::now().timestamp();
+            if now > exp.unwrap() {
+                return Err(CredentialError::CredentialExpired(
+                    "The verifiable credential has expired".to_string(),
+                ));
+            }
+        }
+
+        let mut vc_issuer = Issuer::String(iss.clone());
+
+        if let Some(issuer) = vc_payload.issuer.as_ref() {
+            if let Issuer::Object(_) = issuer {
+                vc_issuer = vc_payload.issuer.clone().unwrap();
+            }
+        }
+
+        let vc_credential_subject = vc_payload.credential_subject
+            .clone()
+            .unwrap_or_else(|| CredentialSubject {
+                id: sub,
+                params: None,
+            });
+
+        let vc = VerifiableCredential {
+            context: vc_payload.context.clone(),
+            id: jti.clone(),
+            r#type: vc_payload.r#type.clone(),
+            issuer: vc_issuer.clone(),
+            issuance_date: nbf.clone(),
+            expiration_date: exp.clone(),
+            credential_subject: vc_credential_subject,
+        };
 
         validate_vc_data_model(&vc).map_err(CredentialError::ValidationError)?;
 
@@ -263,7 +330,9 @@ impl VerifiableCredential {
 
     pub fn decode(jwt: &str) -> Result<Self, CredentialError> {
         let jwt_decoded = Jwt::decode::<VcJwtClaims>(jwt)?;
-        Ok(jwt_decoded.claims.vc)
+
+        let vc = jwt_decoded.claims.vc_payload.to_verifiable_credential();
+        Ok(vc)
     }
 }
 
@@ -316,9 +385,10 @@ fn validate_vc_data_model(
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct VcJwtClaims {
-    pub vc: VerifiableCredential,
+    #[serde(rename = "vc")]
+    vc_payload: JwtPayloadVerifiableCredential,
     #[serde(flatten)]
-    pub registered_claims: RegisteredClaims,
+    registered_claims: RegisteredClaims,
 }
 
 impl Claims for VcJwtClaims {}
@@ -522,7 +592,6 @@ mod test {
     #[tokio::test]
     async fn test_verify_mismatched_iss() {
         let mismatched_issuer_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOjQwNmYxNjhlLTg4Y2QtNGVhMS05ZTBmLWFkZTUyMDFjODY4YyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5IiwiaXNzdWFuY2VEYXRlIjoxNzE1MzU4NjQ2LCJleHBpcmF0aW9uRGF0ZSI6MTcxNTMyODY0NiwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5In19LCJpc3MiOiJ3cm9uZ2lzc3VlciIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSIsImV4cCI6MTcxNTMyODY0NiwibmJmIjoxNzE1MzU4NjQ2LCJqdGkiOiJ1cm46dmM6dXVpZDo0MDZmMTY4ZS04OGNkLTRlYTEtOWUwZi1hZGU1MjAxYzg2OGMifQ.gX3trvOMBzRX3vC2t1d3FEDj4RFNVrmotvIFgrLPoJVP2co4arz8jRT_VQ9-g7CRqWQ65uyhgAMQjZ_HWwk2DA";
-
         let result = VerifiableCredential::verify(&mismatched_issuer_vc_jwt).await;
         assert!(
             matches!(result, Err(CredentialError::IssuerMismatch)),
@@ -530,21 +599,43 @@ mod test {
         );
     }
 
-    // TODO: Add this test after doing this issuer - https://github.com/TBD54566975/web5-rs/issues/202
-    // #[tokio::test]
-    // async fn test_minified_jwt() {
-    //     let minified_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVJFNU5kRGhyWVVOUGFubFNWbms0UVdoSGJWVmxkbTUzUkZGTlJYTlVkemxQY2s1M05DMHlOWFJ5VlNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6IiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiIiwiaXNzdWFuY2VEYXRlIjowLCJleHBpcmF0aW9uRGF0ZSI6MCwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiIn19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lSRTVOZERocllVTlBhbmxTVm5rNFFXaEhiVlZsZG01M1JGRk5SWE5VZHpsUGNrNTNOQzB5TlhSeVZTSjkiLCJzdWIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lSRTVOZERocllVTlBhbmxTVm5rNFFXaEhiVlZsZG01M1JGRk5SWE5VZHpsUGNrNTNOQzB5TlhSeVZTSjkiLCJleHAiOjE3MTUzNzA1OTIsIm5iZiI6MTcxNTM2ODc5MiwianRpIjoidXJuOnZjOnV1aWQ6MTMwMjMwOWMtMDcyOS00YTAwLThmNDAtOTNkZjc3ZDQxODg5In0.u5SCPyx6Una88BYmztZ3-fbWnfDHCXIU6vBHva0SZtZQ8CYUaSjMvWRRCYY7j99JgHZU7R5wPHR1f7sb10qEBw";
-    //
-    //     let jwt_decoded = Jwt::verify::<VcJwtClaims>(&minified_vc_jwt).await.unwrap();
-    //     let registered_claims = jwt_decoded.claims.registered_claims;
-    //
-    //     let verify_result = VerifiableCredential::verify(minified_vc_jwt).await;
-    //     let verify_vc = verify_result.unwrap();
-    //
-    //     assert_eq!(registered_claims.jti.unwrap(), verify_vc.id);
-    //     assert_eq!(registered_claims.issuer.unwrap(), verify_vc.issuer.get_id());
-    //     assert_eq!(registered_claims.subject.unwrap(), verify_vc.credential_subject.id);
-    //     assert_eq!(registered_claims.not_before.unwrap(), verify_vc.issuance_date);
-    //     assert_eq!(registered_claims.expiration.unwrap(), verify_vc.expiration_date.unwrap());
-    // }
+    #[tokio::test]
+    async fn test_full_featured_vc_jwt() {
+        let full_featured_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVZHUjVTWGRIUlRobFIyZElNM1J2WkZBMGFrMW1WMHhTYUUxa1FrZzRjVzU2YVc0eFpVNVJVbHB1TUNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOmRkMDU2NjdkLThkODItNDI5ZS1iMzJiLWM1NTdkMjBhNDc5MSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pVkdSNVNYZEhSVGhsUjJkSU0zUnZaRkEwYWsxbVYweFNhRTFrUWtnNGNXNTZhVzR4WlU1UlVscHVNQ0o5IiwiaXNzdWFuY2VEYXRlIjoxNzE2MjM5MjU1LCJleHBpcmF0aW9uRGF0ZSI6MTcxNjI0MTA1NSwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lWR1I1U1hkSFJUaGxSMmRJTTNSdlpGQTBhazFtVjB4U2FFMWtRa2c0Y1c1NmFXNHhaVTVSVWxwdU1DSjkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVZHUjVTWGRIUlRobFIyZElNM1J2WkZBMGFrMW1WMHhTYUUxa1FrZzRjVzU2YVc0eFpVNVJVbHB1TUNKOSIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVZHUjVTWGRIUlRobFIyZElNM1J2WkZBMGFrMW1WMHhTYUUxa1FrZzRjVzU2YVc0eFpVNVJVbHB1TUNKOSIsImV4cCI6MTcxNjI0MTA1NSwibmJmIjoxNzE2MjM5MjU1LCJqdGkiOiJ1cm46dmM6dXVpZDpkZDA1NjY3ZC04ZDgyLTQyOWUtYjMyYi1jNTU3ZDIwYTQ3OTEifQ.Zw7YOuSWQNODPNwhRiRy5qAZg_yutxCSxFW_WJ6knkiu8jvtO921tsRjXBGukPbotUgDWBFt-OQMdbkWcRZhCw";
+
+        let jwt_decoded = Jwt::verify::<VcJwtClaims>(&full_featured_vc_jwt).await.unwrap();
+        let registered_claims = jwt_decoded.claims.registered_claims;
+
+        let verify_result = VerifiableCredential::verify(full_featured_vc_jwt).await;
+        let verify_vc = verify_result.unwrap();
+
+        assert_eq!(vec!["https://www.w3.org/2018/credentials/v1".to_string()], verify_vc.context);
+        assert_eq!(vec!["VerifiableCredential".to_string()], verify_vc.r#type);
+
+        assert_eq!(registered_claims.jti.unwrap(), verify_vc.id);
+        assert_eq!(registered_claims.issuer.unwrap(), verify_vc.issuer.to_string());
+        assert_eq!(registered_claims.subject.unwrap(), verify_vc.credential_subject.id);
+        assert_eq!(registered_claims.not_before.unwrap(), verify_vc.issuance_date);
+        assert_eq!(registered_claims.expiration.unwrap(), verify_vc.expiration_date.unwrap());
+    }
+
+    #[tokio::test]
+    async fn test_minimum_viable_vc_jwt() {
+        let minified_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVRETmpjbmd0UlVsQk1rVXRiRVJ5TjJFdFoyNTBVRGRFYlZWU01qSnlXRWc0ZUVSUmNXbFVXSG96TUNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lURE5qY25ndFJVbEJNa1V0YkVSeU4yRXRaMjUwVURkRWJWVlNNakp5V0VnNGVFUlJjV2xVV0hvek1DSjkiLCJzdWIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lURE5qY25ndFJVbEJNa1V0YkVSeU4yRXRaMjUwVURkRWJWVlNNakp5V0VnNGVFUlJjV2xVV0hvek1DSjkiLCJleHAiOjE3MTYyMzk4ODksIm5iZiI6MTcxNjIzODA4OSwianRpIjoidXJuOnZjOnV1aWQ6MWFlNjY0YjktOTY3MC00YmUwLThkNjQtNDgxZGY1M2RjMDVhIn0.3i-oArdmC8h_2UPqo61Krx9K3lys9dtxsUgn-TEdTykH_UAA1pfOyEL9cD7LuNQhvo8NFbBXuLZLIlc0Yr0PAA";
+
+        let jwt_decoded = Jwt::verify::<VcJwtClaims>(&minified_vc_jwt).await.unwrap();
+        let registered_claims = jwt_decoded.claims.registered_claims;
+
+        let verify_result = VerifiableCredential::verify(minified_vc_jwt).await;
+        let verify_vc = verify_result.unwrap();
+
+        assert_eq!(vec!["https://www.w3.org/2018/credentials/v1".to_string()], verify_vc.context);
+        assert_eq!(vec!["VerifiableCredential".to_string()], verify_vc.r#type);
+
+        assert_eq!(registered_claims.jti.unwrap(), verify_vc.id);
+        assert_eq!(registered_claims.issuer.unwrap(), verify_vc.issuer.to_string());
+        assert_eq!(registered_claims.subject.unwrap(), verify_vc.credential_subject.id);
+        assert_eq!(registered_claims.not_before.unwrap(), verify_vc.issuance_date);
+        assert_eq!(registered_claims.expiration.unwrap(), verify_vc.expiration_date.unwrap());
+    }
 }
