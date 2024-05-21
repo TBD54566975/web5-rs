@@ -3,12 +3,6 @@
 
 # Web5 API Design <!-- omit in toc -->
 
-- [Language-Agnostic Concepts](#language-agnostic-concepts)
-- [Examples](#examples)
-  - [Create a DID](#create-a-did)
-  - [Instantiate an Existing DID, Create a VC, and Sign it](#instantiate-an-existing-did-create-a-vc-and-sign-it)
-  - [Verify a VC and Inspect the Credential Subject](#verify-a-vc-and-inspect-the-credential-subject)
-  - [Bring-Your-Own Key Manager \& Cryptography, Sign a JWT, and Verify it](#bring-your-own-key-manager--cryptography-sign-a-jwt-and-verify-it)
 - [API Reference](#api-reference)
   - [JOSE](#jose)
       - [`Jwk`](#jwk)
@@ -30,7 +24,7 @@
       - [`ResolutionMetadata`](#resolutionmetadata)
     - [Methods](#methods)
       - [`DidJwk`](#didjwk)
-        - [Examples](#examples-1)
+        - [Examples](#examples)
           - [Create A `did:jwk`](#create-a-didjwk)
           - [Resolve A `did:jwk`](#resolve-a-didjwk)
           - [Reinstantiate An Existing `did:jwk`](#reinstantiate-an-existing-didjwk)
@@ -38,55 +32,10 @@
       - [`DidDht`](#diddht)
   - [Credentials](#credentials)
       - [`VerifiableCredential`](#verifiablecredential)
-        - [Examples](#examples-2)
+        - [Examples](#examples-1)
           - [Create A `did:jwk`, Create A VC, And Sign It](#create-a-didjwk-create-a-vc-and-sign-it)
-
-# Language-Agnostic Concepts
-
-TODO
-
-# Examples
-
-## Create a DID
-
-```rust
-let key_manager = InMemoryKeyManager::new();
-let public_jwk = key_manager.generate_private_key()?;
-let bearer_did = DidJwk::create(key_manager, public_jwk)?;
-let jwt = Jwt::sign(
-  bearer_did.get_default_jws_signer(), 
-  JwtClaims { iss: bearer_did.identifier.uri }
-);
-println!(jwt);
-```
-
-## Instantiate an Existing DID, Create a VC, and Sign it
-
-```rust
-// existing DID URI & private key material
-let did_uri = "did:dht:...";
-let private_jwk = serde_json::from_str::<EdDSAPrivateJwk>("{...}")?;
-
-let bearer_did = BearerDid::new(did_uri, InMemoryKeyManager::new(vec![private_jwk])).await?;
-
-let verifiable_credential = VerifiableCredential{
-  // todo consider default's for convenience
-};
-let vcjwt = verifiable_credential.sign(bearer_did.get_default_jws_signer());
-println!(vcjwt);
-```
-
-## Verify a VC and Inspect the Credential Subject
-
-```rust
-println!("todo");
-```
-
-## Bring-Your-Own Key Manager & Cryptography, Sign a JWT, and Verify it
-
-```rust
-println!("todo");
-```
+- [Examples](#examples-2)
+  - [Bring-Your-Own Key Manager \& Cryptography, Sign a VC-JWT, and Verify it](#bring-your-own-key-manager--cryptography-sign-a-vc-jwt-and-verify-it)
 
 # API Reference
 
@@ -97,27 +46,23 @@ println!("todo");
 🚧 Consider constraining in `web5-spec` 🚧
 
 | Property      | Notes |
-| ------------- | ----- |
+| :------------ | :---- |
 | `alg: string` |       |
 | `kty: string` |       |
 | `d?: string`  |       |
 | `x: string`   |       |
 | `y?: string`  |       |
 
-| Instance Method                | Notes |
-| ------------------------------ | ----- |
-| `compute_thumbprint(): string` |       |
-
 #### `JwsSigner` (Interface)
 
 | Instance Method                 | Notes |
-| ------------------------------- | ----- |
+| :------------------------------ | :---- |
 | `sign(payload: []byte): []byte` |       |
 
 #### `JwsVerifier` (Interface)
 
 | Instance Method                              | Notes |
-| -------------------------------------------- | ----- |
+| :------------------------------------------- | :---- |
 | `verify(message: []byte, signature: []byte)` |       |
 
 ## Key Management
@@ -125,7 +70,7 @@ println!("todo");
 #### `KeyManager` (Interface)
 
 | Instance Method                       | Notes |
-| ------------------------------------- | ----- |
+| :------------------------------------ | :---- |
 | `get_jws_signer(jwk: Jwk): JwsSigner` |       |
 
 #### `InMemoryKeyManager`
@@ -135,12 +80,12 @@ Implementation of `KeyManager` which stores key material in-memory.
 Uses Ed25519 for the private key material & for the implementation of the return value for `get_jws_signer()`.
 
 | Constructor                        | Notes                 |
-| ---------------------------------- | --------------------- |
+| :--------------------------------- | :-------------------- |
 | `constructor()`                    |                       |
 | `constructor(private_keys: []Jwk)` | For import use cases. |
 
 | Instance Method               | Notes                                                                   |
-| ----------------------------- | ----------------------------------------------------------------------- |
+| :---------------------------- | :---------------------------------------------------------------------- |
 | `generate_private_key(): Jwk` | Return `Jwk` is a public key and MUST NOT contain private key material. |
 
 ## DIDs
@@ -148,19 +93,19 @@ Uses Ed25519 for the private key material & for the implementation of the return
 #### `BearerDid`
 
 | Property                  | Notes |
-| ------------------------- | ----- |
+| :------------------------ | :---- |
 | `identifier: Identifier`  |       |
 | `document: Document`      |       |
 | `key_manager: KeyManager` |       |
 
 | Instance Method                       | Notes                                                                  |
-| ------------------------------------- | ---------------------------------------------------------------------- |
+| :------------------------------------ | :--------------------------------------------------------------------- |
 | `get_default_jws_signer(): JwsSigner` | Returns the `JwsSigner` associated with the first Verification Method. |
 
 #### `Identifier`
 
 | Property                      | Notes |
-| ----------------------------- | ----- |
+| :---------------------------- | :---- |
 | `uri: string`                 |       |
 | `url: string`                 |       |
 | `method: string`              |       |
@@ -171,7 +116,7 @@ Uses Ed25519 for the private key material & for the implementation of the return
 | `fragment: string`            |       |
 
 | Constructor                | Notes |
-| -------------------------- | ----- |
+| :------------------------- | :---- |
 | `constructor(uri: string)` |       |
 
 ### Data Model
@@ -193,13 +138,13 @@ Data properties conformant to [Service Data Model in the web5-spec](https://gith
 #### `Resolution`
 
 | Property                                  | Notes |
-| ----------------------------------------- | ----- |
+| :---------------------------------------- | :---- |
 | `document: Document`                      |       |
 | `document_metadata: DocumentMetadata`     |       |
 | `resolution_metadata: ResolutionMetadata` |       |
 
 | Static Method                      | Notes                                                                              |
-| ---------------------------------- | ---------------------------------------------------------------------------------- |
+| :--------------------------------- | :--------------------------------------------------------------------------------- |
 | `resolve(uri: string): Resolution` | Resolution may require networked invocation, and if should should be asynchronous. |
 
 #### `DocumentMetadata`
@@ -215,7 +160,7 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 #### `DidJwk`
 
 | Static Method                                          | Notes |
-| ------------------------------------------------------ | ----- |
+| :----------------------------------------------------- | :---- |
 | `create(key_manager: KeyManager, jwk: Jwk): BearerDid` |       |
 | `resolve(uri: string): Resolution`                     |       |
 
@@ -260,7 +205,7 @@ let bearer_did = BearerDid {
 #### `DidWeb`
 
 | Static Method              | Notes |
-| -------------------------- | ----- |
+| :------------------------- | :---- |
 | `resolve(uri): Resolution` |       |
 
 #### `DidDht`
@@ -268,7 +213,7 @@ let bearer_did = BearerDid {
 🚧 This is under construction, incomplete 🚧
 
 | Function                                     | Notes                                   |
-| -------------------------------------------- | --------------------------------------- |
+| :------------------------------------------- | :-------------------------------------- |
 | `create(key_manager: KeyManager): BearerDid` | TODO need to enable more for the inputs |
 | `update()`                                   | TODO                                    |
 | `resolve(uri): Resolution`                   |                                         |
@@ -279,12 +224,12 @@ let bearer_did = BearerDid {
 
 Data properties conformant to [Verifiable Credential Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model).
 
-| Instance Method                       | Notes |
-| ------------------------------------- | ----- |
-| `sign(jws_signer: JwsSigner): string` |       |
+| Instance Method                                               | Notes |
+| :------------------------------------------------------------ | :---- |
+| `sign(jws_signer: [JwsSigner](#jwssigner-interface)): string` |       |
 
 | Static Method                                                                        | Notes |
-| ------------------------------------------------------------------------------------ | ----- |
+| :----------------------------------------------------------------------------------- | :---- |
 | `verify(jwt: string): VerifiableCredential`                                          |       |
 | `verify_with_verifier(jwt: string, jws_verifier: JwsVerifier): VerifiableCredential` |       |
 
@@ -303,4 +248,12 @@ let verifiable_credential = VerifiableCredential {
 
 let vcjwt = verifiable_credential.sign(bearer_did.get_default_jws_signer()).unwrap;
 println(vcjwt);
+```
+
+# Examples
+
+## Bring-Your-Own Key Manager & Cryptography, Sign a VC-JWT, and Verify it
+
+```rust
+println!("todo");
 ```
