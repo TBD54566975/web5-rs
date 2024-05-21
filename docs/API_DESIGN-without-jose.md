@@ -171,7 +171,7 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 
 | Static Method                                                  | Notes                                                                                  |
 | :------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
-| `create(key_manager: &dyn KeyManager, jwk: &Jwk) -> BearerDid` | See [`KeyManager](#keymanager-interface), [`Jwk`](#jwk) and [`BearerDid`](#bearerdid). |
+| `create(key_manager: &dyn KeyManager, jwk: &Jwk) -> BearerDid` | See [`KeyManager`](#keymanager-interface), [`Jwk`](#jwk) and [`BearerDid`](#bearerdid). |
 | `resolve(uri: &str) -> Resolution`                             | See [`Resolution`](#resolution-1).                                                     |
 
 ##### Examples
