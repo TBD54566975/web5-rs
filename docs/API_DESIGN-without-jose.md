@@ -5,7 +5,7 @@
 
 - [Language-Agnostic Concepts](#language-agnostic-concepts)
 - [Examples](#examples)
-  - [Create a DID and Sign a JWT](#create-a-did-and-sign-a-jwt)
+  - [Create a DID](#create-a-did)
   - [Instantiate an Existing DID, Create a VC, and Sign it](#instantiate-an-existing-did-create-a-vc-and-sign-it)
   - [Verify a VC and Inspect the Credential Subject](#verify-a-vc-and-inspect-the-credential-subject)
   - [Bring-Your-Own Key Manager \& Cryptography, Sign a JWT, and Verify it](#bring-your-own-key-manager--cryptography-sign-a-jwt-and-verify-it)
@@ -30,10 +30,13 @@
       - [`ResolutionMetadata`](#resolutionmetadata)
     - [Methods](#methods)
       - [`DidJwk`](#didjwk)
+        - [Examples](#examples-1)
       - [`DidWeb`](#didweb)
       - [`DidDht`](#diddht)
   - [Credentials](#credentials)
       - [`VerifiableCredential`](#verifiablecredential)
+        - [Examples](#examples-2)
+          - [Create A `did:jwk`, Create A VC, And Sign It](#create-a-didjwk-create-a-vc-and-sign-it)
 
 # Language-Agnostic Concepts
 
@@ -41,15 +44,17 @@ TODO
 
 # Examples
 
-## Create a DID and Sign a JWT
+## Create a DID
 
 ```rust
-let bearer_did = DidJwk::create(InMemoryKeyManager::new(), Ed25519PrivateJwkGenerator::new());
+let key_manager = InMemoryKeyManager::new();
+let public_jwk = key_manager.generate_private_key()?;
+let bearer_did = DidJwk::create(key_manager, public_jwk)?;
 let jwt = Jwt::sign(
   bearer_did.get_default_jws_signer(), 
   JwtClaims { iss: bearer_did.identifier.uri }
 );
-println!(jwt.jws.compact_serialized);
+println!(jwt);
 ```
 
 ## Instantiate an Existing DID, Create a VC, and Sign it
@@ -64,9 +69,8 @@ let bearer_did = BearerDid::new(did_uri, InMemoryKeyManager::new(vec![private_jw
 let verifiable_credential = VerifiableCredential{
   // todo consider default's for convenience
 };
-let vcjwt = verifiable_credential.sign_vcjwt(bearer_did.get_default_jws_signer());
-// TODO consider default sign() functions return compact_serialized
-println!(vcjwt.jws.compact_serialized);
+let vcjwt = verifiable_credential.sign(bearer_did.get_default_jws_signer());
+println!(vcjwt);
 ```
 
 ## Verify a VC and Inspect the Credential Subject
@@ -210,7 +214,42 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 | Static Method                                          | Notes |
 | ------------------------------------------------------ | ----- |
 | `create(key_manager: KeyManager, jwk: Jwk): BearerDid` |       |
-| `resolve(uri): Resolution`                             |       |
+| `resolve(uri: string): Resolution`                     |       |
+
+##### Examples
+
+Create a `did:jwk`:
+```rust
+let key_manager = InMemoryKeyManager::new();
+let public_jwk = key_manager.generate_private_key().unwrap();
+let bearer_did = DidJwk::create(key_manager, public_jwk).unwrap();
+println!(bearer_did.identifier.uri);
+```
+
+Resolve a `did:jwk`:
+```rust
+let uri = "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwidXNlIjoic2lnIiwiYWxnIjoiRWREU0EiLCJraWQiOiJKUVYzQ0VaQ3BWWnBCWmQ0N0EzLWllTUM1T1BvOHJ5QlQ5cHdLX3NDLUtBIiwieCI6IlUzWXNDNjFJZnBxRjlqUHNRX01UMDBFTTRBQXVHYms0SDN1VVZRczBFelEifQ";
+let resolution = DidJwk::resolve(uri).await.unwrap();
+println!(resolution.document.id);
+```
+
+Instantiate an existing `did:jwk`:
+```rust
+let private_jwk_json_string = "{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"use\":\"sig\",\"alg\":\"EdDSA\",\"kid\":\"JQV3CEZCpVZpBZd47A3-ieMC5OPo8ryBT9pwK_sC-KA\",\"d\":\"8L5Y7M4ZNc9Jy5IooJNFaRGatXHZzRRXxGsVidrAsfE\",\"x\":\"U3YsC61IfpqF9jPsQ_MT00EM4AAuGbk4H3uUVQs0EzQ\"}";
+let private_jwk = serde_json::from_str::<Jwk>(private_jwk_json_string).unwrap();
+let key_manager = InMemoryKeyManager::from_private_jwks(vec![private_jwk]);
+
+let uri = "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwidXNlIjoic2lnIiwiYWxnIjoiRWREU0EiLCJraWQiOiJKUVYzQ0VaQ3BWWnBCWmQ0N0EzLWllTUM1T1BvOHJ5QlQ5cHdLX3NDLUtBIiwieCI6IlUzWXNDNjFJZnBxRjlqUHNRX01UMDBFTTRBQXVHYms0SDN1VVZRczBFelEifQ";
+let resolution = DidJwk::resolve(uri).await.unwrap();
+
+let identifier = Identifier::new(uri);
+
+let bearer_did = BearerDid {
+  identifier,
+  document: resolution.document,
+  key_manager
+};
+```
 
 #### `DidWeb`
 
@@ -242,3 +281,20 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 | ------------------------------------------------------------------------------------ | ----- |
 | `verify(jwt: string): VerifiableCredential`                                          |       |
 | `verify_with_verifier(jwt: string, jws_verifier: JwsVerifier): VerifiableCredential` |       |
+
+##### Examples
+
+###### Create A `did:jwk`, Create A VC, And Sign It
+
+```rust
+let key_manager = InMemoryKeyManager::new();
+let public_jwk = key_manager.generate_private_key().unwrap();
+let bearer_did = DidJwk::create(key_manager, public_jwk).unwrap();
+
+let verifiable_credential = VerifiableCredential {
+  // todo consider convenience function
+};
+
+let vcjwt = verifiable_credential.sign(bearer_did.get_default_jws_signer()).unwrap;
+println(vcjwt);
+```
