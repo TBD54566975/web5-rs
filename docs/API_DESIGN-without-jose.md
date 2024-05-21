@@ -204,19 +204,19 @@ let bearer_did = BearerDid {
 
 #### `DidWeb`
 
-| Static Method              | Notes |
-| :------------------------- | :---- |
-| `resolve(uri): Resolution` |       |
+| Static Method                            | Notes                              |
+| :--------------------------------------- | :--------------------------------- |
+| `async resolve(uri: &str) -> Resolution` | See [`Resolution`](#resolution-1). |
 
 #### `DidDht`
 
 🚧 This is under construction, incomplete 🚧
 
-| Function                                     | Notes                                   |
-| :------------------------------------------- | :-------------------------------------- |
-| `create(key_manager: KeyManager): BearerDid` | TODO need to enable more for the inputs |
-| `update()`                                   | TODO                                    |
-| `resolve(uri): Resolution`                   |                                         |
+| Function                        | Notes |
+| :------------------------------ | :---- |
+| `create() -> BearerDid`         | 🚧     |
+| `update()`                      | 🚧     |
+| `async resolve() -> Resolution` | 🚧     |
 
 ## Credentials
 
@@ -224,14 +224,14 @@ let bearer_did = BearerDid {
 
 Data properties conformant to [Verifiable Credential Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model).
 
-| Instance Method                                               | Notes |
-| :------------------------------------------------------------ | :---- |
-| `sign(jws_signer: [JwsSigner](#jwssigner-interface)): string` |       |
+| Instance Method                              | Notes                                    |
+| :------------------------------------------- | :--------------------------------------- |
+| `sign(jws_signer: &dyn JwsSigner) -> String` | See [`JwsSigner`](#jwssigner-interface). |
 
-| Static Method                                                                        | Notes |
-| :----------------------------------------------------------------------------------- | :---- |
-| `verify(jwt: string): VerifiableCredential`                                          |       |
-| `verify_with_verifier(jwt: string, jws_verifier: JwsVerifier): VerifiableCredential` |       |
+| Static Method                                                                             | Notes                                        |
+| :---------------------------------------------------------------------------------------- | :------------------------------------------- |
+| `verify(jwt: &str) -> VerifiableCredential`                                               |                                              |
+| `verify_with_verifier(jwt: &str, jws_verifier: &dyn JwsVerifier) -> VerifiableCredential` | See [`JwsVerifier`](#jwsverifier-interface). |
 
 ##### Examples
 
