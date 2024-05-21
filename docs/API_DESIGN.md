@@ -27,39 +27,31 @@
 
 # Web5 API Design <!-- omit in toc -->
 
-- [JWK](#jwk)
-  - [`Jwk` (interface)](#jwk-interface)
-  - [`Ed25519Jwk`](#ed25519jwk)
-  - [`Secp256k1Jwk`](#secp256k1jwk)
+- [JOSE](#jose)
+  - [JWA](#jwa)
+    - [`Jwa`](#jwa-1)
+  - [JWK](#jwk)
+    - [`PublicJwk` (interface)](#publicjwk-interface)
+    - [`PrivateJwk` (interface)](#privatejwk-interface)
+    - [`Ed25519PublicJwk`](#ed25519publicjwk)
+    - [`Ed25519PrivateJwk`](#ed25519privatejwk)
+    - [`Secp256k1PublicJwk`](#secp256k1publicjwk)
+    - [`Secp256k1PrivateJwk`](#secp256k1privatejwk)
+  - [JWS](#jws)
+    - [`JwsHeader`](#jwsheader)
+    - [`Jws`](#jws-1)
+    - [`JwsSigner` (interface)](#jwssigner-interface)
+    - [`JwsVerifier` (interface)](#jwsverifier-interface)
+    - [`Ed25519JwsSigner`](#ed25519jwssigner)
+    - [`Secp256k1JwsSigner`](#secp256k1jwssigner)
+    - [`Ed25519JwsVerifier`](#ed25519jwsverifier)
+    - [`Secp256k1JwsVerifier`](#secp256k1jwsverifier)
 - [Key Management](#key-management)
+  - [`PrivateKeyGenerator` (interface)](#privatekeygenerator-interface)
+  - [`Ed25519PrivateKeyGenerator`](#ed25519privatekeygenerator)
+  - [`Secp256k1PrivateKeyGenerator`](#secp256k1privatekeygenerator)
   - [`KeyManager` (Interface)](#keymanager-interface)
   - [`InMemoryKeyManager`](#inmemorykeymanager)
-  - [`Curve`](#curve)
-  - [`KeySigner`](#keysigner)
-- [JWS](#jws)
-  - [`JoseHeader`](#joseheader)
-  - [`Jws`](#jws-1)
-  - [`JwsSigner` (interface)](#jwssigner-interface)
-  - [`Ed25519JwsSigner`](#ed25519jwssigner)
-  - [`Secp256k1JwsSigner`](#secp256k1jwssigner)
-  - [`JwsVerifier` (interface)](#jwsverifier-interface)
-  - [`Ed25519JwsVerifier`](#ed25519jwsverifier)
-  - [`Secp256k1JwsVerifier`](#secp256k1jwsverifier)
-  - [`UniJwsVerifier`](#unijwsverifier)
-- [Old Thangs](#old-thangs)
-- [JWK](#jwk-1)
-  - [`Jwk`](#jwk-2)
-- [Key Management](#key-management-1)
-  - [`KeyManager` (Interface)](#keymanager-interface-1)
-  - [`InMemoryKeyManager`](#inmemorykeymanager-1)
-  - [`Curve`](#curve-1)
-  - [`Signer`](#signer)
-- [JWS](#jws-2)
-  - [`Jws`](#jws-3)
-  - [`JwsHeader`](#jwsheader)
-- [JWT](#jwt)
-  - [`Jwt`](#jwt-1)
-  - [`JwtClaims`](#jwtclaims)
 - [DIDs](#dids)
   - [`Identifier`](#identifier)
   - [Data Model](#data-model)
@@ -78,80 +70,90 @@
 - [Credentials](#credentials)
   - [`VerifiableCredential`](#verifiablecredential)
 
-# JWK
+# JOSE
 
-🚧 Consider distinguishing between `PublicJwk` and `PrivateJwk` 🚧
+## JWA
 
-## `Jwk` (interface)
+### `Jwa`
 
-| Instance Method           | Notes |
-| ------------------------- | ----- |
-| `to_public_key(): Jwk`    |       |
-| `get_public_key_bytes()`  |       |
-| `get_private_key_bytes()` |       |
+[Specification Reference](https://www.iana.org/assignments/jose/jose.xhtml#web-signature-encryption-algorithms).
 
-## `Ed25519Jwk` 
-
-Implementation of `Jwk` interface.
-
-| Property     | Notes                                         |
-| ------------ | --------------------------------------------- |
-| `d?: string` | Not defined when represented as a public key. |
-| `x: string`  |                                               |
-
-## `Secp256k1Jwk`
-
-Implementation of `Jwk` interface.
-
-| Property     | Notes                                         |
-| ------------ | --------------------------------------------- |
-| `d?: string` | Not defined when represented as a public key. |
-| `x: string`  |                                               |
-| `y: string`  |                                               |
-
-# Key Management
-
-## `KeyManager` (Interface)
-
-| Instance Method                                | Notes                                |
-| ---------------------------------------------- | ------------------------------------ |
-| `generate_private_key(curve: Curve): string`   | Return string is equal to key alias. |
-| `get_public_key(alias: string): Jwk`           |                                      |
-| `sign(alias: string, payload: []byte): []byte` |                                      |
-
-## `InMemoryKeyManager`
-
-Implementation of `KeyManager` which stores key material in-memory.
-
-| Constructor                        | Notes |
-| ---------------------------------- | ----- |
-| `constructor()`                    |       |
-| `constructor(private_keys: []Jwk)` |       |
-
-## `Curve`
-
-🚧 Open Issue on naming [#38](https://github.com/TBD54566975/web5-rs/issues/38); we may need to broaden the concept which would impact existing uses 🚧
+🚧 Open Issue on naming [#38](https://github.com/TBD54566975/web5-rs/issues/38); we may need to broaden the concept at many levels 🚧
 
 | Enumeration |
 | ----------- |
-| `Ed25519`   |
-| `Secp256k1` |
+| `EdDSA`     |
+| `ES256K`    |
 
-## `KeySigner`
+## JWK
 
-| Constructor                                           | Notes |
-| ----------------------------------------------------- | ----- |
-| `constructor(key_manager: KeyManager, alias: string)` |       |
+### `PublicJwk` (interface)
 
-| Instance Method                 | Notes |
-| ------------------------------- | ----- |
-| `sign(payload: []byte): []byte` |       |
+| Instance Method                  | Notes                                                           |
+| -------------------------------- | --------------------------------------------------------------- |
+| `compute_thumbprint(): string`   | [Specification Reference](https://tools.ietf.org/html/rfc7638). |
+| `get_public_key_bytes(): []byte` |                                                                 |
 
-# JWS
+### `PrivateJwk` (interface)
 
-## `JoseHeader` 
+| Instance Method                   | Notes |
+| --------------------------------- | ----- |
+| `get_private_key_bytes(): []byte` |       |
+| `to_public_jwk(): PublicJwk`      |       |
 
-🚧 Consider adding to [`web5-spec`](https://github.com/TBD54566975/web5-spec/) 🚧
+### `Ed25519PublicJwk`
+
+Implementation of `PublicJwk`.
+
+| Property      | Notes |
+| ------------- | ----- |
+| `alg: string` |       |
+| `kty: string` |       |
+| `crv: string` |       |
+| `x: string`   |       |
+
+### `Ed25519PrivateJwk`
+
+Implementation of `PrivateJwk`.
+
+| Property      | Notes |
+| ------------- | ----- |
+| `alg: string` |       |
+| `kty: string` |       |
+| `crv: string` |       |
+| `x: string`   |       |
+| `d: string`   |       |
+
+### `Secp256k1PublicJwk`
+
+Implementation of `PublicJwk`.
+
+| Property      | Notes |
+| ------------- | ----- |
+| `alg: string` |       |
+| `kty: string` |       |
+| `crv: string` |       |
+| `x: string`   |       |
+| `y: string`   |       |
+
+### `Secp256k1PrivateJwk`
+
+Implementation of `PrivateJwk`.
+
+| Property      | Notes |
+| ------------- | ----- |
+| `alg: string` |       |
+| `kty: string` |       |
+| `crv: string` |       |
+| `x: string`   |       |
+| `y: string`   |       |
+| `d: string`   |       |
+
+## JWS
+
+### `JwsHeader` 
+
+🚧 Consider adding constraints to `web5-spec` 🚧
 
 | Property      | Notes                                                                                                                                                      |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -159,134 +161,7 @@ Implementation of `KeyManager` which stores key material in-memory.
 | `kid: string` | Must be a valid Verification Method `id` per [`web5-spec`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model). |
 | `typ: string` |                                                                                                                                                            |
 
-## `Jws`
-
-| Property             | Notes |
-| -------------------- | ----- |
-| `header: JoseHeader` |       |
-| `payload: []byte`    |       |
-| `signature: string`  |       |
-
-| Constructor                        | Notes |
-| ---------------------------------- | ----- |
-| `constructor(compact_jws: string)` |       |
-
-## `JwsSigner` (interface)
-
-| Instance Method                                          | Notes |
-| -------------------------------------------------------- | ----- |
-| `sign(jose_header: JoseHeader, payload: []byte): []byte` |       |
-
-## `Ed25519JwsSigner`
-
-Implementation of `JwsSigner` interface. The following `JoseHeader` values are set within the implementation of the `sign()` instance method.
-
-| JOSE Header | Value     |
-| ----------- | --------- |
-| `alg`       | `Ed25519` |
-
-| Constructor                          | Notes |
-| ------------------------------------ | ----- |
-| `constructor(key_signer: KeySigner)` |       |
-
-## `Secp256k1JwsSigner`
-
-Implementation of `JwsSigner` interface. The following `JoseHeader` values are set within the implementation of the `sign()` instance method.
-
-| JOSE Header | Value    |
-| ----------- | -------- |
-| `alg`       | `ES256K` |
-
-| Constructor                          | Notes |
-| ------------------------------------ | ----- |
-| `constructor(key_signer: KeySigner)` |       |
-
-## `JwsVerifier` (interface)
-
-| Instance Method                           | Notes |
-| ----------------------------------------- | ----- |
-| `is_match(jose_header: JoseHeader): bool` |       |
-| `verify(jws: Jws)`                        |       |
-
-## `Ed25519JwsVerifier`
-
-## `Secp256k1JwsVerifier`
-
-## `UniJwsVerifier`
-
-| Constructor                                 | Notes |
-| ------------------------------------------- | ----- |
-| `constructor(jws_verifiers: []JwsVerifier)` |       |
-
-| Instance Method                                | Notes                                                                                                                                  |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `verify_compact_jws(compact_jws: string): Jws` | Will automatically detect cryptographic schema from the JOSE Header, resolve the DID Document, and perform cryptographic verification. |
-
-# Old Thangs
-
-# JWK
-
-## `Jwk`
-
-Data properties conformant with [RFC7517](https://datatracker.ietf.org/doc/html/rfc7517). 
-
-🚧 Consider constraining in `web5-spec` 🚧
-
-| Property      | Notes |
-| ------------- | ----- |
-| `alg: string` |       |
-| `kty: string` |       |
-| `crv: string` |       |
-| `d?: string`  |       |
-| `x: string`   |       |
-| `y?: string`  |       |
-
-| Instance Method                | Notes                                                                                                                                    |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `compute_thumbprint(): string` | RECOMMENDED to be used as a key alias in Key Management implementations. [Specification](https://datatracker.ietf.org/doc/html/rfc7638). |
-| `to_public(): Jwk`             | Removes any private key material.                                                                                                        |
-
-# Key Management
-
-## `KeyManager` (Interface)
-
-| Instance Method                                | Notes                                |
-| ---------------------------------------------- | ------------------------------------ |
-| `generate_private_key(curve: Curve): string`   | Return string is equal to key alias. |
-| `get_public_key(alias: string): Jwk`           |                                      |
-| `sign(alias: string, payload: []byte): []byte` |                                      |
-
-## `InMemoryKeyManager`
-
-Implementation of `KeyManager` which stores key material in-memory.
-
-| Constructor                        | Notes |
-| ---------------------------------- | ----- |
-| `constructor()`                    |       |
-| `constructor(private_keys: []Jwk)` |       |
-
-## `Curve`
-
-🚧 Open Issue on naming [#38](https://github.com/TBD54566975/web5-rs/issues/38); we may need to broaden the concept which would impact existing uses 🚧
-
-| Enumeration |
-| ----------- |
-| `Ed25519`   |
-| `Secp256k1` |
-
-## `Signer`
-
-| Constructor                                           | Notes |
-| ----------------------------------------------------- | ----- |
-| `constructor(key_manager: KeyManager, alias: string)` |       |
-
-| Instance Method                 | Notes |
-| ------------------------------- | ----- |
-| `sign(payload: []byte): []byte` |       |
-
-# JWS
-
-## `Jws`
+### `Jws`
 
 | Property                              | Notes |
 | ------------------------------------- | ----- |
@@ -296,61 +171,72 @@ Implementation of `KeyManager` which stores key material in-memory.
 | `compact_serialized: string`          |       |
 | `compact_serialized_detached: string` |       |
 
-| Constructor                                                       | Notes |
-| ----------------------------------------------------------------- | ----- |
-| `constructor(header: JwsHeader, payload: []byte, signer: Signer)` |       |
-
-| Static Method                                                | Notes                                                                                                                              |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `decode_compact_serialized(compact_serialized: string): Jws` |                                                                                                                                    |
-| `verify_compact_serialized(compact_serialized: string): Jws` | This will perform cryptographic verification by resolving the DID Document's Verification Method defined in the `kid` JOSE Header. |
-
-## `JwsHeader`
-
-Data properties conformant with [Section 4. of RFC7515](https://datatracker.ietf.org/doc/html/rfc7515#section-4).
-
-🚧 Consider constraining in `web5-spec` 🚧
-
-| Property | Notes                                                                                                                                                      |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `kid`    | Must be a valid Verification Method `id` per [`web5-spec`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model). |
-| `alg`    | Must be `EdDSA`, `Ed25519`, or `ES256K`                                                                                                                    |
-| `typ`    |                                                                                                                                                            |
-
-# JWT
-
-## `Jwt`
-
-| Property            | Notes |
-| ------------------- | ----- |
-| `claims: JwtClaims` |       |
-| `jws: Jws`          |       |
-
-| Constructor                                                             | Notes |
+| Static Method                                                           | Notes |
 | ----------------------------------------------------------------------- | ----- |
-| `constructor(claims: JwtClaims, jws_header: JwsHeader, signer: Signer)` |       |
+| `sign(jws_signer: JwsSigner, payload: []byte): Jws`                     |       |
+| `verify(jws_verifiers: []JwsVerifier, compact_serialized: string): Jws` |       |
 
-| Static Method                  | Notes                                                                                                                              |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `decode_jwt(jwt: string): Jwt` | This will perform cryptographic verification by resolving the DID Document's Verification Method defined in the `kid` JOSE Header. |
-| `verify_jwt(jwt: string): Jwt` | This will perform cryptographic verification by resolving the DID Document's Verification Method defined in the `kid` JOSE Header. |
+### `JwsSigner` (interface)
 
-## `JwtClaims`
+| Instance Method                 | Notes |
+| ------------------------------- | ----- |
+| `get_header(): JwsHeader`       |       |
+| `sign(payload: []byte): string` |       |
 
-Data properties conformant to [RFC7519](https://datatracker.ietf.org/doc/html/rfc7519#section-4). 
+### `JwsVerifier` (interface)
 
-🚧 Consider constraining in `web5-spec` 🚧
+| Instance Method                                                           | Notes |
+| ------------------------------------------------------------------------- | ----- |
+| `get_public_key(jws_header: JwsHeader): PublicJwk`                        |       |
+| `verify(public_key: PublicJwk, payload: []byte, signature: string): bool` |       |
 
-| Property                    | Notes |
-| --------------------------- | ----- |
-| `iss?: string`              |       |
-| `sub?: string`              |       |
-| `aud?: string`              |       |
-| `exp?: int`                 |       |
-| `nbf?: int`                 |       |
-| `iat?: int`                 |       |
-| `jti?: string`              |       |
-| `vc?: VerifiableCredential` |       |
+### `Ed25519JwsSigner`
+
+Implementation of `JwsSigner` for Ed25519.
+
+### `Secp256k1JwsSigner`
+
+Implementation of `JwsSigner` for Secp256k1.
+
+### `Ed25519JwsVerifier`
+
+Implementation of `JwsVerifier` for Ed25519.
+
+### `Secp256k1JwsVerifier`
+
+Implementation of `JwsVerifier` for Secp256k1.
+
+# Key Management
+
+## `PrivateKeyGenerator` (interface)
+
+| Instance Method          | Notes |
+| ------------------------ | ----- |
+| `generate(): PrivateJwk` |       |
+
+## `Ed25519PrivateKeyGenerator`
+
+Implementation of `PrivateKeyGenerator` for Ed25519.
+
+## `Secp256k1PrivateKeyGenerator`
+
+Implementation of `PrivateKeyGenerator` for Secp256k1.
+
+## `KeyManager` (Interface)
+
+| Instance Method                                                   | Notes                                |
+| ----------------------------------------------------------------- | ------------------------------------ |
+| `generate_private_key(generator: PrivateKeyGenerator): PublicJwk` | Return string is equal to key alias. |
+| `get_jws_signer(public_jwk: PublicJwk): JwsSigner`                |                                      |
+
+## `InMemoryKeyManager`
+
+Implementation of `KeyManager` which stores key material in-memory.
+
+| Constructor                        | Notes |
+| ---------------------------------- | ----- |
+| `constructor()`                    |       |
+| `constructor(private_keys: []Jwk)` |       |
 
 # DIDs
 
@@ -419,10 +305,10 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 
 ### `DidJwk`
 
-| Static Method                                              | Notes |
-| ---------------------------------------------------------- | ----- |
-| `create(key_manager: KeyManager, curve: Curve): BearerDid` |       |
-| `resolve(uri): Resolution`                                 |       |
+| Static Method                                          | Notes |
+| ------------------------------------------------------ | ----- |
+| `create(key_manager: KeyManager, jwa: JWA): BearerDid` |       |
+| `resolve(uri): Resolution`                             |       |
 
 ### `DidWeb`
 
