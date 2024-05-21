@@ -13,23 +13,21 @@
   - [JOSE](#jose)
       - [`Jwk`](#jwk)
       - [`JwsSigner` (Interface)](#jwssigner-interface)
-      - [`Ed25519JwsSigner`](#ed25519jwssigner)
-      - [`Secp256k1JwsSigner`](#secp256k1jwssigner)
       - [`JwsVerifier` (Interface)](#jwsverifier-interface)
   - [Key Management](#key-management)
       - [`KeyManager` (Interface)](#keymanager-interface)
       - [`InMemoryKeyManager`](#inmemorykeymanager)
   - [DIDs](#dids)
+      - [`BearerDid`](#bearerdid)
       - [`Identifier`](#identifier)
     - [Data Model](#data-model)
-    - [`Document`](#document)
-    - [`VerificationMethod`](#verificationmethod)
-    - [`Service`](#service)
+      - [`Document`](#document)
+      - [`VerificationMethod`](#verificationmethod)
+      - [`Service`](#service)
     - [Resolution](#resolution)
       - [`Resolution`](#resolution-1)
       - [`DocumentMetadata`](#documentmetadata)
       - [`ResolutionMetadata`](#resolutionmetadata)
-      - [`BearerDid`](#bearerdid)
     - [Methods](#methods)
       - [`DidJwk`](#didjwk)
       - [`DidWeb`](#didweb)
@@ -99,7 +97,13 @@ println!("todo");
 | `x: string`   |       |
 | `y?: string`  |       |
 
+| Instance Method                | Notes |
+| ------------------------------ | ----- |
+| `compute_thumbprint(): string` |       |
+
 #### `JwsSigner` (Interface)
+
+🚧 If we weren't to use `josekit` then instead of the `get_*()` instance methods below, we would instead introduce a single `get_header(): JoseHeader` 🚧
 
 | Instance Method                  | Notes |
 | -------------------------------- | ----- |
@@ -108,54 +112,44 @@ println!("todo");
 | `get_signature_length(): number` |       |
 | `sign(payload: []byte): []byte`  |       |
 
-#### `Ed25519JwsSigner`
-
-Implementation of `JwsSigner` for Ed25519. 
-
-| Constructor                   | Notes |
-| ----------------------------- | ----- |
-| `constructor(key_id: string)` |       |
-
-| Property                   | Notes             |
-| -------------------------- | ----------------- |
-| `algorithm: string`        | MUST be `Ed25519` |
-| `signature_length: number` | MUST be `64`      |
-
-#### `Secp256k1JwsSigner`
-
-Implementation of `JwsSigner` for secp256k1. 
-
-| Constructor                   | Notes |
-| ----------------------------- | ----- |
-| `constructor(key_id: string)` |       |
-
-| Property                   | Notes            |
-| -------------------------- | ---------------- |
-| `algorithm: string`        | MUST be `ES256K` |
-| `signature_length: number` | MUST be `64`     |
-
 #### `JwsVerifier` (Interface)
 
 ## Key Management
 
 #### `KeyManager` (Interface)
 
-| Instance Method                                     | Notes |
-| --------------------------------------------------- | ----- |
-| `get_jws_signer(jwk_thumbprint: string): JwsSigner` |       |
+| Instance Method                       | Notes |
+| ------------------------------------- | ----- |
+| `get_jws_signer(jwk: Jwk): JwsSigner` |       |
 
 #### `InMemoryKeyManager`
 
 Implementation of `KeyManager` which stores key material in-memory.
 
-Uses Ed25519.
+Uses Ed25519 for the implementation of the return value for `get_jws_signer()`.
 
-| Constructor                               | Notes                 |
-| ----------------------------------------- | --------------------- |
-| `constructor()`                           |                       |
-| `constructor(private_keys: []PrivateJwk)` | For import use cases. |
+| Constructor                        | Notes                 |
+| ---------------------------------- | --------------------- |
+| `constructor()`                    |                       |
+| `constructor(private_keys: []Jwk)` | For import use cases. |
+
+| Instance Method               | Notes                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| `generate_private_key(): Jwk` | Return `Jwk` is a public key and MUST NOT contain private key material. |
 
 ## DIDs
+
+#### `BearerDid`
+
+| Property                  | Notes |
+| ------------------------- | ----- |
+| `identifier: Identifier`  |       |
+| `document: Document`      |       |
+| `key_manager: KeyManager` |       |
+
+| Instance Method                       | Notes                                                                  |
+| ------------------------------------- | ---------------------------------------------------------------------- |
+| `get_default_jws_signer(): JwsSigner` | Returns the `JwsSigner` associated with the first Verification Method. |
 
 #### `Identifier`
 
@@ -176,15 +170,15 @@ Uses Ed25519.
 
 ### Data Model
 
-### `Document`
+#### `Document`
 
 Data properties conformant to [DID Document Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-data-model).
 
-### `VerificationMethod`
+#### `VerificationMethod`
 
 Data properties conformant to [Verification Method Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model).
 
-### `Service`
+#### `Service`
 
 Data properties conformant to [Service Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#service-data-model).
 
@@ -210,26 +204,14 @@ Data properties conformant to the [DID Document Metadata Data Model in the web5-
 
 Data properties conformant to [DID Resolution Metadata Data Model in the we5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model).
 
-#### `BearerDid`
-
-| Property                  | Notes |
-| ------------------------- | ----- |
-| `identifier: Identifier`  |       |
-| `document: Document`      |       |
-| `key_manager: KeyManager` |       |
-
-| Instance Method                       | Notes                                                                |
-| ------------------------------------- | -------------------------------------------------------------------- |
-| `get_default_jws_signer(): JwsSigner` | Returns the `JwsSigner` associated to the first Verification Method. |
-
 ### Methods
 
 #### `DidJwk`
 
-| Static Method                                                                            | Notes |
-| ---------------------------------------------------------------------------------------- | ----- |
-| `create(key_manager: KeyManager, private_jwk_generator: PrivateJwkGenerator): BearerDid` |       |
-| `resolve(uri): Resolution`                                                               |       |
+| Static Method                                          | Notes |
+| ------------------------------------------------------ | ----- |
+| `create(key_manager: KeyManager, jwk: Jwk): BearerDid` |       |
+| `resolve(uri): Resolution`                             |       |
 
 #### `DidWeb`
 
@@ -251,10 +233,9 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 
 Data properties conformant to [Verifiable Credential Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model).
 
-| Instance Method                          | Notes |
-| ---------------------------------------- | ----- |
-| `sign(jws_signer: JwsSigner): string`    |       |
-| `sign_vcjwt(jws_signer: JwsSigner): Jwt` |       |
+| Instance Method                       | Notes |
+| ------------------------------------- | ----- |
+| `sign(jws_signer: JwsSigner): string` |       |
 
 | Static Method                               | Notes |
 | ------------------------------------------- | ----- |

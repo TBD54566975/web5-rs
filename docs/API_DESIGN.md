@@ -39,9 +39,9 @@
   - [DIDs](#dids)
       - [`Identifier`](#identifier)
     - [Data Model](#data-model)
-    - [`Document`](#document)
-    - [`VerificationMethod`](#verificationmethod)
-    - [`Service`](#service)
+      - [`Document`](#document)
+      - [`VerificationMethod`](#verificationmethod)
+      - [`Service`](#service)
     - [Resolution](#resolution)
       - [`Resolution`](#resolution-1)
       - [`DocumentMetadata`](#documentmetadata)
@@ -309,15 +309,15 @@ Implementation of `KeyManager` which stores key material in-memory.
 
 ### Data Model
 
-### `Document`
+#### `Document`
 
 Data properties conformant to [DID Document Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-data-model).
 
-### `VerificationMethod`
+#### `VerificationMethod`
 
 Data properties conformant to [Verification Method Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model).
 
-### `Service`
+#### `Service`
 
 Data properties conformant to [Service Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#service-data-model).
 
