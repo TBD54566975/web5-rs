@@ -27,6 +27,7 @@
 
 # Web5 API Design <!-- omit in toc -->
 
+- [Language-Agnostic Concepts](#language-agnostic-concepts)
 - [Examples](#examples)
   - [Create a DID and Sign a JWT](#create-a-did-and-sign-a-jwt)
   - [Instantiate an Existing DID, Create a VC, and Sign it](#instantiate-an-existing-did-create-a-vc-and-sign-it)
@@ -78,12 +79,20 @@
   - [Credentials](#credentials)
       - [`VerifiableCredential`](#verifiablecredential)
 
+# Language-Agnostic Concepts
+
+TODO
+
 # Examples
 
 ## Create a DID and Sign a JWT
 
 ```rust
-println("todo");
+let bearer_did = DidJwk::create(InMemoryKeyManager::new(), Ed25519PrivateKeyGenerator::new());
+let jwt = Jwt::sign(
+  bearer_did.get_default_jws_signer(), 
+  JwtClaims { iss: bearer_did.identifier.uri }
+);
 ```
 
 ## Instantiate an Existing DID, Create a VC, and Sign it
@@ -283,10 +292,10 @@ Implementation of `PrivateKeyGenerator` for Secp256k1.
 
 #### `KeyManager` (Interface)
 
-| Instance Method                                                   | Notes |
-| ----------------------------------------------------------------- | ----- |
-| `generate_private_key(generator: PrivateKeyGenerator): PublicJwk` |       |
-| `get_jws_signer(public_jwk: PublicJwk): JwsSigner`                |       |
+| Instance Method                                                               | Notes |
+| ----------------------------------------------------------------------------- | ----- |
+| `generate_private_key(private_key_generator: PrivateKeyGenerator): PublicJwk` |       |
+| `get_jws_signer(public_jwk: PublicJwk): JwsSigner`                            |       |
 
 #### `InMemoryKeyManager`
 
@@ -360,14 +369,18 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 | `document: Document`      |       |
 | `key_manager: KeyManager` |       |
 
+| Instance Method                       | Notes                                                                |
+| ------------------------------------- | -------------------------------------------------------------------- |
+| `get_default_jws_signer(): JwsSigner` | Returns the `JwsSigner` associated to the first Verification Method. |
+
 ### Methods
 
 #### `DidJwk`
 
-| Static Method                                          | Notes |
-| ------------------------------------------------------ | ----- |
-| `create(key_manager: KeyManager, jwa: JWA): BearerDid` |       |
-| `resolve(uri): Resolution`                             |       |
+| Static Method                                                                            | Notes |
+| ---------------------------------------------------------------------------------------- | ----- |
+| `create(key_manager: KeyManager, private_key_generator: PrivateKeyGenerator): BearerDid` |       |
+| `resolve(uri): Resolution`                                                               |       |
 
 #### `DidWeb`
 
