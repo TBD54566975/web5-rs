@@ -228,10 +228,10 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 | :------------------------------------------- | :--------------------------------------- |
 | `sign(jws_signer: &dyn JwsSigner) -> String` | See [`JwsSigner`](#jwssigner-interface). |
 
-| Static Method                                                                             | Notes                                        |
-| :---------------------------------------------------------------------------------------- | :------------------------------------------- |
-| `verify(jwt: &str) -> VerifiableCredential`                                               |                                              |
-| `verify_with_verifier(jwt: &str, jws_verifier: &dyn JwsVerifier) -> VerifiableCredential` | See [`JwsVerifier`](#jwsverifier-interface). |
+| Static Method                                                                                                                         | Notes                                        |
+| :------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------- |
+| `verify(jwt: &str) -> VerifiableCredential`                                                                                           |                                              |
+| <pre><code class="language-rust">verify_with_verifier(jwt: &str, jws_verifier: &dyn JwsVerifier) -> VerifiableCredential</code></pre> | See [`JwsVerifier`](#jwsverifier-interface). |
 
 ##### Examples
 
