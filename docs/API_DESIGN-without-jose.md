@@ -103,16 +103,15 @@ println!("todo");
 
 #### `JwsSigner` (Interface)
 
-🚧 If we weren't to use `josekit` then instead of the `get_*()` instance methods below, we would instead introduce a single `get_header(): JoseHeader` 🚧
-
-| Instance Method                  | Notes |
-| -------------------------------- | ----- |
-| `get_algorithm(): string`        |       |
-| `get_key_id(): string`           |       |
-| `get_signature_length(): number` |       |
-| `sign(payload: []byte): []byte`  |       |
+| Instance Method                 | Notes |
+| ------------------------------- | ----- |
+| `sign(payload: []byte): []byte` |       |
 
 #### `JwsVerifier` (Interface)
+
+| Instance Method                              | Notes |
+| -------------------------------------------- | ----- |
+| `verify(message: []byte, signature: []byte)` |       |
 
 ## Key Management
 
@@ -126,7 +125,7 @@ println!("todo");
 
 Implementation of `KeyManager` which stores key material in-memory.
 
-Uses Ed25519 for the implementation of the return value for `get_jws_signer()`.
+Uses Ed25519 for the private key material & for the implementation of the return value for `get_jws_signer()`.
 
 | Constructor                        | Notes                 |
 | ---------------------------------- | --------------------- |
@@ -221,6 +220,8 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 
 #### `DidDht`
 
+🚧 This is under construction, incomplete 🚧
+
 | Function                                     | Notes                                   |
 | -------------------------------------------- | --------------------------------------- |
 | `create(key_manager: KeyManager): BearerDid` | TODO need to enable more for the inputs |
@@ -237,6 +238,7 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 | ------------------------------------- | ----- |
 | `sign(jws_signer: JwsSigner): string` |       |
 
-| Static Method                               | Notes |
-| ------------------------------------------- | ----- |
-| `verify(jwt: string): VerifiableCredential` |       |
+| Static Method                                                                        | Notes |
+| ------------------------------------------------------------------------------------ | ----- |
+| `verify(jwt: string): VerifiableCredential`                                          |       |
+| `verify_with_verifier(jwt: string, jws_verifier: JwsVerifier): VerifiableCredential` |       |
