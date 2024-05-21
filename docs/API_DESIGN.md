@@ -93,12 +93,24 @@ let jwt = Jwt::sign(
   bearer_did.get_default_jws_signer(), 
   JwtClaims { iss: bearer_did.identifier.uri }
 );
+println!(jwt.jws.compact_serialized);
 ```
 
 ## Instantiate an Existing DID, Create a VC, and Sign it
 
 ```rust
-println("todo");
+// existing DID URI & private key material
+let did_uri = "did:dht:...";
+let private_jwk = serde_json::from_str::<EdDSAPrivateJwk>("{...}")?;
+
+let bearer_did = BearerDid::new(did_uri, InMemoryKeyManager::new(vec![private_jwk])).await?;
+
+let verifiable_credential = VerifiableCredential{
+  // todo consider default's for convenience
+};
+let vcjwt = verifiable_credential.sign_vcjwt(bearer_did.get_default_jws_signer());
+// TODO consider default sign() functions return compact_serialized
+println!(vcjwt.jws.compact_serialized);
 ```
 
 ## Bring-Your-Own Key Manager & Cryptography, Sign a JWT, and Verify it
