@@ -11,29 +11,12 @@
   - [Bring-Your-Own Key Manager \& Cryptography, Sign a JWT, and Verify it](#bring-your-own-key-manager--cryptography-sign-a-jwt-and-verify-it)
 - [API Reference](#api-reference)
   - [JOSE](#jose)
-    - [JWK](#jwk)
-      - [`PublicJwk` (Interface)](#publicjwk-interface)
-      - [`PrivateJwk` (Interface)](#privatejwk-interface)
-      - [`EdDSAPublicJwk`](#eddsapublicjwk)
-      - [`EdDSAPrivateJwk`](#eddsaprivatejwk)
-      - [`ES256KPublicJwk`](#es256kpublicjwk)
-      - [`ES256KPrivateJwk`](#es256kprivatejwk)
-    - [JWS](#jws)
-      - [`JwsHeader`](#jwsheader)
-      - [`Jws`](#jws-1)
+      - [`Jwk`](#jwk)
       - [`JwsSigner` (Interface)](#jwssigner-interface)
-      - [`JwsVerifier` (Interface)](#jwsverifier-interface)
       - [`Ed25519JwsSigner`](#ed25519jwssigner)
       - [`Secp256k1JwsSigner`](#secp256k1jwssigner)
-      - [`Ed25519JwsVerifier`](#ed25519jwsverifier)
-      - [`Secp256k1JwsVerifier`](#secp256k1jwsverifier)
-    - [JWT](#jwt)
-      - [`JwtClaims`](#jwtclaims)
-      - [`Jwt`](#jwt-1)
+      - [`JwsVerifier` (Interface)](#jwsverifier-interface)
   - [Key Management](#key-management)
-      - [`PrivateJwkGenerator` (Interface)](#privatejwkgenerator-interface)
-      - [`Ed25519PrivateJwkGenerator`](#ed25519privatejwkgenerator)
-      - [`Secp256k1PrivateJwkGenerator`](#secp256k1privatejwkgenerator)
       - [`KeyManager` (Interface)](#keymanager-interface)
       - [`InMemoryKeyManager`](#inmemorykeymanager)
   - [DIDs](#dids)
@@ -104,184 +87,68 @@ println!("todo");
 
 ## JOSE
 
-### JWK
+#### `Jwk`
 
-#### `PublicJwk` (Interface)
-
-| Instance Method                  | Notes                                                           |
-| -------------------------------- | --------------------------------------------------------------- |
-| `compute_thumbprint(): string`   | [Specification Reference](https://tools.ietf.org/html/rfc7638). |
-| `get_public_key_bytes(): []byte` |                                                                 |
-
-#### `PrivateJwk` (Interface)
-
-| Instance Method                   | Notes |
-| --------------------------------- | ----- |
-| `get_private_key_bytes(): []byte` |       |
-| `to_public_jwk(): PublicJwk`      |       |
-
-#### `EdDSAPublicJwk`
-
-Implementation of `PublicJwk` for EdDSA.
+🚧 Consider constraining in `web5-spec` 🚧
 
 | Property      | Notes |
 | ------------- | ----- |
 | `alg: string` |       |
 | `kty: string` |       |
-| `crv: string` |       |
+| `d?: string`  |       |
 | `x: string`   |       |
-
-#### `EdDSAPrivateJwk`
-
-Implementation of `PrivateJwk` for EdDSA.
-
-| Property      | Notes |
-| ------------- | ----- |
-| `alg: string` |       |
-| `kty: string` |       |
-| `crv: string` |       |
-| `x: string`   |       |
-| `d: string`   |       |
-
-#### `ES256KPublicJwk`
-
-Implementation of `PublicJwk` for ES256K.
-
-| Property      | Notes |
-| ------------- | ----- |
-| `alg: string` |       |
-| `kty: string` |       |
-| `crv: string` |       |
-| `x: string`   |       |
-| `y: string`   |       |
-
-#### `ES256KPrivateJwk`
-
-Implementation of `PrivateJwk` for ES256K.
-
-| Property      | Notes |
-| ------------- | ----- |
-| `alg: string` |       |
-| `kty: string` |       |
-| `crv: string` |       |
-| `x: string`   |       |
-| `y: string`   |       |
-| `d: string`   |       |
-
-### JWS
-
-#### `JwsHeader` 
-
-🚧 Consider adding constraints to `web5-spec` 🚧
-
-| Property      | Notes                                                                                                                                                      |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `alg: string` |                                                                                                                                                            |
-| `kid: string` | Must be a valid Verification Method `id` per [`web5-spec`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model). |
-| `typ: string` |                                                                                                                                                            |
-
-#### `Jws`
-
-| Property                              | Notes |
-| ------------------------------------- | ----- |
-| `header: JwsHeader`                   |       |
-| `payload: []byte`                     |       |
-| `signature: string`                   |       |
-| `compact_serialized: string`          |       |
-| `compact_serialized_detached: string` |       |
-
-| Static Method                                                           | Notes                                                                             |
-| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `sign(jws_signer: JwsSigner, payload: []byte): Jws`                     |                                                                                   |
-| `sign_compact_detached(jws_signer: JwsSigner, payload: []byte): string` |                                                                                   |
-| `verify(jws_verifiers: []JwsVerifier, compact_serialized: string): Jws` | Reference `JwsHeader`'s `crv`    property to match with associated `JwsVerifier`. |
+| `y?: string`  |       |
 
 #### `JwsSigner` (Interface)
 
-| Instance Method                 | Notes |
-| ------------------------------- | ----- |
-| `get_header(): JwsHeader`       |       |
-| `sign(payload: []byte): string` |       |
-
-#### `JwsVerifier` (Interface)
-
-| Instance Method                                                           | Notes |
-| ------------------------------------------------------------------------- | ----- |
-| `get_public_key(jws_header: JwsHeader): PublicJwk`                        |       |
-| `verify(public_key: PublicJwk, payload: []byte, signature: string): bool` |       |
+| Instance Method                  | Notes |
+| -------------------------------- | ----- |
+| `get_algorithm(): string`        |       |
+| `get_key_id(): string`           |       |
+| `get_signature_length(): number` |       |
+| `sign(payload: []byte): []byte`  |       |
 
 #### `Ed25519JwsSigner`
 
-Implementation of `JwsSigner` for Ed25519.
+Implementation of `JwsSigner` for Ed25519. 
+
+| Constructor                   | Notes |
+| ----------------------------- | ----- |
+| `constructor(key_id: string)` |       |
+
+| Property                   | Notes             |
+| -------------------------- | ----------------- |
+| `algorithm: string`        | MUST be `Ed25519` |
+| `signature_length: number` | MUST be `64`      |
 
 #### `Secp256k1JwsSigner`
 
-Implementation of `JwsSigner` for Secp256k1.
+Implementation of `JwsSigner` for secp256k1. 
 
-#### `Ed25519JwsVerifier`
+| Constructor                   | Notes |
+| ----------------------------- | ----- |
+| `constructor(key_id: string)` |       |
 
-Implementation of `JwsVerifier` for Ed25519.
+| Property                   | Notes            |
+| -------------------------- | ---------------- |
+| `algorithm: string`        | MUST be `ES256K` |
+| `signature_length: number` | MUST be `64`     |
 
-#### `Secp256k1JwsVerifier`
-
-Implementation of `JwsVerifier` for Secp256k1.
-
-### JWT
-
-#### `JwtClaims` 
-
-🚧 Consider adding constraints to `web5-spec` 🚧
-
-| Property                   | Notes |
-| -------------------------- | ----- |
-| `iss: string`              |       |
-| `sub: string`              |       |
-| `aud: string`              |       |
-| `exp: number`              |       |
-| `nbf: number`              |       |
-| `iat: number`              |       |
-| `jti: string`              |       |
-| `vc: VerifiableCredential` |       |
-
-#### `Jwt`
-
-| Property            | Notes |
-| ------------------- | ----- |
-| `claims: JwtClaims` |       |
-| `jws: Jws`          |       |
-
-| Static Method                                                           | Notes                         |
-| ----------------------------------------------------------------------- | ----------------------------- |
-| `sign(jws_signer: JwsSigner, claims: JwtClaims): string`                | Return string is Compact JWS. |
-| `sign_jws(jws_signer: JwsSigner, claims: JwtClaims): Jwt`               |                               |
-| `verify(jws_verifiers: []JwsVerifier, compact_serialized: string): Jwt` |                               |
+#### `JwsVerifier` (Interface)
 
 ## Key Management
 
-#### `PrivateJwkGenerator` (Interface)
-
-| Instance Method          | Notes |
-| ------------------------ | ----- |
-| `generate(): PrivateJwk` |       |
-
-#### `Ed25519PrivateJwkGenerator`
-
-Implementation of `PrivateJwkGenerator` for Ed25519.
-
-#### `Secp256k1PrivateJwkGenerator`
-
-Implementation of `PrivateJwkGenerator` for Secp256k1.
-
 #### `KeyManager` (Interface)
 
-| Instance Method                                                               | Notes |
-| ----------------------------------------------------------------------------- | ----- |
-| `generate_private_key(private_jwk_generator: PrivateJwkGenerator): PublicJwk` |       |
-| `get_jws_signer(public_jwk: PublicJwk): JwsSigner`                            |       |
+| Instance Method                                     | Notes |
+| --------------------------------------------------- | ----- |
+| `get_jws_signer(jwk_thumbprint: string): JwsSigner` |       |
 
 #### `InMemoryKeyManager`
 
 Implementation of `KeyManager` which stores key material in-memory.
+
+Uses Ed25519.
 
 | Constructor                               | Notes                 |
 | ----------------------------------------- | --------------------- |
