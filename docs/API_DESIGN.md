@@ -31,11 +31,10 @@
 - [Examples](#examples)
   - [Create a DID and Sign a JWT](#create-a-did-and-sign-a-jwt)
   - [Instantiate an Existing DID, Create a VC, and Sign it](#instantiate-an-existing-did-create-a-vc-and-sign-it)
+  - [Verify a VC and Inspect the Credential Subject](#verify-a-vc-and-inspect-the-credential-subject)
   - [Bring-Your-Own Key Manager \& Cryptography, Sign a JWT, and Verify it](#bring-your-own-key-manager--cryptography-sign-a-jwt-and-verify-it)
 - [API Reference](#api-reference)
   - [JOSE](#jose)
-    - [JWA](#jwa)
-      - [`Jwa`](#jwa-1)
     - [JWK](#jwk)
       - [`PublicJwk` (Interface)](#publicjwk-interface)
       - [`PrivateJwk` (Interface)](#privatejwk-interface)
@@ -56,9 +55,9 @@
       - [`JwtClaims`](#jwtclaims)
       - [`Jwt`](#jwt-1)
   - [Key Management](#key-management)
-      - [`PrivateKeyGenerator` (Interface)](#privatekeygenerator-interface)
-      - [`Ed25519PrivateKeyGenerator`](#ed25519privatekeygenerator)
-      - [`Secp256k1PrivateKeyGenerator`](#secp256k1privatekeygenerator)
+      - [`PrivateJwkGenerator` (Interface)](#privatejwkgenerator-interface)
+      - [`Ed25519PrivateJwkGenerator`](#ed25519privatejwkgenerator)
+      - [`Secp256k1PrivateJwkGenerator`](#secp256k1privatejwkgenerator)
       - [`KeyManager` (Interface)](#keymanager-interface)
       - [`InMemoryKeyManager`](#inmemorykeymanager)
   - [DIDs](#dids)
@@ -88,7 +87,7 @@ TODO
 ## Create a DID and Sign a JWT
 
 ```rust
-let bearer_did = DidJwk::create(InMemoryKeyManager::new(), Ed25519PrivateKeyGenerator::new());
+let bearer_did = DidJwk::create(InMemoryKeyManager::new(), Ed25519PrivateJwkGenerator::new());
 let jwt = Jwt::sign(
   bearer_did.get_default_jws_signer(), 
   JwtClaims { iss: bearer_did.identifier.uri }
@@ -113,28 +112,21 @@ let vcjwt = verifiable_credential.sign_vcjwt(bearer_did.get_default_jws_signer()
 println!(vcjwt.jws.compact_serialized);
 ```
 
+## Verify a VC and Inspect the Credential Subject
+
+```rust
+println!("todo");
+```
+
 ## Bring-Your-Own Key Manager & Cryptography, Sign a JWT, and Verify it
 
 ```rust
-println("todo");
+println!("todo");
 ```
 
 # API Reference
 
 ## JOSE
-
-### JWA
-
-#### `Jwa`
-
-[Specification Reference](https://www.iana.org/assignments/jose/jose.xhtml#web-signature-encryption-algorithms).
-
-🚧 Open Issue on naming [#38](https://github.com/TBD54566975/web5-rs/issues/38); we may need to broaden the concept at many levels 🚧
-
-| Enumeration |
-| ----------- |
-| `EdDSA`     |
-| `ES256K`    |
 
 ### JWK
 
@@ -222,10 +214,11 @@ Implementation of `PrivateJwk` for ES256K.
 | `compact_serialized: string`          |       |
 | `compact_serialized_detached: string` |       |
 
-| Static Method                                                           | Notes |
-| ----------------------------------------------------------------------- | ----- |
-| `sign(jws_signer: JwsSigner, payload: []byte): Jws`                     |       |
-| `verify(jws_verifiers: []JwsVerifier, compact_serialized: string): Jws` |       |
+| Static Method                                                           | Notes                                                                             |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `sign(jws_signer: JwsSigner, payload: []byte): Jws`                     |                                                                                   |
+| `sign_compact_detached(jws_signer: JwsSigner, payload: []byte): string` |                                                                                   |
+| `verify(jws_verifiers: []JwsVerifier, compact_serialized: string): Jws` | Reference `JwsHeader`'s `crv`    property to match with associated `JwsVerifier`. |
 
 #### `JwsSigner` (Interface)
 
@@ -281,32 +274,33 @@ Implementation of `JwsVerifier` for Secp256k1.
 | `claims: JwtClaims` |       |
 | `jws: Jws`          |       |
 
-| Static Method                                                           | Notes |
-| ----------------------------------------------------------------------- | ----- |
-| `sign(jws_signer: JwsSigner, claims: JwtClaims): Jwt`                   |       |
-| `verify(jws_verifiers: []JwsVerifier, compact_serialized: string): Jwt` |       |
+| Static Method                                                           | Notes                         |
+| ----------------------------------------------------------------------- | ----------------------------- |
+| `sign(jws_signer: JwsSigner, claims: JwtClaims): string`                | Return string is Compact JWS. |
+| `sign_jws(jws_signer: JwsSigner, claims: JwtClaims): Jwt`               |                               |
+| `verify(jws_verifiers: []JwsVerifier, compact_serialized: string): Jwt` |                               |
 
 ## Key Management
 
-#### `PrivateKeyGenerator` (Interface)
+#### `PrivateJwkGenerator` (Interface)
 
 | Instance Method          | Notes |
 | ------------------------ | ----- |
 | `generate(): PrivateJwk` |       |
 
-#### `Ed25519PrivateKeyGenerator`
+#### `Ed25519PrivateJwkGenerator`
 
-Implementation of `PrivateKeyGenerator` for Ed25519.
+Implementation of `PrivateJwkGenerator` for Ed25519.
 
-#### `Secp256k1PrivateKeyGenerator`
+#### `Secp256k1PrivateJwkGenerator`
 
-Implementation of `PrivateKeyGenerator` for Secp256k1.
+Implementation of `PrivateJwkGenerator` for Secp256k1.
 
 #### `KeyManager` (Interface)
 
 | Instance Method                                                               | Notes |
 | ----------------------------------------------------------------------------- | ----- |
-| `generate_private_key(private_key_generator: PrivateKeyGenerator): PublicJwk` |       |
+| `generate_private_key(private_jwk_generator: PrivateJwkGenerator): PublicJwk` |       |
 | `get_jws_signer(public_jwk: PublicJwk): JwsSigner`                            |       |
 
 #### `InMemoryKeyManager`
@@ -391,7 +385,7 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 
 | Static Method                                                                            | Notes |
 | ---------------------------------------------------------------------------------------- | ----- |
-| `create(key_manager: KeyManager, private_key_generator: PrivateKeyGenerator): BearerDid` |       |
+| `create(key_manager: KeyManager, private_jwk_generator: PrivateJwkGenerator): BearerDid` |       |
 | `resolve(uri): Resolution`                                                               |       |
 
 #### `DidWeb`
@@ -414,6 +408,11 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 
 Data properties conformant to [Verifiable Credential Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model).
 
-| Instance Method                                                             | Notes |
-| --------------------------------------------------------------------------- | ----- |
-| `sign_vcjwt(bearer_did: BearerDid, verification_method_id: string): string` |       |
+| Instance Method                          | Notes |
+| ---------------------------------------- | ----- |
+| `sign(jws_signer: JwsSigner): string`    |       |
+| `sign_vcjwt(jws_signer: JwsSigner): Jwt` |       |
+
+| Static Method                               | Notes |
+| ------------------------------------------- | ----- |
+| `verify(jwt: string): VerifiableCredential` |       |
