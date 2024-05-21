@@ -25,15 +25,22 @@
     - [Methods](#methods)
       - [`DidJwk`](#didjwk)
         - [Examples](#examples)
-          - [Create A `did:jwk`](#create-a-didjwk)
-          - [Resolve A `did:jwk`](#resolve-a-didjwk)
-          - [Reinstantiate An Existing `did:jwk`](#reinstantiate-an-existing-didjwk)
+          - [Create a `did:jwk`](#create-a-didjwk)
+          - [Resolve a `did:jwk`](#resolve-a-didjwk)
+          - [Reinstantiate an Existing `did:jwk`](#reinstantiate-an-existing-didjwk)
       - [`DidWeb`](#didweb)
       - [`DidDht`](#diddht)
   - [Credentials](#credentials)
       - [`VerifiableCredential`](#verifiablecredential)
+    - [Presentation Exchange](#presentation-exchange)
+      - [`PresentationDefinition`](#presentationdefinition)
+      - [`InputDescriptor`](#inputdescriptor)
+      - [`Constraints`](#constraints)
+      - [`Field`](#field)
+      - [`Optionality`](#optionality)
+      - [`Filter`](#filter)
         - [Examples](#examples-1)
-          - [Create A `did:jwk`, Create A VC, And Sign It](#create-a-didjwk-create-a-vc-and-sign-it)
+          - [Create a `did:jwk`, Create a VC, and Sign it](#create-a-didjwk-create-a-vc-and-sign-it)
 - [Examples](#examples-2)
   - [Bring-Your-Own Key Manager \& Cryptography, Sign a VC-JWT, and Verify it](#bring-your-own-key-manager--cryptography-sign-a-vc-jwt-and-verify-it)
 
@@ -43,16 +50,16 @@
 
 #### `Jwk`
 
-🚧 Consider constraining in `web5-spec` 🚧
+🚧 Consider constraining in [`web5-spec`](https://github.com/TBD54566975/web5-spec) 🚧
 
-| Property      | Notes |
-| :------------ | :---- |
-| `alg: string` |       |
-| `kty: string` |       |
-| `crv: string` |       |
-| `d?: string`  |       |
-| `x: string`   |       |
-| `y?: string`  |       |
+| Property            | Notes |
+| :------------------ | :---- |
+| `alg: String`       |       |
+| `kty: String`       |       |
+| `crv: String`       |       |
+| `d: Option<String>` |       |
+| `x: String`         |       |
+| `y: Option<String>` |       |
 
 #### `JwsSigner` (Interface)
 
@@ -70,9 +77,9 @@
 
 #### `KeyManager` (Interface)
 
-| Instance Method                       | Notes                                                      |
-| :------------------------------------ | :--------------------------------------------------------- |
-| `get_jws_signer(jwk: Jwk): JwsSigner` | See [`Jwk`](#jwk) and [`JwsSigner`](#jwssigner-interface). |
+| Instance Method                            | Notes                                                      |
+| :----------------------------------------- | :--------------------------------------------------------- |
+| `get_jws_signer(jwk: &Jwk): dyn JwsSigner` | See [`Jwk`](#jwk) and [`JwsSigner`](#jwssigner-interface). |
 
 #### `InMemoryKeyManager`
 
@@ -80,10 +87,10 @@ Implementation of `KeyManager` which stores key material in-memory.
 
 Uses Ed25519 for the private key material & for the implementation of the return value for `get_jws_signer()`.
 
-| Constructor                        | Notes                                    |
-| :--------------------------------- | :--------------------------------------- |
-| `constructor()`                    |                                          |
-| `constructor(private_keys: []Jwk)` | For import use cases. See [`Jwk`](#jwk). |
+| Static Method                                                      | Notes                                    |
+| :----------------------------------------------------------------- | :--------------------------------------- |
+| `new() -> InMemoryKeyManager`                                      |                                          |
+| `from_private_jwks(private_keys: &Vec<Jwk>) -> InMemoryKeyManager` | For import use cases. See [`Jwk`](#jwk). |
 
 | Instance Method               | Notes                                                                           |
 | :---------------------------- | :------------------------------------------------------------------------------ |
@@ -116,9 +123,9 @@ Uses Ed25519 for the private key material & for the implementation of the return
 | `query: Option<String>`                   |       |
 | `fragment: Option<String>`                |       |
 
-| Constructor              | Notes |
-| :----------------------- | :---- |
-| `constructor(uri: &str)` |       |
+| Static Method                    | Notes |
+| :------------------------------- | :---- |
+| `parse(uri: &str) -> Identifier` |       |
 
 ### Data Model
 
@@ -156,20 +163,20 @@ Data properties conformant to the [DID Document Metadata Data Model in the web5-
 
 #### `ResolutionMetadata`
 
-Data properties conformant to [DID Resolution Metadata Data Model in the we5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model).
+Data properties conformant to [DID Resolution Metadata Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model).
 
 ### Methods
 
 #### `DidJwk`
 
-| Static Method                                                  | Notes                              |
-| :------------------------------------------------------------- | :--------------------------------- |
-| `create(key_manager: &dyn KeyManager, jwk: &Jwk) -> BearerDid` | See [`BearerDid`](#bearerdid).     |
-| `resolve(uri: &str) -> Resolution`                             | See [`Resolution`](#resolution-1). |
+| Static Method                                                  | Notes                                                                                  |
+| :------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
+| `create(key_manager: &dyn KeyManager, jwk: &Jwk) -> BearerDid` | See [`KeyManager](#keymanager-interface), [`Jwk`](#jwk) and [`BearerDid`](#bearerdid). |
+| `resolve(uri: &str) -> Resolution`                             | See [`Resolution`](#resolution-1).                                                     |
 
 ##### Examples
 
-###### Create A `did:jwk`
+###### Create a `did:jwk`
 
 ```rust
 let key_manager = InMemoryKeyManager::new();
@@ -178,7 +185,7 @@ let bearer_did = DidJwk::create(key_manager, public_jwk).unwrap();
 println!(bearer_did.identifier.uri);
 ```
 
-###### Resolve A `did:jwk`
+###### Resolve a `did:jwk`
 
 ```rust
 let uri = "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwidXNlIjoic2lnIiwiYWxnIjoiRWREU0EiLCJraWQiOiJKUVYzQ0VaQ3BWWnBCWmQ0N0EzLWllTUM1T1BvOHJ5QlQ5cHdLX3NDLUtBIiwieCI6IlUzWXNDNjFJZnBxRjlqUHNRX01UMDBFTTRBQXVHYms0SDN1VVZRczBFelEifQ";
@@ -186,7 +193,7 @@ let resolution = DidJwk::resolve(uri).await.unwrap();
 println!(resolution.document.id);
 ```
 
-###### Reinstantiate An Existing `did:jwk`
+###### Reinstantiate an Existing `did:jwk`
 
 ```rust
 let private_jwk_json_string = "{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"use\":\"sig\",\"alg\":\"EdDSA\",\"kid\":\"JQV3CEZCpVZpBZd47A3-ieMC5OPo8ryBT9pwK_sC-KA\",\"d\":\"8L5Y7M4ZNc9Jy5IooJNFaRGatXHZzRRXxGsVidrAsfE\",\"x\":\"U3YsC61IfpqF9jPsQ_MT00EM4AAuGbk4H3uUVQs0EzQ\"}";
@@ -236,9 +243,67 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 | `verify(jwt: &str) -> VerifiableCredential`                                               |                                              |
 | `verify_with_verifier(jwt: &str, jws_verifier: &dyn JwsVerifier) -> VerifiableCredential` | See [`JwsVerifier`](#jwsverifier-interface). |
 
+### Presentation Exchange
+
+#### `PresentationDefinition` 
+
+| Property                                  | Notes                                      |
+| ----------------------------------------- | ------------------------------------------ |
+| `id: String`                              |                                            |
+| `name: Option<String>`                    |                                            |
+| `purpose: Option<String>`                 |                                            |
+| `input_descriptors: Vec<InputDescriptor>` | See [`InputDescriptor`](#inputdescriptor). |
+
+| Instance Method                                            | Notes |
+| ---------------------------------------------------------- | ----- |
+| `select_credentials(vc_jwts: &Vec<String>) -> Vec<String>` |       |
+
+#### `InputDescriptor` 
+
+| Property                   | Notes                              |
+| -------------------------- | ---------------------------------- |
+| `id: String`               |                                    |
+| `name: Option<String>`     |                                    |
+| `purpose: Option<String>`  |                                    |
+| `constraints: Constraints` | See [`Constraints`](#constraints). |
+
+#### `Constraints`
+
+| Property             | Notes                  |
+| -------------------- | ---------------------- |
+| `fields: Vec<Field>` | See [`Field`](#field). |
+
+#### `Field`
+
+| Property                         | Notes |
+| -------------------------------- | ----- |
+| `id: Option<String>`             |       |
+| `name: Option<String>`           |       |
+| `path: Vec<String>`              |       |
+| `purpose: Option<String>`        |       |
+| `filter: Option<Filter>`         |       |
+| `optional: Optional<bool>`       |       |
+| `predicate: Option<Optionality>` |       |
+
+#### `Optionality`
+
+| Enum        |
+| ----------- |
+| `Required`  |
+| `Preferred` |
+
+#### `Filter`
+
+| Property                        | Notes |
+| ------------------------------- | ----- |
+| `r#type: Option<String>`        |       |
+| `pattern: Option<String>`       |       |
+| `const_value: Option<String>`   |       |
+| `contains: Option<Box<Filter>>` |       |
+
 ##### Examples
 
-###### Create A `did:jwk`, Create A VC, And Sign It
+###### Create a `did:jwk`, Create a VC, and Sign it
 
 ```rust
 let key_manager = InMemoryKeyManager::new();
