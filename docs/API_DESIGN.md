@@ -33,10 +33,10 @@
   - [JWK](#jwk)
     - [`PublicJwk` (interface)](#publicjwk-interface)
     - [`PrivateJwk` (interface)](#privatejwk-interface)
-    - [`Ed25519PublicJwk`](#ed25519publicjwk)
-    - [`Ed25519PrivateJwk`](#ed25519privatejwk)
-    - [`Secp256k1PublicJwk`](#secp256k1publicjwk)
-    - [`Secp256k1PrivateJwk`](#secp256k1privatejwk)
+    - [`EdDSAPublicJwk`](#eddsapublicjwk)
+    - [`EdDSAPrivateJwk`](#eddsaprivatejwk)
+    - [`ES256KPublicJwk`](#es256kpublicjwk)
+    - [`ES256KPrivateJwk`](#es256kprivatejwk)
   - [JWS](#jws)
     - [`JwsHeader`](#jwsheader)
     - [`Jws`](#jws-1)
@@ -46,6 +46,9 @@
     - [`Secp256k1JwsSigner`](#secp256k1jwssigner)
     - [`Ed25519JwsVerifier`](#ed25519jwsverifier)
     - [`Secp256k1JwsVerifier`](#secp256k1jwsverifier)
+  - [JWT](#jwt)
+    - [`JwtClaims`](#jwtclaims)
+    - [`Jwt`](#jwt-1)
 - [Key Management](#key-management)
   - [`PrivateKeyGenerator` (interface)](#privatekeygenerator-interface)
   - [`Ed25519PrivateKeyGenerator`](#ed25519privatekeygenerator)
@@ -101,9 +104,9 @@
 | `get_private_key_bytes(): []byte` |       |
 | `to_public_jwk(): PublicJwk`      |       |
 
-### `Ed25519PublicJwk`
+### `EdDSAPublicJwk`
 
-Implementation of `PublicJwk`.
+Implementation of `PublicJwk` for EdDSA.
 
 | Property      | Notes |
 | ------------- | ----- |
@@ -112,9 +115,9 @@ Implementation of `PublicJwk`.
 | `crv: string` |       |
 | `x: string`   |       |
 
-### `Ed25519PrivateJwk`
+### `EdDSAPrivateJwk`
 
-Implementation of `PrivateJwk`.
+Implementation of `PrivateJwk` for EdDSA.
 
 | Property      | Notes |
 | ------------- | ----- |
@@ -124,9 +127,9 @@ Implementation of `PrivateJwk`.
 | `x: string`   |       |
 | `d: string`   |       |
 
-### `Secp256k1PublicJwk`
+### `ES256KPublicJwk`
 
-Implementation of `PublicJwk`.
+Implementation of `PublicJwk` for ES256K.
 
 | Property      | Notes |
 | ------------- | ----- |
@@ -136,9 +139,9 @@ Implementation of `PublicJwk`.
 | `x: string`   |       |
 | `y: string`   |       |
 
-### `Secp256k1PrivateJwk`
+### `ES256KPrivateJwk`
 
-Implementation of `PrivateJwk`.
+Implementation of `PrivateJwk` for ES256K.
 
 | Property      | Notes |
 | ------------- | ----- |
@@ -205,6 +208,35 @@ Implementation of `JwsVerifier` for Ed25519.
 ### `Secp256k1JwsVerifier`
 
 Implementation of `JwsVerifier` for Secp256k1.
+
+## JWT
+
+### `JwtClaims` 
+
+🚧 Consider adding constraints to `web5-spec` 🚧
+
+| Property                   | Notes |
+| -------------------------- | ----- |
+| `iss: string`              |       |
+| `sub: string`              |       |
+| `aud: string`              |       |
+| `exp: number`              |       |
+| `nbf: number`              |       |
+| `iat: number`              |       |
+| `jti: string`              |       |
+| `vc: VerifiableCredential` |       |
+
+### `Jwt`
+
+| Property            | Notes |
+| ------------------- | ----- |
+| `claims: JwtClaims` |       |
+| `jws: Jws`          |       |
+
+| Static Method                                                           | Notes |
+| ----------------------------------------------------------------------- | ----- |
+| `sign(jws_signer: JwsSigner, claims: JwtClaims): Jwt`                   |       |
+| `verify(jws_verifiers: []JwsVerifier, compact_serialized: string): Jwt` |       |
 
 # Key Management
 
