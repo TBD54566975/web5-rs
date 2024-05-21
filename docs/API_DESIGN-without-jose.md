@@ -49,6 +49,7 @@
 | :------------ | :---- |
 | `alg: string` |       |
 | `kty: string` |       |
+| `crv: string` |       |
 | `d?: string`  |       |
 | `x: string`   |       |
 | `y?: string`  |       |
@@ -57,21 +58,21 @@
 
 | Instance Method                 | Notes |
 | :------------------------------ | :---- |
-| `sign(payload: []byte): []byte` |       |
+| `sign(payload: &[u8]): Vec<u8>` |       |
 
 #### `JwsVerifier` (Interface)
 
-| Instance Method                              | Notes |
-| :------------------------------------------- | :---- |
-| `verify(message: []byte, signature: []byte)` |       |
+| Instance Method                            | Notes |
+| :----------------------------------------- | :---- |
+| `verify(message: &[u8], signature: &[u8])` |       |
 
 ## Key Management
 
 #### `KeyManager` (Interface)
 
-| Instance Method                       | Notes |
-| :------------------------------------ | :---- |
-| `get_jws_signer(jwk: Jwk): JwsSigner` |       |
+| Instance Method                       | Notes                                                      |
+| :------------------------------------ | :--------------------------------------------------------- |
+| `get_jws_signer(jwk: Jwk): JwsSigner` | See [`Jwk`](#jwk) and [`JwsSigner`](#jwssigner-interface). |
 
 #### `InMemoryKeyManager`
 
@@ -79,14 +80,14 @@ Implementation of `KeyManager` which stores key material in-memory.
 
 Uses Ed25519 for the private key material & for the implementation of the return value for `get_jws_signer()`.
 
-| Constructor                        | Notes                 |
-| :--------------------------------- | :-------------------- |
-| `constructor()`                    |                       |
-| `constructor(private_keys: []Jwk)` | For import use cases. |
+| Constructor                        | Notes                                    |
+| :--------------------------------- | :--------------------------------------- |
+| `constructor()`                    |                                          |
+| `constructor(private_keys: []Jwk)` | For import use cases. See [`Jwk`](#jwk). |
 
-| Instance Method               | Notes                                                                   |
-| :---------------------------- | :---------------------------------------------------------------------- |
-| `generate_private_key(): Jwk` | Return `Jwk` is a public key and MUST NOT contain private key material. |
+| Instance Method               | Notes                                                                           |
+| :---------------------------- | :------------------------------------------------------------------------------ |
+| `generate_private_key(): Jwk` | Return [`Jwk`](#jwk) is a public key and MUST NOT contain private key material. |
 
 ## DIDs
 
@@ -98,26 +99,26 @@ Uses Ed25519 for the private key material & for the implementation of the return
 | `document: Document`      |       |
 | `key_manager: KeyManager` |       |
 
-| Instance Method                       | Notes                                                                  |
-| :------------------------------------ | :--------------------------------------------------------------------- |
-| `get_default_jws_signer(): JwsSigner` | Returns the `JwsSigner` associated with the first Verification Method. |
+| Instance Method                             | Notes                                                                                          |
+| :------------------------------------------ | :--------------------------------------------------------------------------------------------- |
+| `get_default_jws_signer() -> dyn JwsSigner` | Returns the [`JwsSigner`](#jwssigner-interface) associated with the first Verification Method. |
 
 #### `Identifier`
 
-| Property                      | Notes |
-| :---------------------------- | :---- |
-| `uri: string`                 |       |
-| `url: string`                 |       |
-| `method: string`              |       |
-| `id: string`                  |       |
-| `params: map<string, string>` |       |
-| `path: string`                |       |
-| `query: string`               |       |
-| `fragment: string`            |       |
+| Property                                  | Notes |
+| :---------------------------------------- | :---- |
+| `uri: String`                             |       |
+| `url: String`                             |       |
+| `method: String`                          |       |
+| `id: String`                              |       |
+| `params: Option<HashMap<String, String>>` |       |
+| `path: Option<String>`                    |       |
+| `query: Option<String>`                   |       |
+| `fragment: Option<String>`                |       |
 
-| Constructor                | Notes |
-| :------------------------- | :---- |
-| `constructor(uri: string)` |       |
+| Constructor              | Notes |
+| :----------------------- | :---- |
+| `constructor(uri: &str)` |       |
 
 ### Data Model
 
@@ -129,6 +130,8 @@ Data properties conformant to [DID Document Data Model in the web5-spec](https:/
 
 Data properties conformant to [Verification Method Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model).
 
+See [`Jwk`](#jwk) for `publicKeyJwk` implementation.
+
 #### `Service`
 
 Data properties conformant to [Service Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#service-data-model).
@@ -137,15 +140,15 @@ Data properties conformant to [Service Data Model in the web5-spec](https://gith
 
 #### `Resolution`
 
-| Property                                  | Notes |
-| :---------------------------------------- | :---- |
-| `document: Document`                      |       |
-| `document_metadata: DocumentMetadata`     |       |
-| `resolution_metadata: ResolutionMetadata` |       |
+| Property                                  | Notes                                            |
+| :---------------------------------------- | :----------------------------------------------- |
+| `document: Document`                      | See [`Document`](#document).                     |
+| `document_metadata: DocumentMetadata`     | See [`DocumentMetadata`](#documentmetadata).     |
+| `resolution_metadata: ResolutionMetadata` | See [`ResolutionMetadata`](#resolutionmetadata). |
 
-| Static Method                      | Notes                                                                              |
-| :--------------------------------- | :--------------------------------------------------------------------------------- |
-| `resolve(uri: string): Resolution` | Resolution may require networked invocation, and if should should be asynchronous. |
+| Static Method                            | Notes |
+| :--------------------------------------- | :---- |
+| `async resolve(uri: &str) -> Resolution` |       |
 
 #### `DocumentMetadata`
 
@@ -159,10 +162,10 @@ Data properties conformant to [DID Resolution Metadata Data Model in the we5-spe
 
 #### `DidJwk`
 
-| Static Method                                          | Notes |
-| :----------------------------------------------------- | :---- |
-| `create(key_manager: KeyManager, jwk: Jwk): BearerDid` |       |
-| `resolve(uri: string): Resolution`                     |       |
+| Static Method                                                  | Notes                              |
+| :------------------------------------------------------------- | :--------------------------------- |
+| `create(key_manager: &dyn KeyManager, jwk: &Jwk) -> BearerDid` | See [`BearerDid`](#bearerdid).     |
+| `resolve(uri: &str) -> Resolution`                             | See [`Resolution`](#resolution-1). |
 
 ##### Examples
 
@@ -228,10 +231,10 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 | :------------------------------------------- | :--------------------------------------- |
 | `sign(jws_signer: &dyn JwsSigner) -> String` | See [`JwsSigner`](#jwssigner-interface). |
 
-| Static Method                                                                                                                         | Notes                                        |
-| :------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------- |
-| `verify(jwt: &str) -> VerifiableCredential`                                                                                           |                                              |
-| <pre><code class="language-rust">verify_with_verifier(jwt: &str, jws_verifier: &dyn JwsVerifier) -> VerifiableCredential</code></pre> | See [`JwsVerifier`](#jwsverifier-interface). |
+| Static Method                                                                             | Notes                                        |
+| :---------------------------------------------------------------------------------------- | :------------------------------------------- |
+| `verify(jwt: &str) -> VerifiableCredential`                                               |                                              |
+| `verify_with_verifier(jwt: &str, jws_verifier: &dyn JwsVerifier) -> VerifiableCredential` | See [`JwsVerifier`](#jwsverifier-interface). |
 
 ##### Examples
 
