@@ -1,5 +1,7 @@
 use jwk::Jwk;
 use serde::{Deserialize, Serialize};
+pub use ssi_core::one_or_many::OneOrMany;
+pub use ssi_dids::ServiceEndpoint;
 
 #[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Document {
@@ -63,9 +65,10 @@ impl KeyIdFragment {
 pub struct Service {
     pub id: String,
     #[serde(rename = "type")]
-    pub r#type: String,
+    pub r#type: OneOrMany<String>,
+    // TODO: Update to allow service endpoint as a map?
     #[serde(rename = "serviceEndpoint")]
-    pub service_endpoint: String,
+    pub service_endpoint: OneOrMany<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

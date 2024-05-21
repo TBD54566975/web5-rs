@@ -6,68 +6,31 @@ use simple_dns::{
     rdata::{RData, TXT},
     Name, ResourceRecord,
 };
+use ssi_core::one_or_many::OneOrMany;
 use url::Url;
 
-use super::{DocumentPacketError, DEFAULT_TTL};
+use super::{
+    rdata_encoder::{get_rdata_txt_value, record_rdata_to_hash_map, to_one_or_many},
+    DocumentPacketError, DEFAULT_TTL,
+};
 
-/// Gets the RData from the record. If RData is RData::TXT, get the text as a string.
-/// Convert strings like "id=foo;t=bar;se=baz" into a map like { 'id': 'foo', 't': 'bar', 'se': 'baz' }
-/// If there is any issue, return DocumentPacketError::RDataError
-fn record_rdata_to_hash_map(
-    record: ResourceRecord,
-) -> Result<HashMap<String, String>, DocumentPacketError> {
-    // Get RData text as String
-    let rdata_txt = match record.rdata {
-        RData::TXT(txt) => txt,
-        _ => {
-            return Err(DocumentPacketError::RDataError(
-                "RData must have type TXT".to_owned(),
-            ))
-        }
-    };
-    let text = match String::try_from(rdata_txt) {
-        Ok(text) => text,
-        Err(_) => {
-            return Err(DocumentPacketError::RDataError(
-                "Failed to convert to string".to_owned(),
-            ))
-        }
-    };
-
-    // Parse key-value pairs:
-    //   Split string by ";" to get entries
-    //   Split each entry by "=" to get key and value
-    let mut attributes = HashMap::new();
-    for entry in text.split(';') {
-        let k_v: Vec<&str> = entry.split('=').collect();
-        if k_v.len() != 2 {
-            return Err(DocumentPacketError::RDataError(
-                "Could not get values from RData text".to_owned(),
-            ));
-        }
-
-        let k = k_v[0].trim().to_string();
-        let v = k_v[1].trim().to_string();
-
-        attributes.insert(k, v);
-    }
-
-    Ok(attributes)
+#[derive(Debug, PartialEq)]
+struct ServiceRdata {
+    pub id: String,
+    pub se: OneOrMany<String>,
+    pub t: OneOrMany<String>,
 }
 
-/// Get value from the RData HashMap created by record_rdata_to_hash_map().
-/// Convert `None` into DocumentPacketError
-fn get_rdata_txt_value(
-    rdata_map: &HashMap<String, String>,
-    key: &str,
-) -> Result<String, DocumentPacketError> {
-    let val = rdata_map
-        .get(key)
-        .ok_or(DocumentPacketError::RDataError(format!(
-            "Could not extract {} from RData",
-            key
-        )))?;
-    Ok(val.to_string())
+impl TryFrom<HashMap<String, String>> for ServiceRdata {
+    fn try_from(rdata_map: HashMap<String, String>) -> Result<Self, Self::Error> {
+        Ok(ServiceRdata {
+            id: get_rdata_txt_value(&rdata_map, "id")?,
+            se: to_one_or_many(get_rdata_txt_value(&rdata_map, "se")?),
+            t: to_one_or_many(get_rdata_txt_value(&rdata_map, "t")?),
+        })
+    }
+
+    type Error = DocumentPacketError;
 }
 
 impl Service {
@@ -81,10 +44,16 @@ impl Service {
             .fragment()
             .ok_or(DocumentPacketError::MissingFragment(self.id.clone()))?;
 
-        let parts = format!(
-            "id={};t={};se={}",
-            service_id_fragment, self.r#type, self.service_endpoint
-        );
+        let t = match &self.r#type {
+            OneOrMany::One(r#type) => r#type.clone(),
+            OneOrMany::Many(r#types) => r#types.join(","),
+        };
+        let se = match &self.service_endpoint {
+            OneOrMany::One(service_endpoint) => service_endpoint.clone(),
+            OneOrMany::Many(service_endpoints) => service_endpoints.join(","),
+        };
+
+        let parts = format!("id={};t={};se={}", service_id_fragment, t, se);
         let name = Name::new_unchecked(&format!("_s{}._did", idx)).into_owned();
         let txt_record = TXT::new().with_string(&parts)?.into_owned();
 
@@ -101,15 +70,12 @@ impl Service {
         record: ResourceRecord,
     ) -> Result<Self, DocumentPacketError> {
         let rdata_map = record_rdata_to_hash_map(record)?;
-
-        let id = get_rdata_txt_value(&rdata_map, "id")?;
-        let t = get_rdata_txt_value(&rdata_map, "t")?;
-        let se = get_rdata_txt_value(&rdata_map, "se")?;
+        let service_rdata: ServiceRdata = rdata_map.try_into()?;
 
         Ok(Service {
-            id: format!("{}#{}", did_uri, id),
-            r#type: t,
-            service_endpoint: se, // TODO: support service endpoints as array or map
+            id: format!("{}#{}", did_uri, service_rdata.id),
+            r#type: service_rdata.t,
+            service_endpoint: service_rdata.se,
         })
     }
 }
@@ -129,8 +95,34 @@ mod tests {
         let service_endpoint = "foo.tbd.website";
         let service = Service {
             id: id.to_string(),
-            r#type: r#type.to_string(),
-            service_endpoint: service_endpoint.to_string(),
+            r#type: OneOrMany::One(r#type.to_string()),
+            service_endpoint: OneOrMany::One(service_endpoint.to_string()),
+        };
+
+        let resource_record = service
+            .to_resource_record(0)
+            .expect("Failed to convert Service to ResourceRecord");
+
+        let service2 = Service::from_resource_record(did_uri, resource_record)
+            .expect("Failed to convert ResourceRecord to Service");
+
+        assert_eq!(service, service2);
+    }
+
+    #[test]
+    fn test_to_and_from_resource_record_many_service_endpoints() {
+        let did_uri = "did:dht:123";
+        let id = "did:dht:123#0";
+
+        let r#type = "some_type";
+        let service_endpoint = "foo.tbd.website";
+        let service = Service {
+            id: id.to_string(),
+            r#type: OneOrMany::Many(vec![r#type.to_string(), r#type.to_string()]),
+            service_endpoint: OneOrMany::Many(vec![
+                service_endpoint.to_string(),
+                service_endpoint.to_string(),
+            ]),
         };
 
         let resource_record = service
@@ -154,18 +146,16 @@ mod tests {
         let service_endpoint = "foo.tbd.website";
         let service = Service {
             id: id.to_string(),
-            r#type: r#type.to_string(),
-            service_endpoint: service_endpoint.to_string(),
+            r#type: OneOrMany::One(r#type.to_string()),
+            service_endpoint: OneOrMany::One(service_endpoint.to_string()),
         };
 
         let resource_record = service
             .to_resource_record(0)
             .expect("Expected to create resource record from service");
-        let service2 = Service::from_resource_record(did_uri, resource_record)
-            .expect("msg");
+        let service2 = Service::from_resource_record(did_uri, resource_record).expect("msg");
         assert_eq!(service, service2);
     }
-
 
     #[test]
     fn test_to_record_resource_missing_fragment() {
@@ -174,8 +164,8 @@ mod tests {
         let service_endpoint = "foo.tbd.website";
         let service = Service {
             id: did_uri.to_string(),
-            r#type: r#type.to_string(),
-            service_endpoint: service_endpoint.to_string(),
+            r#type: OneOrMany::One(r#type.to_string()),
+            service_endpoint: OneOrMany::One(service_endpoint.to_string()),
         };
 
         let resource_record = service

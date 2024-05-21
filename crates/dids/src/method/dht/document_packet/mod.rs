@@ -1,5 +1,6 @@
 use simple_dns::SimpleDnsError;
 
+mod rdata_encoder;
 pub mod service;
 
 const DEFAULT_TTL: u32 = 7200; // seconds
