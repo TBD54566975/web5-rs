@@ -131,7 +131,7 @@ pub struct VerifiableCredential {
 }
 
 impl VerifiableCredential {
-    fn to_jwt_payload_verifiable_credential(self) -> JwtPayloadVerifiableCredential {
+    fn into_jwt_payload_verifiable_credential(self) -> JwtPayloadVerifiableCredential {
         JwtPayloadVerifiableCredential {
             context: self.context,
             id: Some(self.id),
@@ -163,7 +163,7 @@ struct JwtPayloadVerifiableCredential {
 }
 
 impl JwtPayloadVerifiableCredential {
-    fn to_verifiable_credential(self) -> VerifiableCredential {
+    fn into_verifiable_credential(self) -> VerifiableCredential {
         VerifiableCredential {
             context: self.context,
             id: self.id.unwrap_or_default(),
@@ -226,7 +226,7 @@ impl VerifiableCredential {
                 expiration: self.expiration_date,
                 ..Default::default()
             },
-            vc_payload: self.clone().to_jwt_payload_verifiable_credential(),
+            vc_payload: self.clone().into_jwt_payload_verifiable_credential(),
         };
 
         let jwt = Jwt::sign(bearer_did, key_selector, None, &claims)?;
@@ -300,17 +300,15 @@ impl VerifiableCredential {
 
         let mut vc_issuer = Issuer::String(iss.clone());
 
-        if let Some(issuer) = vc_payload.issuer.as_ref() {
-            if let Issuer::Object(_) = issuer {
-                vc_issuer = vc_payload.issuer.clone().unwrap();
-            }
+        if let Some(Issuer::Object(_)) = vc_payload.issuer.as_ref() {
+            vc_issuer = vc_payload.issuer.clone().unwrap();
         }
 
         let vc_credential_subject =
             vc_payload
                 .credential_subject
                 .clone()
-                .unwrap_or_else(|| CredentialSubject {
+                .unwrap_or(CredentialSubject {
                     id: sub,
                     params: None,
                 });
@@ -320,8 +318,8 @@ impl VerifiableCredential {
             id: jti.clone(),
             r#type: vc_payload.r#type.clone(),
             issuer: vc_issuer.clone(),
-            issuance_date: nbf.clone(),
-            expiration_date: exp.clone(),
+            issuance_date: nbf,
+            expiration_date: exp,
             credential_subject: vc_credential_subject,
         };
 
@@ -333,7 +331,7 @@ impl VerifiableCredential {
     pub fn decode(jwt: &str) -> Result<Self, CredentialError> {
         let jwt_decoded = Jwt::decode::<VcJwtClaims>(jwt)?;
 
-        let vc = jwt_decoded.claims.vc_payload.to_verifiable_credential();
+        let vc = jwt_decoded.claims.vc_payload.into_verifiable_credential();
         Ok(vc)
     }
 }
@@ -428,7 +426,7 @@ mod test {
             vec![BASE_TYPE.to_string()],
             issuer.clone(),
             now,
-            Some(now + 30 * 60),
+            Some(now + 631152000), // now + 20 years
             CredentialSubject {
                 id: issuer.to_string(),
                 ..Default::default()
@@ -603,7 +601,7 @@ mod test {
 
     #[tokio::test]
     async fn test_full_featured_vc_jwt() {
-        let full_featured_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVZHUjVTWGRIUlRobFIyZElNM1J2WkZBMGFrMW1WMHhTYUUxa1FrZzRjVzU2YVc0eFpVNVJVbHB1TUNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOmRkMDU2NjdkLThkODItNDI5ZS1iMzJiLWM1NTdkMjBhNDc5MSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pVkdSNVNYZEhSVGhsUjJkSU0zUnZaRkEwYWsxbVYweFNhRTFrUWtnNGNXNTZhVzR4WlU1UlVscHVNQ0o5IiwiaXNzdWFuY2VEYXRlIjoxNzE2MjM5MjU1LCJleHBpcmF0aW9uRGF0ZSI6MTcxNjI0MTA1NSwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lWR1I1U1hkSFJUaGxSMmRJTTNSdlpGQTBhazFtVjB4U2FFMWtRa2c0Y1c1NmFXNHhaVTVSVWxwdU1DSjkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVZHUjVTWGRIUlRobFIyZElNM1J2WkZBMGFrMW1WMHhTYUUxa1FrZzRjVzU2YVc0eFpVNVJVbHB1TUNKOSIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVZHUjVTWGRIUlRobFIyZElNM1J2WkZBMGFrMW1WMHhTYUUxa1FrZzRjVzU2YVc0eFpVNVJVbHB1TUNKOSIsImV4cCI6MTcxNjI0MTA1NSwibmJmIjoxNzE2MjM5MjU1LCJqdGkiOiJ1cm46dmM6dXVpZDpkZDA1NjY3ZC04ZDgyLTQyOWUtYjMyYi1jNTU3ZDIwYTQ3OTEifQ.Zw7YOuSWQNODPNwhRiRy5qAZg_yutxCSxFW_WJ6knkiu8jvtO921tsRjXBGukPbotUgDWBFt-OQMdbkWcRZhCw";
+        let full_featured_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOmUzMDc0OWVhLTg4YjctNDkwMi05ZTRlLWYwYjk1MTRjZmU1OSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTlc5Q1pGaE1OM1JEV0MxaVdtd3dOblU1V1dSU1dqQmFhbEpMTFVweFZXWmhaa1YzWjAwdFRHSm1heUo5IiwiaXNzdWFuY2VEYXRlIjoxNzE2MzEyNDU3LCJleHBpcmF0aW9uRGF0ZSI6MjM0NzQ2NDQ1NywiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lOVzlDWkZoTU4zUkRXQzFpV213d05uVTVXV1JTV2pCYWFsSkxMVXB4VldaaFprVjNaMDB0VEdKbWF5SjkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsImV4cCI6MjM0NzQ2NDQ1NywibmJmIjoxNzE2MzEyNDU3LCJqdGkiOiJ1cm46dmM6dXVpZDplMzA3NDllYS04OGI3LTQ5MDItOWU0ZS1mMGI5NTE0Y2ZlNTkifQ.a8ciqXyNgqttWPKl76CFwDTRvEoJEq5nndfM1UMkClvzhPOUWSUtE0wNHOxQFwUBBSbwozScBNe-dc-mWQFqAQ";
 
         let jwt_decoded = Jwt::verify::<VcJwtClaims>(&full_featured_vc_jwt)
             .await
@@ -640,7 +638,7 @@ mod test {
 
     #[tokio::test]
     async fn test_minimum_viable_vc_jwt() {
-        let minified_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVRETmpjbmd0UlVsQk1rVXRiRVJ5TjJFdFoyNTBVRGRFYlZWU01qSnlXRWc0ZUVSUmNXbFVXSG96TUNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lURE5qY25ndFJVbEJNa1V0YkVSeU4yRXRaMjUwVURkRWJWVlNNakp5V0VnNGVFUlJjV2xVV0hvek1DSjkiLCJzdWIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lURE5qY25ndFJVbEJNa1V0YkVSeU4yRXRaMjUwVURkRWJWVlNNakp5V0VnNGVFUlJjV2xVV0hvek1DSjkiLCJleHAiOjE3MTYyMzk4ODksIm5iZiI6MTcxNjIzODA4OSwianRpIjoidXJuOnZjOnV1aWQ6MWFlNjY0YjktOTY3MC00YmUwLThkNjQtNDgxZGY1M2RjMDVhIn0.3i-oArdmC8h_2UPqo61Krx9K3lys9dtxsUgn-TEdTykH_UAA1pfOyEL9cD7LuNQhvo8NFbBXuLZLIlc0Yr0PAA";
+        let minified_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVMyaDZNbFJFVWxScE1XeExiMHMzTkhCMlJHRk1iWE5MWmxaNFlrazVlalp3UjJKTmVXeE1iRWd6Y3lKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lTMmg2TWxSRVVsUnBNV3hMYjBzM05IQjJSR0ZNYlhOTFpsWjRZa2s1ZWpad1IySk5lV3hNYkVnemN5SjkiLCJzdWIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lTMmg2TWxSRVVsUnBNV3hMYjBzM05IQjJSR0ZNYlhOTFpsWjRZa2s1ZWpad1IySk5lV3hNYkVnemN5SjkiLCJleHAiOjIzNDc0NjQ3MTQsIm5iZiI6MTcxNjMxMjcxNCwianRpIjoidXJuOnZjOnV1aWQ6NjE5NWRhOTEtY2RiYi00NzJkLWFlNjktYjAwNGU0OWE5ZjUxIn0.uhFoQ-coZ1sfzaNzFfWOmEDWWJwuCs9hDw0yw1pq2HgMinvvCdcarvQ9sbVN9At0oqQhhSEYwaUT42Tlyi7FBw";
 
         let jwt_decoded = Jwt::verify::<VcJwtClaims>(&minified_vc_jwt).await.unwrap();
         let registered_claims = jwt_decoded.claims.registered_claims;
