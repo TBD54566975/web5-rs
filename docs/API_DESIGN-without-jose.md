@@ -275,15 +275,15 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 
 #### `Field`
 
-| Property                         | Notes |
-| -------------------------------- | ----- |
-| `id: Option<String>`             |       |
-| `name: Option<String>`           |       |
-| `path: Vec<String>`              |       |
-| `purpose: Option<String>`        |       |
-| `filter: Option<Filter>`         |       |
-| `optional: Optional<bool>`       |       |
-| `predicate: Option<Optionality>` |       |
+| Property                         | Notes                              |
+| -------------------------------- | ---------------------------------- |
+| `id: Option<String>`             |                                    |
+| `name: Option<String>`           |                                    |
+| `path: Vec<String>`              |                                    |
+| `purpose: Option<String>`        |                                    |
+| `filter: Option<Filter>`         | See [`Filter`](#filter).           |
+| `optional: Optional<bool>`       |                                    |
+| `predicate: Option<Optionality>` | See [`Optionality`](#optionality). |
 
 #### `Optionality`
 
@@ -294,12 +294,12 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 
 #### `Filter`
 
-| Property                        | Notes |
-| ------------------------------- | ----- |
-| `r#type: Option<String>`        |       |
-| `pattern: Option<String>`       |       |
-| `const_value: Option<String>`   |       |
-| `contains: Option<Box<Filter>>` |       |
+| Property                        | Notes                    |
+| ------------------------------- | ------------------------ |
+| `r#type: Option<String>`        |                          |
+| `pattern: Option<String>`       |                          |
+| `const_value: Option<String>`   |                          |
+| `contains: Option<Box<Filter>>` | See [`Filter`](#filter). |
 
 ##### Examples
 
