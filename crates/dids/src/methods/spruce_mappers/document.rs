@@ -150,31 +150,35 @@ impl VerificationMethod {
 
 impl Service {
     pub fn from_spruce(spruce_service: SpruceService) -> Result<Self, String> {
+        let r#type = match spruce_service.type_ {
+            OneOrMany::One(t) => t,
+            OneOrMany::Many(mut t) => t
+                .pop()
+                .ok_or_else(|| "Service type array was empty".to_string())?,
+        };
+
         let service_endpoint = match spruce_service.service_endpoint {
             Some(OneOrMany::One(endpoint)) => match endpoint {
-                SpruceServiceEndpoint::URI(uri) => OneOrMany::One(uri),
+                SpruceServiceEndpoint::URI(uri) => vec![uri],
                 SpruceServiceEndpoint::Map(map) => {
-                    OneOrMany::One(serde_json::to_string(&map).unwrap_or_default())
+                    vec![serde_json::to_string(&map).unwrap_or_default()]
                 }
             },
-            Some(OneOrMany::Many(endpoints)) => {
-                let endpoints = endpoints
-                    .into_iter()
-                    .map(|endpoint| match endpoint {
-                        SpruceServiceEndpoint::URI(uri) => uri,
-                        SpruceServiceEndpoint::Map(map) => {
-                            serde_json::to_string(&map).unwrap_or_default()
-                        }
-                    })
-                    .collect();
-                OneOrMany::Many(endpoints)
-            }
+            Some(OneOrMany::Many(endpoints)) => endpoints
+                .into_iter()
+                .map(|endpoint| match endpoint {
+                    SpruceServiceEndpoint::URI(uri) => uri,
+                    SpruceServiceEndpoint::Map(map) => {
+                        serde_json::to_string(&map).unwrap_or_default()
+                    }
+                })
+                .collect(),
             None => return Err("Service endpoint is missing".to_string()),
         };
 
         Ok(Service {
             id: spruce_service.id,
-            r#type: spruce_service.type_,
+            r#type,
             service_endpoint,
         })
     }
@@ -268,10 +272,10 @@ mod tests {
         let service = Service::from_spruce(spruce_service).unwrap();
 
         assert_eq!(service.id, "did:example:123#service1".to_string());
-        assert_eq!(service.r#type, OneOrMany::One("Example".to_string()));
+        assert_eq!(service.r#type, "Example".to_string());
         assert_eq!(
             service.service_endpoint,
-            OneOrMany::One("https://example.com/service1".to_string())
+            vec!["https://example.com/service1".to_string()]
         );
     }
 }

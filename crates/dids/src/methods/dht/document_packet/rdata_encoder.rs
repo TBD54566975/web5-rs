@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use simple_dns::{rdata::RData, ResourceRecord};
-use ssi_core::one_or_many::OneOrMany;
 
 use super::DocumentPacketError;
 
@@ -48,15 +47,6 @@ pub fn record_rdata_to_hash_map(
     }
 
     Ok(attributes)
-}
-
-pub fn to_one_or_many(value: String) -> OneOrMany<String> {
-    let split: Vec<String> = value.split(',').map(|s| s.to_string()).collect();
-    if split.len() == 1 {
-        OneOrMany::One(value)
-    } else {
-        OneOrMany::Many(split)
-    }
 }
 
 /// Get value from the RData HashMap created by record_rdata_to_hash_map().

@@ -1,7 +1,5 @@
 use jwk::Jwk;
 use serde::{Deserialize, Serialize};
-pub use ssi_core::one_or_many::OneOrMany;
-pub use ssi_dids::ServiceEndpoint;
 
 #[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Document {
@@ -61,16 +59,17 @@ impl KeyIdFragment {
     }
 }
 
+/// DID Document Service data model as defined in the [web5 spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#service-data-model)
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Service {
     pub id: String,
     #[serde(rename = "type")]
-    pub r#type: OneOrMany<String>,
-    // TODO: Update to allow service endpoint as a map?
+    pub r#type: String,
     #[serde(rename = "serviceEndpoint")]
-    pub service_endpoint: OneOrMany<String>,
+    pub service_endpoint: Vec<String>,
 }
 
+/// DID Document Verification method data model as defined in the [web5 spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerificationMethodType {
     VerificationMethod,

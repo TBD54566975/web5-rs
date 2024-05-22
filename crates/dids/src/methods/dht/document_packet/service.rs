@@ -6,54 +6,47 @@ use simple_dns::{
     rdata::{RData, TXT},
     Name, ResourceRecord,
 };
-use ssi_core::one_or_many::OneOrMany;
+
 use url::Url;
 
 use super::{
-    rdata_encoder::{get_rdata_txt_value, record_rdata_to_hash_map, to_one_or_many},
+    rdata_encoder::{get_rdata_txt_value, record_rdata_to_hash_map},
     DocumentPacketError, DEFAULT_TTL,
 };
 
 #[derive(Debug, PartialEq)]
 struct ServiceRdata {
     pub id: String,
-    pub se: OneOrMany<String>,
-    pub t: OneOrMany<String>,
+    pub se: Vec<String>,
+    pub t: String,
 }
 
 impl TryFrom<HashMap<String, String>> for ServiceRdata {
     fn try_from(rdata_map: HashMap<String, String>) -> Result<Self, Self::Error> {
         Ok(ServiceRdata {
             id: get_rdata_txt_value(&rdata_map, "id")?,
-            se: to_one_or_many(get_rdata_txt_value(&rdata_map, "se")?),
-            t: to_one_or_many(get_rdata_txt_value(&rdata_map, "t")?),
+            se: get_rdata_txt_value(&rdata_map, "se")?
+                .split(',')
+                .map(|s| s.to_string())
+                .collect(),
+            t: get_rdata_txt_value(&rdata_map, "t")?,
         })
     }
 
     type Error = DocumentPacketError;
 }
 
-impl Service {
-    pub fn to_resource_record(
-        &self,
-        idx: u32,
-    ) -> Result<ResourceRecord<'static>, DocumentPacketError> {
+impl<'a> Service {
+    pub fn to_resource_record(&self, idx: u32) -> Result<ResourceRecord<'a>, DocumentPacketError> {
         let url = Url::parse(&self.id)
             .map_err(|_| DocumentPacketError::MissingFragment(self.id.clone()))?;
         let service_id_fragment = url
             .fragment()
             .ok_or(DocumentPacketError::MissingFragment(self.id.clone()))?;
 
-        let t = match &self.r#type {
-            OneOrMany::One(r#type) => r#type.clone(),
-            OneOrMany::Many(r#types) => r#types.join(","),
-        };
-        let se = match &self.service_endpoint {
-            OneOrMany::One(service_endpoint) => service_endpoint.clone(),
-            OneOrMany::Many(service_endpoints) => service_endpoints.join(","),
-        };
+        let se = self.service_endpoint.join(",");
 
-        let parts = format!("id={};t={};se={}", service_id_fragment, t, se);
+        let parts = format!("id={};t={};se={}", service_id_fragment, self.r#type, se);
         let name = Name::new_unchecked(&format!("_s{}._did", idx)).into_owned();
         let txt_record = TXT::new().with_string(&parts)?.into_owned();
 
@@ -95,8 +88,8 @@ mod tests {
         let service_endpoint = "foo.tbd.website";
         let service = Service {
             id: id.to_string(),
-            r#type: OneOrMany::One(r#type.to_string()),
-            service_endpoint: OneOrMany::One(service_endpoint.to_string()),
+            r#type: r#type.to_string(),
+            service_endpoint: vec![service_endpoint.to_string()],
         };
 
         let resource_record = service
@@ -118,11 +111,8 @@ mod tests {
         let service_endpoint = "foo.tbd.website";
         let service = Service {
             id: id.to_string(),
-            r#type: OneOrMany::Many(vec![r#type.to_string(), r#type.to_string()]),
-            service_endpoint: OneOrMany::Many(vec![
-                service_endpoint.to_string(),
-                service_endpoint.to_string(),
-            ]),
+            r#type: r#type.to_string(),
+            service_endpoint: vec![service_endpoint.to_string(), service_endpoint.to_string()],
         };
 
         let resource_record = service
@@ -146,14 +136,15 @@ mod tests {
         let service_endpoint = "foo.tbd.website";
         let service = Service {
             id: id.to_string(),
-            r#type: OneOrMany::One(r#type.to_string()),
-            service_endpoint: OneOrMany::One(service_endpoint.to_string()),
+            r#type: r#type.to_string(),
+            service_endpoint: vec![service_endpoint.to_string()],
         };
 
         let resource_record = service
             .to_resource_record(0)
             .expect("Expected to create resource record from service");
-        let service2 = Service::from_resource_record(did_uri, resource_record).expect("Expected to create service from resource record");
+        let service2 = Service::from_resource_record(did_uri, resource_record)
+            .expect("Expected to create service from resource record");
         assert_eq!(service, service2);
     }
 
@@ -164,8 +155,8 @@ mod tests {
         let service_endpoint = "foo.tbd.website";
         let service = Service {
             id: did_uri.to_string(),
-            r#type: OneOrMany::One(r#type.to_string()),
-            service_endpoint: OneOrMany::One(service_endpoint.to_string()),
+            r#type: r#type.to_string(),
+            service_endpoint: vec![service_endpoint.to_string()],
         };
 
         let resource_record = service
@@ -190,7 +181,8 @@ mod tests {
             RData::A(A { address: 0 }), // not RData::TXT
         );
 
-        let error = Service::from_resource_record("did:ex:abc", resource_record).expect_err("");
+        let error = Service::from_resource_record("did:ex:abc", resource_record)
+            .expect_err("Expected error because RData is not TXT");
         match error {
             DocumentPacketError::RDataError(_) => {}
             _ => panic!(),
@@ -209,7 +201,8 @@ mod tests {
             RData::TXT(txt), // Not ';' separated entries
         );
 
-        let error = Service::from_resource_record("did:ex:abc", resource_record).expect_err("");
+        let error = Service::from_resource_record("did:ex:abc", resource_record)
+            .expect_err("Expected error because RData TXT is malformed");
         match error {
             DocumentPacketError::RDataError(_) => {}
             _ => panic!(),
@@ -228,7 +221,8 @@ mod tests {
             RData::TXT(txt), // Not ';' separated entries
         );
 
-        let error = Service::from_resource_record("did:ex:abc", resource_record).expect_err("Expected error because missing se");
+        let error = Service::from_resource_record("did:ex:abc", resource_record)
+            .expect_err("Expected error because missing se");
         match error {
             DocumentPacketError::RDataError(_) => {}
             _ => panic!(),
