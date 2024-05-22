@@ -228,7 +228,7 @@ mod tests {
             RData::TXT(txt), // Not ';' separated entries
         );
 
-        let error = Service::from_resource_record("did:ex:abc", resource_record).expect_err("");
+        let error = Service::from_resource_record("did:ex:abc", resource_record).expect_err("Expected error because missing se");
         match error {
             DocumentPacketError::RDataError(_) => {}
             _ => panic!(),
