@@ -153,7 +153,7 @@ mod tests {
         let resource_record = service
             .to_resource_record(0)
             .expect("Expected to create resource record from service");
-        let service2 = Service::from_resource_record(did_uri, resource_record).expect("msg");
+        let service2 = Service::from_resource_record(did_uri, resource_record).expect("Expected to create service from resource record");
         assert_eq!(service, service2);
     }
 
