@@ -45,6 +45,17 @@ impl Jwk {
 
         Ok(thumbprint)
     }
+
+    pub fn to_public_jwk(&self) -> Jwk {
+        Jwk {
+            alg: self.alg.clone(),
+            kty: self.kty.clone(),
+            crv: self.crv.clone(),
+            x: self.x.clone(),
+            y: self.y.clone(),
+            ..Default::default()
+        }
+    }
 }
 
 #[cfg(test)]

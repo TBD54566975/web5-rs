@@ -11,6 +11,37 @@ use k256::{
 
 pub struct Secp256k1;
 
+impl Secp256k1 {
+    pub fn extract_public_key(jwk: &Jwk) -> Result<Vec<u8>, CryptoError> {
+        let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
+        let decoded_y = general_purpose::URL_SAFE_NO_PAD.decode(
+            jwk.y
+                .as_ref()
+                .ok_or(CryptoError::PublicKeyFailure("missing y".to_string()))?,
+        )?;
+
+        let mut pk_bytes = Vec::with_capacity(1 + decoded_x.len() + decoded_y.len());
+        pk_bytes.push(0x04); // Uncompressed point indicator
+        pk_bytes.extend_from_slice(&decoded_x);
+        pk_bytes.extend_from_slice(&decoded_y);
+
+        Ok(pk_bytes)
+    }
+
+    pub fn from_public_key(public_key: &[u8]) -> Result<Jwk, CryptoError> {
+        let x_bytes = &public_key[1..33];
+        let y_bytes = &public_key[33..65];
+        Ok(Jwk {
+            alg: "ES256K".to_string(),
+            kty: "EC".to_string(),
+            crv: "secp256k1".to_string(),
+            x: general_purpose::URL_SAFE_NO_PAD.encode(x_bytes),
+            y: Some(general_purpose::URL_SAFE_NO_PAD.encode(y_bytes)),
+            ..Default::default()
+        })
+    }
+}
+
 impl CurveOperations for Secp256k1 {
     fn generate() -> Result<Jwk, CryptoError> {
         let signing_key = SigningKey::random(&mut rand::thread_rng());
@@ -43,19 +74,8 @@ impl CurveOperations for Secp256k1 {
     }
 
     fn verify(public_jwk: &Jwk, payload: &[u8], signature: &[u8]) -> Result<(), CryptoError> {
-        let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&public_jwk.x)?;
-        let decoded_y = general_purpose::URL_SAFE_NO_PAD.decode(
-            public_jwk
-                .y
-                .as_ref()
-                .ok_or(CryptoError::PublicKeyFailure("missing y".to_string()))?,
-        )?;
-
-        let mut pk_bytes = Vec::with_capacity(1 + decoded_x.len() + decoded_y.len());
-        pk_bytes.push(0x04); // Uncompressed point indicator
-        pk_bytes.extend_from_slice(&decoded_x);
-        pk_bytes.extend_from_slice(&decoded_y);
-        let encoded_point = EncodedPoint::from_bytes(&pk_bytes)
+        let pk_bytes = Secp256k1::extract_public_key(public_jwk)?;
+        let encoded_point = EncodedPoint::from_bytes(pk_bytes)
             .map_err(|e| CryptoError::PublicKeyFailure(e.to_string()))?;
 
         let verifying_key = VerifyingKey::from_encoded_point(&encoded_point)
