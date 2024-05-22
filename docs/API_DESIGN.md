@@ -78,21 +78,21 @@
 
 #### `KeyManager` (Interface)
 
-| Instance Method                              | Notes                                                                                                           |
-| :------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
-| `get_jws_signer(jwk: &Jwk): dyn JwsSigner`   | `jwk` input is equal to the public key represented as a [`Jwk`](#jwk). See [`JwsSigner`](#jwssigner-interface). |
-| `sign(jwk: &Jwk, payload: &[u8]) -> Vec<u8>` | `jwk` input is equal to the public key represented as a [`Jwk`](#jwk).                                          |
+| Instance Method                                     | Notes                                                      |
+| :-------------------------------------------------- | :--------------------------------------------------------- |
+| `get_jws_signer(public_jwk: &Jwk): dyn JwsSigner`   | See [`Jwk`](#jwk) and [`JwsSigner`](#jwssigner-interface). |
+| `sign(public_jwk: &Jwk, payload: &[u8]) -> Vec<u8>` | See [`Jwk`](#jwk).                                         |
 
 #### `InMemoryKeyManager`
 
 Implementation of [`KeyManager`](#keymanager-interface) which stores key material in-memory.
 
-Strictly uses Ed25519. Internalize implementations for [`JwsSigner`](#jwssigner-interface) (for return value of `get_jws_signer()` from [`KeyManager`](#keymanager-interface)).
+Strictly uses Ed25519. Internalize implementation of [`JwsSigner`](#jwssigner-interface) (for return value of `get_jws_signer()` from [`KeyManager`](#keymanager-interface)).
 
 | Static Method                                                      | Notes                                    |
 | :----------------------------------------------------------------- | :--------------------------------------- |
 | `new() -> InMemoryKeyManager`                                      |                                          |
-| `from_private_jwks(private_keys: &Vec<Jwk>) -> InMemoryKeyManager` | For import use cases. See [`Jwk`](#jwk). |
+| `from_private_jwks(private_jwks: &Vec<Jwk>) -> InMemoryKeyManager` | For import use cases. See [`Jwk`](#jwk). |
 
 | Instance Method               | Notes                                                                           |
 | :---------------------------- | :------------------------------------------------------------------------------ |
@@ -171,10 +171,10 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 
 #### `DidJwk`
 
-| Static Method                                                  | Notes                                                                                                                                           |
-| :------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `create(key_manager: &dyn KeyManager, jwk: &Jwk) -> BearerDid` | `jwk` input is equal to the public key represented as a [`Jwk`](#jwk). See [`KeyManager`](#keymanager-interface) and [`BearerDid`](#bearerdid). |
-| `resolve(uri: &str) -> Resolution`                             | See [`Resolution`](#resolution-1).                                                                                                              |
+| Static Method                                                         | Notes                                                                                   |
+| :-------------------------------------------------------------------- | :-------------------------------------------------------------------------------------- |
+| `create(key_manager: &dyn KeyManager, public_jwk: &Jwk) -> BearerDid` | See [`KeyManager`](#keymanager-interface), [`Jwk`](#jwk) and [`BearerDid`](#bearerdid). |
+| `resolve(uri: &str) -> Resolution`                                    | See [`Resolution`](#resolution-1).                                                      |
 
 ##### Examples
 
@@ -222,11 +222,12 @@ let bearer_did = BearerDid {
 
 #### `DidDht`
 
-| Function                                                                                     | Notes                                                                                                                                                                                                                                      |
-| :------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `create(key_manager: &dyn KeyManager, jwk: &Jwk, options: DidDhtCreateOptions) -> BearerDid` | `jwk` input is equal to the [Identity Key](https://did-dht.com/#identity-key-pair) represented as a [`Jwk`](#jwk). See [`KeyManager`](#keymanager-interface), [`DidDhtCreateOptions`](#diddhtcreateoptions) and [`BearerDid`](#bearerdid). |
-| `update()`                                                                                   | 🚧 This is under construction, incomplete 🚧                                                                                                                                                                                                 |
-| `async resolve(uri: &str) -> Resolution`                                                     |                                                                                                                                                                                                                                            |
+| Static Method                                                                                       | Notes                                                                                                                                                                                                              |
+| :-------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `create(key_manager: &dyn KeyManager, public_jwk: &Jwk, options: DidDhtCreateOptions) -> BearerDid` | `public_jwk` is the [Identity Key](https://did-dht.com/#identity-key-pair). See [`KeyManager`](#keymanager-interface), [`Jwk`](#jwk), [`DidDhtCreateOptions`](#diddhtcreateoptions) and [`BearerDid`](#bearerdid). |
+| `update()`                                                                                          | 🚧 This is under construction, incomplete 🚧                                                                                                                                                                         |
+| `async resolve(uri: &str) -> Resolution`                                                            |                                                                                                                                                                                                                    |
+| `deactivate(uri: &str, key_manager &dyn KeyManager)`                                                |                                                                                                                                                                                                                    |
 
 ##### `DidDhtCreateOptions`
 
