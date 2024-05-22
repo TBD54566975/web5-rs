@@ -41,8 +41,8 @@ impl FromStr for Curve {
     type Err = CryptoError;
 
     fn from_str(input: &str) -> Result<Self, CryptoError> {
-        match input {
-            "Ed25519" => Ok(Curve::Ed25519),
+        match input.to_ascii_lowercase().as_str() {
+            "ed25519" => Ok(Curve::Ed25519),
             "secp256k1" => Ok(Curve::Secp256k1),
             _ => Err(CryptoError::UnsupportedCurve),
         }
@@ -75,6 +75,13 @@ mod tests {
         assert_eq!(Ok(Curve::Ed25519), curve);
         let display = curve.unwrap().to_string();
         assert_eq!(display, input);
+
+        // case insensitive
+        let input = "eD25519";
+        let curve = Curve::from_str(input);
+        assert_eq!(Ok(Curve::Ed25519), curve);
+        let display = curve.unwrap().to_string();
+        assert_eq!(display, "Ed25519");
 
         let input = "secp256k1";
         let curve = Curve::from_str(input);
