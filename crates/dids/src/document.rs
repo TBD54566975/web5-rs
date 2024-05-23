@@ -59,15 +59,17 @@ impl KeyIdFragment {
     }
 }
 
+/// DID Document Service data model as defined in the [web5 spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#service-data-model)
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Service {
     pub id: String,
     #[serde(rename = "type")]
     pub r#type: String,
     #[serde(rename = "serviceEndpoint")]
-    pub service_endpoint: String,
+    pub service_endpoint: Vec<String>,
 }
 
+/// DID Document Verification method data model as defined in the [web5 spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerificationMethodType {
     VerificationMethod,

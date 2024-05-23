@@ -159,19 +159,20 @@ impl Service {
 
         let service_endpoint = match spruce_service.service_endpoint {
             Some(OneOrMany::One(endpoint)) => match endpoint {
-                SpruceServiceEndpoint::URI(uri) => uri,
-                SpruceServiceEndpoint::Map(map) => serde_json::to_string(&map).unwrap_or_default(),
+                SpruceServiceEndpoint::URI(uri) => vec![uri],
+                SpruceServiceEndpoint::Map(map) => {
+                    vec![serde_json::to_string(&map).unwrap_or_default()]
+                }
             },
             Some(OneOrMany::Many(endpoints)) => endpoints
                 .into_iter()
-                .last()
                 .map(|endpoint| match endpoint {
                     SpruceServiceEndpoint::URI(uri) => uri,
                     SpruceServiceEndpoint::Map(map) => {
                         serde_json::to_string(&map).unwrap_or_default()
                     }
                 })
-                .ok_or_else(|| "Service endpoint array was empty".to_string())?,
+                .collect(),
             None => return Err("Service endpoint is missing".to_string()),
         };
 
@@ -185,6 +186,9 @@ impl Service {
 
 #[cfg(test)]
 mod tests {
+    use ssi_core::one_or_many::OneOrMany;
+    use ssi_dids::ServiceEndpoint;
+
     use super::*;
 
     #[test]
@@ -260,7 +264,7 @@ mod tests {
         let spruce_service = SpruceService {
             id: "did:example:123#service1".to_string(),
             type_: OneOrMany::One("Example".to_string()),
-            service_endpoint: Some(OneOrMany::One(SpruceServiceEndpoint::URI(
+            service_endpoint: Some(OneOrMany::One(ServiceEndpoint::URI(
                 "https://example.com/service1".to_string(),
             ))),
             property_set: None,
@@ -271,7 +275,7 @@ mod tests {
         assert_eq!(service.r#type, "Example".to_string());
         assert_eq!(
             service.service_endpoint,
-            "https://example.com/service1".to_string()
+            vec!["https://example.com/service1".to_string()]
         );
     }
 }
