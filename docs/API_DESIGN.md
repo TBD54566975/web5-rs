@@ -155,9 +155,9 @@ Data properties conformant to [Service Data Model in the web5-spec](https://gith
 | `document_metadata: DocumentMetadata`     | See [`DocumentMetadata`](#documentmetadata).     |
 | `resolution_metadata: ResolutionMetadata` | See [`ResolutionMetadata`](#resolutionmetadata). |
 
-| Static Method                            | Notes |
-| :--------------------------------------- | :---- |
-| `async resolve(uri: &str) -> Resolution` |       |
+| Static Method                      | Notes |
+| :--------------------------------- | :---- |
+| `resolve(uri: &str) -> Resolution` |       |
 
 #### `DocumentMetadata`
 
@@ -216,18 +216,18 @@ let bearer_did = BearerDid {
 
 #### `DidWeb`
 
-| Static Method                            | Notes                              |
-| :--------------------------------------- | :--------------------------------- |
-| `async resolve(uri: &str) -> Resolution` | See [`Resolution`](#resolution-1). |
+| Static Method                      | Notes                              |
+| :--------------------------------- | :--------------------------------- |
+| `resolve(uri: &str) -> Resolution` | See [`Resolution`](#resolution-1). |
 
 #### `DidDht`
 
-| Static Method                                                                                       | Notes                                                                                                                                                                                                              |
-| :-------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `create(key_manager: &dyn KeyManager, public_jwk: &Jwk, options: DidDhtCreateOptions) -> BearerDid` | `public_jwk` is the [Identity Key](https://did-dht.com/#identity-key-pair). See [`KeyManager`](#keymanager-interface), [`Jwk`](#jwk), [`DidDhtCreateOptions`](#diddhtcreateoptions) and [`BearerDid`](#bearerdid). |
-| `update()`                                                                                          | 🚧 This is under construction, incomplete 🚧                                                                                                                                                                         |
-| `async resolve(uri: &str) -> Resolution`                                                            |                                                                                                                                                                                                                    |
-| `deactivate(uri: &str, key_manager &dyn KeyManager)`                                                |                                                                                                                                                                                                                    |
+| Static Method                                                                                         | Notes                                                                                                                                                                                          |
+| :---------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `create(key_manager: &dyn KeyManager, identity_key: &Jwk, options: DidDhtCreateOptions) -> BearerDid` | See [Identity Key](https://did-dht.com/#identity-key-pair), [`KeyManager`](#keymanager-interface), [`Jwk`](#jwk), [`DidDhtCreateOptions`](#diddhtcreateoptions) and [`BearerDid`](#bearerdid). |
+| `update()`                                                                                            | 🚧 This is under construction, incomplete 🚧                                                                                                                                                     |
+| `resolve(uri: &str) -> Resolution`                                                                    |                                                                                                                                                                                                |
+| `deactivate(uri: &str, key_manager &dyn KeyManager)`                                                  |                                                                                                                                                                                                |
 
 ##### `DidDhtCreateOptions`
 
