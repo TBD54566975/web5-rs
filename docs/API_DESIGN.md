@@ -4,18 +4,17 @@
 # Web5 API Design <!-- omit in toc -->
 
 - [API Reference](#api-reference)
-  - [JOSE](#jose)
-      - [`Jwk`](#jwk)
+  - [Cryptography](#cryptography)
       - [`JwsSigner` (Interface)](#jwssigner-interface)
       - [`JwsVerifier` (Interface)](#jwsverifier-interface)
-  - [Key Management](#key-management)
       - [`KeySigner` (Interface)](#keysigner-interface)
-      - [`InMemoryKeyManager`](#inmemorykeymanager)
+      - [`InMemoryKeySigner`](#inmemorykeysigner)
   - [DIDs](#dids)
       - [`Identifier`](#identifier)
     - [Data Model](#data-model)
       - [`Document`](#document)
       - [`VerificationMethod`](#verificationmethod)
+      - [`Jwk`](#jwk)
       - [`Service`](#service)
     - [Resolution](#resolution)
       - [`Resolution`](#resolution-1)
@@ -29,8 +28,6 @@
         - [`DidDhtCreateOptions`](#diddhtcreateoptions)
   - [Credentials](#credentials)
       - [`VerifiableCredential`](#verifiablecredential)
-        - [Examples](#examples)
-          - [Create a `did:jwk`, Create a VC, and Sign it](#create-a-didjwk-create-a-vc-and-sign-it)
     - [Presentation Exchange](#presentation-exchange)
       - [`PresentationDefinition`](#presentationdefinition)
       - [`InputDescriptor`](#inputdescriptor)
@@ -38,25 +35,10 @@
       - [`Field`](#field)
       - [`Optionality`](#optionality)
       - [`Filter`](#filter)
-- [Examples](#examples-1)
-  - [Bring-Your-Own Key Manager \& Cryptography, Sign a VC-JWT, and Verify it](#bring-your-own-key-manager--cryptography-sign-a-vc-jwt-and-verify-it)
 
 # API Reference
 
-## JOSE
-
-#### `Jwk`
-
-🚧 Consider constraining in [`web5-spec`](https://github.com/TBD54566975/web5-spec) 🚧
-
-| Property            | Notes |
-| :------------------ | :---- |
-| `alg: String`       |       |
-| `kty: String`       |       |
-| `crv: String`       |       |
-| `d: Option<String>` |       |
-| `x: String`         |       |
-| `y: Option<String>` |       |
+## Cryptography
 
 #### `JwsSigner` (Interface)
 
@@ -70,8 +52,6 @@
 | :----------------------------------------- | :---- |
 | `verify(message: &[u8], signature: &[u8])` |       |
 
-## Key Management
-
 #### `KeySigner` (Interface)
 
 | Instance Method                                     | Notes                                                      |
@@ -79,16 +59,16 @@
 | `get_jws_signer(public_jwk: &Jwk): dyn JwsSigner`   | See [`Jwk`](#jwk) and [`JwsSigner`](#jwssigner-interface). |
 | `sign(public_jwk: &Jwk, payload: &[u8]) -> Vec<u8>` | See [`Jwk`](#jwk).                                         |
 
-#### `InMemoryKeyManager`
+#### `InMemoryKeySigner`
 
 Implements [`KeySigner`](#keysigner-interface).
 
 Strictly uses Ed25519. Internalize implementation of [`JwsSigner`](#jwssigner-interface) (for return value of `get_jws_signer()` from [`KeySigner`](#keysigner-interface)).
 
-| Static Method                                                      | Notes                                    |
-| :----------------------------------------------------------------- | :--------------------------------------- |
-| `new() -> InMemoryKeyManager`                                      |                                          |
-| `from_private_jwks(private_jwks: &Vec<Jwk>) -> InMemoryKeyManager` | For import use cases. See [`Jwk`](#jwk). |
+| Static Method                                                     | Notes                                    |
+| :---------------------------------------------------------------- | :--------------------------------------- |
+| `new() -> InMemoryKeySigner`                                      |                                          |
+| `from_private_jwks(private_jwks: &Vec<Jwk>) -> InMemoryKeySigner` | For import use cases. See [`Jwk`](#jwk). |
 
 | Instance Method               | Notes                                                                           |
 | :---------------------------- | :------------------------------------------------------------------------------ |
@@ -124,6 +104,19 @@ Data properties conformant to [DID Document Data Model in the web5-spec](https:/
 Data properties conformant to [Verification Method Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model).
 
 See [`Jwk`](#jwk) for `publicKeyJwk` implementation.
+
+#### `Jwk`
+
+🚧 Consider constraining in [`web5-spec`](https://github.com/TBD54566975/web5-spec) 🚧
+
+| Property            | Notes |
+| :------------------ | :---- |
+| `alg: String`       |       |
+| `kty: String`       |       |
+| `crv: String`       |       |
+| `d: Option<String>` |       |
+| `x: String`         |       |
+| `y: Option<String>` |       |
 
 #### `Service`
 
@@ -173,44 +166,6 @@ Implements [`DidSigner`](#didsigner-interface).
 | `create(public_jwk: &Jwk) -> DidJwk` | See [`Jwk`](#jwk).                 |
 | `resolve(uri: &str) -> Resolution`   | See [`Resolution`](#resolution-1). |
 
-<!-- ##### Examples
-
-###### Create a `did:jwk`
-
-```rust
-let key_manager = InMemoryKeyManager::new();
-let public_jwk = key_manager.generate_private_key().unwrap();
-let bearer_did = DidJwk::create(key_manager, public_jwk).unwrap();
-println!(bearer_did.identifier.uri);
-```
-
-###### Resolve a `did:jwk`
-
-```rust
-let uri = "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwidXNlIjoic2lnIiwiYWxnIjoiRWREU0EiLCJraWQiOiJKUVYzQ0VaQ3BWWnBCWmQ0N0EzLWllTUM1T1BvOHJ5QlQ5cHdLX3NDLUtBIiwieCI6IlUzWXNDNjFJZnBxRjlqUHNRX01UMDBFTTRBQXVHYms0SDN1VVZRczBFelEifQ";
-let resolution = DidJwk::resolve(uri).await.unwrap();
-println!(resolution.document.id);
-```
-
-###### Reinstantiate an Existing `did:jwk`
-
-```rust
-let private_jwk_json_string = "{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"use\":\"sig\",\"alg\":\"EdDSA\",\"kid\":\"JQV3CEZCpVZpBZd47A3-ieMC5OPo8ryBT9pwK_sC-KA\",\"d\":\"8L5Y7M4ZNc9Jy5IooJNFaRGatXHZzRRXxGsVidrAsfE\",\"x\":\"U3YsC61IfpqF9jPsQ_MT00EM4AAuGbk4H3uUVQs0EzQ\"}";
-let private_jwk = serde_json::from_str::<Jwk>(private_jwk_json_string).unwrap();
-let key_manager = InMemoryKeyManager::from_private_jwks(vec![private_jwk]);
-
-let uri = "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwidXNlIjoic2lnIiwiYWxnIjoiRWREU0EiLCJraWQiOiJKUVYzQ0VaQ3BWWnBCWmQ0N0EzLWllTUM1T1BvOHJ5QlQ5cHdLX3NDLUtBIiwieCI6IlUzWXNDNjFJZnBxRjlqUHNRX01UMDBFTTRBQXVHYms0SDN1VVZRczBFelEifQ";
-let resolution = DidJwk::resolve(uri).await.unwrap();
-
-let identifier = Identifier::new(uri);
-
-let bearer_did = BearerDid {
-  identifier,
-  document: resolution.document,
-  key_manager
-};
-``` -->
-
 #### `DidWeb`
 
 | Static Method                      | Notes                              |
@@ -236,7 +191,6 @@ Implements [`DidSigner`](#didsigner-interface).
 | `update()`      | 🚧 This is under construction, incomplete 🚧 |
 | `deactivate()`  | 🚧 This is under construction, incomplete 🚧 |
 
-
 ##### `DidDhtCreateOptions`
 
 | Property | Notes |
@@ -258,23 +212,6 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 | :---------------------------------------------------------------------------------------- | :------------------------------------------- |
 | `verify(jwt: &str) -> VerifiableCredential`                                               |                                              |
 | `verify_with_verifier(jwt: &str, jws_verifier: &dyn JwsVerifier) -> VerifiableCredential` | See [`JwsVerifier`](#jwsverifier-interface). |
-
-##### Examples
-
-###### Create a `did:jwk`, Create a VC, and Sign it
-
-```rust
-let key_manager = InMemoryKeyManager::new();
-let public_jwk = key_manager.generate_private_key().unwrap();
-let bearer_did = DidJwk::create(key_manager, public_jwk).unwrap();
-
-let verifiable_credential = VerifiableCredential {
-  // todo consider convenience function
-};
-
-let vcjwt = verifiable_credential.sign(bearer_did.get_default_jws_signer()).unwrap;
-println(vcjwt);
-```
 
 ### Presentation Exchange
 
@@ -333,11 +270,3 @@ println(vcjwt);
 | `pattern: Option<String>`       |                          |
 | `const_value: Option<String>`   |                          |
 | `contains: Option<Box<Filter>>` | See [`Filter`](#filter). |
-
-# Examples
-
-## Bring-Your-Own Key Manager & Cryptography, Sign a VC-JWT, and Verify it
-
-```rust
-println!("todo");
-```
