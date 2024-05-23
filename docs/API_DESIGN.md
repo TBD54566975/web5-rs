@@ -148,9 +148,12 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 
 #### `DidSigner` (Interface)
 
-| Instance Method                             | Notes                                                                                          |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `get_default_jws_signer() -> dyn JwsSigner` | Returns the [`JwsSigner`](#jwssigner-interface) associated with the first Verification Method. |
+Useful for "sign with your DID" DX.
+
+| Instance Method                              | Notes                                                                                          |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `get_default_jws_signer() -> dyn JwsSigner`  | Returns the [`JwsSigner`](#jwssigner-interface) associated with the first Verification Method. |
+| `get_jws_signer(jwk: &Jwk) -> dyn JwsSigner` | See [`Jwk`](#jwk) and [`JwsSigner`](#jwssigner-interface).                                     |
 
 #### `DidJwk`
 
@@ -161,10 +164,13 @@ Implements [`DidSigner`](#didsigner-interface).
 | `identifier: Identifier` |       |
 | `document: Document`     |       |
 
-| Static Method                        | Notes                              |
-| :----------------------------------- | :--------------------------------- |
-| `create(public_jwk: &Jwk) -> DidJwk` | See [`Jwk`](#jwk).                 |
-| `resolve(uri: &str) -> Resolution`   | See [`Resolution`](#resolution-1). |
+| Constructor | Notes |
+| ----------- | ----- |
+
+| Static Method                                                | Notes                                                      |
+| :----------------------------------------------------------- | :--------------------------------------------------------- |
+| `create(key_signer: &KeySigner, public_jwk: &Jwk) -> DidJwk` | See [`KeySigner`](#keysigner-interface) and [`Jwk`](#jwk). |
+| `resolve(uri: &str) -> Resolution`                           | See [`Resolution`](#resolution-1).                         |
 
 #### `DidWeb`
 
