@@ -17,71 +17,20 @@ const BASE_TYPE: &str = "VerifiableCredential";
 
 #[derive(thiserror::Error, Debug)]
 pub enum CredentialError {
-    // JWT specific errors
     #[error(transparent)]
     JwtError(#[from] JwtError),
     #[error(transparent)]
     JwsError(#[from] JwsError),
-
-    // Credential-specific validation errors
-    #[error("Expiration date mismatch")]
-    ExpirationDateMismatch,
-    #[error("Credential expired: {0}")]
-    CredentialExpired(String),
-    #[error("Issuer mismatch")]
-    IssuerMismatch,
-    #[error("Issuance date is in the future")]
-    IssuanceDateInFuture,
-    #[error("Issuance date mismatch")]
-    IssuanceDateMismatch,
-    #[error("Credential ID mismatch")]
-    IdMismatch,
-    #[error("Subject mismatch")]
-    SubjectMismatch,
-    #[error("Missing issuer")]
-    MissingIssuer,
-    #[error("Missing issuance date")]
-    MissingIssuanceDate,
-    #[error("Missing subject")]
-    MissingSubject,
-    #[error("Missing credential ID")]
-    MissingId,
-    #[error("Misconfigured expiration date: {0}")]
+    #[error("missing claim: {0}")]
+    MissingClaim(String),
+    #[error("claim mismatch: {0}")]
+    ClaimMismatch(String),
+    #[error("misconfigured expiration date: {0}")]
     MisconfiguredExpirationDate(String),
-
-    // Data model validation error
-    #[error("Missing Iss")]
-    MissingIss,
-    #[error("Missing Nbf")]
-    MissingNbf,
-    #[error("Missing Sub")]
-    MissingSub,
-    #[error("Missing Jti")]
-    MissingJti,
-    #[error("Validation error: {0}")]
-    ValidationError(#[from] CredentialDataModelValidationError),
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum CredentialDataModelValidationError {
-    #[error("Missing context")]
-    MissingContext,
-    #[error("Missing ID")]
-    MissingId,
-    #[error("Missing type")]
-    MissingType,
-    #[error("Missing issuer")]
-    MissingIssuer,
-    #[error("Missing issuance date")]
-    MissingIssuanceDate,
-    #[error("Invalid issuance date")]
-    InvalidIssuanceDate,
-    #[error("Issuance date in future")]
-    IssuanceDateInFuture,
-    #[error("Invalid expiration date")]
-    InvalidExpirationDate,
     #[error("Credential expired")]
     CredentialExpired,
+    #[error("VC data model validation error: {0}")]
+    VcDataModelValidationError(String),
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
@@ -240,43 +189,46 @@ impl VerifiableCredential {
         let registered_claims = jwt_decoded.claims.registered_claims;
 
         // registered claims checks
-        let jti = registered_claims.jti.ok_or(CredentialError::MissingJti)?;
+        let jti = registered_claims
+            .jti
+            .ok_or(CredentialError::MissingClaim("jti".to_string()))?;
         let iss = registered_claims
             .issuer
-            .ok_or(CredentialError::MissingIss)?;
+            .ok_or(CredentialError::MissingClaim("issuer".to_string()))?;
         let sub = registered_claims
             .subject
-            .ok_or(CredentialError::MissingSub)?;
+            .ok_or(CredentialError::MissingClaim("subject".to_string()))?;
         let nbf = registered_claims
             .not_before
-            .ok_or(CredentialError::MissingNbf)?;
+            .ok_or(CredentialError::MissingClaim("not_before".to_string()))?;
         let exp = registered_claims.expiration;
 
         if let Some(id) = &vc_payload.id {
             if id != &jti {
-                return Err(CredentialError::IdMismatch);
+                return Err(CredentialError::ClaimMismatch("id".to_string()));
             }
         }
 
         if let Some(issuer) = &vc_payload.issuer {
             let vc_issuer = issuer.to_string();
             if iss != vc_issuer {
-                return Err(CredentialError::IssuerMismatch);
+                return Err(CredentialError::ClaimMismatch("issuer".to_string()));
             }
         }
 
         if let Some(credential_subject) = &vc_payload.credential_subject {
             if sub != credential_subject.id {
-                return Err(CredentialError::SubjectMismatch);
+                return Err(CredentialError::ClaimMismatch("subject".to_string()));
             }
         }
 
         if let Some(issuance_date) = &vc_payload.issuance_date {
             if issuance_date != &nbf {
-                return Err(CredentialError::IssuanceDateMismatch);
+                return Err(CredentialError::ClaimMismatch("issuance_date".to_string()));
             }
         }
 
+        let now = Utc::now().timestamp();
         match vc_payload.expiration_date {
             Some(ref vc_payload_expiration_date) => match exp {
                 None => {
@@ -286,24 +238,20 @@ impl VerifiableCredential {
                 }
                 Some(exp) => {
                     if vc_payload_expiration_date != &exp {
-                        return Err(CredentialError::ExpirationDateMismatch);
+                        return Err(CredentialError::ClaimMismatch(
+                            "expiration_date".to_string(),
+                        ));
                     }
 
-                    let now = Utc::now().timestamp();
                     if now > exp {
-                        return Err(CredentialError::CredentialExpired(
-                            "The verifiable credential has expired".to_string(),
-                        ));
+                        return Err(CredentialError::CredentialExpired);
                     }
                 }
             },
             None => {
                 if let Some(exp) = exp {
-                    let now = Utc::now().timestamp();
                     if now > exp {
-                        return Err(CredentialError::CredentialExpired(
-                            "The verifiable credential has expired".to_string(),
-                        ));
+                        return Err(CredentialError::CredentialExpired);
                     }
                 }
             }
@@ -347,44 +295,58 @@ impl VerifiableCredential {
     }
 }
 
-fn validate_vc_data_model(
-    vc: &VerifiableCredential,
-) -> Result<(), CredentialDataModelValidationError> {
+fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialError> {
     // Required fields
     if vc.id.is_empty() {
-        return Err(CredentialDataModelValidationError::MissingId);
+        return Err(CredentialError::VcDataModelValidationError(
+            "missing id".to_string(),
+        ));
     }
 
     if vc.context.is_empty() || vc.context[0] != BASE_CONTEXT {
-        return Err(CredentialDataModelValidationError::MissingContext);
+        return Err(CredentialError::VcDataModelValidationError(
+            "missing context".to_string(),
+        ));
     }
 
     if vc.r#type.is_empty() || vc.r#type[0] != BASE_TYPE {
-        return Err(CredentialDataModelValidationError::MissingType);
+        return Err(CredentialError::VcDataModelValidationError(
+            "missing type".to_string(),
+        ));
     }
 
     if vc.issuer.to_string().is_empty() {
-        return Err(CredentialDataModelValidationError::MissingIssuer);
+        return Err(CredentialError::VcDataModelValidationError(
+            "missing issuer".to_string(),
+        ));
     }
 
     let now = Utc::now().timestamp();
 
     if vc.issuance_date.is_negative() {
-        return Err(CredentialDataModelValidationError::InvalidIssuanceDate);
+        return Err(CredentialError::VcDataModelValidationError(
+            "invalid issuance date".to_string(),
+        ));
     }
 
     if vc.issuance_date > now {
-        return Err(CredentialDataModelValidationError::IssuanceDateInFuture);
+        return Err(CredentialError::VcDataModelValidationError(
+            "issuance date in future".to_string(),
+        ));
     }
 
     // Validate expiration date if it exists
     if let Some(expiration_date) = vc.expiration_date {
         if expiration_date.is_negative() {
-            return Err(CredentialDataModelValidationError::InvalidExpirationDate);
+            return Err(CredentialError::VcDataModelValidationError(
+                "invalid expiration date".to_string(),
+            ));
         }
 
         if expiration_date < now {
-            return Err(CredentialDataModelValidationError::CredentialExpired);
+            return Err(CredentialError::VcDataModelValidationError(
+                "credential expired".to_string(),
+            ));
         }
     }
 
@@ -595,7 +557,7 @@ mod test {
 
         let result = VerifiableCredential::verify(&vc_jwt).await;
         assert!(
-            matches!(result, Err(CredentialError::CredentialExpired(_))),
+            matches!(result, Err(CredentialError::CredentialExpired)),
             "Expected expiration error, but found different or no error"
         );
     }
@@ -604,8 +566,9 @@ mod test {
     async fn test_verify_mismatched_iss() {
         let mismatched_issuer_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOjQwNmYxNjhlLTg4Y2QtNGVhMS05ZTBmLWFkZTUyMDFjODY4YyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5IiwiaXNzdWFuY2VEYXRlIjoxNzE1MzU4NjQ2LCJleHBpcmF0aW9uRGF0ZSI6MTcxNTMyODY0NiwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5In19LCJpc3MiOiJ3cm9uZ2lzc3VlciIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSIsImV4cCI6MTcxNTMyODY0NiwibmJmIjoxNzE1MzU4NjQ2LCJqdGkiOiJ1cm46dmM6dXVpZDo0MDZmMTY4ZS04OGNkLTRlYTEtOWUwZi1hZGU1MjAxYzg2OGMifQ.gX3trvOMBzRX3vC2t1d3FEDj4RFNVrmotvIFgrLPoJVP2co4arz8jRT_VQ9-g7CRqWQ65uyhgAMQjZ_HWwk2DA";
         let result = VerifiableCredential::verify(&mismatched_issuer_vc_jwt).await;
+
         assert!(
-            matches!(result, Err(CredentialError::IssuerMismatch)),
+            matches!(result, Err(CredentialError::ClaimMismatch(ref s)) if s == "issuer"),
             "Expected mismatch issuer error, but found different or no error"
         );
     }
