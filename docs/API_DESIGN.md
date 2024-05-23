@@ -9,10 +9,9 @@
       - [`JwsSigner` (Interface)](#jwssigner-interface)
       - [`JwsVerifier` (Interface)](#jwsverifier-interface)
   - [Key Management](#key-management)
-      - [`KeyManager` (Interface)](#keymanager-interface)
+      - [`KeySigner` (Interface)](#keysigner-interface)
       - [`InMemoryKeyManager`](#inmemorykeymanager)
   - [DIDs](#dids)
-      - [`BearerDid`](#bearerdid)
       - [`Identifier`](#identifier)
     - [Data Model](#data-model)
       - [`Document`](#document)
@@ -23,17 +22,14 @@
       - [`DocumentMetadata`](#documentmetadata)
       - [`ResolutionMetadata`](#resolutionmetadata)
     - [Methods](#methods)
+      - [`DidSigner` (Interface)](#didsigner-interface)
       - [`DidJwk`](#didjwk)
-        - [Examples](#examples)
-          - [Create a `did:jwk`](#create-a-didjwk)
-          - [Resolve a `did:jwk`](#resolve-a-didjwk)
-          - [Reinstantiate an Existing `did:jwk`](#reinstantiate-an-existing-didjwk)
       - [`DidWeb`](#didweb)
       - [`DidDht`](#diddht)
         - [`DidDhtCreateOptions`](#diddhtcreateoptions)
   - [Credentials](#credentials)
       - [`VerifiableCredential`](#verifiablecredential)
-        - [Examples](#examples-1)
+        - [Examples](#examples)
           - [Create a `did:jwk`, Create a VC, and Sign it](#create-a-didjwk-create-a-vc-and-sign-it)
     - [Presentation Exchange](#presentation-exchange)
       - [`PresentationDefinition`](#presentationdefinition)
@@ -42,7 +38,7 @@
       - [`Field`](#field)
       - [`Optionality`](#optionality)
       - [`Filter`](#filter)
-- [Examples](#examples-2)
+- [Examples](#examples-1)
   - [Bring-Your-Own Key Manager \& Cryptography, Sign a VC-JWT, and Verify it](#bring-your-own-key-manager--cryptography-sign-a-vc-jwt-and-verify-it)
 
 # API Reference
@@ -76,7 +72,7 @@
 
 ## Key Management
 
-#### `KeyManager` (Interface)
+#### `KeySigner` (Interface)
 
 | Instance Method                                     | Notes                                                      |
 | :-------------------------------------------------- | :--------------------------------------------------------- |
@@ -85,9 +81,9 @@
 
 #### `InMemoryKeyManager`
 
-Implementation of [`KeyManager`](#keymanager-interface) which stores key material in-memory.
+Implements [`KeySigner`](#keysigner-interface).
 
-Strictly uses Ed25519. Internalize implementation of [`JwsSigner`](#jwssigner-interface) (for return value of `get_jws_signer()` from [`KeyManager`](#keymanager-interface)).
+Strictly uses Ed25519. Internalize implementation of [`JwsSigner`](#jwssigner-interface) (for return value of `get_jws_signer()` from [`KeySigner`](#keysigner-interface)).
 
 | Static Method                                                      | Notes                                    |
 | :----------------------------------------------------------------- | :--------------------------------------- |
@@ -99,18 +95,6 @@ Strictly uses Ed25519. Internalize implementation of [`JwsSigner`](#jwssigner-in
 | `generate_private_key(): Jwk` | Return [`Jwk`](#jwk) is a public key and MUST NOT contain private key material. |
 
 ## DIDs
-
-#### `BearerDid`
-
-| Property                  | Notes |
-| :------------------------ | :---- |
-| `identifier: Identifier`  |       |
-| `document: Document`      |       |
-| `key_manager: KeyManager` |       |
-
-| Instance Method                             | Notes                                                                                          |
-| :------------------------------------------ | :--------------------------------------------------------------------------------------------- |
-| `get_default_jws_signer() -> dyn JwsSigner` | Returns the [`JwsSigner`](#jwssigner-interface) associated with the first Verification Method. |
 
 #### `Identifier`
 
@@ -169,14 +153,27 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 
 ### Methods
 
+#### `DidSigner` (Interface)
+
+| Instance Method                             | Notes                                                                                          |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `get_default_jws_signer() -> dyn JwsSigner` | Returns the [`JwsSigner`](#jwssigner-interface) associated with the first Verification Method. |
+
 #### `DidJwk`
 
-| Static Method                                                         | Notes                                                                                   |
-| :-------------------------------------------------------------------- | :-------------------------------------------------------------------------------------- |
-| `create(key_manager: &dyn KeyManager, public_jwk: &Jwk) -> BearerDid` | See [`KeyManager`](#keymanager-interface), [`Jwk`](#jwk) and [`BearerDid`](#bearerdid). |
-| `resolve(uri: &str) -> Resolution`                                    | See [`Resolution`](#resolution-1).                                                      |
+Implements [`DidSigner`](#didsigner-interface).
 
-##### Examples
+| Property                 | Notes |
+| ------------------------ | ----- |
+| `identifier: Identifier` |       |
+| `document: Document`     |       |
+
+| Static Method                        | Notes                              |
+| :----------------------------------- | :--------------------------------- |
+| `create(public_jwk: &Jwk) -> DidJwk` | See [`Jwk`](#jwk).                 |
+| `resolve(uri: &str) -> Resolution`   | See [`Resolution`](#resolution-1). |
+
+<!-- ##### Examples
 
 ###### Create a `did:jwk`
 
@@ -212,7 +209,7 @@ let bearer_did = BearerDid {
   document: resolution.document,
   key_manager
 };
-```
+``` -->
 
 #### `DidWeb`
 
@@ -222,12 +219,23 @@ let bearer_did = BearerDid {
 
 #### `DidDht`
 
-| Static Method                                                                                         | Notes                                                                                                                                                                                          |
-| :---------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `create(key_manager: &dyn KeyManager, identity_key: &Jwk, options: DidDhtCreateOptions) -> BearerDid` | See [Identity Key](https://did-dht.com/#identity-key-pair), [`KeyManager`](#keymanager-interface), [`Jwk`](#jwk), [`DidDhtCreateOptions`](#diddhtcreateoptions) and [`BearerDid`](#bearerdid). |
-| `update()`                                                                                            | 🚧 This is under construction, incomplete 🚧                                                                                                                                                     |
-| `resolve(uri: &str) -> Resolution`                                                                    |                                                                                                                                                                                                |
-| `deactivate(uri: &str, key_manager &dyn KeyManager)`                                                  |                                                                                                                                                                                                |
+Implements [`DidSigner`](#didsigner-interface).
+
+| Property                 | Notes |
+| ------------------------ | ----- |
+| `identifier: Identifier` |       |
+| `document: Document`     |       |
+
+| Static Method                                                                                    | Notes                                                                                                                                                              |
+| :----------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `create(key_signer: &dyn KeySigner, identity_key: &Jwk, options: DidDhtCreateOptions) -> DidDht` | See [Identity Key](https://did-dht.com/#identity-key-pair), [`KeySigner`](#keysigner-interface), [`Jwk`](#jwk), and [`DidDhtCreateOptions`](#diddhtcreateoptions). |
+| `resolve(uri: &str) -> Resolution`                                                               |                                                                                                                                                                    |
+
+| Instance Method | Notes                                      |
+| --------------- | ------------------------------------------ |
+| `update()`      | 🚧 This is under construction, incomplete 🚧 |
+| `deactivate()`  | 🚧 This is under construction, incomplete 🚧 |
+
 
 ##### `DidDhtCreateOptions`
 
