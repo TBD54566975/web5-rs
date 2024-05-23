@@ -130,22 +130,22 @@ pub struct VerifiableCredential {
     pub credential_subject: CredentialSubject,
 }
 
-impl VerifiableCredential {
-    fn into_jwt_payload_verifiable_credential(self) -> JwtPayloadVerifiableCredential {
+impl From<VerifiableCredential> for JwtPayloadVerifiableCredential {
+    fn from(credential: VerifiableCredential) -> Self {
         JwtPayloadVerifiableCredential {
-            context: self.context,
-            id: Some(self.id),
-            r#type: self.r#type,
-            issuer: Some(self.issuer),
-            issuance_date: Some(self.issuance_date),
-            expiration_date: self.expiration_date,
-            credential_subject: Some(self.credential_subject),
+            context: credential.context,
+            id: Some(credential.id),
+            r#type: credential.r#type,
+            issuer: Some(credential.issuer),
+            issuance_date: Some(credential.issuance_date),
+            expiration_date: credential.expiration_date,
+            credential_subject: Some(credential.credential_subject),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct JwtPayloadVerifiableCredential {
+pub struct JwtPayloadVerifiableCredential {
     #[serde(rename = "@context")]
     context: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -162,16 +162,16 @@ struct JwtPayloadVerifiableCredential {
     credential_subject: Option<CredentialSubject>,
 }
 
-impl JwtPayloadVerifiableCredential {
-    fn into_verifiable_credential(self) -> VerifiableCredential {
+impl From<JwtPayloadVerifiableCredential> for VerifiableCredential {
+    fn from(payload: JwtPayloadVerifiableCredential) -> Self {
         VerifiableCredential {
-            context: self.context,
-            id: self.id.unwrap_or_default(),
-            r#type: self.r#type,
-            issuer: self.issuer.unwrap(),
-            issuance_date: self.issuance_date.unwrap_or_default(),
-            expiration_date: self.expiration_date,
-            credential_subject: self.credential_subject.unwrap(),
+            context: payload.context,
+            id: payload.id.unwrap_or_default(),
+            r#type: payload.r#type,
+            issuer: payload.issuer.unwrap(),
+            issuance_date: payload.issuance_date.unwrap_or_default(),
+            expiration_date: payload.expiration_date,
+            credential_subject: payload.credential_subject.unwrap(),
         }
     }
 }
@@ -226,7 +226,7 @@ impl VerifiableCredential {
                 expiration: self.expiration_date,
                 ..Default::default()
             },
-            vc_payload: self.clone().into_jwt_payload_verifiable_credential(),
+            vc_payload: self.clone().into(),
         };
 
         let jwt = Jwt::sign(bearer_did, key_selector, None, &claims)?;
@@ -277,32 +277,43 @@ impl VerifiableCredential {
             }
         }
 
-        if let Some(expiration_date) = &vc_payload.expiration_date {
-            if exp.is_none() {
-                return Err(CredentialError::MisconfiguredExpirationDate(
-                    "VC has expiration date but no exp in registered claims".to_string(),
-                ));
-            }
+        match vc_payload.expiration_date {
+            Some(ref vc_payload_expiration_date) => match exp {
+                None => {
+                    return Err(CredentialError::MisconfiguredExpirationDate(
+                        "VC has expiration date but no exp in registered claims".to_string(),
+                    ));
+                }
+                Some(exp) => {
+                    if vc_payload_expiration_date != &exp {
+                        return Err(CredentialError::ExpirationDateMismatch);
+                    }
 
-            if expiration_date != &exp.unwrap() {
-                return Err(CredentialError::IssuanceDateMismatch);
+                    let now = Utc::now().timestamp();
+                    if now > exp {
+                        return Err(CredentialError::CredentialExpired(
+                            "The verifiable credential has expired".to_string(),
+                        ));
+                    }
+                }
+            },
+            None => {
+                if let Some(exp) = exp {
+                    let now = Utc::now().timestamp();
+                    if now > exp {
+                        return Err(CredentialError::CredentialExpired(
+                            "The verifiable credential has expired".to_string(),
+                        ));
+                    }
+                }
             }
         }
 
-        if exp.is_some() {
-            let now = Utc::now().timestamp();
-            if now > exp.unwrap() {
-                return Err(CredentialError::CredentialExpired(
-                    "The verifiable credential has expired".to_string(),
-                ));
-            }
-        }
-
-        let mut vc_issuer = Issuer::String(iss.clone());
-
-        if let Some(Issuer::Object(_)) = vc_payload.issuer.as_ref() {
-            vc_issuer = vc_payload.issuer.clone().unwrap();
-        }
+        let vc_issuer = match vc_payload.issuer {
+            Some(Issuer::Object(ref issuer_obj)) => Issuer::Object(issuer_obj.clone()),
+            Some(Issuer::String(ref issuer_str)) => Issuer::String(issuer_str.clone()),
+            None => Issuer::String(iss),
+        };
 
         let vc_credential_subject =
             vc_payload
@@ -314,16 +325,16 @@ impl VerifiableCredential {
                 });
 
         let vc = VerifiableCredential {
-            context: vc_payload.context.clone(),
-            id: jti.clone(),
-            r#type: vc_payload.r#type.clone(),
-            issuer: vc_issuer.clone(),
+            context: vc_payload.context,
+            id: jti,
+            r#type: vc_payload.r#type,
+            issuer: vc_issuer,
             issuance_date: nbf,
             expiration_date: exp,
             credential_subject: vc_credential_subject,
         };
 
-        validate_vc_data_model(&vc).map_err(CredentialError::ValidationError)?;
+        validate_vc_data_model(&vc)?;
 
         Ok(vc)
     }
@@ -331,7 +342,7 @@ impl VerifiableCredential {
     pub fn decode(jwt: &str) -> Result<Self, CredentialError> {
         let jwt_decoded = Jwt::decode::<VcJwtClaims>(jwt)?;
 
-        let vc = jwt_decoded.claims.vc_payload.into_verifiable_credential();
+        let vc = jwt_decoded.claims.vc_payload.into();
         Ok(vc)
     }
 }
