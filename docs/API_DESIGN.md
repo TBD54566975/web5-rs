@@ -208,6 +208,8 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 | :------------------------------------------- | :--------------------------------------- |
 | `sign(jws_signer: &dyn JwsSigner) -> String` | See [`JwsSigner`](#jwssigner-interface). |
 
+🚧 This is under construction, incomplete 🚧
+
 | Static Method                                                                             | Notes                                        |
 | :---------------------------------------------------------------------------------------- | :------------------------------------------- |
 | `verify(jwt: &str) -> VerifiableCredential`                                               |                                              |
