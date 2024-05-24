@@ -111,17 +111,34 @@ pub struct JwtPayloadVerifiableCredential {
     credential_subject: Option<CredentialSubject>,
 }
 
-impl From<JwtPayloadVerifiableCredential> for VerifiableCredential {
-    fn from(payload: JwtPayloadVerifiableCredential) -> Self {
-        VerifiableCredential {
+impl TryFrom<JwtPayloadVerifiableCredential> for VerifiableCredential {
+    type Error = CredentialError;
+    fn try_from(payload: JwtPayloadVerifiableCredential) -> Result<Self, Self::Error> {
+        Ok(VerifiableCredential {
             context: payload.context,
-            id: payload.id.unwrap_or_default(),
+            id: payload
+                .id
+                .ok_or(CredentialError::VcDataModelValidationError(
+                    "invalid or missing id".to_string(),
+                ))?,
             r#type: payload.r#type,
-            issuer: payload.issuer.unwrap(),
-            issuance_date: payload.issuance_date.unwrap_or_default(),
+            issuer: payload
+                .issuer
+                .ok_or(CredentialError::VcDataModelValidationError(
+                    "invalid or missing issuer".to_string(),
+                ))?,
+            issuance_date: payload.issuance_date.ok_or(
+                CredentialError::VcDataModelValidationError(
+                    "invalid or missing issuance date".to_string(),
+                ),
+            )?,
             expiration_date: payload.expiration_date,
-            credential_subject: payload.credential_subject.unwrap(),
-        }
+            credential_subject: payload.credential_subject.ok_or(
+                CredentialError::VcDataModelValidationError(
+                    "invalid or missing credential subject".to_string(),
+                ),
+            )?,
+        })
     }
 }
 
@@ -257,20 +274,12 @@ impl VerifiableCredential {
             }
         }
 
-        let vc_issuer = match vc_payload.issuer {
-            Some(Issuer::Object(ref issuer_obj)) => Issuer::Object(issuer_obj.clone()),
-            Some(Issuer::String(ref issuer_str)) => Issuer::String(issuer_str.clone()),
-            None => Issuer::String(iss),
-        };
+        let vc_issuer = vc_payload.issuer.unwrap_or(Issuer::String(iss));
 
-        let vc_credential_subject =
-            vc_payload
-                .credential_subject
-                .clone()
-                .unwrap_or(CredentialSubject {
-                    id: sub,
-                    params: None,
-                });
+        let vc_credential_subject = vc_payload.credential_subject.unwrap_or(CredentialSubject {
+            id: sub,
+            params: None,
+        });
 
         let vc = VerifiableCredential {
             context: vc_payload.context,
@@ -289,8 +298,8 @@ impl VerifiableCredential {
 
     pub fn decode(jwt: &str) -> Result<Self, CredentialError> {
         let jwt_decoded = Jwt::decode::<VcJwtClaims>(jwt)?;
-
-        let vc = jwt_decoded.claims.vc_payload.into();
+        let vc_payload: JwtPayloadVerifiableCredential = jwt_decoded.claims.vc_payload;
+        let vc: VerifiableCredential = vc_payload.try_into()?;
         Ok(vc)
     }
 }
