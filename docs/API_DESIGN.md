@@ -5,10 +5,9 @@
 
 - [API Reference](#api-reference)
   - [Cryptography](#cryptography)
-      - [`JwsSigner` (Interface)](#jwssigner-interface)
-      - [`JwsVerifier` (Interface)](#jwsverifier-interface)
-      - [`KeySigner` (Interface)](#keysigner-interface)
-      - [`KeyVerifier` (Interface)](#keyverifier-interface)
+      - [`DigitalSignatureAlgorithm` (Interface)](#digitalsignaturealgorithm-interface)
+      - [`JoseDigitalSignatureAlgorithm` (Interface)](#josedigitalsignaturealgorithm-interface)
+      - [`Ed25519`](#ed25519)
       - [`InMemoryKeyManager`](#inmemorykeymanager)
         - [Examples](#examples)
   - [DIDs](#dids)
@@ -37,40 +36,27 @@
       - [`Optionality`](#optionality)
       - [`Filter`](#filter)
 - [Examples](#examples-1)
-  - [`InMemoryKeyManager` From Existing Private Keys](#inmemorykeymanager-from-existing-private-keys)
 
 # API Reference
 
 ## Cryptography
 
-#### `JwsSigner` (Interface)
+#### `DigitalSignatureAlgorithm` (Interface)
 
-| Instance Method                 | Notes |
-| :------------------------------ | :---- |
-| `sign(payload: &[u8]): Vec<u8>` |       |
+- generate
+- sign
+- verify
 
-#### `JwsVerifier` (Interface)
+#### `JoseDigitalSignatureAlgorithm` (Interface)
 
-| Instance Method                            | Notes |
-| :----------------------------------------- | :---- |
-| `verify(message: &[u8], signature: &[u8])` |       |
+- sign_jws
+- verify_jws
 
-#### `KeySigner` (Interface)
+#### `Ed25519`
 
-| Instance Method                                     | Notes                                                      |
-| :-------------------------------------------------- | :--------------------------------------------------------- |
-| `get_jws_signer(public_jwk: &Jwk): dyn JwsSigner`   | See [`Jwk`](#jwk) and [`JwsSigner`](#jwssigner-interface). |
-| `sign(public_jwk: &Jwk, payload: &[u8]) -> Vec<u8>` | See [`Jwk`](#jwk).                                         |
-
-#### `KeyVerifier` (Interface)
-
-| Instance Method                                       | Notes                                                          |
-| :---------------------------------------------------- | :------------------------------------------------------------- |
-| `get_jws_verifier(public_jwk: &Jwk): dyn JwsVerifier` | See [`Jwk`](#jwk) and [`JwsVerifier`](#jwsverifier-interface). |
+Implements [`DigitalSignatureAlgorithm`](#digitalsignaturealgorithm-interface) and [`JoseDigitalSignatureAlgorithm`](#josedigitalsignaturealgorithm-interface) for the Ed25519 curve.
 
 #### `InMemoryKeyManager`
-
-Implements [`KeySigner`](#keysigner-interface) and [`KeyVerifier`](#keyverifier-interface).
 
 Strictly uses Ed25519.
 
@@ -170,9 +156,6 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 | `identifier: Identifier` |       |
 | `document: Document`     |       |
 
-| Constructor | Notes |
-| ----------- | ----- |
-
 | Static Method                        | Notes                              |
 | :----------------------------------- | :--------------------------------- |
 | `create(public_jwk: &Jwk) -> DidJwk` | See [`Jwk`](#jwk).                 |
@@ -191,10 +174,10 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 | `identifier: Identifier` |       |
 | `document: Document`     |       |
 
-| Static Method                                                                                    | Notes                                                                                                                                                              |
-| :----------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `create(key_signer: &dyn KeySigner, identity_key: &Jwk, options: DidDhtCreateOptions) -> DidDht` | See [Identity Key](https://did-dht.com/#identity-key-pair), [`KeySigner`](#keysigner-interface), [`Jwk`](#jwk), and [`DidDhtCreateOptions`](#diddhtcreateoptions). |
-| `resolve(uri: &str) -> Resolution`                                                               |                                                                                                                                                                    |
+| Static Method                                                                                             | Notes                                                                                                                                                                                              |
+| :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `create(dsa: &dyn DigitalSignatureAlgorithm, identity_key: &Jwk, options: DidDhtCreateOptions) -> DidDht` | See [Identity Key](https://did-dht.com/#identity-key-pair), [`DigitalSignatureAlgorithm`](#digitalsignaturealgorithm-interface), [`Jwk`](#jwk), and [`DidDhtCreateOptions`](#diddhtcreateoptions). |
+| `resolve(uri: &str) -> Resolution`                                                                        |                                                                                                                                                                                                    |
 
 | Instance Method | Notes                                      |
 | --------------- | ------------------------------------------ |
@@ -214,14 +197,14 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 
 Data properties conformant to [Verifiable Credential Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model).
 
-| Instance Method                              | Notes                                    |
-| :------------------------------------------- | :--------------------------------------- |
-| `sign(jws_signer: &dyn JwsSigner) -> String` | See [`JwsSigner`](#jwssigner-interface). |
+| Instance Method                                                | Notes                                                                            |
+| :------------------------------------------------------------- | :------------------------------------------------------------------------------- |
+| `sign(jose_dsa: &dyn JoseDigitalSignatureAlgorithm) -> String` | See [`JoseDigitalSignatureAlgorithm`](#josedigitalsignaturealgorithm-interface). |
 
 
-| Static Method                                                                             | Notes                                        |
-| :---------------------------------------------------------------------------------------- | :------------------------------------------- |
-| `verify_with_verifier(jwt: &str, jws_verifier: &dyn JwsVerifier) -> VerifiableCredential` | See [`JwsVerifier`](#jwsverifier-interface). |
+| Static Method                                                                             | Notes                                                                            |
+| :---------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------- |
+| `verify(jwt: &str, jose_dsa: &dyn JoseDigitalSignatureAlgorithm) -> VerifiableCredential` | See [`JoseDigitalSignatureAlgorithm`](#josedigitalsignaturealgorithm-interface). |
 
 ### Presentation Exchange
 
@@ -283,40 +266,4 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 
 # Examples
 
-## `InMemoryKeyManager` From Existing Private Keys
-
-```rust
-let private_jwks = serde_json::from_string("{...your stringified JWK...}");
-let key_signer = InMemoryKeyManager::from_private_jwks(private_jwks);
-
-let did_uri = "did:dht:123456";
-let resolution = DidDht::resolve(did_uri).await;
-let public_jwk = resolution.document.verification_method[0].public_key_jwk;
-
-// ---
-
-let key_signer = InMemoryKeySigner::new();
-let public_jwk = key_signer.generate_private_key();
-
-let did_dht = DidDht::create(key_signer, public_jwk, DidDhtCreateOptions {});
-let universal_resolution = Resolution::resolve(did_dht.identifier.uri);
-let resolution = DidDht::resolve(did_dht.identifier.uri);
-
-// let did_jwk = DidJwk::create(public_jwk);
-// could resolve that too
-
-let vc = VerifiableCredential {
-    context: vec!["https://www.w3.org/2018/credentials/v1".to_string()],
-    id: "http://example.edu/credentials/1872".to_string(),
-    type_: vec!["VerifiableCredential".to_string()],
-    issuer: did_jwk.identifier.uri.clone(),
-    issuance_date: "2024-05-23T00:00:00Z".to_string(),
-    credential_subject: HashMap::new(),
-    proof: None,
-};
-let jws_signer = key_signer.get_jws_signer(public_jwk);
-let vcjwt = vc.sign(jws_signer);
-
-let jws_verifier = key_signer.get_jws_verifier(public_jwk);
-let vc = VerifiableCredential::verify_with_verifier(vcjwt, jws_verifier).await;
-```
+🚧 This is under construction, incomplete 🚧
