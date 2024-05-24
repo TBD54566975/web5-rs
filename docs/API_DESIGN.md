@@ -5,8 +5,8 @@
 
 - [API Reference](#api-reference)
   - [Cryptography](#cryptography)
-      - [`DigitalSignatureAlgorithm` (Interface)](#digitalsignaturealgorithm-interface)
-      - [`JoseDigitalSignatureAlgorithm` (Interface)](#josedigitalsignaturealgorithm-interface)
+      - [`Dsa` (Interface)](#dsa-interface)
+      - [`JoseDsa` (Interface)](#josedsa-interface)
       - [`Ed25519`](#ed25519)
       - [`InMemoryKeyManager`](#inmemorykeymanager)
         - [Examples](#examples)
@@ -41,20 +41,20 @@
 
 ## Cryptography
 
-#### `DigitalSignatureAlgorithm` (Interface)
+#### `Dsa` (Interface)
 
 - generate
 - sign
 - verify
 
-#### `JoseDigitalSignatureAlgorithm` (Interface)
+#### `JoseDsa` (Interface)
 
 - sign_jws
 - verify_jws
 
 #### `Ed25519`
 
-Implements [`DigitalSignatureAlgorithm`](#digitalsignaturealgorithm-interface) and [`JoseDigitalSignatureAlgorithm`](#josedigitalsignaturealgorithm-interface) for the Ed25519 curve.
+Implements [`Dsa`](#dsa-interface) and [`JoseDsa`](#josedsa-interface) for the Ed25519 curve.
 
 #### `InMemoryKeyManager`
 
@@ -174,10 +174,10 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 | `identifier: Identifier` |       |
 | `document: Document`     |       |
 
-| Static Method                                                                                             | Notes                                                                                                                                                                                              |
-| :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `create(dsa: &dyn DigitalSignatureAlgorithm, identity_key: &Jwk, options: DidDhtCreateOptions) -> DidDht` | See [Identity Key](https://did-dht.com/#identity-key-pair), [`DigitalSignatureAlgorithm`](#digitalsignaturealgorithm-interface), [`Jwk`](#jwk), and [`DidDhtCreateOptions`](#diddhtcreateoptions). |
-| `resolve(uri: &str) -> Resolution`                                                                        |                                                                                                                                                                                                    |
+| Static Method                                                                                             | Notes                                                                                                                                                                        |
+| :-------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `create(dsa: &dyn DigitalSignatureAlgorithm, identity_key: &Jwk, options: DidDhtCreateOptions) -> DidDht` | See [Identity Key](https://did-dht.com/#identity-key-pair), [`DigitalSignatureAlgorithm`](#dsa-interface), [`Jwk`](#jwk), and [`DidDhtCreateOptions`](#diddhtcreateoptions). |
+| `resolve(uri: &str) -> Resolution`                                                                        |                                                                                                                                                                              |
 
 | Instance Method | Notes                                      |
 | --------------- | ------------------------------------------ |
@@ -197,14 +197,14 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 
 Data properties conformant to [Verifiable Credential Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model).
 
-| Instance Method                                                | Notes                                                                            |
-| :------------------------------------------------------------- | :------------------------------------------------------------------------------- |
-| `sign(jose_dsa: &dyn JoseDigitalSignatureAlgorithm) -> String` | See [`JoseDigitalSignatureAlgorithm`](#josedigitalsignaturealgorithm-interface). |
+| Instance Method                          | Notes                                |
+| :--------------------------------------- | :----------------------------------- |
+| `sign(jose_dsa: &dyn JoseDsa) -> String` | See [`JoseDsa`](#josedsa-interface). |
 
 
-| Static Method                                                                             | Notes                                                                            |
-| :---------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------- |
-| `verify(jwt: &str, jose_dsa: &dyn JoseDigitalSignatureAlgorithm) -> VerifiableCredential` | See [`JoseDigitalSignatureAlgorithm`](#josedigitalsignaturealgorithm-interface). |
+| Static Method                                                       | Notes                                |
+| :------------------------------------------------------------------ | :----------------------------------- |
+| `verify(jwt: &str, jose_dsa: &dyn JoseDsa) -> VerifiableCredential` | See [`JoseDsa`](#josedsa-interface). |
 
 ### Presentation Exchange
 
