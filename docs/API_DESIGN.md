@@ -3,22 +3,24 @@
 
 # Web5 API Design <!-- omit in toc -->
 
-- [API Reference](#api-reference)
+- [Core API Reference](#core-api-reference)
+  - [Examples](#examples)
   - [Cryptography](#cryptography)
       - [`Dsa` (Interface)](#dsa-interface)
-      - [`JoseDsa` (Interface)](#josedsa-interface)
+      - [`JwsDsa` (Interface)](#jwsdsa-interface)
       - [`Ed25519`](#ed25519)
+      - [`Xd25519`](#xd25519)
+      - [`Secp256k1`](#secp256k1)
+      - [`Secp256r1`](#secp256r1)
+  - [Key Managers](#key-managers)
       - [`InMemoryKeyManager`](#inmemorykeymanager)
-        - [Examples](#examples)
   - [DIDs](#dids)
-      - [`Identifier`](#identifier)
-    - [Data Model](#data-model)
+      - [`Did`](#did)
       - [`Document`](#document)
       - [`VerificationMethod`](#verificationmethod)
       - [`Jwk`](#jwk)
       - [`Service`](#service)
-    - [Resolution](#resolution)
-      - [`Resolution`](#resolution-1)
+      - [`Resolution`](#resolution)
       - [`DocumentMetadata`](#documentmetadata)
       - [`ResolutionMetadata`](#resolutionmetadata)
     - [Methods](#methods)
@@ -28,58 +30,90 @@
         - [`DidDhtCreateOptions`](#diddhtcreateoptions)
   - [Credentials](#credentials)
       - [`VerifiableCredential`](#verifiablecredential)
-    - [Presentation Exchange](#presentation-exchange)
+  - [Presentation Exchange](#presentation-exchange)
       - [`PresentationDefinition`](#presentationdefinition)
       - [`InputDescriptor`](#inputdescriptor)
       - [`Constraints`](#constraints)
       - [`Field`](#field)
       - [`Optionality`](#optionality)
       - [`Filter`](#filter)
-- [Examples](#examples-1)
+- [Convenience API](#convenience-api)
+      - [`KeyManager` (Interface)](#keymanager-interface)
+      - [`LocalKeyManager`](#localkeymanager)
+      - [`BearerDid`](#bearerdid)
+      - [`VerifiableCredential`](#verifiablecredential-1)
+  - [Examples](#examples-1)
 
-# API Reference
+# Core API Reference
+
+## Examples
+
+🚧 This is under construction, incomplete 🚧
+
+```rust
+let key_manager = InMemoryKeyManager::new();
+let public_jwk = key_manager.generate_private_key();
+let dsa = key_manager.get_dsa(public_jwk);
+
+// create a did
+let did_dht = DidDht::create(dsa, public_jwk);
+
+// create a vc, sign it, and verify it
+let vc = VerifiableCredential{
+  issuer: did_dht.did.uri,
+  // todo other things
+};
+let vcjwt = vc.sign(dsa);
+VerifiableCredential::verify(vcjwt, dsa);
+```
 
 ## Cryptography
 
 #### `Dsa` (Interface)
 
-- generate
-- sign
-- verify
+| Static Method                                                           | Notes                        |
+| ----------------------------------------------------------------------- | ---------------------------- |
+| `generate_key(): Jwk`                                                   | 🚧 May need to be a keypair 🚧 |
+| `sign(private_jwk: &Jwk, payload: &[u8]) -> Vec<u8>`                    | See [`Jwk`](#jwk).           |
+| `verify(public_key: &Jwk, message: &[u8], signature: &[u8]) -> Vec<u8>` | See [`Jwk`](#jwk).           |
 
-#### `JoseDsa` (Interface)
+#### `JwsDsa` (Interface)
 
-- sign_jws
-- verify_jws
+| Static Method                                                           | Notes              |
+| ----------------------------------------------------------------------- | ------------------ |
+| `sign(private_jwk: &Jwk, payload: &[u8]) -> Vec<u8>`                    | See [`Jwk`](#jwk). |
+| `verify(public_key: &Jwk, message: &[u8], signature: &[u8]) -> Vec<u8>` | See [`Jwk`](#jwk). |
 
 #### `Ed25519`
 
-Implements [`Dsa`](#dsa-interface) and [`JoseDsa`](#josedsa-interface) for the Ed25519 curve.
+Implements [`Dsa`](#dsa-interface) and [`JwsDsa`](#jwsdsa-interface) for Ed25519.
 
-#### `InMemoryKeyManager`
+#### `Xd25519`
+
+Implements [`Dsa`](#dsa-interface) and [`JwsDsa`](#jwsdsa-interface) for Xd25519.
+
+#### `Secp256k1`
+
+Implements [`Dsa`](#dsa-interface) and [`JwsDsa`](#jwsdsa-interface) for secp256k1.
+
+#### `Secp256r1`
+
+Implements [`Dsa`](#dsa-interface) and [`JwsDsa`](#jwsdsa-interface) for secp256r1.
+
+## Key Managers
+
+#### `InMemoryKeyManager` 
 
 Strictly uses Ed25519.
 
-| Static Method                                                      | Notes                                    |
-| :----------------------------------------------------------------- | :--------------------------------------- |
-| `new() -> InMemoryKeyManager`                                      |                                          |
-| `from_private_jwks(private_jwks: &Vec<Jwk>) -> InMemoryKeyManager` | For import use cases. See [`Jwk`](#jwk). |
-
-| Instance Method               | Notes                                                                           |
-| :---------------------------- | :------------------------------------------------------------------------------ |
-| `generate_private_key(): Jwk` | Return [`Jwk`](#jwk) is a public key and MUST NOT contain private key material. |
-
-##### Examples
-
-From existing private key material:
-```rust
-let private_jwks = serde_json::from_string("[{...your stringified JWK...}]");
-let key_manager = InMemoryKeyManager::from_private_jwks(private_jwks);
-```
+| Instance Method                        | Notes                                                                           |
+| :------------------------------------- | :------------------------------------------------------------------------------ |
+| `generate_private_key(): Jwk`          | Return [`Jwk`](#jwk) is a public key and MUST NOT contain private key material. |
+| `get_dsa(public_jwk: &Jwk) -> Ed25519` |                                                                                 |
 
 ## DIDs
 
-#### `Identifier`
+#### `Did`
 
 | Property                                  | Notes |
 | :---------------------------------------- | :---- |
@@ -92,11 +126,9 @@ let key_manager = InMemoryKeyManager::from_private_jwks(private_jwks);
 | `query: Option<String>`                   |       |
 | `fragment: Option<String>`                |       |
 
-| Static Method                    | Notes |
-| :------------------------------- | :---- |
-| `parse(uri: &str) -> Identifier` |       |
-
-### Data Model
+| Static Method             | Notes |
+| :------------------------ | :---- |
+| `parse(uri: &str) -> Did` |       |
 
 #### `Document`
 
@@ -112,20 +144,18 @@ See [`Jwk`](#jwk) for `publicKeyJwk` implementation.
 
 🚧 Consider constraining in [`web5-spec`](https://github.com/TBD54566975/web5-spec) 🚧
 
-| Property            | Notes |
-| :------------------ | :---- |
-| `alg: String`       |       |
-| `kty: String`       |       |
-| `crv: String`       |       |
-| `d: Option<String>` |       |
-| `x: String`         |       |
-| `y: Option<String>` |       |
+| Property            | Notes                                                                                                                                                |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `alg: String`       |                                                                                                                                                      |
+| `kty: String`       |                                                                                                                                                      |
+| `crv: String`       |                                                                                                                                                      |
+| `d: Option<String>` | 🚧 `d` is private key material, consider removing here but how it works into [`Dsa`](#dsa-interface) and [`JwsDsa`](#jwsdsa-interface) requirements 🚧 |
+| `x: String`         |                                                                                                                                                      |
+| `y: Option<String>` |                                                                                                                                                      |
 
 #### `Service`
 
 Data properties conformant to [Service Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#service-data-model).
-
-### Resolution
 
 #### `Resolution`
 
@@ -151,10 +181,10 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 
 #### `DidJwk`
 
-| Property                 | Notes |
-| ------------------------ | ----- |
-| `identifier: Identifier` |       |
-| `document: Document`     |       |
+| Property             | Notes |
+| -------------------- | ----- |
+| `did: Did`           |       |
+| `document: Document` |       |
 
 | Static Method                        | Notes                              |
 | :----------------------------------- | :--------------------------------- |
@@ -169,15 +199,15 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 
 #### `DidDht`
 
-| Property                 | Notes |
-| ------------------------ | ----- |
-| `identifier: Identifier` |       |
-| `document: Document`     |       |
+| Property             | Notes |
+| -------------------- | ----- |
+| `did: Did`           |       |
+| `document: Document` |       |
 
-| Static Method                                                                                             | Notes                                                                                                                                                                        |
-| :-------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Static Method                                                                       | Notes                                                                                                                                                  |
+| :---------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `create(dsa: &dyn Dsa, identity_key: &Jwk, options: DidDhtCreateOptions) -> DidDht` | See [Identity Key](https://did-dht.com/#identity-key-pair), [`Dsa`](#dsa-interface), [`Jwk`](#jwk), and [`DidDhtCreateOptions`](#diddhtcreateoptions). |
-| `resolve(uri: &str) -> Resolution`                                                                        |                                                                                                                                                                              |
+| `resolve(uri: &str) -> Resolution`                                                  |                                                                                                                                                        |
 
 | Instance Method | Notes                                      |
 | --------------- | ------------------------------------------ |
@@ -197,16 +227,16 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 
 Data properties conformant to [Verifiable Credential Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model).
 
-| Instance Method                          | Notes                                |
-| :--------------------------------------- | :----------------------------------- |
-| `sign(jose_dsa: &dyn JoseDsa) -> String` | See [`JoseDsa`](#josedsa-interface). |
+| Instance Method                        | Notes                              |
+| :------------------------------------- | :--------------------------------- |
+| `sign(jws_dsa: &dyn JwsDsa) -> String` | See [`JwsDsa`](#jwsdsa-interface). |
 
 
-| Static Method                                                       | Notes                                |
-| :------------------------------------------------------------------ | :----------------------------------- |
-| `verify(jwt: &str, jose_dsa: &dyn JoseDsa) -> VerifiableCredential` | See [`JoseDsa`](#josedsa-interface). |
+| Static Method                                                     | Notes                              |
+| :---------------------------------------------------------------- | :--------------------------------- |
+| `verify(jwt: &str, jws_dsa: &dyn JwsDsa) -> VerifiableCredential` | See [`JwsDsa`](#jwsdsa-interface). |
 
-### Presentation Exchange
+## Presentation Exchange
 
 #### `PresentationDefinition` 
 
@@ -264,6 +294,28 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 | `const_value: Option<String>`   |                          |
 | `contains: Option<Box<Filter>>` | See [`Filter`](#filter). |
 
-# Examples
+# Convenience API 
+
+#### `KeyManager` (Interface)
+
+#### `LocalKeyManager`
+
+- generate private key
+- get public key
+- sign
+- import
+- export
+
+#### `BearerDid`
+
+- to portable did
+- from portable did
+- get signer
+
+#### `VerifiableCredential`
+
+- sign with bearer did
+
+## Examples
 
 🚧 This is under construction, incomplete 🚧
