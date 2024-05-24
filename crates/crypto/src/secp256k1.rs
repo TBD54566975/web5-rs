@@ -21,7 +21,7 @@ impl Secp256k1 {
         )?;
 
         let mut pk_bytes = Vec::with_capacity(1 + decoded_x.len() + decoded_y.len());
-        pk_bytes.push(0x04); // Uncompressed point indicator
+        pk_bytes.push(0x04); // Prefix 0x04 denotes public key is uncompressed
         pk_bytes.extend_from_slice(&decoded_x);
         pk_bytes.extend_from_slice(&decoded_y);
 
