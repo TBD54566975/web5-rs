@@ -40,7 +40,7 @@ impl VerificationMethod {
         &self,
         did_uri: &str,
         idx: u32,
-    ) -> Result<ResourceRecord<'static>, DocumentPacketError> {
+    ) -> Result<ResourceRecord, DocumentPacketError> {
         let curve = match self.public_key_jwk.crv.as_str() {
             // TODO: support remaining key types in key type index registry https://did-dht.com/registry/index.html#key-type-index
             "secp256r1" => return Err(DocumentPacketError::PublicKeyJwk(
