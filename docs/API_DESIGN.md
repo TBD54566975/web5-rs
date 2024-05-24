@@ -8,7 +8,9 @@
       - [`JwsSigner` (Interface)](#jwssigner-interface)
       - [`JwsVerifier` (Interface)](#jwsverifier-interface)
       - [`KeySigner` (Interface)](#keysigner-interface)
-      - [`InMemoryKeySigner`](#inmemorykeysigner)
+      - [`KeyVerifier` (Interface)](#keyverifier-interface)
+      - [`InMemoryKeyManager`](#inmemorykeymanager)
+        - [Examples](#examples)
   - [DIDs](#dids)
       - [`Identifier`](#identifier)
     - [Data Model](#data-model)
@@ -34,6 +36,8 @@
       - [`Field`](#field)
       - [`Optionality`](#optionality)
       - [`Filter`](#filter)
+- [Examples](#examples-1)
+  - [`InMemoryKeyManager` From Existing Private Keys](#inmemorykeymanager-from-existing-private-keys)
 
 # API Reference
 
@@ -58,20 +62,34 @@
 | `get_jws_signer(public_jwk: &Jwk): dyn JwsSigner`   | See [`Jwk`](#jwk) and [`JwsSigner`](#jwssigner-interface). |
 | `sign(public_jwk: &Jwk, payload: &[u8]) -> Vec<u8>` | See [`Jwk`](#jwk).                                         |
 
-#### `InMemoryKeySigner`
+#### `KeyVerifier` (Interface)
 
-Implements [`KeySigner`](#keysigner-interface).
+| Instance Method                                       | Notes                                                          |
+| :---------------------------------------------------- | :------------------------------------------------------------- |
+| `get_jws_verifier(public_jwk: &Jwk): dyn JwsVerifier` | See [`Jwk`](#jwk) and [`JwsVerifier`](#jwsverifier-interface). |
 
-Strictly uses Ed25519. Internalize implementation of [`JwsSigner`](#jwssigner-interface) (for return value of `get_jws_signer()` from [`KeySigner`](#keysigner-interface)).
+#### `InMemoryKeyManager`
 
-| Static Method                                                     | Notes                                    |
-| :---------------------------------------------------------------- | :--------------------------------------- |
-| `new() -> InMemoryKeySigner`                                      |                                          |
-| `from_private_jwks(private_jwks: &Vec<Jwk>) -> InMemoryKeySigner` | For import use cases. See [`Jwk`](#jwk). |
+Implements [`KeySigner`](#keysigner-interface) and [`KeyVerifier`](#keyverifier-interface).
+
+Strictly uses Ed25519.
+
+| Static Method                                                      | Notes                                    |
+| :----------------------------------------------------------------- | :--------------------------------------- |
+| `new() -> InMemoryKeyManager`                                      |                                          |
+| `from_private_jwks(private_jwks: &Vec<Jwk>) -> InMemoryKeyManager` | For import use cases. See [`Jwk`](#jwk). |
 
 | Instance Method               | Notes                                                                           |
 | :---------------------------- | :------------------------------------------------------------------------------ |
 | `generate_private_key(): Jwk` | Return [`Jwk`](#jwk) is a public key and MUST NOT contain private key material. |
+
+##### Examples
+
+From existing private key material:
+```rust
+let private_jwks = serde_json::from_string("[{...your stringified JWK...}]");
+let key_manager = InMemoryKeyManager::from_private_jwks(private_jwks);
+```
 
 ## DIDs
 
@@ -200,11 +218,9 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 | :------------------------------------------- | :--------------------------------------- |
 | `sign(jws_signer: &dyn JwsSigner) -> String` | See [`JwsSigner`](#jwssigner-interface). |
 
-🚧 This is under construction, incomplete 🚧
 
 | Static Method                                                                             | Notes                                        |
 | :---------------------------------------------------------------------------------------- | :------------------------------------------- |
-| `verify(jwt: &str) -> VerifiableCredential`                                               |                                              |
 | `verify_with_verifier(jwt: &str, jws_verifier: &dyn JwsVerifier) -> VerifiableCredential` | See [`JwsVerifier`](#jwsverifier-interface). |
 
 ### Presentation Exchange
@@ -264,3 +280,43 @@ Data properties conformant to [Verifiable Credential Data Model in the web5-spec
 | `pattern: Option<String>`       |                          |
 | `const_value: Option<String>`   |                          |
 | `contains: Option<Box<Filter>>` | See [`Filter`](#filter). |
+
+# Examples
+
+## `InMemoryKeyManager` From Existing Private Keys
+
+```rust
+let private_jwks = serde_json::from_string("{...your stringified JWK...}");
+let key_signer = InMemoryKeyManager::from_private_jwks(private_jwks);
+
+let did_uri = "did:dht:123456";
+let resolution = DidDht::resolve(did_uri).await;
+let public_jwk = resolution.document.verification_method[0].public_key_jwk;
+
+// ---
+
+let key_signer = InMemoryKeySigner::new();
+let public_jwk = key_signer.generate_private_key();
+
+let did_dht = DidDht::create(key_signer, public_jwk, DidDhtCreateOptions {});
+let universal_resolution = Resolution::resolve(did_dht.identifier.uri);
+let resolution = DidDht::resolve(did_dht.identifier.uri);
+
+// let did_jwk = DidJwk::create(public_jwk);
+// could resolve that too
+
+let vc = VerifiableCredential {
+    context: vec!["https://www.w3.org/2018/credentials/v1".to_string()],
+    id: "http://example.edu/credentials/1872".to_string(),
+    type_: vec!["VerifiableCredential".to_string()],
+    issuer: did_jwk.identifier.uri.clone(),
+    issuance_date: "2024-05-23T00:00:00Z".to_string(),
+    credential_subject: HashMap::new(),
+    proof: None,
+};
+let jws_signer = key_signer.get_jws_signer(public_jwk);
+let vcjwt = vc.sign(jws_signer);
+
+let jws_verifier = key_signer.get_jws_verifier(public_jwk);
+let vc = VerifiableCredential::verify_with_verifier(vcjwt, jws_verifier).await;
+```
