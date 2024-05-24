@@ -61,14 +61,7 @@ impl PublicKey for Jwk {
 
 impl PrivateKey for Jwk {
     fn to_public(&self) -> Result<Arc<dyn PublicKey>, KeyError> {
-        let public_key = Jwk {
-            alg: self.alg.clone(),
-            kty: self.kty.clone(),
-            crv: self.crv.clone(),
-            x: self.x.clone(),
-            y: self.y.clone(),
-            ..Default::default()
-        };
+        let public_key = self.to_public_jwk();
         Ok(Arc::new(public_key))
     }
 

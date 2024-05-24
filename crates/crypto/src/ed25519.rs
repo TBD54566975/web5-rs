@@ -9,7 +9,33 @@ use rand::rngs::OsRng;
 
 pub struct Ed25519;
 
-impl Ed25519 {}
+impl Ed25519 {
+    /// Get Ed25519 public key as bytes from public JWK
+    pub fn extract_public_key(jwk: &Jwk) -> Result<Vec<u8>, CryptoError> {
+        let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
+
+        if decoded_x.len() != PUBLIC_KEY_LENGTH {
+            return Err(CryptoError::InvalidKeyLength(PUBLIC_KEY_LENGTH.to_string()));
+        }
+
+        Ok(decoded_x)
+    }
+
+    /// Create public Jwk from Ed25519 public key bytes
+    pub fn from_public_key(public_key: &[u8]) -> Result<Jwk, CryptoError> {
+        if public_key.len() != PUBLIC_KEY_LENGTH {
+            return Err(CryptoError::InvalidKeyLength(PUBLIC_KEY_LENGTH.to_string()));
+        }
+
+        Ok(Jwk {
+            alg: "EdDSA".to_string(),
+            kty: "OKP".to_string(),
+            crv: "Ed25519".to_string(),
+            x: general_purpose::URL_SAFE_NO_PAD.encode(public_key),
+            ..Default::default()
+        })
+    }
+}
 
 impl CurveOperations for Ed25519 {
     fn generate() -> Result<Jwk, CryptoError> {
@@ -46,14 +72,8 @@ impl CurveOperations for Ed25519 {
     }
 
     fn verify(public_jwk: &Jwk, payload: &[u8], signature: &[u8]) -> Result<(), CryptoError> {
-        let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&public_jwk.x)?;
-
-        if decoded_x.len() != PUBLIC_KEY_LENGTH {
-            return Err(CryptoError::InvalidKeyLength(PUBLIC_KEY_LENGTH.to_string()));
-        }
-
         let mut public_key_bytes = [0u8; PUBLIC_KEY_LENGTH];
-        public_key_bytes.copy_from_slice(&decoded_x);
+        public_key_bytes.copy_from_slice(&Ed25519::extract_public_key(public_jwk)?);
         let verifying_key = VerifyingKey::from_bytes(&public_key_bytes)
             .map_err(|e| CryptoError::PublicKeyFailure(e.to_string()))?;
 
