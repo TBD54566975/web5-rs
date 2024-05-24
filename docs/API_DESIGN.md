@@ -176,7 +176,7 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 
 | Static Method                                                                                             | Notes                                                                                                                                                                        |
 | :-------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `create(dsa: &dyn DigitalSignatureAlgorithm, identity_key: &Jwk, options: DidDhtCreateOptions) -> DidDht` | See [Identity Key](https://did-dht.com/#identity-key-pair), [`DigitalSignatureAlgorithm`](#dsa-interface), [`Jwk`](#jwk), and [`DidDhtCreateOptions`](#diddhtcreateoptions). |
+| `create(dsa: &dyn Dsa, identity_key: &Jwk, options: DidDhtCreateOptions) -> DidDht` | See [Identity Key](https://did-dht.com/#identity-key-pair), [`Dsa`](#dsa-interface), [`Jwk`](#jwk), and [`DidDhtCreateOptions`](#diddhtcreateoptions). |
 | `resolve(uri: &str) -> Resolution`                                                                        |                                                                                                                                                                              |
 
 | Instance Method | Notes                                      |
