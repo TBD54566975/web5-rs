@@ -6,16 +6,31 @@
 - [API Reference](#api-reference)
   - [Examples](#examples)
   - [Cryptography](#cryptography)
-    - [`PublicJwk`](#publicjwk)
-    - [`PrivateJwk`](#privatejwk)
-    - [`JwkPair`](#jwkpair)
-    - [`DsaOps` (Interface)](#dsaops-interface)
-    - [`JwsDsaOps` (Interface)](#jwsdsaops-interface)
-    - [`Dsa` (Enumeration)](#dsa-enumeration)
-    - [`Ed25519`](#ed25519)
-    - [`Xd25519`](#xd25519)
-    - [`Secp256k1`](#secp256k1)
-    - [`Secp256r1`](#secp256r1)
+    - [`Jwk`](#jwk)
+    - [Digital Signature Algorithm (DSA)](#digital-signature-algorithm-dsa)
+      - [`Dsa` (Enumeration)](#dsa-enumeration)
+      - [`PrivateKeyMaterial` (Polymorphic Base Class)](#privatekeymaterial-polymorphic-base-class)
+      - [`PublicKeyMaterial` (Polymorphic Base Class)](#publickeymaterial-polymorphic-base-class)
+      - [`DsaSigner` (Polymorphic Base Class)](#dsasigner-polymorphic-base-class)
+      - [`DsaVerifier` (Polymorphic Base Class)](#dsaverifier-polymorphic-base-class)
+      - [`JwsSigner` (Polymorphic Base Class)](#jwssigner-polymorphic-base-class)
+      - [`JwsVerifier` (Polymorphic Base Class)](#jwsverifier-polymorphic-base-class)
+      - [`Ed25519PublicKeyMaterial`](#ed25519publickeymaterial)
+      - [`Ed25519PrivateKeyMaterial`](#ed25519privatekeymaterial)
+      - [`Ed25519Signer`](#ed25519signer)
+      - [`Ed25519Verifier`](#ed25519verifier)
+      - [`Xd25519PublicKeyMaterial`](#xd25519publickeymaterial)
+      - [`Xd25519PrivateKeyMaterial`](#xd25519privatekeymaterial)
+      - [`Xd25519Signer`](#xd25519signer)
+      - [`Xd25519Verifier`](#xd25519verifier)
+      - [`Secp256k1PublicKeyMaterial`](#secp256k1publickeymaterial)
+      - [`Secp256k1PrivateKeyMaterial`](#secp256k1privatekeymaterial)
+      - [`Secp256k1Signer`](#secp256k1signer)
+      - [`Secp256k1Verifier`](#secp256k1verifier)
+      - [`Secp256r1PublicKeyMaterial`](#secp256r1publickeymaterial)
+      - [`Secp256r1PrivateKeyMaterial`](#secp256r1privatekeymaterial)
+      - [`Secp256r1Signer`](#secp256r1signer)
+      - [`Secp256r1Verifier`](#secp256r1verifier)
   - [Key Managers](#key-managers)
     - [`InMemoryKeyManager`](#inmemorykeymanager)
     - [`BearerDidKeyManager`](#bearerdidkeymanager)
@@ -52,7 +67,7 @@ VerifiableCredential::verify(vcjwt, dsa);
 
 ## Cryptography
 
-### `PublicJwk`
+### `Jwk`
 
 🚧 Consider constraining in [`web5-spec`](https://github.com/TBD54566975/web5-spec) 🚧
 
@@ -63,72 +78,169 @@ VerifiableCredential::verify(vcjwt, dsa);
 | `crv: String`       |       |
 | `x: String`         |       |
 | `y: Option<String>` |       |
-
-| Instance Method                  | Notes |
-| :------------------------------- | :---- |
-| `compute_thumbprint() -> String` |       |
-
-### `PrivateJwk`
-
-🚧 Consider constraining in [`web5-spec`](https://github.com/TBD54566975/web5-spec) 🚧
-
-| Property            | Notes |
-| :------------------ | :---- |
-| `alg: String`       |       |
-| `kty: String`       |       |
-| `crv: String`       |       |
 | `d: Option<String>` |       |
-| `x: String`         |       |
-| `y: Option<String>` |       |
 
-### `JwkPair`
+| Instance Method                  | Notes            |
+| :------------------------------- | :--------------- |
+| `compute_thumbprint() -> String` | 🚧 link to spec 🚧 |
 
-| Property              | Notes |
-| :-------------------- | :---- |
-| `public: PublicJwk`   |       |
-| `private: PrivateJwk` |       |
+### Digital Signature Algorithm (DSA)
 
-### `DsaOps` (Interface)
+🚧 Consider using polymorphism for key material 🚧
 
-| Static Method                                                                 | Notes                            |
-| ----------------------------------------------------------------------------- | -------------------------------- |
-| `generate_key(): JwkPair`                                                     |                                  |
-| `sign(private_jwk: &PrivateJwk, payload: &[u8]) -> Vec<u8>`                   | See [`PrivateJwk`](#privatejwk). |
-| `verify(public_jwk: &PublicJwk, message: &[u8], signature: &[u8]) -> Vec<u8>` | See [`PublicJwk`](#publicjwk).   |
-
-### `JwsDsaOps` (Interface)
-
-| Static Method                                                                 | Notes                            |
-| ----------------------------------------------------------------------------- | -------------------------------- |
-| `sign(private_jwk: &PrivateJwk, payload: &[u8]) -> Vec<u8>`                   | See [`PrivateJwk`](#privatejwk). |
-| `verify(public_jwk: &PublicJwk, message: &[u8], signature: &[u8]) -> Vec<u8>` | See [`PublicJwk`](#publicjwk).   |
-
-### `Dsa` (Enumeration)
+#### `Dsa` (Enumeration)
 
 The set of Digital Signature Algorithm's natively supported within this SDK.
 
 | Value       |
-| ----------- |
+| :---------- |
 | `Ed22519`   |
 | `Xd22519`   |
 | `Secp256k1` |
 | `Secp256r1` |
 
-### `Ed25519`
+#### `PrivateKeyMaterial` (Polymorphic Base Class)
 
-Implements [`DsaOps`](#dsaops-interface) and [`JwsDsaOps`](#jwsdsaops-interface) for Ed25519.
+| Instance Method                                   | Notes |
+| ------------------------------------------------- | ----- |
+| `as_jwk(): Jwk`                                   |       |
+| `get_signer_bytes(): Vec<u8>`                     |       |
+| `to_public_key_material(): dyn PublicKeyMaterial` |       |
 
-### `Xd25519`
+#### `PublicKeyMaterial` (Polymorphic Base Class)
 
-Implements [`DsaOps`](#dsaops-interface) and [`JwsDsaOps`](#jwsdsaops-interface) for Xd25519.
+| Instance Method                 | Notes |
+| ------------------------------- | ----- |
+| `as_jwk(): Jwk`                 |       |
+| `get_verifier_bytes(): Vec<u8>` |       |
 
-### `Secp256k1`
+#### `DsaSigner` (Polymorphic Base Class)
 
-Implements [`DsaOps`](#dsaops-interface) and [`JwsDsaOps`](#jwsdsaops-interface) for secp256k1.
+Private key material must be encapsulated.
 
-### `Secp256r1`
+| Instance Method                   | Notes |
+| :-------------------------------- | :---- |
+| `sign(payload: &[u8]) -> Vec<u8>` |       |
 
-Implements [`DsaOps`](#dsaops-interface) and [`JwsDsaOps`](#jwsdsaops-interface) for secp256r1.
+#### `DsaVerifier` (Polymorphic Base Class)
+
+Public key material must be encapsulated.
+
+| Instance Method                                       | Notes |
+| :---------------------------------------------------- | :---- |
+| `verify(message: &[u8], signature: &[u8]) -> Vec<u8>` |       |
+
+#### `JwsSigner` (Polymorphic Base Class)
+
+Private key material must be encapsulated.
+
+| Instance Method                   | Notes |
+| :-------------------------------- | :---- |
+| `sign(payload: &[u8]) -> Vec<u8>` |       |
+
+#### `JwsVerifier` (Polymorphic Base Class)
+
+Public key material must be encapsulated.
+
+| Instance Method                                       | Notes |
+| :---------------------------------------------------- | :---- |
+| `verify(message: &[u8], signature: &[u8]) -> Vec<u8>` |       |
+
+#### `Ed25519PublicKeyMaterial`
+
+Implements [`PublicKeyMaterial`](#publickeymaterial-polymorphic-base-class) for Ed25519.
+
+🚧 define JWK representation 🚧
+
+#### `Ed25519PrivateKeyMaterial`
+
+Implements [`PrivateKeyMaterial`](#privatekeymaterial-polymorphic-base-class) for Ed25519.
+
+🚧 define JWK representation 🚧
+
+#### `Ed25519Signer`
+
+Implements [`DsaSigner`](#dsasigner-polymorphic-base-class) and [`JwsSigner`](#jwssigner-polymorphic-base-class) for Ed25519.
+
+| Property           | Notes |
+| ------------------ | ----- |
+| `private_key: Jwk` |       |
+
+| Constructor                      | Notes |
+| -------------------------------- | ----- |
+| `constructor(private_key: &Jwk)` |       |
+
+| Static Method                 | Notes |
+| ----------------------------- | ----- |
+| `generate_private_key(): Jwk` |       |
+
+#### `Ed25519Verifier`
+
+Implements [`DsaVerifier`](#dsaverifier-polymorphic-base-class) and [`JwsVerifier`](#jwsverifier-polymorphic-base-class) for Ed25519.
+
+| Constructor                     | Notes |
+| ------------------------------- | ----- |
+| `constructor(public_key: &Jwk)` |       |
+
+#### `Xd25519PublicKeyMaterial`
+
+Implements [`PublicKeyMaterial`](#publickeymaterial-polymorphic-base-class) for Xd25519.
+
+🚧 define JWK representation 🚧
+
+#### `Xd25519PrivateKeyMaterial`
+
+Implements [`PrivateKeyMaterial`](#privatekeymaterial-polymorphic-base-class) for Xd25519.
+
+🚧 define JWK representation 🚧
+
+#### `Xd25519Signer`
+
+Same as [`Ed25519Signer`](#ed25519signer) but for Xd25519.
+
+#### `Xd25519Verifier`
+
+Same as [`Ed25519Verifier`](#ed25519verifier) but for Xd25519.
+
+#### `Secp256k1PublicKeyMaterial`
+
+Implements [`PublicKeyMaterial`](#publickeymaterial-polymorphic-base-class) for Secp256k1.
+
+🚧 define JWK representation 🚧
+
+#### `Secp256k1PrivateKeyMaterial`
+
+Implements [`PrivateKeyMaterial`](#privatekeymaterial-polymorphic-base-class) for Secp256k1.
+
+🚧 define JWK representation 🚧
+
+#### `Secp256k1Signer`
+
+Same as [`Ed25519Signer`](#ed25519signer) but for secp256k1.
+
+#### `Secp256k1Verifier`
+
+Same as [`Ed25519Verifier`](#ed25519verifier) but for secp256k1.
+
+#### `Secp256r1PublicKeyMaterial`
+
+Implements [`PublicKeyMaterial`](#publickeymaterial-polymorphic-base-class) for Secp256r1.
+
+🚧 define JWK representation 🚧
+
+#### `Secp256r1PrivateKeyMaterial`
+
+Implements [`PrivateKeyMaterial`](#privatekeymaterial-polymorphic-base-class) for Secp256r1.
+
+🚧 define JWK representation 🚧
+
+#### `Secp256r1Signer`
+
+Same as [`Ed25519Signer`](#ed25519signer) but for secp256r1.
+
+#### `Secp256r1Verifier`
+
+Same as [`Ed25519Verifier`](#ed25519verifier) but for secp256r1.
 
 ## Key Managers
 
@@ -136,20 +248,20 @@ Implements [`DsaOps`](#dsaops-interface) and [`JwsDsaOps`](#jwsdsaops-interface)
 
 Strictly uses Ed25519.
 
-| Instance Method                              | Notes                          |
-| :------------------------------------------- | :----------------------------- |
-| `generate_key_pair(): PublicJwk`             | See [`PublicJwk`](#publicjwk). |
-| `get_dsa(public_jwk: &PublicJwk) -> Ed25519` |                                |
+| Instance Method                                 | Notes                                  |
+| :---------------------------------------------- | :------------------------------------- |
+| `generate_key_material(): Jwk`                  | See [`Jwk`](#jwk).                     |
+| `get_signer(public_jwk: &Jwk) -> Ed25519Signer` | See [`Ed25519Signer`](#ed25519signer). |
 
 ### `BearerDidKeyManager`
 
-| Instance Method                                         | Notes                                                                  |
-| ------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `generate_signing_key(alg: Dsa) -> String`              | Return string is equal to the key ID.                                  |
-| `get_public_key(key_id: String) -> PublicJwk`           | See [`PublicJwk`](#publicjwk).                                         |
-| `sign(key_id: String, payload: &[u8]) -> &[u8]`         |                                                                        |
-| `import_private_key(private_jwk: PrivateJwk) -> String` | See [`PrivateJwk`](#privatejwk). Return string is equal to the key ID. |
-| `export_private_key(key_id: String) -> Vec<PrivateJwk>` | See [`PrivateJwk`](#privatejwk).                                       |
+| Instance Method                                   | Notes                                                    |
+| :------------------------------------------------ | :------------------------------------------------------- |
+| `generate_private_key(alg: Dsa) -> String`        | Return string is equal to the key ID.                    |
+| `get_public_key(key_id: String) -> Jwk`           | See [`Jwk`](#jwk).                                       |
+| `sign(key_id: String, payload: &[u8]) -> Vec<u8>` |                                                          |
+| `import_key(key: Jwk) -> String`                  | See [`Jwk`](#jwk). Return string is equal to the key ID. |
+| `export_key(key_id: String) -> Jwk`               | See [`Jwk`](#jwk).                                       |
 
 ## DIDs
 
@@ -175,19 +287,19 @@ Data models conformant to _W3C Decentralized Identifiers v1.0_ [within the `web5
 ### `BearerDid`
 
 | Property                           | Notes |
-| ---------------------------------- | ----- |
+| :--------------------------------- | :---- |
 | `did: Did`                         |       |
 | `document: Document`               |       |
 | `key_manager: BearerDidKeyManager` |       |
 
-| Static Method                         | Notes |
-| ------------------------------------- | ----- |
-| `from_serialized(serialized: String)` |       |
+| Static Method                         | Notes                                                 |
+| :------------------------------------ | :---------------------------------------------------- |
+| `from_serialized(serialized: String)` | Where `serialized` is a JSON serialized portable DID. |
 
-| Instance Method                                   | Notes |
-| ------------------------------------------------- | ----- |
-| `to_serialized() -> String`                       |       |
-| `get_signer(vm_selector: VmSelector) -> function` | 🚧 🚧 🚧 |
+| Instance Method                                   | Notes                                                                 |
+| :------------------------------------------------ | :-------------------------------------------------------------------- |
+| `to_serialized() -> String`                       | Where the serialized return string is a JSON serialized portable DID. |
+| `get_signer(vm_selector: VmSelector) -> function` | 🚧 🚧 🚧                                                                 |
 
 ## Credentials
 
@@ -195,14 +307,15 @@ Data models conformant to _W3C Decentralized Identifiers v1.0_ [within the `web5
 
 Data models conformant to *W3C Verifiable Credentials v1.1* [within the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model).
 
-| Instance Method                                                          | Notes                                    |
-| :----------------------------------------------------------------------- | :--------------------------------------- |
-| `sign(jws_dsa: &dyn JwsDsaOps) -> String`                                | See [`JwsDsaOps`](#jwsdsaops-interface). |
-| `sign_with_did(bearer_did: BearerDid, options: VcSignOptions) -> String` | 🚧 opts 🚧                                 |
+| Instance Method                                                          | Notes                                                 |
+| :----------------------------------------------------------------------- | :---------------------------------------------------- |
+| `sign(jws_signer: &dyn JwsSigner) -> String`                             | See [`JwsSigner`](#jwssigner-polymorphic-base-class). |
+| `sign_with_did(bearer_did: BearerDid, options: VcSignOptions) -> String` | 🚧 opts 🚧                                              |
 
-| Static Method                                                        | Notes                                    |
-| :------------------------------------------------------------------- | :--------------------------------------- |
-| `verify(jwt: &str, jws_dsa: &dyn JwsDsaOps) -> VerifiableCredential` | See [`JwsDsaOps`](#jwsdsaops-interface). |
+| Static Method                                                                 | Notes                                                                                                |
+| :---------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
+| `verify_with_defaults(vcjwt: &str) -> VerifiableCredential`                   | Where the natively supported [`Dsa`](#dsa-enumeration)'s are applied for cryptographic verification. |
+| `verify(vcjwt: &str, jws_verifier: &dyn JwsVerifier) -> VerifiableCredential` | See [`JwsVerifier`](#jwsverifier-polymorphic-base-class).                                            |
 
 ## Presentation Exchange
 
@@ -211,5 +324,5 @@ Data models...
 ### `PresentationDefinition` 
 
 | Instance Method                                            | Notes |
-| ---------------------------------------------------------- | ----- |
+| :--------------------------------------------------------- | :---- |
 | `select_credentials(vc_jwts: &Vec<String>) -> Vec<String>` |       |
