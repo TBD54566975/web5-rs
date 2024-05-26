@@ -6,7 +6,9 @@
 - [API Reference](#api-reference)
   - [Examples](#examples)
   - [Cryptography](#cryptography)
-    - [`Jwk`](#jwk)
+    - [`PublicJwk`](#publicjwk)
+    - [`PrivateJwk`](#privatejwk)
+    - [`JwkPair`](#jwkpair)
     - [`DsaOps` (Interface)](#dsaops-interface)
     - [`JwsDsaOps` (Interface)](#jwsdsaops-interface)
     - [`Dsa` (Enumeration)](#dsa-enumeration)
@@ -50,39 +52,60 @@ VerifiableCredential::verify(vcjwt, dsa);
 
 ## Cryptography
 
-### `Jwk`
+### `PublicJwk`
 
 🚧 Consider constraining in [`web5-spec`](https://github.com/TBD54566975/web5-spec) 🚧
 
-| Property            | Notes                                                                                                                                                |
-| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `alg: String`       |                                                                                                                                                      |
-| `kty: String`       |                                                                                                                                                      |
-| `crv: String`       |                                                                                                                                                      |
-| `d: Option<String>` | 🚧 `d` is private key material, consider removing here but how it works into [`Dsa`](#dsa-interface) and [`JwsDsa`](#jwsdsa-interface) requirements 🚧 |
-| `x: String`         |                                                                                                                                                      |
-| `y: Option<String>` |                                                                                                                                                      |
+| Property            | Notes |
+| :------------------ | :---- |
+| `alg: String`       |       |
+| `kty: String`       |       |
+| `crv: String`       |       |
+| `x: String`         |       |
+| `y: Option<String>` |       |
 
 | Instance Method                  | Notes |
-| -------------------------------- | ----- |
+| :------------------------------- | :---- |
 | `compute_thumbprint() -> String` |       |
+
+### `PrivateJwk`
+
+🚧 Consider constraining in [`web5-spec`](https://github.com/TBD54566975/web5-spec) 🚧
+
+| Property            | Notes |
+| :------------------ | :---- |
+| `alg: String`       |       |
+| `kty: String`       |       |
+| `crv: String`       |       |
+| `d: Option<String>` |       |
+| `x: String`         |       |
+| `y: Option<String>` |       |
+
+### `JwkPair`
+
+| Property              | Notes |
+| :-------------------- | :---- |
+| `public: PublicJwk`   |       |
+| `private: PrivateJwk` |       |
 
 ### `DsaOps` (Interface)
 
-| Static Method                                                           | Notes                        |
-| ----------------------------------------------------------------------- | ---------------------------- |
-| `generate_key(): Jwk`                                                   | 🚧 May need to be a keypair 🚧 |
-| `sign(private_jwk: &Jwk, payload: &[u8]) -> Vec<u8>`                    | See [`Jwk`](#jwk).           |
-| `verify(public_key: &Jwk, message: &[u8], signature: &[u8]) -> Vec<u8>` | See [`Jwk`](#jwk).           |
+| Static Method                                                                 | Notes                            |
+| ----------------------------------------------------------------------------- | -------------------------------- |
+| `generate_key(): JwkPair`                                                     |                                  |
+| `sign(private_jwk: &PrivateJwk, payload: &[u8]) -> Vec<u8>`                   | See [`PrivateJwk`](#privatejwk). |
+| `verify(public_jwk: &PublicJwk, message: &[u8], signature: &[u8]) -> Vec<u8>` | See [`PublicJwk`](#publicjwk).   |
 
 ### `JwsDsaOps` (Interface)
 
-| Static Method                                                           | Notes              |
-| ----------------------------------------------------------------------- | ------------------ |
-| `sign(private_jwk: &Jwk, payload: &[u8]) -> Vec<u8>`                    | See [`Jwk`](#jwk). |
-| `verify(public_key: &Jwk, message: &[u8], signature: &[u8]) -> Vec<u8>` | See [`Jwk`](#jwk). |
+| Static Method                                                                 | Notes                            |
+| ----------------------------------------------------------------------------- | -------------------------------- |
+| `sign(private_jwk: &PrivateJwk, payload: &[u8]) -> Vec<u8>`                   | See [`PrivateJwk`](#privatejwk). |
+| `verify(public_jwk: &PublicJwk, message: &[u8], signature: &[u8]) -> Vec<u8>` | See [`PublicJwk`](#publicjwk).   |
 
 ### `Dsa` (Enumeration)
+
+The set of Digital Signature Algorithm's natively supported within this SDK.
 
 | Value       |
 | ----------- |
@@ -113,20 +136,20 @@ Implements [`DsaOps`](#dsaops-interface) and [`JwsDsaOps`](#jwsdsaops-interface)
 
 Strictly uses Ed25519.
 
-| Instance Method                        | Notes                                                                           |
-| :------------------------------------- | :------------------------------------------------------------------------------ |
-| `generate_private_key(): Jwk`          | Return [`Jwk`](#jwk) is a public key and MUST NOT contain private key material. |
-| `get_dsa(public_jwk: &Jwk) -> Ed25519` |                                                                                 |
+| Instance Method                              | Notes                          |
+| :------------------------------------------- | :----------------------------- |
+| `generate_key_pair(): PublicJwk`             | See [`PublicJwk`](#publicjwk). |
+| `get_dsa(public_jwk: &PublicJwk) -> Ed25519` |                                |
 
 ### `BearerDidKeyManager`
 
-| Instance Method                                  | Notes                                                    |
-| ------------------------------------------------ | -------------------------------------------------------- |
-| `generate_signing_key(alg: Alg) -> String`       | Return string is equal to the key ID.                    |
-| `get_public_key(key_id: String) -> Jwk`          | See [`Jwk`](#jwk).                                       |
-| `sign(key_id: String, payload: &[u8]) -> &[u8]`  |                                                          |
-| `import_private_key(jwk: Jwk) -> String`         | See [`Jwk`](#jwk). Return string is equal to the key ID. |
-| `export_private_key(key_id: String) -> Vec<Jwk>` | See [`Jwk`](#jwk).                                       |
+| Instance Method                                         | Notes                                                                  |
+| ------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `generate_signing_key(alg: Dsa) -> String`              | Return string is equal to the key ID.                                  |
+| `get_public_key(key_id: String) -> PublicJwk`           | See [`PublicJwk`](#publicjwk).                                         |
+| `sign(key_id: String, payload: &[u8]) -> &[u8]`         |                                                                        |
+| `import_private_key(private_jwk: PrivateJwk) -> String` | See [`PrivateJwk`](#privatejwk). Return string is equal to the key ID. |
+| `export_private_key(key_id: String) -> Vec<PrivateJwk>` | See [`PrivateJwk`](#privatejwk).                                       |
 
 ## DIDs
 
@@ -151,11 +174,11 @@ Data models conformant to _W3C Decentralized Identifiers v1.0_ [within the `web5
 
 ### `BearerDid`
 
-| Property                       | Notes |
-| ------------------------------ | ----- |
-| `did: Did`                     |       |
-| `document: Document`           |       |
-| `key_manager: LocalKeyManager` |       |
+| Property                           | Notes |
+| ---------------------------------- | ----- |
+| `did: Did`                         |       |
+| `document: Document`               |       |
+| `key_manager: BearerDidKeyManager` |       |
 
 | Static Method                         | Notes |
 | ------------------------------------- | ----- |
@@ -163,7 +186,7 @@ Data models conformant to _W3C Decentralized Identifiers v1.0_ [within the `web5
 
 | Instance Method                                   | Notes |
 | ------------------------------------------------- | ----- |
-| `to_serialized() -> Strin`                        |       |
+| `to_serialized() -> String`                       |       |
 | `get_signer(vm_selector: VmSelector) -> function` | 🚧 🚧 🚧 |
 
 ## Credentials
@@ -172,14 +195,14 @@ Data models conformant to _W3C Decentralized Identifiers v1.0_ [within the `web5
 
 Data models conformant to *W3C Verifiable Credentials v1.1* [within the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model).
 
-| Instance Method                                                          | Notes                              |
-| :----------------------------------------------------------------------- | :--------------------------------- |
-| `sign(jws_dsa: &dyn JwsDsa) -> String`                                   | See [`JwsDsa`](#jwsdsa-interface). |
-| `sign_with_did(bearer_did: BearerDid, options: VcSignOptions) -> String` | 🚧 opts 🚧                           |
+| Instance Method                                                          | Notes                                    |
+| :----------------------------------------------------------------------- | :--------------------------------------- |
+| `sign(jws_dsa: &dyn JwsDsaOps) -> String`                                | See [`JwsDsaOps`](#jwsdsaops-interface). |
+| `sign_with_did(bearer_did: BearerDid, options: VcSignOptions) -> String` | 🚧 opts 🚧                                 |
 
-| Static Method                                                     | Notes                              |
-| :---------------------------------------------------------------- | :--------------------------------- |
-| `verify(jwt: &str, jws_dsa: &dyn JwsDsa) -> VerifiableCredential` | See [`JwsDsa`](#jwsdsa-interface). |
+| Static Method                                                        | Notes                                    |
+| :------------------------------------------------------------------- | :--------------------------------------- |
+| `verify(jwt: &str, jws_dsa: &dyn JwsDsaOps) -> VerifiableCredential` | See [`JwsDsaOps`](#jwsdsaops-interface). |
 
 ## Presentation Exchange
 
