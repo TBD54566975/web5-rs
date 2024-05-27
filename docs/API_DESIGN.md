@@ -59,7 +59,6 @@
     - [`Optionality`](#optionality)
     - [`Filter`](#filter)
   - [Bearer DID](#bearer-did)
-    - [`PortableDid`](#portabledid)
     - [`BearerDid`](#bearerdid)
     - [`LocalKeyManager`](#localkeymanager)
     - [`VerificationMethodSelector`](#verificationmethodselector)
@@ -474,19 +473,6 @@ Data models conformant to *W3C Verifiable Credentials v1.1* [within the web5-spe
 
 ## Bearer DID
 
-### `PortableDid`
-
-A JSON serializable representation of a `BearerDid`.
-
-> [!WARNING]
-> This contains serialized private keys! Not equipped for production use cases.
-
-| Property                 | Notes |
-| ------------------------ | ----- |
-| `uri: String`            |       |
-| `document: Document`     |       |
-| `private_keys: Vec<Jwk>` |       |
-
 ### `BearerDid`
 
 | Property                       | Notes |
@@ -495,25 +481,23 @@ A JSON serializable representation of a `BearerDid`.
 | `document: Document`           |       |
 | `key_manager: LocalKeyManager` |       |
 
-| Static Method                                                   | Notes                        |
-| :-------------------------------------------------------------- | :--------------------------- |
-| `from_serialized_portable_did(serialized_portable_did: String)` |                              |
-| `create_did_jwk(alg: Option<Dsa>) -> BearerDid`                 | `alg` defaults to `Ed25519`. |
-| `create_did_dht(options: DidDhtCreateOptions) -> BearerDid`     |                              |
+| Static Method                                               | Notes                        |
+| :---------------------------------------------------------- | :--------------------------- |
+| `from_private_keys(uri: &str, private_keys: Vec<Jwk>)`      | See [`Jwk`](#jwk).           |
+| `create_did_jwk(alg: Option<Dsa>) -> BearerDid`             | `alg` defaults to `Ed25519`. |
+| `create_did_dht(options: DidDhtCreateOptions) -> BearerDid` |                              |
 
-| Instance Method                                                                          | Notes                                                                                  |
-| :--------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
-| `to_serialized_portable_did() -> String`                                                 | Where the serialized return string is a JSON serialized [`PortableDid`](#portabledid). |
-| `sign_vcjwt(vc VerifiableCredential, vm_selector: VerificationMethodSelector) -> String` |                                                                                        |
-| `update_did_dht(...todo)`                                                                | 🚧                                                                                      |
-| `deactive_did_dht(...todo)`                                                              | 🚧                                                                                      |
+| Instance Method                                                                          | Notes |
+| :--------------------------------------------------------------------------------------- | :---- |
+| `sign_vcjwt(vc VerifiableCredential, vm_selector: VerificationMethodSelector) -> String` |       |
+| `update_did_dht(...todo)`                                                                | 🚧     |
+| `deactive_did_dht(...todo)`                                                              | 🚧     |
 
 ### `LocalKeyManager`
 
 | Instance Method                                     | Notes                                                                                  |
 | :-------------------------------------------------- | :------------------------------------------------------------------------------------- |
 | `import_keys(private_keys: Vec<Jwk>)`               | See [`Jwk`](#jwk).                                                                     |
-| `export_keys() -> Vec<Jwk>`                         | See [`Jwk`](#jwk).                                                                     |
 | `generate_key_material(alg: Dsa) -> Jwk`            | Return [`Jwk`](#jwk) is equal to the public key.                                       |
 | `get_dsa_signer(public_key: &Jwk) -> dyn DsaSigner` | See [`DsaSigner`](#dsasigner-polymorphic-base-class). ([KW] needed for did:dht create) |
 | `get_jws_signer(public_key: &Jwk) -> dyn JwsSigner` | See [`JwsSigner`](#jwssigner-polymorphic-base-class). ([KW] needed for vc sign)        |
