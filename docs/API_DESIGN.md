@@ -17,18 +17,22 @@
       - [`JwsVerifier` (Polymorphic Base Class)](#jwsverifier-polymorphic-base-class)
       - [`Ed25519PublicKeyMaterial`](#ed25519publickeymaterial)
       - [`Ed25519PrivateKeyMaterial`](#ed25519privatekeymaterial)
+      - [`Ed25519Generator`](#ed25519generator)
       - [`Ed25519Signer`](#ed25519signer)
       - [`Ed25519Verifier`](#ed25519verifier)
       - [`Xd25519PublicKeyMaterial`](#xd25519publickeymaterial)
       - [`Xd25519PrivateKeyMaterial`](#xd25519privatekeymaterial)
+      - [`Xd25519Generator`](#xd25519generator)
       - [`Xd25519Signer`](#xd25519signer)
       - [`Xd25519Verifier`](#xd25519verifier)
       - [`Secp256k1PublicKeyMaterial`](#secp256k1publickeymaterial)
       - [`Secp256k1PrivateKeyMaterial`](#secp256k1privatekeymaterial)
+      - [`Secp256k1Generator`](#secp256k1generator)
       - [`Secp256k1Signer`](#secp256k1signer)
       - [`Secp256k1Verifier`](#secp256k1verifier)
       - [`Secp256r1PublicKeyMaterial`](#secp256r1publickeymaterial)
       - [`Secp256r1PrivateKeyMaterial`](#secp256r1privatekeymaterial)
+      - [`Secp256r1Generator`](#secp256r1generator)
       - [`Secp256r1Signer`](#secp256r1signer)
       - [`Secp256r1Verifier`](#secp256r1verifier)
   - [Key Managers](#key-managers)
@@ -54,7 +58,9 @@
     - [`Optionality`](#optionality)
     - [`Filter`](#filter)
   - [Bearer DID](#bearer-did)
+    - [`PortableDid`](#portabledid)
     - [`BearerDid`](#bearerdid)
+    - [`KeyManager` (Polymorphic Base Class)](#keymanager-polymorphic-base-class)
     - [`LocalKeyManager`](#localkeymanager)
     - [`VerificationMethodSelector`](#verificationmethodselector)
 
@@ -174,6 +180,12 @@ Implements [`PrivateKeyMaterial`](#privatekeymaterial-polymorphic-base-class) fo
 
 🚧 define JWK representation 🚧
 
+#### `Ed25519Generator`
+
+| Static Method                                                | Notes |
+| :----------------------------------------------------------- | :---- |
+| `generate_private_key_material(): Ed25519PrivateKeyMaterial` |       |
+
 #### `Ed25519Signer`
 
 Implements [`DsaSigner`](#dsasigner-polymorphic-base-class) and [`JwsSigner`](#jwssigner-polymorphic-base-class) for Ed25519.
@@ -185,10 +197,6 @@ Implements [`DsaSigner`](#dsasigner-polymorphic-base-class) and [`JwsSigner`](#j
 | Constructor                      | Notes |
 | :------------------------------- | :---- |
 | `constructor(private_key: &Jwk)` |       |
-
-| Static Method                 | Notes |
-| :---------------------------- | :---- |
-| `generate_private_key(): Jwk` |       |
 
 #### `Ed25519Verifier`
 
@@ -210,6 +218,12 @@ Implements [`PrivateKeyMaterial`](#privatekeymaterial-polymorphic-base-class) fo
 
 🚧 define JWK representation 🚧
 
+#### `Xd25519Generator`
+
+| Static Method                                                | Notes |
+| :----------------------------------------------------------- | :---- |
+| `generate_private_key_material(): Xd25519PrivateKeyMaterial` |       |
+
 #### `Xd25519Signer`
 
 Same as [`Ed25519Signer`](#ed25519signer) but for Xd25519.
@@ -230,6 +244,12 @@ Implements [`PrivateKeyMaterial`](#privatekeymaterial-polymorphic-base-class) fo
 
 🚧 define JWK representation 🚧
 
+#### `Secp256k1Generator`
+
+| Static Method                                                  | Notes |
+| :------------------------------------------------------------- | :---- |
+| `generate_private_key_material(): Secp256k1PrivateKeyMaterial` |       |
+
 #### `Secp256k1Signer`
 
 Same as [`Ed25519Signer`](#ed25519signer) but for secp256k1.
@@ -249,6 +269,12 @@ Implements [`PublicKeyMaterial`](#publickeymaterial-polymorphic-base-class) for 
 Implements [`PrivateKeyMaterial`](#privatekeymaterial-polymorphic-base-class) for Secp256r1.
 
 🚧 define JWK representation 🚧
+
+#### `Secp256r1Generator`
+
+| Static Method                                                  | Notes |
+| :------------------------------------------------------------- | :---- |
+| `generate_private_key_material(): Secp256r1PrivateKeyMaterial` |       |
 
 #### `Secp256r1Signer`
 
@@ -411,26 +437,39 @@ Data models conformant to *W3C Verifiable Credentials v1.1* [within the web5-spe
 
 ## Bearer DID
 
+### `PortableDid`
+
+A JSON serializable representation of a `BearerDid`.
+
+> [!WARNING]
+> This contains serialized private keys! Not equipped for production use cases.
+
+| Property                 | Notes |
+| ------------------------ | ----- |
+| `uri: String`            |       |
+| `document: Document`     |       |
+| `private_keys: Vec<Jwk>` |       |
+
 ### `BearerDid`
 
-| Property                       | Notes |
-| :----------------------------- | :---- |
-| `did: Did`                     |       |
-| `document: Document`           |       |
-| `key_manager: LocalKeyManager` |       |
+| Property                  | Notes |
+| :------------------------ | :---- |
+| `did: Did`                |       |
+| `document: Document`      |       |
+| `key_manager: KeyManager` |       |
 
-| Static Method                         | Notes                                                 |
-| :------------------------------------ | :---------------------------------------------------- |
-| `from_serialized(serialized: String)` | Where `serialized` is a JSON serialized portable DID. |
-| `create_did_jwk(options)`             | 🚧                                                     |
-| `create_did_dht(options)`             | 🚧                                                     |
+| Static Method                                                   | Notes |
+| :-------------------------------------------------------------- | :---- |
+| `from_serialized_portable_did(serialized_portable_did: String)` |       |
+| `create_did_jwk(options)`                                       | 🚧     |
+| `create_did_dht(options)`                                       | 🚧     |
 
-| Instance Method                                 | Notes                                                                 |
-| :---------------------------------------------- | :-------------------------------------------------------------------- |
-| `to_serialized() -> String`                     | Where the serialized return string is a JSON serialized portable DID. |
-| `sign_vcjwt(vc VerifiableCredential) -> String` |                                                                       |
+| Instance Method                                 | Notes                                                                                  |
+| :---------------------------------------------- | :------------------------------------------------------------------------------------- |
+| `to_serialized_portable_did() -> String`        | Where the serialized return string is a JSON serialized [`PortableDid`](#portabledid). |
+| `sign_vcjwt(vc VerifiableCredential) -> String` |                                                                                        |
 
-### `LocalKeyManager`
+### `KeyManager` (Polymorphic Base Class)
 
 | Instance Method                                   | Notes                                                    |
 | :------------------------------------------------ | :------------------------------------------------------- |
@@ -439,6 +478,10 @@ Data models conformant to *W3C Verifiable Credentials v1.1* [within the web5-spe
 | `sign(key_id: String, payload: &[u8]) -> Vec<u8>` |                                                          |
 | `import_key(key: Jwk) -> String`                  | See [`Jwk`](#jwk). Return string is equal to the key ID. |
 | `export_key(key_id: String) -> Jwk`               | See [`Jwk`](#jwk).                                       |
+
+### `LocalKeyManager`
+
+Implementation of [`KeyManager`](#keymanager-polymorphic-base-class) which manages key material in working memory.
 
 ### `VerificationMethodSelector`
 
