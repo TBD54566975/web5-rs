@@ -33,14 +33,30 @@
       - [`Secp256r1Verifier`](#secp256r1verifier)
   - [Key Managers](#key-managers)
     - [`InMemoryKeyManager`](#inmemorykeymanager)
-    - [`BearerDidKeyManager`](#bearerdidkeymanager)
   - [DIDs](#dids)
     - [`Did`](#did)
-    - [`BearerDid`](#bearerdid)
+    - [`Document`](#document)
+    - [`VerificationMethod`](#verificationmethod)
+    - [`Service`](#service)
+    - [`Resolution`](#resolution)
+    - [`DocumentMetadata`](#documentmetadata)
+    - [`ResolutionMetadata`](#resolutionmetadata)
+    - [`DidJwk`](#didjwk)
+    - [`DidWeb`](#didweb)
+    - [`DidDht`](#diddht)
   - [Credentials](#credentials)
     - [`VerifiableCredential`](#verifiablecredential)
   - [Presentation Exchange](#presentation-exchange)
     - [`PresentationDefinition`](#presentationdefinition)
+    - [`InputDescriptor`](#inputdescriptor)
+    - [`Constraints`](#constraints)
+    - [`Field`](#field)
+    - [`Optionality`](#optionality)
+    - [`Filter`](#filter)
+  - [Bearer DID](#bearer-did)
+    - [`BearerDid`](#bearerdid)
+    - [`LocalKeyManager`](#localkeymanager)
+    - [`VerificationMethodSelector`](#verificationmethodselector)
 
 # API Reference
 
@@ -102,7 +118,7 @@ The set of Digital Signature Algorithm's natively supported within this SDK.
 #### `PrivateKeyMaterial` (Polymorphic Base Class)
 
 | Instance Method                                   | Notes |
-| ------------------------------------------------- | ----- |
+| :------------------------------------------------ | :---- |
 | `as_jwk(): Jwk`                                   |       |
 | `get_signer_bytes(): Vec<u8>`                     |       |
 | `to_public_key_material(): dyn PublicKeyMaterial` |       |
@@ -110,7 +126,7 @@ The set of Digital Signature Algorithm's natively supported within this SDK.
 #### `PublicKeyMaterial` (Polymorphic Base Class)
 
 | Instance Method                 | Notes |
-| ------------------------------- | ----- |
+| :------------------------------ | :---- |
 | `as_jwk(): Jwk`                 |       |
 | `get_verifier_bytes(): Vec<u8>` |       |
 
@@ -163,15 +179,15 @@ Implements [`PrivateKeyMaterial`](#privatekeymaterial-polymorphic-base-class) fo
 Implements [`DsaSigner`](#dsasigner-polymorphic-base-class) and [`JwsSigner`](#jwssigner-polymorphic-base-class) for Ed25519.
 
 | Property           | Notes |
-| ------------------ | ----- |
+| :----------------- | :---- |
 | `private_key: Jwk` |       |
 
 | Constructor                      | Notes |
-| -------------------------------- | ----- |
+| :------------------------------- | :---- |
 | `constructor(private_key: &Jwk)` |       |
 
 | Static Method                 | Notes |
-| ----------------------------- | ----- |
+| :---------------------------- | :---- |
 | `generate_private_key(): Jwk` |       |
 
 #### `Ed25519Verifier`
@@ -179,7 +195,7 @@ Implements [`DsaSigner`](#dsasigner-polymorphic-base-class) and [`JwsSigner`](#j
 Implements [`DsaVerifier`](#dsaverifier-polymorphic-base-class) and [`JwsVerifier`](#jwsverifier-polymorphic-base-class) for Ed25519.
 
 | Constructor                     | Notes |
-| ------------------------------- | ----- |
+| :------------------------------ | :---- |
 | `constructor(public_key: &Jwk)` |       |
 
 #### `Xd25519PublicKeyMaterial`
@@ -248,20 +264,10 @@ Same as [`Ed25519Verifier`](#ed25519verifier) but for secp256r1.
 
 Strictly uses Ed25519.
 
-| Instance Method                                 | Notes                                  |
-| :---------------------------------------------- | :------------------------------------- |
-| `generate_key_material(): Jwk`                  | See [`Jwk`](#jwk).                     |
-| `get_signer(public_jwk: &Jwk) -> Ed25519Signer` | See [`Ed25519Signer`](#ed25519signer). |
-
-### `BearerDidKeyManager`
-
-| Instance Method                                   | Notes                                                    |
-| :------------------------------------------------ | :------------------------------------------------------- |
-| `generate_private_key(alg: Dsa) -> String`        | Return string is equal to the key ID.                    |
-| `get_public_key(key_id: String) -> Jwk`           | See [`Jwk`](#jwk).                                       |
-| `sign(key_id: String, payload: &[u8]) -> Vec<u8>` |                                                          |
-| `import_key(key: Jwk) -> String`                  | See [`Jwk`](#jwk). Return string is equal to the key ID. |
-| `export_key(key_id: String) -> Jwk`               | See [`Jwk`](#jwk).                                       |
+| Instance Method                                 | Notes                                                                           |
+| :---------------------------------------------- | :------------------------------------------------------------------------------ |
+| `generate_key_material(): Jwk`                  | Return [`Jwk`](#jwk) is a public key and does not contain private key material. |
+| `get_signer(public_key: &Jwk) -> Ed25519Signer` | See [`Ed25519Signer`](#ed25519signer).                                          |
 
 ## DIDs
 
@@ -284,22 +290,51 @@ Data models conformant to _W3C Decentralized Identifiers v1.0_ [within the `web5
 | :------------------------ | :---- |
 | `parse(uri: &str) -> Did` |       |
 
-### `BearerDid`
+### `Document`
 
-| Property                           | Notes |
+Data properties conformant to [DID Document Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-data-model).
+
+### `VerificationMethod`
+
+Data properties conformant to [Verification Method Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model).
+
+See [`Jwk`](#jwk) for `publicKeyJwk` implementation.
+
+### `Service`
+
+Data properties conformant to [Service Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#service-data-model).
+
+### `Resolution`
+
+| Property                                  | Notes                                            |
+| :---------------------------------------- | :----------------------------------------------- |
+| `document: Document`                      | See [`Document`](#document).                     |
+| `document_metadata: DocumentMetadata`     | See [`DocumentMetadata`](#documentmetadata).     |
+| `resolution_metadata: ResolutionMetadata` | See [`ResolutionMetadata`](#resolutionmetadata). |
+
+| Static Method                      | Notes |
 | :--------------------------------- | :---- |
-| `did: Did`                         |       |
-| `document: Document`               |       |
-| `key_manager: BearerDidKeyManager` |       |
+| `resolve(uri: &str) -> Resolution` |       |
 
-| Static Method                         | Notes                                                 |
-| :------------------------------------ | :---------------------------------------------------- |
-| `from_serialized(serialized: String)` | Where `serialized` is a JSON serialized portable DID. |
+### `DocumentMetadata`
 
-| Instance Method                                   | Notes                                                                 |
-| :------------------------------------------------ | :-------------------------------------------------------------------- |
-| `to_serialized() -> String`                       | Where the serialized return string is a JSON serialized portable DID. |
-| `get_signer(vm_selector: VmSelector) -> function` | 🚧 🚧 🚧                                                                 |
+Data properties conformant to the [DID Document Metadata Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-metadata-data-model).
+
+### `ResolutionMetadata`
+
+Data properties conformant to [DID Resolution Metadata Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model).
+
+### `DidJwk`
+
+🚧
+
+### `DidWeb`
+
+🚧
+
+### `DidDht`
+
+🚧
 
 ## Credentials
 
@@ -307,10 +342,9 @@ Data models conformant to _W3C Decentralized Identifiers v1.0_ [within the `web5
 
 Data models conformant to *W3C Verifiable Credentials v1.1* [within the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model).
 
-| Instance Method                                                          | Notes                                                 |
-| :----------------------------------------------------------------------- | :---------------------------------------------------- |
-| `sign(jws_signer: &dyn JwsSigner) -> String`                             | See [`JwsSigner`](#jwssigner-polymorphic-base-class). |
-| `sign_with_did(bearer_did: BearerDid, options: VcSignOptions) -> String` | 🚧 opts 🚧                                              |
+| Instance Method                              | Notes                                                 |
+| :------------------------------------------- | :---------------------------------------------------- |
+| `sign(jws_signer: &dyn JwsSigner) -> String` | See [`JwsSigner`](#jwssigner-polymorphic-base-class). |
 
 | Static Method                                                                 | Notes                                                                                                |
 | :---------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
@@ -319,10 +353,93 @@ Data models conformant to *W3C Verifiable Credentials v1.1* [within the web5-spe
 
 ## Presentation Exchange
 
-Data models...
-
 ### `PresentationDefinition` 
 
+| Property                                  | Notes                                      |
+| ----------------------------------------- | ------------------------------------------ |
+| `id: String`                              |                                            |
+| `name: Option<String>`                    |                                            |
+| `purpose: Option<String>`                 |                                            |
+| `input_descriptors: Vec<InputDescriptor>` | See [`InputDescriptor`](#inputdescriptor). |
+
 | Instance Method                                            | Notes |
-| :--------------------------------------------------------- | :---- |
+| ---------------------------------------------------------- | ----- |
 | `select_credentials(vc_jwts: &Vec<String>) -> Vec<String>` |       |
+
+### `InputDescriptor` 
+
+| Property                   | Notes                              |
+| -------------------------- | ---------------------------------- |
+| `id: String`               |                                    |
+| `name: Option<String>`     |                                    |
+| `purpose: Option<String>`  |                                    |
+| `constraints: Constraints` | See [`Constraints`](#constraints). |
+
+### `Constraints`
+
+| Property             | Notes                  |
+| -------------------- | ---------------------- |
+| `fields: Vec<Field>` | See [`Field`](#field). |
+
+### `Field`
+
+| Property                         | Notes                              |
+| -------------------------------- | ---------------------------------- |
+| `id: Option<String>`             |                                    |
+| `name: Option<String>`           |                                    |
+| `path: Vec<String>`              |                                    |
+| `purpose: Option<String>`        |                                    |
+| `filter: Option<Filter>`         | See [`Filter`](#filter).           |
+| `optional: Optional<bool>`       |                                    |
+| `predicate: Option<Optionality>` | See [`Optionality`](#optionality). |
+
+### `Optionality`
+
+| Enum        |
+| ----------- |
+| `Required`  |
+| `Preferred` |
+
+### `Filter`
+
+| Property                        | Notes                    |
+| ------------------------------- | ------------------------ |
+| `r#type: Option<String>`        |                          |
+| `pattern: Option<String>`       |                          |
+| `const_value: Option<String>`   |                          |
+| `contains: Option<Box<Filter>>` | See [`Filter`](#filter). |
+
+## Bearer DID
+
+### `BearerDid`
+
+| Property                       | Notes |
+| :----------------------------- | :---- |
+| `did: Did`                     |       |
+| `document: Document`           |       |
+| `key_manager: LocalKeyManager` |       |
+
+| Static Method                         | Notes                                                 |
+| :------------------------------------ | :---------------------------------------------------- |
+| `from_serialized(serialized: String)` | Where `serialized` is a JSON serialized portable DID. |
+| `create_did_jwk(options)`             | 🚧                                                     |
+| `create_did_dht(options)`             | 🚧                                                     |
+
+| Instance Method                                 | Notes                                                                 |
+| :---------------------------------------------- | :-------------------------------------------------------------------- |
+| `to_serialized() -> String`                     | Where the serialized return string is a JSON serialized portable DID. |
+| `sign_vcjwt(vc VerifiableCredential) -> String` |                                                                       |
+
+### `LocalKeyManager`
+
+| Instance Method                                   | Notes                                                    |
+| :------------------------------------------------ | :------------------------------------------------------- |
+| `generate_private_key(alg: Dsa) -> String`        | Return string is equal to the key ID.                    |
+| `get_public_key(key_id: String) -> Jwk`           | See [`Jwk`](#jwk).                                       |
+| `sign(key_id: String, payload: &[u8]) -> Vec<u8>` |                                                          |
+| `import_key(key: Jwk) -> String`                  | See [`Jwk`](#jwk). Return string is equal to the key ID. |
+| `export_key(key_id: String) -> Jwk`               | See [`Jwk`](#jwk).                                       |
+
+### `VerificationMethodSelector`
+
+🚧
