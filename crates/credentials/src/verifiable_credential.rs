@@ -1,7 +1,6 @@
 use chrono::Utc;
 use core::fmt;
 use dids::{bearer::BearerDid, document::KeySelector};
-use jws::JwsError;
 use jwt::{
     jws::Jwt,
     {Claims, JwtError, RegisteredClaims},
@@ -17,71 +16,18 @@ const BASE_TYPE: &str = "VerifiableCredential";
 
 #[derive(thiserror::Error, Debug)]
 pub enum CredentialError {
-    // JWT specific errors
     #[error(transparent)]
     JwtError(#[from] JwtError),
-    #[error(transparent)]
-    JwsError(#[from] JwsError),
-
-    // Credential-specific validation errors
-    #[error("Expiration date mismatch")]
-    ExpirationDateMismatch,
-    #[error("Credential expired: {0}")]
-    CredentialExpired(String),
-    #[error("Issuer mismatch")]
-    IssuerMismatch,
-    #[error("Issuance date is in the future")]
-    IssuanceDateInFuture,
-    #[error("Issuance date mismatch")]
-    IssuanceDateMismatch,
-    #[error("Credential ID mismatch")]
-    IdMismatch,
-    #[error("Subject mismatch")]
-    SubjectMismatch,
-    #[error("Missing issuer")]
-    MissingIssuer,
-    #[error("Missing issuance date")]
-    MissingIssuanceDate,
-    #[error("Missing subject")]
-    MissingSubject,
-    #[error("Missing credential ID")]
-    MissingId,
-    #[error("Misconfigured expiration date: {0}")]
+    #[error("missing claim: {0}")]
+    MissingClaim(String),
+    #[error("claim mismatch: {0}")]
+    ClaimMismatch(String),
+    #[error("misconfigured expiration date: {0}")]
     MisconfiguredExpirationDate(String),
-
-    // Data model validation error
-    #[error("Missing Iss")]
-    MissingIss,
-    #[error("Missing Nbf")]
-    MissingNbf,
-    #[error("Missing Sub")]
-    MissingSub,
-    #[error("Missing Jti")]
-    MissingJti,
-    #[error("Validation error: {0}")]
-    ValidationError(#[from] CredentialDataModelValidationError),
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum CredentialDataModelValidationError {
-    #[error("Missing context")]
-    MissingContext,
-    #[error("Missing ID")]
-    MissingId,
-    #[error("Missing type")]
-    MissingType,
-    #[error("Missing issuer")]
-    MissingIssuer,
-    #[error("Missing issuance date")]
-    MissingIssuanceDate,
-    #[error("Invalid issuance date")]
-    InvalidIssuanceDate,
-    #[error("Issuance date in future")]
-    IssuanceDateInFuture,
-    #[error("Invalid expiration date")]
-    InvalidExpirationDate,
     #[error("Credential expired")]
     CredentialExpired,
+    #[error("VC data model validation error: {0}")]
+    VcDataModelValidationError(String),
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
@@ -128,6 +74,69 @@ pub struct VerifiableCredential {
     #[serde(rename = "expirationDate")]
     pub expiration_date: Option<i64>,
     pub credential_subject: CredentialSubject,
+}
+
+impl From<VerifiableCredential> for JwtPayloadVerifiableCredential {
+    fn from(credential: VerifiableCredential) -> Self {
+        JwtPayloadVerifiableCredential {
+            context: credential.context,
+            id: Some(credential.id),
+            r#type: credential.r#type,
+            issuer: Some(credential.issuer),
+            issuance_date: Some(credential.issuance_date),
+            expiration_date: credential.expiration_date,
+            credential_subject: Some(credential.credential_subject),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct JwtPayloadVerifiableCredential {
+    #[serde(rename = "@context")]
+    context: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<String>,
+    #[serde(rename = "type")]
+    r#type: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    issuer: Option<Issuer>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "issuanceDate")]
+    issuance_date: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "expirationDate")]
+    expiration_date: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "credentialSubject")]
+    credential_subject: Option<CredentialSubject>,
+}
+
+impl TryFrom<JwtPayloadVerifiableCredential> for VerifiableCredential {
+    type Error = CredentialError;
+    fn try_from(payload: JwtPayloadVerifiableCredential) -> Result<Self, Self::Error> {
+        Ok(VerifiableCredential {
+            context: payload.context,
+            id: payload
+                .id
+                .ok_or(CredentialError::VcDataModelValidationError(
+                    "invalid or missing id".to_string(),
+                ))?,
+            r#type: payload.r#type,
+            issuer: payload
+                .issuer
+                .ok_or(CredentialError::VcDataModelValidationError(
+                    "invalid or missing issuer".to_string(),
+                ))?,
+            issuance_date: payload.issuance_date.ok_or(
+                CredentialError::VcDataModelValidationError(
+                    "invalid or missing issuance date".to_string(),
+                ),
+            )?,
+            expiration_date: payload.expiration_date,
+            credential_subject: payload.credential_subject.ok_or(
+                CredentialError::VcDataModelValidationError(
+                    "invalid or missing credential subject".to_string(),
+                ),
+            )?,
+        })
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -180,7 +189,7 @@ impl VerifiableCredential {
                 expiration: self.expiration_date,
                 ..Default::default()
             },
-            vc: self.clone(),
+            vc_payload: self.clone().into(),
         };
 
         let jwt = Jwt::sign(bearer_did, key_selector, None, &claims)?;
@@ -190,121 +199,160 @@ impl VerifiableCredential {
 
     pub async fn verify(jwt: &str) -> Result<VerifiableCredential, CredentialError> {
         let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
-        let mut vc = jwt_decoded.claims.vc;
+        let vc_payload = jwt_decoded.claims.vc_payload;
         let registered_claims = jwt_decoded.claims.registered_claims;
 
         // registered claims checks
-        let jti = registered_claims.jti.ok_or(CredentialError::MissingJti)?;
+        let jti = registered_claims
+            .jti
+            .ok_or(CredentialError::MissingClaim("jti".to_string()))?;
         let iss = registered_claims
             .issuer
-            .ok_or(CredentialError::MissingIss)?;
+            .ok_or(CredentialError::MissingClaim("issuer".to_string()))?;
         let sub = registered_claims
             .subject
-            .ok_or(CredentialError::MissingSub)?;
+            .ok_or(CredentialError::MissingClaim("subject".to_string()))?;
         let nbf = registered_claims
             .not_before
-            .ok_or(CredentialError::MissingNbf)?;
+            .ok_or(CredentialError::MissingClaim("not_before".to_string()))?;
         let exp = registered_claims.expiration;
 
-        // TODO: Change this to None after this issue is resolved - https://github.com/TBD54566975/web5-rs/issues/202
-        // check claims match expected values
-        if vc.id == String::default() {
-            vc.id = jti;
-        } else if vc.id != jti {
-            return Err(CredentialError::IdMismatch);
+        if let Some(id) = &vc_payload.id {
+            if id != &jti {
+                return Err(CredentialError::ClaimMismatch("id".to_string()));
+            }
         }
 
-        let vc_issuer = vc.issuer.to_string();
-        if vc_issuer.is_empty() {
-            vc.issuer = Issuer::String(iss.clone());
-        } else if iss != vc_issuer {
-            return Err(CredentialError::IssuerMismatch);
+        if let Some(issuer) = &vc_payload.issuer {
+            let vc_issuer = issuer.to_string();
+            if iss != vc_issuer {
+                return Err(CredentialError::ClaimMismatch("issuer".to_string()));
+            }
         }
 
-        if vc.credential_subject.id == String::default() {
-            vc.credential_subject.id = sub;
-        } else if vc.credential_subject.id != sub {
-            return Err(CredentialError::SubjectMismatch);
+        if let Some(credential_subject) = &vc_payload.credential_subject {
+            if sub != credential_subject.id {
+                return Err(CredentialError::ClaimMismatch("subject".to_string()));
+            }
         }
 
-        if vc.issuance_date == i64::default() {
-            vc.issuance_date = nbf;
-        } else if vc.issuance_date != nbf {
-            return Err(CredentialError::IssuanceDateMismatch);
+        if let Some(issuance_date) = &vc_payload.issuance_date {
+            if issuance_date != &nbf {
+                return Err(CredentialError::ClaimMismatch("issuance_date".to_string()));
+            }
         }
 
-        // if exp exists, make sure there is not a mismatch and assign it to vc expiration date
-        // if vc expiration date exists and exp does not, throw a misconfigured exp error
-        if exp.is_some() {
-            if vc.expiration_date.is_some() {
-                if vc.expiration_date != exp {
-                    return Err(CredentialError::ExpirationDateMismatch);
-                }
-
-                let now = Utc::now().timestamp();
-                if now > exp.unwrap() {
-                    return Err(CredentialError::CredentialExpired(
-                        "The verifiable credential has expired".to_string(),
+        let now = Utc::now().timestamp();
+        match vc_payload.expiration_date {
+            Some(ref vc_payload_expiration_date) => match exp {
+                None => {
+                    return Err(CredentialError::MisconfiguredExpirationDate(
+                        "VC has expiration date but no exp in registered claims".to_string(),
                     ));
                 }
+                Some(exp) => {
+                    if vc_payload_expiration_date != &exp {
+                        return Err(CredentialError::ClaimMismatch(
+                            "expiration_date".to_string(),
+                        ));
+                    }
 
-                vc.expiration_date = exp;
+                    if now > exp {
+                        return Err(CredentialError::CredentialExpired);
+                    }
+                }
+            },
+            None => {
+                if let Some(exp) = exp {
+                    if now > exp {
+                        return Err(CredentialError::CredentialExpired);
+                    }
+                }
             }
-        } else if vc.expiration_date.is_some() {
-            return Err(CredentialError::MisconfiguredExpirationDate(
-                "VC has expiration date but no exp in registered claims".to_string(),
-            ));
         }
 
-        validate_vc_data_model(&vc).map_err(CredentialError::ValidationError)?;
+        let vc_issuer = vc_payload.issuer.unwrap_or(Issuer::String(iss));
+
+        let vc_credential_subject = vc_payload.credential_subject.unwrap_or(CredentialSubject {
+            id: sub,
+            params: None,
+        });
+
+        let vc = VerifiableCredential {
+            context: vc_payload.context,
+            id: jti,
+            r#type: vc_payload.r#type,
+            issuer: vc_issuer,
+            issuance_date: nbf,
+            expiration_date: exp,
+            credential_subject: vc_credential_subject,
+        };
+
+        validate_vc_data_model(&vc)?;
 
         Ok(vc)
     }
 
     pub fn decode(jwt: &str) -> Result<Self, CredentialError> {
         let jwt_decoded = Jwt::decode::<VcJwtClaims>(jwt)?;
-        Ok(jwt_decoded.claims.vc)
+        let vc_payload: JwtPayloadVerifiableCredential = jwt_decoded.claims.vc_payload;
+        let vc: VerifiableCredential = vc_payload.try_into()?;
+        Ok(vc)
     }
 }
 
-fn validate_vc_data_model(
-    vc: &VerifiableCredential,
-) -> Result<(), CredentialDataModelValidationError> {
+fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialError> {
     // Required fields
     if vc.id.is_empty() {
-        return Err(CredentialDataModelValidationError::MissingId);
+        return Err(CredentialError::VcDataModelValidationError(
+            "missing id".to_string(),
+        ));
     }
 
     if vc.context.is_empty() || vc.context[0] != BASE_CONTEXT {
-        return Err(CredentialDataModelValidationError::MissingContext);
+        return Err(CredentialError::VcDataModelValidationError(
+            "missing context".to_string(),
+        ));
     }
 
     if vc.r#type.is_empty() || vc.r#type[0] != BASE_TYPE {
-        return Err(CredentialDataModelValidationError::MissingType);
+        return Err(CredentialError::VcDataModelValidationError(
+            "missing type".to_string(),
+        ));
     }
 
     if vc.issuer.to_string().is_empty() {
-        return Err(CredentialDataModelValidationError::MissingIssuer);
+        return Err(CredentialError::VcDataModelValidationError(
+            "missing issuer".to_string(),
+        ));
     }
 
     let now = Utc::now().timestamp();
 
     if vc.issuance_date.is_negative() {
-        return Err(CredentialDataModelValidationError::InvalidIssuanceDate);
+        return Err(CredentialError::VcDataModelValidationError(
+            "invalid issuance date".to_string(),
+        ));
     }
 
     if vc.issuance_date > now {
-        return Err(CredentialDataModelValidationError::IssuanceDateInFuture);
+        return Err(CredentialError::VcDataModelValidationError(
+            "issuance date in future".to_string(),
+        ));
     }
 
     // Validate expiration date if it exists
     if let Some(expiration_date) = vc.expiration_date {
         if expiration_date.is_negative() {
-            return Err(CredentialDataModelValidationError::InvalidExpirationDate);
+            return Err(CredentialError::VcDataModelValidationError(
+                "invalid expiration date".to_string(),
+            ));
         }
 
         if expiration_date < now {
-            return Err(CredentialDataModelValidationError::CredentialExpired);
+            return Err(CredentialError::VcDataModelValidationError(
+                "credential expired".to_string(),
+            ));
         }
     }
 
@@ -316,9 +364,10 @@ fn validate_vc_data_model(
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct VcJwtClaims {
-    pub vc: VerifiableCredential,
+    #[serde(rename = "vc")]
+    vc_payload: JwtPayloadVerifiableCredential,
     #[serde(flatten)]
-    pub registered_claims: RegisteredClaims,
+    registered_claims: RegisteredClaims,
 }
 
 impl Claims for VcJwtClaims {}
@@ -356,7 +405,7 @@ mod test {
             vec![BASE_TYPE.to_string()],
             issuer.clone(),
             now,
-            Some(now + 30 * 60),
+            Some(now + 631152000), // now + 20 years
             CredentialSubject {
                 id: issuer.to_string(),
                 ..Default::default()
@@ -514,7 +563,7 @@ mod test {
 
         let result = VerifiableCredential::verify(&vc_jwt).await;
         assert!(
-            matches!(result, Err(CredentialError::CredentialExpired(_))),
+            matches!(result, Err(CredentialError::CredentialExpired)),
             "Expected expiration error, but found different or no error"
         );
     }
@@ -522,29 +571,83 @@ mod test {
     #[tokio::test]
     async fn test_verify_mismatched_iss() {
         let mismatched_issuer_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOjQwNmYxNjhlLTg4Y2QtNGVhMS05ZTBmLWFkZTUyMDFjODY4YyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5IiwiaXNzdWFuY2VEYXRlIjoxNzE1MzU4NjQ2LCJleHBpcmF0aW9uRGF0ZSI6MTcxNTMyODY0NiwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5In19LCJpc3MiOiJ3cm9uZ2lzc3VlciIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSIsImV4cCI6MTcxNTMyODY0NiwibmJmIjoxNzE1MzU4NjQ2LCJqdGkiOiJ1cm46dmM6dXVpZDo0MDZmMTY4ZS04OGNkLTRlYTEtOWUwZi1hZGU1MjAxYzg2OGMifQ.gX3trvOMBzRX3vC2t1d3FEDj4RFNVrmotvIFgrLPoJVP2co4arz8jRT_VQ9-g7CRqWQ65uyhgAMQjZ_HWwk2DA";
-
         let result = VerifiableCredential::verify(&mismatched_issuer_vc_jwt).await;
+
         assert!(
-            matches!(result, Err(CredentialError::IssuerMismatch)),
+            matches!(result, Err(CredentialError::ClaimMismatch(ref s)) if s == "issuer"),
             "Expected mismatch issuer error, but found different or no error"
         );
     }
 
-    // TODO: Add this test after doing this issuer - https://github.com/TBD54566975/web5-rs/issues/202
-    // #[tokio::test]
-    // async fn test_minified_jwt() {
-    //     let minified_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVJFNU5kRGhyWVVOUGFubFNWbms0UVdoSGJWVmxkbTUzUkZGTlJYTlVkemxQY2s1M05DMHlOWFJ5VlNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6IiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiIiwiaXNzdWFuY2VEYXRlIjowLCJleHBpcmF0aW9uRGF0ZSI6MCwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiIn19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lSRTVOZERocllVTlBhbmxTVm5rNFFXaEhiVlZsZG01M1JGRk5SWE5VZHpsUGNrNTNOQzB5TlhSeVZTSjkiLCJzdWIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lSRTVOZERocllVTlBhbmxTVm5rNFFXaEhiVlZsZG01M1JGRk5SWE5VZHpsUGNrNTNOQzB5TlhSeVZTSjkiLCJleHAiOjE3MTUzNzA1OTIsIm5iZiI6MTcxNTM2ODc5MiwianRpIjoidXJuOnZjOnV1aWQ6MTMwMjMwOWMtMDcyOS00YTAwLThmNDAtOTNkZjc3ZDQxODg5In0.u5SCPyx6Una88BYmztZ3-fbWnfDHCXIU6vBHva0SZtZQ8CYUaSjMvWRRCYY7j99JgHZU7R5wPHR1f7sb10qEBw";
-    //
-    //     let jwt_decoded = Jwt::verify::<VcJwtClaims>(&minified_vc_jwt).await.unwrap();
-    //     let registered_claims = jwt_decoded.claims.registered_claims;
-    //
-    //     let verify_result = VerifiableCredential::verify(minified_vc_jwt).await;
-    //     let verify_vc = verify_result.unwrap();
-    //
-    //     assert_eq!(registered_claims.jti.unwrap(), verify_vc.id);
-    //     assert_eq!(registered_claims.issuer.unwrap(), verify_vc.issuer.get_id());
-    //     assert_eq!(registered_claims.subject.unwrap(), verify_vc.credential_subject.id);
-    //     assert_eq!(registered_claims.not_before.unwrap(), verify_vc.issuance_date);
-    //     assert_eq!(registered_claims.expiration.unwrap(), verify_vc.expiration_date.unwrap());
-    // }
+    #[tokio::test]
+    async fn test_full_featured_vc_jwt() {
+        let full_featured_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOmUzMDc0OWVhLTg4YjctNDkwMi05ZTRlLWYwYjk1MTRjZmU1OSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTlc5Q1pGaE1OM1JEV0MxaVdtd3dOblU1V1dSU1dqQmFhbEpMTFVweFZXWmhaa1YzWjAwdFRHSm1heUo5IiwiaXNzdWFuY2VEYXRlIjoxNzE2MzEyNDU3LCJleHBpcmF0aW9uRGF0ZSI6MjM0NzQ2NDQ1NywiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lOVzlDWkZoTU4zUkRXQzFpV213d05uVTVXV1JTV2pCYWFsSkxMVXB4VldaaFprVjNaMDB0VEdKbWF5SjkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsImV4cCI6MjM0NzQ2NDQ1NywibmJmIjoxNzE2MzEyNDU3LCJqdGkiOiJ1cm46dmM6dXVpZDplMzA3NDllYS04OGI3LTQ5MDItOWU0ZS1mMGI5NTE0Y2ZlNTkifQ.a8ciqXyNgqttWPKl76CFwDTRvEoJEq5nndfM1UMkClvzhPOUWSUtE0wNHOxQFwUBBSbwozScBNe-dc-mWQFqAQ";
+
+        let jwt_decoded = Jwt::verify::<VcJwtClaims>(&full_featured_vc_jwt)
+            .await
+            .unwrap();
+        let registered_claims = jwt_decoded.claims.registered_claims;
+
+        let verify_result = VerifiableCredential::verify(full_featured_vc_jwt).await;
+        let verify_vc = verify_result.unwrap();
+
+        assert_eq!(
+            vec!["https://www.w3.org/2018/credentials/v1".to_string()],
+            verify_vc.context
+        );
+        assert_eq!(vec!["VerifiableCredential".to_string()], verify_vc.r#type);
+
+        assert_eq!(registered_claims.jti.unwrap(), verify_vc.id);
+        assert_eq!(
+            registered_claims.issuer.unwrap(),
+            verify_vc.issuer.to_string()
+        );
+        assert_eq!(
+            registered_claims.subject.unwrap(),
+            verify_vc.credential_subject.id
+        );
+        assert_eq!(
+            registered_claims.not_before.unwrap(),
+            verify_vc.issuance_date
+        );
+        assert_eq!(
+            registered_claims.expiration.unwrap(),
+            verify_vc.expiration_date.unwrap()
+        );
+    }
+
+    #[tokio::test]
+    async fn test_minimum_viable_vc_jwt() {
+        let minified_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVMyaDZNbFJFVWxScE1XeExiMHMzTkhCMlJHRk1iWE5MWmxaNFlrazVlalp3UjJKTmVXeE1iRWd6Y3lKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lTMmg2TWxSRVVsUnBNV3hMYjBzM05IQjJSR0ZNYlhOTFpsWjRZa2s1ZWpad1IySk5lV3hNYkVnemN5SjkiLCJzdWIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lTMmg2TWxSRVVsUnBNV3hMYjBzM05IQjJSR0ZNYlhOTFpsWjRZa2s1ZWpad1IySk5lV3hNYkVnemN5SjkiLCJleHAiOjIzNDc0NjQ3MTQsIm5iZiI6MTcxNjMxMjcxNCwianRpIjoidXJuOnZjOnV1aWQ6NjE5NWRhOTEtY2RiYi00NzJkLWFlNjktYjAwNGU0OWE5ZjUxIn0.uhFoQ-coZ1sfzaNzFfWOmEDWWJwuCs9hDw0yw1pq2HgMinvvCdcarvQ9sbVN9At0oqQhhSEYwaUT42Tlyi7FBw";
+
+        let jwt_decoded = Jwt::verify::<VcJwtClaims>(&minified_vc_jwt).await.unwrap();
+        let registered_claims = jwt_decoded.claims.registered_claims;
+
+        let verify_result = VerifiableCredential::verify(minified_vc_jwt).await;
+        let verify_vc = verify_result.unwrap();
+
+        assert_eq!(
+            vec!["https://www.w3.org/2018/credentials/v1".to_string()],
+            verify_vc.context
+        );
+        assert_eq!(vec!["VerifiableCredential".to_string()], verify_vc.r#type);
+
+        assert_eq!(registered_claims.jti.unwrap(), verify_vc.id);
+        assert_eq!(
+            registered_claims.issuer.unwrap(),
+            verify_vc.issuer.to_string()
+        );
+        assert_eq!(
+            registered_claims.subject.unwrap(),
+            verify_vc.credential_subject.id
+        );
+        assert_eq!(
+            registered_claims.not_before.unwrap(),
+            verify_vc.issuance_date
+        );
+        assert_eq!(
+            registered_claims.expiration.unwrap(),
+            verify_vc.expiration_date.unwrap()
+        );
+    }
 }
