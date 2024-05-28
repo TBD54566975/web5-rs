@@ -14,6 +14,9 @@ use super::{
     DocumentPacketError, DEFAULT_TTL,
 };
 
+const NAME_PREFIX: &str = "_s";
+const NAME_SUFFIX: &str = "_did";
+
 #[derive(Debug, PartialEq)]
 struct ServiceRdata {
     pub id: String,
@@ -36,8 +39,30 @@ impl TryFrom<HashMap<String, String>> for ServiceRdata {
     type Error = DocumentPacketError;
 }
 
-impl<'a> Service {
-    pub fn to_resource_record(&self, idx: u32) -> Result<ResourceRecord<'a>, DocumentPacketError> {
+impl Service {
+    pub fn is_service_record_with_index(record: &ResourceRecord, idx: u32) -> bool {
+        let labels = record.name.get_labels();
+
+        match labels.first() {
+            None => return false,
+            Some(subdomain) => {
+                if subdomain.to_string() != format!("{}{}", NAME_PREFIX, idx) {
+                    return false;
+                }
+            }
+        };
+
+        match labels.get(1) {
+            None => false,
+            Some(subdomain) => subdomain.to_string() == NAME_SUFFIX,
+        }
+    }
+
+    pub fn record_name(idx: u32) -> String {
+        format!("{}{}.{}", NAME_PREFIX, idx, NAME_SUFFIX)
+    }
+
+    pub fn to_resource_record(&self, idx: u32) -> Result<ResourceRecord, DocumentPacketError> {
         let url = Url::parse(&self.id)
             .map_err(|_| DocumentPacketError::MissingFragment(self.id.clone()))?;
         let service_id_fragment = url
@@ -47,7 +72,8 @@ impl<'a> Service {
         let se = self.service_endpoint.join(",");
 
         let parts = format!("id={};t={};se={}", service_id_fragment, self.r#type, se);
-        let name = Name::new_unchecked(&format!("_s{}._did", idx)).into_owned();
+        let name =
+            Name::new_unchecked(&format!("{}{}.{}", NAME_PREFIX, idx, NAME_SUFFIX)).into_owned();
         let txt_record = TXT::new().with_string(&parts)?.into_owned();
 
         Ok(ResourceRecord::new(
@@ -60,7 +86,7 @@ impl<'a> Service {
 
     pub fn from_resource_record(
         did_uri: &str,
-        record: ResourceRecord,
+        record: &ResourceRecord,
     ) -> Result<Self, DocumentPacketError> {
         let rdata_map = record_rdata_to_hash_map(record)?;
         let service_rdata: ServiceRdata = rdata_map.try_into()?;
@@ -96,7 +122,7 @@ mod tests {
             .to_resource_record(0)
             .expect("Failed to convert Service to ResourceRecord");
 
-        let service2 = Service::from_resource_record(did_uri, resource_record)
+        let service2 = Service::from_resource_record(did_uri, &resource_record)
             .expect("Failed to convert ResourceRecord to Service");
 
         assert_eq!(service, service2);
@@ -119,7 +145,7 @@ mod tests {
             .to_resource_record(0)
             .expect("Failed to convert Service to ResourceRecord");
 
-        let service2 = Service::from_resource_record(did_uri, resource_record)
+        let service2 = Service::from_resource_record(did_uri, &resource_record)
             .expect("Failed to convert ResourceRecord to Service");
 
         assert_eq!(service, service2);
@@ -143,7 +169,7 @@ mod tests {
         let resource_record = service
             .to_resource_record(0)
             .expect("Expected to create resource record from service");
-        let service2 = Service::from_resource_record(did_uri, resource_record)
+        let service2 = Service::from_resource_record(did_uri, &resource_record)
             .expect("Expected to create service from resource record");
         assert_eq!(service, service2);
     }
@@ -181,7 +207,7 @@ mod tests {
             RData::A(A { address: 0 }), // not RData::TXT
         );
 
-        let error = Service::from_resource_record("did:ex:abc", resource_record)
+        let error = Service::from_resource_record("did:ex:abc", &resource_record)
             .expect_err("Expected error because RData is not TXT");
         match error {
             DocumentPacketError::RDataError(_) => {}
@@ -201,7 +227,7 @@ mod tests {
             RData::TXT(txt), // Not ';' separated entries
         );
 
-        let error = Service::from_resource_record("did:ex:abc", resource_record)
+        let error = Service::from_resource_record("did:ex:abc", &resource_record)
             .expect_err("Expected error because RData TXT is malformed");
         match error {
             DocumentPacketError::RDataError(_) => {}
@@ -221,7 +247,7 @@ mod tests {
             RData::TXT(txt), // Not ';' separated entries
         );
 
-        let error = Service::from_resource_record("did:ex:abc", resource_record)
+        let error = Service::from_resource_record("did:ex:abc", &resource_record)
             .expect_err("Expected error because missing se");
         match error {
             DocumentPacketError::RDataError(_) => {}
