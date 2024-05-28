@@ -1,7 +1,6 @@
 use chrono::Utc;
 use core::fmt;
 use dids::{bearer::BearerDid, document::KeySelector};
-use jws::JwsError;
 use jwt::{
     jws::Jwt,
     {Claims, JwtError, RegisteredClaims},
@@ -19,8 +18,6 @@ const BASE_TYPE: &str = "VerifiableCredential";
 pub enum CredentialError {
     #[error(transparent)]
     JwtError(#[from] JwtError),
-    #[error(transparent)]
-    JwsError(#[from] JwsError),
     #[error("missing claim: {0}")]
     MissingClaim(String),
     #[error("claim mismatch: {0}")]
