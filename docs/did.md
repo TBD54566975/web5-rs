@@ -1,20 +1,13 @@
 # Decentralized Identity <!-- omit in toc -->
 
-🚧 Consider splitting methods out into their own 🚧
-
-Data models conformant to _W3C Decentralized Identifiers v1.0_ [within the `web5-spec`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md).
-
 - [`Did`](#did)
-- [`Document`](#document)
-- [`VerificationMethod`](#verificationmethod)
-- [`Service`](#service)
 - [`Resolution`](#resolution)
-- [`DocumentMetadata`](#documentmetadata)
-- [`ResolutionMetadata`](#resolutionmetadata)
-- [`DidJwk`](#didjwk)
-- [`DidWeb`](#didweb)
-- [`DidDht`](#diddht)
-  - [`DidDhtCreateOptions`](#diddhtcreateoptions)
+- [Data Models](#data-models)
+- [Methods](#methods)
+  - [`DidJwk`](#didjwk)
+  - [`DidWeb`](#didweb)
+  - [`DidDht`](#diddht)
+    - [`DidDhtCreateOptions`](#diddhtcreateoptions)
 
 # `Did`
 
@@ -33,20 +26,6 @@ Data models conformant to _W3C Decentralized Identifiers v1.0_ [within the `web5
 | :------------------------ | :---- |
 | `parse(uri: &str) -> Did` |       |
 
-# `Document`
-
-Data properties conformant to [DID Document Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-data-model).
-
-# `VerificationMethod`
-
-Data properties conformant to [Verification Method Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model).
-
-See [`Jwk`](#jwk) for `publicKeyJwk` implementation.
-
-# `Service`
-
-Data properties conformant to [Service Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#service-data-model).
-
 # `Resolution`
 
 | Property                                  | Notes                                            |
@@ -59,15 +38,19 @@ Data properties conformant to [Service Data Model in the web5-spec](https://gith
 | :--------------------------------- | :---- |
 | `resolve(uri: &str) -> Resolution` |       |
 
-# `DocumentMetadata`
+# Data Models
 
-Data properties conformant to the [DID Document Metadata Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-metadata-data-model).
+Data models conformant to _W3C Decentralized Identifiers v1.0_ [within the `web5-spec`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md) include the following:
 
-# `ResolutionMetadata`
+- [`Document`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-data-model)
+- [`VerificationMethod`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#verification-method-data-model)
+- [`Service`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#service-data-model)
+- [`DocumentMetadata`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-document-metadata-data-model)
+- [`ResolutionMetadata`](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model)
 
-Data properties conformant to [DID Resolution Metadata Data Model in the web5-spec](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md#did-resolution-metadata-data-model).
+# Methods
 
-# `DidJwk`
+## `DidJwk`
 
 | Property             | Notes |
 | -------------------- | ----- |
@@ -79,18 +62,13 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 | `create(public_key: &Jwk) -> DidJwk` |       |
 | `resolve(uri: &str) -> Resolution`   |       |
 
-# `DidWeb`
-
-| Property             | Notes |
-| -------------------- | ----- |
-| `did: Did`           |       |
-| `document: Document` |       |
+## `DidWeb`
 
 | Static Method                      | Notes |
 | ---------------------------------- | ----- |
 | `resolve(uri: &str) -> Resolution` |       |
 
-# `DidDht`
+## `DidDht`
 
 | Property             | Notes |
 | -------------------- | ----- |
@@ -104,7 +82,7 @@ Data properties conformant to [DID Resolution Metadata Data Model in the web5-sp
 | `update(...todo)`                                                                            | 🚧 params 🚧 |
 | `deactivate(...todo)`                                                                        | 🚧 params 🚧 |
 
-## `DidDhtCreateOptions`
+### `DidDhtCreateOptions`
 
 | Property                                                | Notes                 |
 | ------------------------------------------------------- | --------------------- |

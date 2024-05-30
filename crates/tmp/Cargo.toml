@@ -1,0 +1,9 @@
+[package]
+name = "tmp"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
