@@ -9,9 +9,9 @@
 
 **Last Updated:** May 30, 2024
 
-**Version:** 0.0.1
+**Version:** 0.1.0
 
-- [Language-Independent Programmatic Concepts](#language-independent-programmatic-concepts)
+- [Custom DSL](#custom-dsl)
   - [Limitations](#limitations)
   - [Primitive Concepts](#primitive-concepts)
   - [High-Level Concepts](#high-level-concepts)
@@ -55,13 +55,13 @@
   - [`Optionality`](#optionality)
   - [`Filter`](#filter)
 
-# Language-Independent Programmatic Concepts
+# Custom DSL
 
 The design definitions within this design document are intended to span any programming language, so long as the given programming language supports the [High-Level Concepts](#high-level-concepts) and [Primitive Concepts](#primitive-concepts) in one form or another. The instantiations of these concepts will be unique to the given idioms of the target programming language.
 
 ## Limitations
 
-In order to achieve the goal of defining concrete design definitions which span multiple languages, we must make some sacrifices in our design. Namely, this design excludes ***generics*** and ***variadic function parameters***, because both lack broad support & consistency across expected target programming languages. Implementations may choose to utilize these concepts in their internals, but the publicly accessible Web5 API must exclude these concepts.
+In order to achieve the goal of defining concrete design definitions which span multiple languages, we must make some sacrifices in our design. Namely, this design excludes ***generics*** and ***variadic function parameters***, because both lack broad support & consistency across target programming languages. Implementations may choose to utilize these concepts in their internals, but the publicly accessible Web5 API must exclude these concepts.
 
 The APID does not assert requirements as to the artifact makeup (i.e. npm packages, rust crates, go modules, etc.) of the Web5 API. It is recommended to implement the entirety of Web5 in a single artifact, but each implementation may choose to create multiple artifacts. However, the APID makes no regards for the matter of circular dependencies, and so it may become unviable to implement the APID in it's completeness across multiple artifacts.
 
@@ -84,7 +84,7 @@ The APID does not assert requirements as to the artifact makeup (i.e. npm packag
 ### Polymorphic Base Class
 
 - `INTERFACE InterfaceName`: Defines a a polymorphic base class.
-- `METHOD methodName(param: T1): T2`: Defines an instance method on the implementation of the given polymorphic base class.
+- `METHOD methodName(param: T1): T2`: Defines an instance method that any class implementing the interface must implement.
 
 **Example:**
 
@@ -118,10 +118,7 @@ CLASS Circle IMPLEMENTS Shape
 ```
 
 > [!NOTE]
-> The APID defines *Public Data Members* on instances of Class but does not regard private data members.
-
-> [!NOTE]
-> *Static Method's* may be implemented on a given Class given the implementation language supports the feature, but else can be a function not associated with a Class.
+> `STATIC METHOD`'s may be implemented on a `CLASS` given the implementation language supports the feature, but else can be a function (not associated with a `CLASS`).
 
 ### Enumeration
 
@@ -157,7 +154,7 @@ CLASS Jwk
 
 ## `LocalKeyManager`
 
-An encapsulation of key material maintained in-memory.
+An encapsulation of key material stored in-memory.
 
 ```pseudocode!
 CLASS LocalKeyManager
@@ -312,7 +309,6 @@ CLASS Resolution
   PUBLIC DATA document: Document
   PUBLIC DATA document_metadata: DocumentMetadata
   PUBLIC DATA resolution_metadata: ResolutionMetadata
-  
   STATIC METHOD resolve(uri: string): Resolution
 ```
 
@@ -358,7 +354,6 @@ CLASS DocumentMetadata
 CLASS DidJwk
   PUBLIC DATA did: Did
   PUBLIC DATA document: Document
-  
   STATIC METHOD create(public_key: Jwk): DidJwk
   STATIC METHOD resolve(uri: string): Resolution
 ```
@@ -376,11 +371,10 @@ CLASS DidWeb
 CLASS DidDht
   PUBLIC DATA did: Did
   PUBLIC DATA document: Document
-  
   STATIC METHOD create(signer: DsaSigner, identity_key: Jwk, options: DidDhtCreateOptions): DidDht
   STATIC METHOD resolve(uri: string): Resolution
-  STATIC METHOD update(...todo)
-  STATIC METHOD deactivate(...todo)
+  STATIC METHOD update() 🚧 incomplete 🚧
+  STATIC METHOD deactivate() 🚧 incomplete 🚧
 ```
 
 #### `DidDhtCreateOptions`
@@ -416,9 +410,7 @@ CLASS VerifiableCredential
   PUBLIC DATA issuanceDate: string
   PUBLIC DATA expirationDate: string?
   PUBLIC DATA credentialSubject: Object  # 🚧 `Object` not supported 🚧
-
   METHOD sign(jws_signer: JwsSigner): string
-  
   STATIC METHOD verify(vcjwt: string): VerifiableCredential
   STATIC METHOD verify_with_verifier(vcjwt: string, jws_verifier: JwsVerifier): VerifiableCredential
 ```
@@ -437,7 +429,6 @@ CLASS PresentationDefinition
   PUBLIC DATA name: string?
   PUBLIC DATA purpose: string?
   PUBLIC DATA input_descriptors: []InputDescriptor
-
   METHOD select_credentials(vc_jwts: []string): []string
 ```
 
