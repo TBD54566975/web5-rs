@@ -20,7 +20,7 @@
     - [Enumeration](#enumeration)
 - [Key Material](#key-material)
   - [`Jwk`](#jwk)
-  - [`LocalKeyManager`](#localkeymanager)
+  - [`InMemoryKeyManager`](#inmemorykeymanager)
 - [Digital Signature Algorithm's (DSA)](#digital-signature-algorithms-dsa)
   - [`Dsa`](#dsa)
   - [`DsaSigner`](#dsasigner)
@@ -32,10 +32,12 @@
   - [`Ed25519Verifier`](#ed25519verifier)
 - [Decentralized Identifier's (DIDs)](#decentralized-identifiers-dids)
   - [`Did`](#did)
+    - [Examples](#examples)
   - [`Document`](#document)
     - [`VerificationMethod`](#verificationmethod)
     - [`Service`](#service)
   - [`Resolution`](#resolution)
+    - [Examples](#examples-1)
     - [`ResolutionMetadataError`](#resolutionmetadataerror)
     - [`ResolutionMetadata`](#resolutionmetadata)
     - [`DocumentMetadata`](#documentmetadata)
@@ -118,7 +120,7 @@ CLASS Circle IMPLEMENTS Shape
 ```
 
 > [!NOTE]
-> `STATIC METHOD`'s may be implemented on a `CLASS` given the implementation language supports the feature, but else can be a function (not associated with a `CLASS`).
+> `STATIC METHOD`'s may be implemented on a `CLASS` given the implementation language supports the feature, but else can be a function (not associated with a `CLASS`), and in which case the function name should be prefixed with the `CLASS` name defined here.
 
 ### Enumeration
 
@@ -140,26 +142,42 @@ ENUM Color
 
 ## `Jwk`
 
-Partial representation of a [JSON Web Key](https://datatracker.ietf.org/doc/html/rfc7517).
-
 ```pseudocode!
+/// Partial representation of a [JSON Web Key as per RFC7517](https://tools.ietf.org/html/rfc7517).
+/// Note that this is a subset of the spec.
 CLASS Jwk
+  /// Identifies the algorithm intended for use with the key.
   PUBLIC DATA alg: string
+
+  /// Represents the key type. e.g. EC for elliptic curve, OKP for Edwards curve
   PUBLIC DATA kty: string
+
+  /// curve name for Elliptic Curve (EC) and Edwards Curve (Ed) keys.
+  /// e.g. secp256k1, Ed25519
   PUBLIC DATA crv: string
+
+  /// X coordinate for EC keys, or the public key for OKP.
   PUBLIC DATA x: string
+
+  /// Y coordinate for EC keys.
   PUBLIC DATA y: string?
+
+  /// Private key component for EC or OKP keys.
   PUBLIC DATA d: string?
 ```
 
-## `LocalKeyManager`
-
-An encapsulation of key material stored in-memory.
+## `InMemoryKeyManager`
 
 ```pseudocode!
-CLASS LocalKeyManager
+/// An encapsulation of key material stored in-memory.
+CLASS InMemoryKeyManager
+  /// Generates new key material and returns the public key represented as a Jwk.
   METHOD generate_key_material(): Jwk
+
+  /// Returns the Ed25519Signer for the given public key.
   METHOD get_signer(public_key: Jwk): Ed25519Signer
+
+  /// For importing keys which may be stored somewhere such as environment variables.
   METHOD import_key(private_key: Jwk)
 ```
 
@@ -167,9 +185,8 @@ CLASS LocalKeyManager
 
 ## `Dsa`
 
-The set of Digital Signature Algorithm's natively supported within this SDK.
-
 ```pseudocode!
+/// The set of Digital Signature Algorithm's natively supported within this SDK.
 ENUM Dsa
   Ed25519
 ```
@@ -178,72 +195,86 @@ ENUM Dsa
 
 ## `DsaSigner`
 
-Set of functionality required to implement to be a compatible DSA signer.
-
 ```pseudocode!
+/// Set of functionality required to implement to be a compatible DSA signer.
 INTERFACE DsaSigner
+  /// The implementation of DsaSigner must encapsulate the private key material.
   CONSTRUCTOR(private_key: Jwk)
+
+  /// Signs the given payload by using the encapsulated private key material.
   METHOD dsa_sign(payload: []byte): []byte
 ```
 
 ## `DsaVerifier`
 
-Set of functionality required to implement to be a compatible DSA verifier.
-
 ```pseudocode!
+/// Set of functionality required to implement to be a compatible DSA verifier.
 INTERFACE DsaVerifier
+  /// The implementation of DsaVerifier must encapsulate the public key material.
   CONSTRUCTOR(public_key: Jwk)
+
+  /// Execute the verification of the signature against the message by using the encapsulated public key material.
   METHOD dsa_verify(message: []byte, signature: []byte): bool
 ```
 
 ## `JwsSigner`
 
-Set of functionality required to implement to be a compatible JWS signer.
-
 ```pseudocode!
+/// Set of functionality required to implement to be a compatible JWS signer.
 INTERFACE JwsSigner
+  /// The implementation of JwsSigner must encapsulate the private key material.
   CONSTRUCTOR(private_key: Jwk)
+
+  /// Signs the given payload by using the encapsulated private key material.
   METHOD jws_sign(payload: []byte): []byte
 ```
 
 ## `JwsVerifier`
 
-Set of functionality required to implement to be a compatible JWS verifier.
-
 ```pseudocode!
+/// Set of functionality required to implement to be a compatible JWS verifier.
 INTERFACE JwsVerifier
+  /// The implementation of JwsVerifier must encapsulate the public key material.
   CONSTRUCTOR(public_key: Jwk)
+
+  /// Execute the verification of the signature against the message by using the encapsulated public key material.
   METHOD jws_verify(message: []byte, signature: []byte): bool
 ```
 
 ## `Ed25519Generator`
 
-Generates private key material for Ed25519.
-
 ```pseudocode!
+/// Generates private key material for Ed25519.
 CLASS Ed25519Generator
+  /// Generate the private key material; return Jwk includes private key material.
   STATIC METHOD generate(): Jwk
 ```
 
 ## `Ed25519Signer`
 
-Implementation of [`DsaSigner`](#dsasigner) and [`JwsSigner`](#jwssigner) for Ed25519.
-
 ```pseudocode!
+/// Implementation of [`DsaSigner`](#dsasigner) and [`JwsSigner`](#jwssigner) for Ed25519.
 CLASS Ed25519Signer IMPLEMENTS DsaSigner, JwsSigner
   CONSTRUCTOR(private_key: Jwk)
+
+  /// Implementation of DsaSigner's dsa_sign instance method for Ed25519.
   METHOD dsa_sign(payload: []byte): []byte
+
+  /// Implementation of JwsSigner's jws_sign instance method for Ed25519.
   METHOD jws_sign(payload: []byte): []byte
 ```
 
 ## `Ed25519Verifier`
 
-Implementation of [`DsaVerifier`](#dsaverifier) and [`JwsVerifier`](#jwsverifier) for Ed25519.
-
 ```pseudocode!
+/// Implementation of [`DsaVerifier`](#dsaverifier) and [`JwsVerifier`](#jwsverifier) for Ed25519.
 CLASS Ed25519Verifier IMPLEMENTS DsaVerifier, JwsVerifier
   CONSTRUCTOR(public_key: Jwk)
+
+  /// Implementation of DsaVerifier's dsa_verify instance method for Ed25519.
   METHOD dsa_verify(payload: []byte): bool
+
+  /// Implementation of JwsVerifier's jws_verify instance method for Ed25519.
   METHOD jws_verify(payload: []byte): bool
 ```
 
@@ -251,70 +282,182 @@ CLASS Ed25519Verifier IMPLEMENTS DsaVerifier, JwsVerifier
 
 ## `Did`
 
-Representation of a [DID Core Identifier](https://www.w3.org/TR/did-core/#identifiers).
+```pseudocode!
+/// Representation of a [DID Core Identifier](https://www.w3.org/TR/did-core/#identifiers).
+CLASS Did
+  /// URI represents the complete Decentralized Identifier (DID) URI.
+  /// Spec: https://www.w3.org/TR/did-core/#did-syntax.
+  PUBLIC DATA uri: string
+
+  /// URL represents the DID URI + A network location identifier for a specific resource.
+  /// Spec: https://www.w3.org/TR/did-core/#did-url-syntax.
+  PUBLIC DATA url: string
+
+  /// Method specifies the DID method in the URI, which indicates the underlying method-specific identifier scheme (e.g., jwk, dht, key, etc.).
+  /// Spec: https://www.w3.org/TR/did-core/#method-schemes.
+  PUBLIC DATA method: string
+
+  /// ID is the method-specific identifier in the DID URI.
+  /// Spec: https://www.w3.org/TR/did-core/#method-specific-id.
+  PUBLIC DATA id: string
+
+  /// Params is a map containing optional parameters present in the DID URI. These parameters are method-specific.
+  /// Spec: https://www.w3.org/TR/did-core/#did-parameters.
+  PUBLIC DATA params: Map<string, string>?
+
+  /// Path is an optional path component in the DID URI.
+  /// Spec: https://www.w3.org/TR/did-core/#path.
+  PUBLIC DATA path: string?
+
+  /// Query is an optional query component in the DID URI, used to express a request for a specific representation or resource related to the DID.
+  /// Spec: https://www.w3.org/TR/did-core/#query.
+  PUBLIC DATA query: string?
+
+  /// Fragment is an optional fragment component in the DID URI, used to reference a specific part of a DID document.
+  /// Spec: https://www.w3.org/TR/did-core/#fragment.
+  PUBLIC DATA fragment: string?
+
+  CONSTRUCTOR(uri: string)
+```
+
+### Examples
 
 ```pseudocode!
-CLASS Did
-  PUBLIC DATA uri: string
-  PUBLIC DATA url: string
-  PUBLIC DATA method: string
-  PUBLIC DATA id: string
-  PUBLIC DATA params: Map<string, string>?
-  PUBLIC DATA path: string?
-  PUBLIC DATA query: string?
-  PUBLIC DATA fragment: string?
-  CONSTRUCTOR(uri: string)
+🚧
 ```
 
 ## `Document`
 
 ```pseudocode!
+/// Representation of a [DID Document](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md)
 CLASS Document
+  /// The DID URI for a particular DID subject is expressed using the id property in the DID document.
   PUBLIC DATA id: string
+
   PUBLIC DATA @context: []string?
+
+  /// A DID controller is an entity that is authorized to make changes to a
+  /// DID document. The process of authorizing a DID controller is defined
+  /// by the DID method.
   PUBLIC DATA controller: []string?
+
+  /// A DID subject can have multiple identifiers for different purposes, or at
+  /// different times. The assertion that two or more DIDs (or other types of URI)
+  /// refer to the same DID subject can be made using the alsoKnownAs property.
   PUBLIC DATA alsoKnownAs: []string?
+
+  /// Cryptographic public keys, which can be used to authenticate or authorize
+  /// interactions with the DID subject or associated parties.
+  /// [spec reference](https://www.w3.org/TR/did-core/#verification-methods)
   PUBLIC DATA verificationMethod: []VerificationMethod
+
+  /// The authentication verification relationship is used to specify how the
+  /// DID subject is expected to be authenticated, for purposes such as logging
+  /// into a website or engaging in any sort of challenge-response protocol.
+  ///
+  /// [Specification Reference](https://www.w3.org/TR/did-core/#key-agreement)
   PUBLIC DATA authentication: []string?
+
+  /// The assertionMethod verification relationship is used to specify how the
+  /// DID subject is expected to express claims, such as for the purposes of
+  /// issuing a Verifiable Credential
+  ///
+  /// [Specification Reference](https://www.w3.org/TR/did-core/#assertion)
   PUBLIC DATA assertionMethod: []string?
+
+  /// The keyAgreement verification relationship is used to specify how an
+  /// entity can generate encryption material in order to transmit confidential
+  /// information intended for the DID subject, such as for the purposes of
+  /// establishing a secure communication channel with the recipient
+  ///
+  /// [Specification Reference](https://www.w3.org/TR/did-core/#key-agreement)
   PUBLIC DATA keyAgreement: []string?
+
+  /// The capabilityInvocation verification relationship is used to specify a
+  /// verification method that might be used by the DID subject to invoke a
+  /// cryptographic capability, such as the authorization to update the
+  /// DID Document
+  ///
+  /// [Specification Reference](https://www.w3.org/TR/did-core/#capability-invocation)
   PUBLIC DATA capabilityInvocation: []string?
+
+  /// The capabilityDelegation verification relationship is used to specify a
+  /// mechanism that might be used by the DID subject to delegate a
+  /// cryptographic capability to another party, such as delegating the
+  /// authority to access a specific HTTP API to a subordinate.
+  ///
+  /// [Specification Reference](https://www.w3.org/TR/did-core/#capability-delegation)
   PUBLIC DATA capabilityDelegation: []string?
+
+  /// Services are used in DID documents to express ways of communicating with
+  /// the DID subject or associated entities.
+  /// A service can be any type of service the DID subject wants to advertise.
+  ///
+  /// [Specification Reference](https://www.w3.org/TR/did-core/#services)
   PUBLIC DATA service: []Service?
 ```
 
 ### `VerificationMethod`
 
 ```pseudocode!
+/// Representation of a DID Document's [Verification Method](https://www.w3.org/TR/did-core/#verification-methods).
 CLASS VerificationMethod
+  /// 🚧
   PUBLIC DATA id: string
+
+  /// 🚧
   PUBLIC DATA type: string
+
+  /// 🚧
   PUBLIC DATA controller: string
+
+  /// 🚧
   PUBLIC DATA publicKeyJwk: Jwk
 ```
 
 ### `Service`
 
 ```pseudocode!
+/// Representation of a DID Document's [Service](https://www.w3.org/TR/did-core/#service).
 CLASS Service
+  /// 🚧
   PUBLIC DATA id: string
+
+  /// 🚧
   PUBLIC DATA type: string
+
+  /// 🚧
   PUBLIC DATA serviceEndpoint: []string
 ```
 
 ## `Resolution`
 
 ```pseudocode!
+/// Representation of the result of a DID (Decentralized Identifier) resolution.
 CLASS Resolution
+  /// The resolved DID document, if available.
   PUBLIC DATA document: Document
+
+  /// The metadata associated with the DID document.
   PUBLIC DATA document_metadata: DocumentMetadata
+
+  /// The metadata associated with the DID resolution process.
   PUBLIC DATA resolution_metadata: ResolutionMetadata
+
+  /// Resolve via a DID URI.
   STATIC METHOD resolve(uri: string): Resolution
+```
+
+### Examples
+
+```pseudocode!
+🚧
 ```
 
 ### `ResolutionMetadataError`
 
 ```pseudocode!
+/// The error code from the resolution process.
 ENUM ResolutionMetadataError
   invalidDid
   notFound
@@ -328,21 +471,39 @@ ENUM ResolutionMetadataError
 ### `ResolutionMetadata`
 
 ```pseudocode!
+/// Metadata about the given resolution.
 CLASS ResolutionMetadata
+  /// The error code from the resolution process.
   PUBLIC DATA error: ResolutionMetadataError?
 ```
 
 ### `DocumentMetadata`
 
 ```pseudocode!
+/// Metadata about the DID Document.
 CLASS DocumentMetadata
+  /// 🚧
   PUBLIC DATA created: string?
+
+  /// 🚧
   PUBLIC DATA updated: string?
+
+  /// 🚧
   PUBLIC DATA deactivated: bool?
+
+  /// 🚧
   PUBLIC DATA nextUpdate: string?
+
+  /// 🚧
   PUBLIC DATA versionId: string?
+
+  /// 🚧
   PUBLIC DATA nextVersionId: string?
+
+  /// 🚧
   PUBLIC DATA equivalentId: []string?
+
+  /// 🚧
   PUBLIC DATA canonicalId: string?
 ```
 
