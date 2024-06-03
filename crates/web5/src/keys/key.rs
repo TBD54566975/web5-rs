@@ -1,5 +1,5 @@
-use crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CryptoError, CurveOperations};
-use jwk::{Jwk, JwkError};
+use crate::crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CryptoError, CurveOperations};
+use crate::jwk::{Jwk, JwkError};
 use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
@@ -77,7 +77,7 @@ impl PrivateKey for Jwk {
 
 #[cfg(test)]
 mod tests {
-    use crypto::{ed25519::Ed25519, CurveOperations};
+    use crate::crypto::{ed25519::Ed25519, CurveOperations};
 
     use super::*;
 

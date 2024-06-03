@@ -1,8 +1,8 @@
 pub mod local_key_manager;
 
-use crate::key::{KeyError, PrivateKey, PublicKey};
-use crypto::{CryptoError, Curve};
-use jwk::JwkError;
+use crate::crypto::{CryptoError, Curve};
+use crate::jwk::JwkError;
+use crate::keys::key::{KeyError, PrivateKey, PublicKey};
 use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]

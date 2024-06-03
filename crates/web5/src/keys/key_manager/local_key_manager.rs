@@ -1,8 +1,8 @@
-use crate::key::{PrivateKey, PublicKey};
-use crate::key_manager::{KeyManager, KeyManagerError};
-use crypto::ed25519::Ed25519;
-use crypto::secp256k1::Secp256k1;
-use crypto::{Curve, CurveOperations};
+use crate::crypto::ed25519::Ed25519;
+use crate::crypto::secp256k1::Secp256k1;
+use crate::crypto::{Curve, CurveOperations};
+use crate::keys::key::{PrivateKey, PublicKey};
+use crate::keys::key_manager::{KeyManager, KeyManagerError};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -106,7 +106,7 @@ impl Default for LocalKeyManager {
 
 #[cfg(test)]
 mod tests {
-    use crate::key::Key;
+    use crate::keys::key::Key;
 
     use super::*;
 
