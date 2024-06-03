@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 
+use crate::jws::{CompactJws, JwsError};
 use jsonpath_rust::{
     JsonPathFinder,
     JsonPathValue::{NewValue, NoValue, Slice},
 };
 use jsonschema::JSONSchema;
-use crate::jws::{CompactJws, JwsError};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, to_value, Map, Value};
 use uuid::Uuid;

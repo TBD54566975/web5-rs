@@ -6,4 +6,5 @@ pub mod jws;
 pub mod jwt;
 pub mod keys;
 
+#[cfg(test)]
 mod test_helpers;

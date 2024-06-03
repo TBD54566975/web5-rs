@@ -1,10 +1,10 @@
-use chrono::Utc;
-use core::fmt;
 use crate::dids::{bearer::BearerDid, document::KeySelector};
 use crate::jwt::{
     jws::Jwt,
     {Claims, JwtError, RegisteredClaims},
 };
+use chrono::Utc;
+use core::fmt;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
