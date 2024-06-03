@@ -4,29 +4,29 @@ use simple_dns::{rdata::RData, ResourceRecord};
 
 use super::DocumentPacketError;
 
-/// Gets the RData from the record. If RData is RData::TXT, get the text as a string.
-/// Convert strings like "id=foo;t=bar;se=baz" into a hash map like { 'id': 'foo', 't': 'bar', 'se': 'baz' }
-/// If there is any issue, return DocumentPacketError::RDataError
-pub fn record_rdata_to_hash_map(
-    record: ResourceRecord,
-) -> Result<HashMap<String, String>, DocumentPacketError> {
-    // Get RData text as String
-    let rdata_txt = match record.rdata {
-        RData::TXT(txt) => txt,
+pub fn text_from_record(record: &ResourceRecord) -> Result<String, DocumentPacketError> {
+    let rdata_txt = match &record.rdata {
+        RData::TXT(txt) => txt.clone(),
         _ => {
             return Err(DocumentPacketError::RDataError(
                 "RData must have type TXT".to_owned(),
             ))
         }
     };
-    let text = match String::try_from(rdata_txt) {
-        Ok(text) => text,
-        Err(_) => {
-            return Err(DocumentPacketError::RDataError(
-                "Failed to convert to string".to_owned(),
-            ))
-        }
-    };
+    String::try_from(rdata_txt)
+        .map_err(|_| DocumentPacketError::RDataError("Failed to convert to string".to_owned()))
+}
+
+/// Gets the RData from the record. If RData is RData::TXT, get the text as a string.
+/// Convert strings like "id=foo;t=bar;se=baz" into a hash map like { 'id': 'foo', 't': 'bar', 'se': 'baz' }
+/// If there is any issue, return DocumentPacketError::RDataError
+pub fn record_rdata_to_hash_map(
+    record: &ResourceRecord,
+) -> Result<HashMap<String, String>, DocumentPacketError> {
+    let text = text_from_record(record)?;
+    if text.is_empty() {
+        return Ok(HashMap::new());
+    }
 
     // Parse key-value pairs:
     //   Split string by ";" to get entries

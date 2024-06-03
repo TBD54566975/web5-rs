@@ -36,6 +36,28 @@ impl TryFrom<HashMap<String, String>> for VerificationMethodRdata {
 }
 
 impl VerificationMethod {
+    pub fn record_name(idx: u32) -> String {
+        format!("_k{}._did", idx)
+    }
+
+    pub fn is_vm_record_with_index(record: &ResourceRecord, idx: &u32) -> bool {
+        let labels = record.name.get_labels();
+
+        match labels.first() {
+            None => return false,
+            Some(subdomain) => {
+                if subdomain.to_string() != format!("_k{}", idx) {
+                    return false;
+                }
+            }
+        };
+
+        return match labels.get(1) {
+            None => false,
+            Some(subdomain) => subdomain.to_string() == "_did",
+        };
+    }
+
     pub fn to_resource_record(
         &self,
         did_uri: &str,
@@ -80,7 +102,7 @@ impl VerificationMethod {
         }
         let parts = parts.join(";");
 
-        let name = Name::new_unchecked(&format!("_k{}._did", idx)).into_owned();
+        let name = Name::new_unchecked(&VerificationMethod::record_name(idx)).into_owned();
         let txt_record = TXT::new().with_string(&parts)?.into_owned();
 
         Ok(ResourceRecord::new(
@@ -93,7 +115,8 @@ impl VerificationMethod {
 
     pub fn from_resource_record(
         did_uri: &str,
-        record: ResourceRecord,
+        record: &ResourceRecord,
+        identity_key: bool,
     ) -> Result<Self, DocumentPacketError> {
         let vm_rdata: VerificationMethodRdata = record_rdata_to_hash_map(record)?.try_into()?;
 
@@ -127,10 +150,16 @@ impl VerificationMethod {
             public_key_jwk.alg = alg;
         }
 
+        let id_fragment = if identity_key {
+            "0".to_string()
+        } else {
+            public_key_jwk.compute_thumbprint()?
+        };
+
         let controller = vm_rdata.c.unwrap_or(did_uri.to_string());
 
         Ok(VerificationMethod {
-            id: format!("{}#{}", did_uri, public_key_jwk.compute_thumbprint()?),
+            id: format!("{}#{}", did_uri, id_fragment),
             r#type: "JsonWebKey".to_string(),
             controller,
             public_key_jwk,
@@ -164,7 +193,27 @@ mod tests {
         let record = vm
             .to_resource_record(&did_uri, 0)
             .expect("Expected to convert verification method to DNS record");
-        let reconstituted_vm = VerificationMethod::from_resource_record(did_uri, record)
+        let reconstituted_vm = VerificationMethod::from_resource_record(did_uri, &record, false)
+            .expect("Expected to convert DNS record back to verification method");
+        assert_eq!(vm, reconstituted_vm);
+    }
+
+    #[test]
+    fn test_to_and_from_resource_record_identity_key() {
+        let did_uri = "did:dht:123";
+        let public_key_jwk = Ed25519::generate().unwrap().to_public_jwk();
+        let id = format!("{}#0", did_uri);
+        let vm = VerificationMethod {
+            id,
+            r#type: "JsonWebKey".to_string(),
+            controller: did_uri.to_string(),
+            public_key_jwk,
+        };
+
+        let record = vm
+            .to_resource_record(&did_uri, 0)
+            .expect("Expected to convert verification method to DNS record");
+        let reconstituted_vm = VerificationMethod::from_resource_record(did_uri, &record, true)
             .expect("Expected to convert DNS record back to verification method");
         assert_eq!(vm, reconstituted_vm);
     }
@@ -188,7 +237,7 @@ mod tests {
         let record = vm
             .to_resource_record(&did_uri, 0)
             .expect("Expected to convert verification method to DNS record");
-        let reconstituted_vm = VerificationMethod::from_resource_record(did_uri, record)
+        let reconstituted_vm = VerificationMethod::from_resource_record(did_uri, &record, false)
             .expect("Expected to convert DNS record back to verification method");
         assert_eq!(vm, reconstituted_vm);
     }
@@ -227,7 +276,7 @@ mod tests {
             RData::TXT(txt_record),
         );
 
-        VerificationMethod::from_resource_record("did:dht:123", record)
+        VerificationMethod::from_resource_record("did:dht:123", &record, false)
             .expect_err("Expected to fail because key type index is not supported");
     }
 
@@ -251,7 +300,7 @@ mod tests {
         let record = vm
             .to_resource_record(&did_uri, 0)
             .expect("Expected to convert verification method to DNS record");
-        let reconstituted_vm = VerificationMethod::from_resource_record(did_uri, record)
+        let reconstituted_vm = VerificationMethod::from_resource_record(did_uri, &record, false)
             .expect("Expected to convert DNS record back to verification method");
         assert_eq!(vm, reconstituted_vm);
     }
@@ -266,7 +315,7 @@ mod tests {
             RData::A(A { address: 0 }), // not RData::TXT
         );
 
-        let error = VerificationMethod::from_resource_record("did:dht:123", record)
+        let error = VerificationMethod::from_resource_record("did:dht:123", &record, false)
             .expect_err("Expected to fail because RData is not TXT");
         match error {
             DocumentPacketError::RDataError(_) => {}
@@ -285,7 +334,7 @@ mod tests {
             RData::TXT(txt), // Not ';' separated entries
         );
 
-        let error = VerificationMethod::from_resource_record("did:dht:123", record)
+        let error = VerificationMethod::from_resource_record("did:dht:123", &record, false)
             .expect_err("Expected to fail because RData TXT is malformed");
         match error {
             DocumentPacketError::RDataError(_) => {}
