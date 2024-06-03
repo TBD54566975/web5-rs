@@ -1,7 +1,7 @@
 [workspace]
 members = [ 
     "crates/web5", 
-    # "bindings/uniffi", # temporarily comment out while i finish consolidating crates
+    "bindings/uniffi",
 ]
 default-members = [
     "crates/web5",
