@@ -1,10 +1,10 @@
-use base64::{engine::general_purpose, DecodeError, Engine as _};
-use crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CryptoError, CurveOperations};
-use dids::{
+use crate::crypto::{ed25519::Ed25519, secp256k1::Secp256k1, CryptoError, CurveOperations};
+use crate::dids::{
     bearer::{BearerDid, BearerDidError},
     document::{DocumentError, KeyIdFragment, KeySelector},
     resolver::{ResolutionError, Resolver},
 };
+use base64::{engine::general_purpose, DecodeError, Engine as _};
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
 
@@ -138,12 +138,12 @@ impl CompactJws {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crypto::Curve;
-    use dids::methods::{
+    use crate::crypto::Curve;
+    use crate::dids::methods::{
         jwk::{DidJwk, DidJwkCreateOptions},
         Create,
     };
-    use keys::key_manager::local_key_manager::LocalKeyManager;
+    use crate::keys::key_manager::local_key_manager::LocalKeyManager;
     use serde_json::json;
     use std::sync::Arc;
 
