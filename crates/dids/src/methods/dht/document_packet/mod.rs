@@ -366,7 +366,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_and_from_packet_kitchen_sink() {
+    fn test_to_and_from_packet_full_featured() {
         let did_uri = "did:dht:123";
 
         let verification_method1 = generate_identity_key_vm(&did_uri);
