@@ -1,11 +1,4 @@
-> [!WARNING]
-> 🚧 🚧 🚧 Under Construction 🚧 🚧 🚧
->
-> 🚧 Documentation comments
-> 
-> 🚧 Test vectors
-
-# Standard Web5 API Design (APID) Document <!-- omit in toc -->
+# Web5 API Design (APID) <!-- omit in toc -->
 
 **Last Updated:** May 30, 2024
 
@@ -32,12 +25,10 @@
   - [`Ed25519Verifier`](#ed25519verifier)
 - [Decentralized Identifier's (DIDs)](#decentralized-identifiers-dids)
   - [`Did`](#did)
-    - [Examples](#examples)
   - [`Document`](#document)
     - [`VerificationMethod`](#verificationmethod)
     - [`Service`](#service)
   - [`Resolution`](#resolution)
-    - [Examples](#examples-1)
     - [`ResolutionMetadataError`](#resolutionmetadataerror)
     - [`ResolutionMetadata`](#resolutionmetadata)
     - [`DocumentMetadata`](#documentmetadata)
@@ -69,17 +60,17 @@ The APID does not assert requirements as to the artifact makeup (i.e. npm packag
 
 ## Primitive Concepts
 
-| Type              | Representation                          | Description |
-| ----------------- | --------------------------------------- | ----------- |
-| string            | `string`                                | 🚧           |
-| byte              | `byte`                                  | 🚧           |
-| boolean           | `bool`                                  | 🚧           |
-| integer           | `int`                                   | 🚧           |
-| array             | `[]T`                                   | 🚧           |
-| optional/nullable | `T?`                                    | 🚧           |
-| hash map          | `Map<T1, T2>`                           | 🚧           |
-| function          | `func_name(param1: T1, param2: T2): T3` | 🚧           |
-| mixed type        | `T1 \| T2`                              | 🚧           |
+| Type              | Representation                          |
+| :---------------- | :-------------------------------------- |
+| string            | `string`                                |
+| byte              | `byte`                                  |
+| boolean           | `bool`                                  |
+| integer           | `int`                                   |
+| array             | `[]T`                                   |
+| optional/nullable | `T?`                                    |
+| hash map          | `Map<T1, T2>`                           |
+| function          | `func_name(param1: T1, param2: T2): T3` |
+| mixed type        | `T1 \| T2`                              |
 
 ## High-Level Concepts
 
@@ -88,7 +79,7 @@ The APID does not assert requirements as to the artifact makeup (i.e. npm packag
 - `INTERFACE InterfaceName`: Defines a a polymorphic base class.
 - `METHOD methodName(param: T1): T2`: Defines an instance method that any class implementing the interface must implement.
 
-**Example:**
+**Example**
 
 ```psuedocode
 INTERFACE Shape
@@ -97,7 +88,7 @@ INTERFACE Shape
 ```
 
 > [!NOTE]
-> Polymorphic base class definitions may have a `CONSTRUCTOR` to indicate assumptions of encapsulation for implementations; given a target language does not support constructor's on the polymorphic base class, then the feature can be disregarded.
+> Polymorphic base class definitions may have a `CONSTRUCTOR` to indicate assumptions of encapsulation for implementations; given a target language does not support constructor's on the polymorphic base class, then the feature can be disregarded but must be implemented in the implementation of the polymorphic base class.
 
 ### Class
 
@@ -108,7 +99,7 @@ INTERFACE Shape
 - `METHOD methodName(param: T1): T2`: Defines an instance method on the class.
 - `STATIC METHOD methodName(param: T1): T2`: Defines an instance method on the class.
 
-**Example:**
+**Example**
 
 ```psuedocode
 CLASS Circle IMPLEMENTS Shape
@@ -320,7 +311,7 @@ CLASS Did
   CONSTRUCTOR(uri: string)
 ```
 
-### Examples
+**Examples**
 
 ```pseudocode!
 🚧
@@ -448,7 +439,7 @@ CLASS Resolution
   STATIC METHOD resolve(uri: string): Resolution
 ```
 
-### Examples
+**Examples**
 
 ```pseudocode!
 🚧

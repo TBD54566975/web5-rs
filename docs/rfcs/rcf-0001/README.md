@@ -3,18 +3,18 @@
 
 🚧 Pull Request 🚧
 
-Title: RFC-0001 Standard Web5 API Design (APID) Document v0.0.1
+Title: RFC-0001 Standard Web5 API Design (APID) Document v0.1.0
 
 Description: 
 - TSC, wrong working group?
-- doc comments & test vectors included in the RFC but are not included in the design doc
-  - TODO rip doc comments from go or js
+- doc comments
 - examples
+- test vectors
 - subsequent work/upon completion: `core/` directory
 - incomplete design on the did:dht matters
-- add links in the markdowns
+- `Object` in the VC
 
-# RFC-0001 Standard Web5 API Design (APID) Document v0.0.1 <!-- omit in toc -->
+# RFC-0001 Standard Web5 API Design (APID) Document v0.1.0 <!-- omit in toc -->
 
 - [Summary](#summary)
 - [Motivation](#motivation)
@@ -32,7 +32,7 @@ One goal of the Rust implementation of Web5 is to act as a core implementation w
 The scope of RFC-0001 is two-part:
 
 1. The role of the APID in the context of Web5 development
-2. The original `v0.0.1` of the APID
+2. The original `v0.1.0` of the [APID](../../API_DESIGN.md)
 
 # Motivation
 
@@ -41,7 +41,7 @@ At the time of RFC-0001 there are six distinct implementations of Web5: [web5-js
 The benefits of the APID include, but are not limited to:
 
 - Assist in fostering community involvement by enabling community members to reliably communicate & collaborate across languages; separate languages do no act as a barrier to collaboration.
-- Stand as a reliable source of truth for building multi-language developer guides at [https://developer.tbd.website](https://developer.tbd.website/).
+- Stand as a reliable source of truth for building multi-language developer guides at https://developer.tbd.website.
 - Lower the barrier of entry for contributions across implementations by limiting context switching.
 - Enable stronger assurances of interoperability across languages.
 - Act as an origin for all implementations to source documentation comments (”doc comments”).
@@ -54,19 +54,19 @@ The benefits of the APID include, but are not limited to:
 
 ## Role in Web5 Development
 
-The APID is codified in a Custom DSL (domain-specific language) syntax. See [Alternatives](#alternatives) below for exploration of alternative solutions. The Custom DSL is not expected to have deterministic assurances via programmatic integrations, the test vectors provide assurances, but instead the Custom DSL is intended to convey a design to a developer in a fast, easy, and accessible manor; the goal of the Custom DSL is for the developer to attend to their target language, not the design codification.
-
-The APID is asserted to act as a floor, or a baseline, of feature support — each implementation may choose to expose publicly facing APIs which are beyond the scope of the APID.
-
-The APID defines semantic & name requirements for the given set of features. Unique language idioms are not within the scope of the APID.
-
 The common sequence of events to a change or addition to the standard Web5 API would follow:
 
-1. RFC w/ attached changes to the APID
+1. RFC + changes to the APID
 2. Consensus among stakeholders to (1)
 3. Implementation in Rust
 4. Bind the Rust implementation to the target languages
 5. Implementation in the target languages with use of the binded code (4)
+
+The APID is codified in a [Custom DSL](../../API_DESIGN.md#custom-dsl) (domain-specific language) syntax. See [Alternatives](#alternatives) below for exploration of alternative solutions. The Custom DSL is not expected to have deterministic assurances via programmatic integrations, the test vectors provide assurances, but instead the Custom DSL is intended to convey a design to a developer in a fast, easy, and accessible manor; the goal of the Custom DSL is for the developer to attend to their target language, not the design codification.
+
+The APID is asserted to act as a floor, or a baseline, of feature support — each implementation may choose to expose publicly facing APIs which are beyond the scope of the APID.
+
+The APID defines semantic & name requirements for the given set of features. Unique language idioms are not within the scope of the APID.
 
 The APID is constructed in a fashion such that the concepts span any target language, so long as that target language supports the [Primitive Concepts](../../API_DESIGN.md#primitive-concepts) and the [High-Level Concepts](../../API_DESIGN.md#high-level-concepts) defined in the APID.  
 
@@ -76,7 +76,7 @@ The APID is versioned in accordance with [semantic versioning](https://semver.or
 
 ## APID `v0.1.0` 
 
-`v0.1.0` of the APID is intentionally reduced in scope, relative to existing implementations, to serve as an accessible starting state. Namely, the concepts which are heavily integrated in existing implementations and which are excluded from v0.0.1 are: Bearer DID’s, Key Manager polymorphic base class, JWT, and JWS. The proposal of RFC-0001 is to act as a foundation which can be built-upon, and so it does not make any proposals as to the inclusion or exclusion of the noted absent concepts. Subsequent RFC’s are appropriate means bring forth for these matters. 
+`v0.1.0` of the APID is intentionally reduced in scope, relative to existing implementations, to serve as an accessible starting state. Namely, the concepts which are heavily integrated in existing implementations and which are excluded from v0.1.0 are: Bearer DID’s, Key Manager polymorphic base class, JWT, and JWS. The proposal of RFC-0001 is to act as a foundation which can be built-upon, and so it does not make any proposals as to the inclusion or exclusion of the noted absent concepts. Subsequent RFC’s are appropriate means bring forth for these matters. 
 
 🚧 `v0.1.0` of the APID excludes doc comments and test vectors, but both of which should be added in subsequent versions. 🚧
 
