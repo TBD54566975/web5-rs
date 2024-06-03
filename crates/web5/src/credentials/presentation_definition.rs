@@ -5,7 +5,7 @@ use jsonpath_rust::{
     JsonPathValue::{NewValue, NoValue, Slice},
 };
 use jsonschema::JSONSchema;
-use jws::{CompactJws, JwsError};
+use crate::jws::{CompactJws, JwsError};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, to_value, Map, Value};
 use uuid::Uuid;
@@ -237,7 +237,7 @@ impl JsonSchemaBuilder {
 mod tests {
     use std::collections::HashSet;
 
-    use test_helpers::TestVectorFile;
+    use crate::test_helpers::TestVectorFile;
 
     use super::PresentationDefinition;
 

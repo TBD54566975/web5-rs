@@ -1,7 +1,7 @@
 use chrono::Utc;
 use core::fmt;
-use dids::{bearer::BearerDid, document::KeySelector};
-use jwt::{
+use crate::dids::{bearer::BearerDid, document::KeySelector};
+use crate::jwt::{
     jws::Jwt,
     {Claims, JwtError, RegisteredClaims},
 };
@@ -375,15 +375,15 @@ impl Claims for VcJwtClaims {}
 #[cfg(test)]
 mod test {
     use super::*;
-    use crypto::Curve;
-    use dids::{
+    use crate::crypto::Curve;
+    use crate::dids::{
         document::VerificationMethodType,
         methods::{
             jwk::{DidJwk, DidJwkCreateOptions},
             Create,
         },
     };
-    use keys::key_manager::local_key_manager::LocalKeyManager;
+    use crate::keys::key_manager::local_key_manager::LocalKeyManager;
     use std::sync::Arc;
     use uuid::Uuid;
 
