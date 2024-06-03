@@ -1,4 +1,4 @@
-use crate::resolver::{ResolutionError, ResolutionMetadata};
+use crate::dids::resolver::{ResolutionError, ResolutionMetadata};
 use ssi_dids::did_resolve::{
     ResolutionMetadata as SpruceResolutionMetadata, ERROR_INVALID_DID, ERROR_METHOD_NOT_SUPPORTED,
     ERROR_NOT_FOUND, ERROR_REPRESENTATION_NOT_SUPPORTED,

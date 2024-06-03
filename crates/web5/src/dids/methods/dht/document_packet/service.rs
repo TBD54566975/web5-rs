@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::document::Service;
+use crate::dids::document::Service;
 
 use simple_dns::{
     rdata::{RData, TXT},

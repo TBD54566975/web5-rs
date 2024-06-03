@@ -1,4 +1,4 @@
-use crate::methods::{Method, ResolutionResult, Resolve};
+use crate::dids::methods::{Method, ResolutionResult, Resolve};
 use did_web::DIDWeb as SpruceDidWebMethod;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 

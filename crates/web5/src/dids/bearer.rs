@@ -1,9 +1,9 @@
-use crate::{
+use crate::dids::{
     document::{Document, DocumentError, KeyIdFragment, KeySelector},
     identifier::{Identifier, IdentifierError},
     resolver::{ResolutionError, Resolver},
 };
-use keys::{
+use crate::keys::{
     key::KeyError,
     key_manager::{KeyManager, KeyManagerError},
 };
@@ -65,15 +65,15 @@ impl BearerDid {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{
+    use crate::crypto::Curve;
+    use crate::dids::{
         document::VerificationMethodType,
         methods::{
             jwk::{DidJwk, DidJwkCreateOptions},
             Create,
         },
     };
-    use crypto::Curve;
-    use keys::{key::PublicKey, key_manager::local_key_manager::LocalKeyManager};
+    use crate::keys::{key::PublicKey, key_manager::local_key_manager::LocalKeyManager};
 
     #[tokio::test]
     async fn test_from_key_manager() {

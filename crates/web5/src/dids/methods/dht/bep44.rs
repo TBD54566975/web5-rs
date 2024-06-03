@@ -3,9 +3,9 @@ use std::{
     time::{SystemTime, SystemTimeError, UNIX_EPOCH},
 };
 
+use crate::crypto::CryptoError;
+use crate::keys::key::{KeyError, PublicKey};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use crypto::CryptoError;
-use keys::key::{KeyError, PublicKey};
 
 /// Minimum size of a bep44 encoded message
 /// Signature is 64 bytes and seq is 8 byets
@@ -136,8 +136,8 @@ impl Bep44Message {
 
 #[cfg(test)]
 mod tests {
-    use crypto::{ed25519::Ed25519, CurveOperations};
-    use keys::key::PrivateKey;
+    use crate::crypto::{ed25519::Ed25519, CurveOperations};
+    use crate::keys::key::PrivateKey;
 
     use super::*;
 

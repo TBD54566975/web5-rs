@@ -1,5 +1,5 @@
-use crypto::CryptoError;
-use jwk::JwkError;
+use crate::crypto::CryptoError;
+use crate::jwk::JwkError;
 use simple_dns::SimpleDnsError;
 
 mod rdata_encoder;

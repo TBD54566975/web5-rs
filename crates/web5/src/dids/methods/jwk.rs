@@ -1,16 +1,16 @@
 use std::sync::Arc;
 
-use crate::identifier::Identifier;
-use crate::methods::{MethodError, Resolve};
-use crate::resolver::ResolutionResult;
-use crate::{bearer::BearerDid, methods::Create};
-use crate::{
+use crate::crypto::Curve;
+use crate::dids::identifier::Identifier;
+use crate::dids::methods::{MethodError, Resolve};
+use crate::dids::resolver::ResolutionResult;
+use crate::dids::{bearer::BearerDid, methods::Create};
+use crate::dids::{
     document::{Document, VerificationMethod},
     methods::Method,
 };
-use crypto::Curve;
+use crate::keys::key_manager::KeyManager;
 use did_jwk::DIDJWK as SpruceDidJwkMethod;
-use keys::key_manager::KeyManager;
 use serde_json::from_str;
 use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
 use ssi_dids::{DIDMethod, Source};
@@ -101,8 +101,8 @@ impl Resolve for DidJwk {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::resolver::ResolutionError;
-    use keys::key_manager::local_key_manager::LocalKeyManager;
+    use crate::dids::resolver::ResolutionError;
+    use crate::keys::key_manager::local_key_manager::LocalKeyManager;
 
     fn create_did_jwk() -> BearerDid {
         let key_manager = Arc::new(LocalKeyManager::new());

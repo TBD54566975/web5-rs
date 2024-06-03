@@ -1,5 +1,5 @@
-use crate::document::{Document, Service, VerificationMethod};
-use jwk::Jwk;
+use crate::dids::document::{Document, Service, VerificationMethod};
+use crate::jwk::Jwk;
 use ssi_core::one_or_many::OneOrMany;
 use ssi_dids::{
     Context as SpruceContext, Contexts as SpruceContexts, Document as SpruceDocument,

@@ -1,9 +1,9 @@
 use std::{collections::HashMap, str::FromStr};
 
-use crate::document::VerificationMethod;
+use crate::dids::document::VerificationMethod;
 
+use crate::crypto::{ed25519::Ed25519, secp256k1::Secp256k1, Curve};
 use base64::{engine::general_purpose, Engine as _};
-use crypto::{ed25519::Ed25519, secp256k1::Secp256k1, Curve};
 use simple_dns::{
     rdata::{RData, TXT},
     Name, ResourceRecord,
@@ -140,7 +140,7 @@ impl VerificationMethod {
 
 #[cfg(test)]
 mod tests {
-    use crypto::CurveOperations;
+    use crate::crypto::CurveOperations;
     use simple_dns::rdata::A;
 
     use super::*;

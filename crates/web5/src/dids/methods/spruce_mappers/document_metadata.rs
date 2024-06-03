@@ -1,4 +1,4 @@
-use crate::resolver::DocumentMetadata;
+use crate::dids::resolver::DocumentMetadata;
 use ssi_dids::did_resolve::DocumentMetadata as SpruceDocumentMetadata;
 
 impl DocumentMetadata {

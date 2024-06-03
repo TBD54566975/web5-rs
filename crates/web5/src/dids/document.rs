@@ -1,4 +1,4 @@
-use jwk::Jwk;
+use crate::jwk::Jwk;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, PartialEq, Serialize, Deserialize)]

@@ -3,8 +3,8 @@ pub mod jwk;
 pub mod spruce_mappers;
 pub mod web;
 
-use crate::resolver::ResolutionResult;
-use keys::{
+use crate::dids::resolver::ResolutionResult;
+use crate::keys::{
     key::KeyError,
     key_manager::{KeyManager, KeyManagerError},
 };
@@ -35,7 +35,7 @@ pub trait Create<O> {
     fn create(
         key_manager: Arc<dyn KeyManager>,
         opts: O,
-    ) -> Result<crate::bearer::BearerDid, MethodError>;
+    ) -> Result<crate::dids::bearer::BearerDid, MethodError>;
 }
 
 /// Method is the trait for DID methods overall that can be resolved. Methods can also implement

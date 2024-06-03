@@ -1,8 +1,8 @@
-use crate::document::Document;
-use crate::identifier::Identifier;
-use crate::methods::jwk::DidJwk;
-use crate::methods::web::DidWeb;
-use crate::methods::{Method, Resolve};
+use crate::dids::document::Document;
+use crate::dids::identifier::Identifier;
+use crate::dids::methods::jwk::DidJwk;
+use crate::dids::methods::web::DidWeb;
+use crate::dids::methods::{Method, Resolve};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
