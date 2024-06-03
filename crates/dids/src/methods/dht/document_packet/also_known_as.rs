@@ -43,3 +43,33 @@ impl AlsoKnownAs {
         Ok(also_known_as)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::methods::dht::document_packet::controller::Controller;
+
+    use super::*;
+
+    #[test]
+    fn test_to_and_from_resource_record() {
+        let also_known_as = vec!["Dave".to_string(), "Bartholemoop".to_string()];
+        let record = AlsoKnownAs::to_resource_record(&also_known_as)
+            .expect("expected to convert to DNS record");
+        let also_known_as2 = AlsoKnownAs::from_resource_record(&record)
+            .expect("Expected to convert from DNS record");
+        assert_eq!(also_known_as, also_known_as2);
+    }
+
+    #[test]
+    fn test_is_aka_record() {
+        let also_known_as = vec!["Dave".to_string(), "Bartholemoop".to_string()];
+        let record = AlsoKnownAs::to_resource_record(&also_known_as)
+            .expect("expected to convert to DNS record");
+
+        assert!(AlsoKnownAs::is_aka_record(&record));
+
+        let controllers = vec!["Jerb".to_string(), "Carrie Bradshaw".to_string()];
+        let record = Controller::to_resource_record(&controllers).unwrap();
+        assert!(!AlsoKnownAs::is_aka_record(&record));
+    }
+}

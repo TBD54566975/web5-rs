@@ -44,6 +44,8 @@ impl Controller {
 
 #[cfg(test)]
 mod tests {
+    use crate::methods::dht::document_packet::also_known_as::AlsoKnownAs;
+
     use super::*;
 
     #[test]
@@ -61,5 +63,18 @@ mod tests {
         let controllers2 = Controller::from_resource_record(&record)
             .expect("Expected to get a list of strings from resource record");
         assert_eq!(controllers, controllers2);
+    }
+
+    #[test]
+    fn test_is_cnt_record() {
+        let also_known_as = vec!["Dave".to_string(), "Bartholemoop".to_string()];
+        let record = Controller::to_resource_record(&also_known_as)
+            .expect("expected to convert to DNS record");
+
+        assert!(Controller::is_cnt_record(&record));
+
+        let controllers = vec!["Jerb".to_string(), "Carrie Bradshaw".to_string()];
+        let record = AlsoKnownAs::to_resource_record(&controllers).unwrap();
+        assert!(!Controller::is_cnt_record(&record));
     }
 }
