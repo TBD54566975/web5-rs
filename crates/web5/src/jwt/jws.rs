@@ -1,6 +1,6 @@
-use crate::{Claims, JwtError};
-use ::jws::{CompactJws, JwsHeader};
-use dids::{bearer::BearerDid, document::KeySelector};
+use super::{Claims, JwtError};
+use crate::dids::{bearer::BearerDid, document::KeySelector};
+use crate::jws::{CompactJws, JwsHeader};
 
 // A JWT can be implemented as either a JWS or JWE, this module is the implementation of a JWT as a JWS
 
@@ -70,16 +70,16 @@ impl Jwt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::RegisteredClaims;
-    use crypto::Curve;
-    use dids::{
+    use crate::crypto::Curve;
+    use crate::dids::{
         document::KeySelector,
         methods::{
             jwk::{DidJwk, DidJwkCreateOptions},
             Create,
         },
     };
-    use keys::key_manager::local_key_manager::LocalKeyManager;
+    use crate::jwt::RegisteredClaims;
+    use crate::keys::key_manager::local_key_manager::LocalKeyManager;
     use std::sync::Arc;
 
     #[tokio::test]

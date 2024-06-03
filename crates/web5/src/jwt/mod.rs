@@ -1,8 +1,8 @@
 pub mod jwe;
 pub mod jws;
 
-use ::jws::JwsError;
-use dids::document::DocumentError;
+use crate::dids::document::DocumentError;
+use crate::jws::JwsError;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
 
