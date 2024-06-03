@@ -7,7 +7,8 @@ use std::{
 };
 
 use base64::DecodeError;
-use jwk::Jwk;
+
+use crate::jwk::Jwk;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum CryptoError {

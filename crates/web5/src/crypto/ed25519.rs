@@ -1,10 +1,10 @@
-use crate::{CryptoError, CurveOperations};
+use super::{CryptoError, CurveOperations};
+use crate::jwk::Jwk;
 use base64::{engine::general_purpose, Engine as _};
 use ed25519_dalek::{
     Signature, Signer, SigningKey, Verifier, VerifyingKey, PUBLIC_KEY_LENGTH, SECRET_KEY_LENGTH,
     SIGNATURE_LENGTH,
 };
-use jwk::Jwk;
 use rand::rngs::OsRng;
 
 pub struct Ed25519;

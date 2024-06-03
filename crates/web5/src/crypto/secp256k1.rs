@@ -1,6 +1,6 @@
-use crate::{CryptoError, CurveOperations};
+use super::{CryptoError, CurveOperations};
+use crate::jwk::Jwk;
 use base64::{engine::general_purpose, Engine as _};
-use jwk::Jwk;
 use k256::{
     ecdsa::{
         signature::{Signer, Verifier},
