@@ -3,7 +3,7 @@ use crate::jwt::{
     jws::Jwt,
     {Claims, JwtError, RegisteredClaims},
 };
-use chrono::Utc;
+use chrono::{DateTime, TimeZone, Utc};
 use core::fmt;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -28,6 +28,8 @@ pub enum CredentialError {
     CredentialExpired,
     #[error("VC data model validation error: {0}")]
     VcDataModelValidationError(String),
+    #[error("invalid timestamp: {0}")]
+    InvalidTimestamp(String),
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
@@ -70,9 +72,9 @@ pub struct VerifiableCredential {
     pub r#type: Vec<String>,
     pub issuer: Issuer,
     #[serde(rename = "issuanceDate")]
-    pub issuance_date: i64,
+    pub issuance_date: String,
     #[serde(rename = "expirationDate")]
-    pub expiration_date: Option<i64>,
+    pub expiration_date: Option<String>,
     pub credential_subject: CredentialSubject,
 }
 
@@ -101,9 +103,9 @@ pub struct JwtPayloadVerifiableCredential {
     #[serde(skip_serializing_if = "Option::is_none")]
     issuer: Option<Issuer>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "issuanceDate")]
-    issuance_date: Option<i64>,
+    issuance_date: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "expirationDate")]
-    expiration_date: Option<i64>,
+    expiration_date: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "credentialSubject")]
     credential_subject: Option<CredentialSubject>,
 }
@@ -152,8 +154,8 @@ impl VerifiableCredential {
         context: Vec<String>,
         r#type: Vec<String>,
         issuer: Issuer,
-        issuance_date: i64,
-        expiration_date: Option<i64>,
+        issuance_date: String,
+        expiration_date: Option<String>,
         credential_subject: CredentialSubject,
     ) -> Self {
         let context_with_base = std::iter::once(BASE_CONTEXT.to_string())
@@ -180,13 +182,19 @@ impl VerifiableCredential {
         bearer_did: &BearerDid,
         key_selector: &KeySelector,
     ) -> Result<String, CredentialError> {
+        let issuance_timestamp = rfc3339_to_timestamp(&self.issuance_date)?;
+        let expiration_timestamp = match &self.expiration_date {
+            Some(date) => Some(rfc3339_to_timestamp(date)?),
+            None => None,
+        };
+
         let claims = VcJwtClaims {
             registered_claims: RegisteredClaims {
                 issuer: Some(self.issuer.to_string()),
                 jti: Some(self.id.clone()),
                 subject: Some(self.credential_subject.id.clone()),
-                not_before: Some(self.issuance_date),
-                expiration: self.expiration_date,
+                not_before: Some(issuance_timestamp),
+                expiration: expiration_timestamp,
                 ..Default::default()
             },
             vc_payload: self.clone().into(),
@@ -236,8 +244,9 @@ impl VerifiableCredential {
             }
         }
 
-        if let Some(issuance_date) = &vc_payload.issuance_date {
-            if issuance_date != &nbf {
+        if let Some(vc_payload_issuance_date) = &vc_payload.issuance_date {
+            let vc_payload_timestamp = rfc3339_to_timestamp(vc_payload_issuance_date)?;
+            if vc_payload_timestamp != nbf {
                 return Err(CredentialError::ClaimMismatch("issuance_date".to_string()));
             }
         }
@@ -251,7 +260,8 @@ impl VerifiableCredential {
                     ));
                 }
                 Some(exp) => {
-                    if vc_payload_expiration_date != &exp {
+                    let vc_payload_timestamp = rfc3339_to_timestamp(vc_payload_expiration_date)?;
+                    if vc_payload_timestamp != exp {
                         return Err(CredentialError::ClaimMismatch(
                             "expiration_date".to_string(),
                         ));
@@ -278,13 +288,19 @@ impl VerifiableCredential {
             params: None,
         });
 
+        let nbf_issuance_date = timestamp_to_rfc3339(nbf)?;
+        let exp_expiration_date = match exp {
+            Some(exp_timestamp) => Some(timestamp_to_rfc3339(exp_timestamp)?),
+            None => None,
+        };
+
         let vc = VerifiableCredential {
             context: vc_payload.context,
             id: jti,
             r#type: vc_payload.r#type,
             issuer: vc_issuer,
-            issuance_date: nbf,
-            expiration_date: exp,
+            issuance_date: nbf_issuance_date,
+            expiration_date: exp_expiration_date,
             credential_subject: vc_credential_subject,
         };
 
@@ -302,7 +318,7 @@ impl VerifiableCredential {
 }
 
 fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialError> {
-    // Required fields
+    // Required fields ["@context", "id", "type", "issuer", "issuanceDate", "credentialSubject"]
     if vc.id.is_empty() {
         return Err(CredentialError::VcDataModelValidationError(
             "missing id".to_string(),
@@ -327,29 +343,32 @@ fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialErr
         ));
     }
 
-    let now = Utc::now().timestamp();
-
-    if vc.issuance_date.is_negative() {
+    if vc.issuance_date.is_empty() {
         return Err(CredentialError::VcDataModelValidationError(
-            "invalid issuance date".to_string(),
+            "missing issuance date".to_string(),
         ));
     }
 
-    if vc.issuance_date > now {
+    if vc.credential_subject.id.is_empty() {
+        return Err(CredentialError::VcDataModelValidationError(
+            "missing credential subject".to_string(),
+        ));
+    }
+
+    let now = Utc::now().timestamp();
+    let issuance_timestamp = rfc3339_to_timestamp(&vc.issuance_date)?;
+
+    if issuance_timestamp > now {
         return Err(CredentialError::VcDataModelValidationError(
             "issuance date in future".to_string(),
         ));
     }
 
     // Validate expiration date if it exists
-    if let Some(expiration_date) = vc.expiration_date {
-        if expiration_date.is_negative() {
-            return Err(CredentialError::VcDataModelValidationError(
-                "invalid expiration date".to_string(),
-            ));
-        }
+    if let Some(ref expiration_date) = vc.expiration_date {
+        let expiration_timestamp = rfc3339_to_timestamp(expiration_date)?;
 
-        if expiration_date < now {
+        if expiration_timestamp < now {
             return Err(CredentialError::VcDataModelValidationError(
                 "credential expired".to_string(),
             ));
@@ -360,6 +379,23 @@ fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<(), CredentialErr
     // https://github.com/TBD54566975/web5-rs/issues/112
 
     Ok(())
+}
+
+/// Convert an i64 timestamp to an RFC 3339 formatted date-time string
+pub fn timestamp_to_rfc3339(timestamp: i64) -> Result<String, CredentialError> {
+    let datetime = Utc
+        .timestamp_opt(timestamp, 0)
+        .single()
+        .ok_or_else(|| CredentialError::InvalidTimestamp("Invalid timestamp".to_string()))?;
+    Ok(datetime.to_rfc3339())
+}
+
+/// Convert an RFC 3339 formatted date-time string to an i64 timestamp
+pub fn rfc3339_to_timestamp(rfc3339: &str) -> Result<i64, CredentialError> {
+    let datetime: DateTime<Utc> = rfc3339
+        .parse()
+        .map_err(|_| CredentialError::InvalidTimestamp("Invalid timestamp".to_string()))?;
+    Ok(datetime.timestamp())
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -404,8 +440,8 @@ mod test {
             vec![BASE_CONTEXT.to_string()],
             vec![BASE_TYPE.to_string()],
             issuer.clone(),
-            now,
-            Some(now + 631152000), // now + 20 years
+            timestamp_to_rfc3339(now).unwrap(),
+            Some(timestamp_to_rfc3339(now + 631152000).unwrap()), // now + 20 years
             CredentialSubject {
                 id: issuer.to_string(),
                 ..Default::default()
@@ -449,8 +485,8 @@ mod test {
             vec![BASE_CONTEXT.to_string()],
             vec![BASE_TYPE.to_string()],
             Issuer::String(issuer.to_string()),
-            now,
-            Some(now + 30 * 60),
+            timestamp_to_rfc3339(now).unwrap(),
+            Some(timestamp_to_rfc3339(now + 30 * 60).unwrap()),
             CredentialSubject {
                 id: issuer.to_string(),
                 ..Default::default()
@@ -469,8 +505,8 @@ mod test {
             vec!["some-other-context".to_string()],
             vec!["some-other-type".to_string()],
             Issuer::String(issuer.to_string()),
-            now,
-            Some(now + 30 * 60),
+            timestamp_to_rfc3339(now).unwrap(),
+            Some(timestamp_to_rfc3339(now + 30 * 60).unwrap()),
             CredentialSubject {
                 id: issuer.to_string(),
                 ..Default::default()
@@ -492,8 +528,8 @@ mod test {
                 id: issuer.to_string(),
                 name: issuer_name.to_string(),
             }),
-            now,
-            Some(now + 30 * 60),
+            timestamp_to_rfc3339(now).unwrap(),
+            Some(timestamp_to_rfc3339(now + 30 * 60).unwrap()),
             CredentialSubject {
                 id: issuer.to_string(),
                 ..Default::default()
@@ -550,8 +586,8 @@ mod test {
             vec![BASE_CONTEXT.to_string()],
             vec![BASE_TYPE.to_string()],
             issuer.clone(),
-            now,
-            Some(now.clone() - 300000),
+            timestamp_to_rfc3339(now).unwrap(),
+            Some(timestamp_to_rfc3339(now.clone() - 300000).unwrap()),
             CredentialSubject {
                 id: bearer_did.identifier.uri.to_string(),
                 ..Default::default()
@@ -570,7 +606,7 @@ mod test {
 
     #[tokio::test]
     async fn test_verify_mismatched_iss() {
-        let mismatched_issuer_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOjQwNmYxNjhlLTg4Y2QtNGVhMS05ZTBmLWFkZTUyMDFjODY4YyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5IiwiaXNzdWFuY2VEYXRlIjoxNzE1MzU4NjQ2LCJleHBpcmF0aW9uRGF0ZSI6MTcxNTMyODY0NiwiY3JlZGVudGlhbF9zdWJqZWN0Ijp7ImlkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTFRoemNVVjJjMGRmTlMxc1VEbFpZV3RpYjI1VE1HMDFSRmxWYWtsNU5tODRRbDlWZDNSemFteFZPQ0o5In19LCJpc3MiOiJ3cm9uZ2lzc3VlciIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaUxUaHpjVVYyYzBkZk5TMXNVRGxaWVd0aWIyNVRNRzAxUkZsVmFrbDVObTg0UWw5VmQzUnphbXhWT0NKOSIsImV4cCI6MTcxNTMyODY0NiwibmJmIjoxNzE1MzU4NjQ2LCJqdGkiOiJ1cm46dmM6dXVpZDo0MDZmMTY4ZS04OGNkLTRlYTEtOWUwZi1hZGU1MjAxYzg2OGMifQ.gX3trvOMBzRX3vC2t1d3FEDj4RFNVrmotvIFgrLPoJVP2co4arz8jRT_VQ9-g7CRqWQ65uyhgAMQjZ_HWwk2DA";
+        let mismatched_issuer_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5sVTRSV1JRY210b2JFdGhOWFJvYW05SWEyMDVaV0pFVFhCaVFWWm5iVEIwWm14MU1sZDRkalkwTkNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOjkyYzMzNmFmLWIxY2ItNDYzMi05YjI1LTgzYmY3NTY1MjBiYiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTmxVNFJXUlFjbXRvYkV0aE5YUm9hbTlJYTIwNVpXSkVUWEJpUVZabmJUQjBabXgxTWxkNGRqWTBOQ0o5IiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wNS0yOVQxOToxNzo0NCswMDowMCIsImV4cGlyYXRpb25EYXRlIjoiMjA0NC0wNS0yOVQxOToxNzo0NCswMDowMCIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTmxVNFJXUlFjbXRvYkV0aE5YUm9hbTlJYTIwNVpXSkVUWEJpUVZabmJUQjBabXgxTWxkNGRqWTBOQ0o5In19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lObFU0UldSUWNtdG9iRXRoTlhSb2FtOUlhMjA1WldKRVRYQmlRVlpuYlRCMFpteDFNbGQ0ZGpZME5DSjlyYW5kb20iLCJzdWIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lObFU0UldSUWNtdG9iRXRoTlhSb2FtOUlhMjA1WldKRVRYQmlRVlpuYlRCMFpteDFNbGQ0ZGpZME5DSjkiLCJleHAiOjIzNDgxNjIyNjQsIm5iZiI6MTcxNzAxMDI2NCwianRpIjoidXJuOnZjOnV1aWQ6OTJjMzM2YWYtYjFjYi00NjMyLTliMjUtODNiZjc1NjUyMGJiIn0.Xwkdx5ZcTqYBSW2NPFQqpzSzi2TiWrZYeDlGJIYIF9clSx2iB04K-jexDcMd4K3wyKofa_lo1_B00hxFXCasDA";
         let result = VerifiableCredential::verify(&mismatched_issuer_vc_jwt).await;
 
         assert!(
@@ -581,8 +617,7 @@ mod test {
 
     #[tokio::test]
     async fn test_full_featured_vc_jwt() {
-        let full_featured_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOmUzMDc0OWVhLTg4YjctNDkwMi05ZTRlLWYwYjk1MTRjZmU1OSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTlc5Q1pGaE1OM1JEV0MxaVdtd3dOblU1V1dSU1dqQmFhbEpMTFVweFZXWmhaa1YzWjAwdFRHSm1heUo5IiwiaXNzdWFuY2VEYXRlIjoxNzE2MzEyNDU3LCJleHBpcmF0aW9uRGF0ZSI6MjM0NzQ2NDQ1NywiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lOVzlDWkZoTU4zUkRXQzFpV213d05uVTVXV1JTV2pCYWFsSkxMVXB4VldaaFprVjNaMDB0VEdKbWF5SjkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsImV4cCI6MjM0NzQ2NDQ1NywibmJmIjoxNzE2MzEyNDU3LCJqdGkiOiJ1cm46dmM6dXVpZDplMzA3NDllYS04OGI3LTQ5MDItOWU0ZS1mMGI5NTE0Y2ZlNTkifQ.a8ciqXyNgqttWPKl76CFwDTRvEoJEq5nndfM1UMkClvzhPOUWSUtE0wNHOxQFwUBBSbwozScBNe-dc-mWQFqAQ";
-
+        let full_featured_vc_jwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaVZVTnlNRkpRUTFCWllYVTRZalpIZGpkU1pIcGtWV052V0VoUlRGbFRlV2xIUldjMVdDMUJibEJzTkNKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOjQ0NzA2MjYwLTUzYzctNGRkMC04MmEyLTQ4NzdiMjU3MzAwNSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pVlVOeU1GSlFRMUJaWVhVNFlqWkhkamRTWkhwa1ZXTnZXRWhSVEZsVGVXbEhSV2MxV0MxQmJsQnNOQ0o5IiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wNS0yOVQxOToxMjoxMyswMDowMCIsImV4cGlyYXRpb25EYXRlIjoiMjA0NC0wNS0yOVQxOToxMjoxMyswMDowMCIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pVlVOeU1GSlFRMUJaWVhVNFlqWkhkamRTWkhwa1ZXTnZXRWhSVEZsVGVXbEhSV2MxV0MxQmJsQnNOQ0o5In19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lWVU55TUZKUVExQlpZWFU0WWpaSGRqZFNaSHBrVldOdldFaFJURmxUZVdsSFJXYzFXQzFCYmxCc05DSjkiLCJzdWIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lWVU55TUZKUVExQlpZWFU0WWpaSGRqZFNaSHBrVldOdldFaFJURmxUZVdsSFJXYzFXQzFCYmxCc05DSjkiLCJleHAiOjIzNDgxNjE5MzMsIm5iZiI6MTcxNzAwOTkzMywianRpIjoidXJuOnZjOnV1aWQ6NDQ3MDYyNjAtNTNjNy00ZGQwLTgyYTItNDg3N2IyNTczMDA1In0.WXnRpNsawB_-_LpMpzlT3GBqj1WmpxFAabInEhUGqja_s3S7c9CKUPFMBFRtpz3mVf2g0Gkc4mfdG8yR2j2DDw";
         let jwt_decoded = Jwt::verify::<VcJwtClaims>(&full_featured_vc_jwt)
             .await
             .unwrap();
@@ -608,11 +643,11 @@ mod test {
         );
         assert_eq!(
             registered_claims.not_before.unwrap(),
-            verify_vc.issuance_date
+            rfc3339_to_timestamp(&verify_vc.issuance_date).unwrap()
         );
         assert_eq!(
             registered_claims.expiration.unwrap(),
-            verify_vc.expiration_date.unwrap()
+            rfc3339_to_timestamp(&verify_vc.expiration_date.unwrap()).unwrap()
         );
     }
 
@@ -643,11 +678,11 @@ mod test {
         );
         assert_eq!(
             registered_claims.not_before.unwrap(),
-            verify_vc.issuance_date
+            rfc3339_to_timestamp(&verify_vc.issuance_date).unwrap()
         );
         assert_eq!(
             registered_claims.expiration.unwrap(),
-            verify_vc.expiration_date.unwrap()
+            rfc3339_to_timestamp(&verify_vc.expiration_date.unwrap()).unwrap()
         );
     }
 }
