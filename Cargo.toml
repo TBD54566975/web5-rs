@@ -1,10 +1,10 @@
 [workspace]
 members = [ 
-    "crates/*",
-    "bindings/uniffi", 
+    "crates/web5", 
+    "bindings/uniffi",
 ]
 default-members = [
-    "crates/*",
+    "crates/web5",
 ]
 resolver = "2"
 
