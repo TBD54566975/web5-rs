@@ -33,6 +33,7 @@ ssi-jwk = "0.1.2"
 thiserror = { workspace = true }
 url = "2.5.0"
 uuid = { version = "1.8.0", features = ["v4"] }
+zbase32 = "0.1.2"
 
 [dev-dependencies]
 chrono = { workspace = true }

@@ -70,7 +70,7 @@ fn decode_seq(seq_bytes: &[u8]) -> Result<u64, Bep44EncodingError> {
 /// Represents a BEP44 message, which is used for storing and retrieving data
 /// in the Mainline DHT network.
 ///
-/// A BEP44 message is used primarily in the context of the DID DHT method
+/// A BEP44 message is used in the context of the DID DHT method
 /// for publishing and resolving DID documents in the DHT network. This type
 /// encapsulates the data structure required for such operations in accordance
 /// with BEP44.
