@@ -1,3 +1,12 @@
+> [!WARNING]
+> 🚧 Under Construction 🚧
+>
+> - Incomplete doc comments
+> - Missing examples
+> - Missing test vectors
+> - Incomplete did:dht design
+> - VC `Object` not supported
+
 # Web5 API Design (APID) <!-- omit in toc -->
 
 **Last Updated:** May 30, 2024

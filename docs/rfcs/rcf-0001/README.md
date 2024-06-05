@@ -1,19 +1,6 @@
 > [!WARNING]
 > 🚧 Under Construction 🚧
 
-🚧 Pull Request 🚧
-
-Title: RFC-0001 Standard Web5 API Design (APID) Document v0.1.0
-
-Description: 
-- TSC, wrong working group?
-- doc comments
-- examples
-- test vectors
-- subsequent work/upon completion: `core/` directory
-- incomplete design on the did:dht matters
-- `Object` in the VC
-
 # RFC-0001 Standard Web5 API Design (APID) Document v0.1.0 <!-- omit in toc -->
 
 - [Summary](#summary)
