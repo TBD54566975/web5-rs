@@ -26,10 +26,10 @@ bind-kotlin: setup
   cargo build --release --package web5-uniffi
   cargo run --package web5-uniffi \
     --bin uniffi-bindgen \
-    generate --library target/release/libweb5.dylib \
+    generate --library target/release/libweb5_uniffi.dylib \
     --language kotlin \
     --out-dir target/bindgen-kotlin
-  cp target/release/libweb5.dylib binded/kt/src/main/resources/natives
+  cp target/release/libweb5_uniffi.dylib binded/kt/src/main/resources/natives
   cp target/bindgen-kotlin/web5/sdk/web5.kt binded/kt/src/main/kotlin/web5/sdk
   cd binded/kt && ./fix-load.sh
 
@@ -37,7 +37,7 @@ bind-swift: setup
   cargo build --release --package web5-uniffi
   cargo run --package web5-uniffi \
     --bin uniffi-bindgen \
-    generate --library target/release/libweb5.dylib \
+    generate --library target/release/libweb5_uniffi.dylib \
     --language swift \
     --out-dir target/bindgen-swift
   mkdir -p target/xcframework-staging
@@ -46,7 +46,7 @@ bind-swift: setup
   mv target/bindgen-swift/web5FFI.h target/xcframework-staging/
   rm -rf binded/swift/libweb5-rs.xcframework
   xcodebuild -create-xcframework \
-    -library target/release/libweb5.dylib \
+    -library target/release/libweb5_uniffi.dylib \
     -headers target/xcframework-staging \
     -output binded/swift/libweb5-rs.xcframework
 
