@@ -49,7 +49,7 @@ The common sequence of events to a change or addition to the standard Web5 API w
 4. Bind the Rust implementation to the target languages
 5. Implementation in the target languages with use of the binded code (4)
 
-The APID is codified in a [Custom DSL](../../API_DESIGN.md#custom-dsl) (domain-specific language) syntax. See [Alternatives](#alternatives) below for exploration of alternative solutions. The Custom DSL is not expected to have deterministic assurances via programmatic integrations, the test vectors provide assurances, but instead the Custom DSL is intended to convey a design to a developer in a fast, easy, and accessible manor; the goal of the Custom DSL is for the developer to attend to their target language, not the design codification.
+The APID is codified in a [Custom DSL](../../CUSTOM_DSL.md) (domain-specific language) syntax. See [Alternatives](#alternatives) below for exploration of alternative solutions. The Custom DSL is not expected to have deterministic assurances via programmatic integrations, the test vectors provide assurances, but instead the Custom DSL is intended to convey a design to a developer in a fast, easy, and accessible manor; the goal of the Custom DSL is for the developer to attend to their target language, not the design codification. The Custom DSL is itself also versioned, considering it is intended to evolve over time, such that specific versions of the APID can reference specific versions of the Custom DSL.
 
 The APID is asserted to act as a floor, or a baseline, of feature support — each implementation may choose to expose publicly facing APIs which are beyond the scope of the APID.
 
@@ -65,11 +65,20 @@ The APID is versioned in accordance with [semantic versioning](https://semver.or
 
 `v0.1.0` of the APID is intentionally reduced in scope, relative to existing implementations, to serve as an accessible starting state. Namely, the concepts which are heavily integrated in existing implementations and which are excluded from v0.1.0 are: Bearer DID’s, Key Manager polymorphic base class, JWT, and JWS. The proposal of RFC-0001 is to act as a foundation which can be built-upon, and so it does not make any proposals as to the inclusion or exclusion of the noted absent concepts. Subsequent RFC’s are appropriate means bring forth for these matters. 
 
-🚧 `v0.1.0` of the APID excludes doc comments and test vectors, but both of which should be added in subsequent versions. 🚧
+`v0.1.0` of the APID makes a first-attempt to define the Custom DSL, but is not to be considered comprehensive, and is expected to change over time. For example, the Custom DSL does not currently support the concept of a generalized object primitive concept (AKA a JSON Object), nor does it currently support a syntax for error throwing.
 
-🚧 `v0.1.0` of the APID excludes examples, but examples should be added in subsequent versions. 🚧
+`v0.1.0` of the APID excludes the following features, all of which should be added in subsequent versions:
 
-`v0.1.0` of the APID makes a first-attempt to define the Custom DSL, but is not to be considered comprehensive, and is expected to change over time.
+- Doc comments.
+- Test vectors.
+- Examples.
+- Generalized object type (AKA a JSON Object).
+- Errors.
+
+`v0.1.0` of the APID defines an incomplete design for the following features:
+
+- `DidDht`: The features for creation, updating, publishing, resolving, and deactivating are incomplete. A version is needed to complete the design for `DidDht` (and should arguably be coupled with an RFC as this is a significant feature).
+- `VerifiableCredential`: The `credentialSubject` data member on the `VerifiableCredential` is intended to be of type `Object` but the Custom DSL does not currently support such a primitive type. The requirement of the type as an `Object` originates [from the `web5-spec`](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model). A subsequent version of the Custom DSL and the APID is expected to define this feature.
 
 # Drawbacks
 

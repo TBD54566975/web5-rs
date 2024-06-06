@@ -6,29 +6,28 @@
 > - Missing test vectors
 > - Incomplete did:dht design
 > - VC `Object` not supported
+> - custom DSL lacks errors
+> - only a single key manager currently
 
 # Web5 API Design (APID) <!-- omit in toc -->
 
-**Last Updated:** May 30, 2024
+**Last Updated** May 30, 2024
 
-**Version:** 0.1.0
+**Version** 0.1.0
 
-- [Custom DSL](#custom-dsl)
-  - [Limitations](#limitations)
-  - [Primitive Concepts](#primitive-concepts)
-  - [High-Level Concepts](#high-level-concepts)
-    - [Polymorphic Base Class](#polymorphic-base-class)
-    - [Class](#class)
-    - [Enumeration](#enumeration)
+**[Custom DSL](./CUSTOM_DSL.md) Version**: 0.1.0
+
+- [Examples](#examples)
+  - [Creating a did:dht](#creating-a-diddht)
+  - [Creating a VC](#creating-a-vc)
+  - [Verifying a VC](#verifying-a-vc)
 - [Key Material](#key-material)
   - [`Jwk`](#jwk)
   - [`InMemoryKeyManager`](#inmemorykeymanager)
 - [Digital Signature Algorithm's (DSA)](#digital-signature-algorithms-dsa)
   - [`Dsa`](#dsa)
-  - [`DsaSigner`](#dsasigner)
-  - [`DsaVerifier`](#dsaverifier)
-  - [`JwsSigner`](#jwssigner)
-  - [`JwsVerifier`](#jwsverifier)
+  - [`Signer`](#signer)
+  - [`Verifier`](#verifier)
   - [`Ed25519Generator`](#ed25519generator)
   - [`Ed25519Signer`](#ed25519signer)
   - [`Ed25519Verifier`](#ed25519verifier)
@@ -57,83 +56,24 @@
   - [`Optionality`](#optionality)
   - [`Filter`](#filter)
 
-# Custom DSL
-
-The design definitions within this design document are intended to span any programming language, so long as the given programming language supports the [High-Level Concepts](#high-level-concepts) and [Primitive Concepts](#primitive-concepts) in one form or another. The instantiations of these concepts will be unique to the given idioms of the target programming language.
-
-## Limitations
-
-In order to achieve the goal of defining concrete design definitions which span multiple languages, we must make some sacrifices in our design. Namely, this design excludes ***generics*** and ***variadic function parameters***, because both lack broad support & consistency across target programming languages. Implementations may choose to utilize these concepts in their internals, but the publicly accessible Web5 API must exclude these concepts.
-
-The APID does not assert requirements as to the artifact makeup (i.e. npm packages, rust crates, go modules, etc.) of the Web5 API. It is recommended to implement the entirety of Web5 in a single artifact, but each implementation may choose to create multiple artifacts. However, the APID makes no regards for the matter of circular dependencies, and so it may become unviable to implement the APID in it's completeness across multiple artifacts.
-
-## Primitive Concepts
-
-| Type              | Representation                          |
-| :---------------- | :-------------------------------------- |
-| string            | `string`                                |
-| byte              | `byte`                                  |
-| boolean           | `bool`                                  |
-| integer           | `int`                                   |
-| array             | `[]T`                                   |
-| optional/nullable | `T?`                                    |
-| hash map          | `Map<T1, T2>`                           |
-| function          | `func_name(param1: T1, param2: T2): T3` |
-| mixed type        | `T1 \| T2`                              |
-
-## High-Level Concepts
-
-### Polymorphic Base Class
-
-- `INTERFACE InterfaceName`: Defines a a polymorphic base class.
-- `METHOD methodName(param: T1): T2`: Defines an instance method that any class implementing the interface must implement.
-
-**Example**
-
-```psuedocode
-INTERFACE Shape
-  METHOD area(): int
-  METHOD perimeter(): int
-```
-
 > [!NOTE]
-> Polymorphic base class definitions may have a `CONSTRUCTOR` to indicate assumptions of encapsulation for implementations; given a target language does not support constructor's on the polymorphic base class, then the feature can be disregarded but must be implemented in the implementation of the polymorphic base class.
+> Refer to the [Custom DSL](./CUSTOM_DSL.md) for below syntax definitions.
 
-### Class
+# Examples
 
-- `CLASS ClassName`: Defines a class.
-- `IMPLEMENTS InterfaceName`: Defines a class implementation of a polymorphic base class.
-- `PUBLIC DATA memberName: T`: Type: Defines a public data member.
-- `CONSTRUCTOR(param: T1)`: Defines a constructor for a class.
-- `METHOD methodName(param: T1): T2`: Defines an instance method on the class.
-- `STATIC METHOD methodName(param: T1): T2`: Defines an instance method on the class.
+...
 
-**Example**
+## Creating a did:dht
 
-```psuedocode
-CLASS Circle IMPLEMENTS Shape
-  PUBLIC DATA radius: int
-  CONSTRUCTOR(radius: int)
-  METHOD area(): int
-  METHOD perimeter(): int
-  STATIC METHOD unit_circle(): Circle
-```
+...
 
-> [!NOTE]
-> `STATIC METHOD`'s may be implemented on a `CLASS` given the implementation language supports the feature, but else can be a function (not associated with a `CLASS`), and in which case the function name should be prefixed with the `CLASS` name defined here.
+## Creating a VC
 
-### Enumeration
+...
 
-- `ENUM EnumName`: Defines an enumeration.
+## Verifying a VC
 
-**Example:**
-
-```psuedocode
-ENUM Color
-  RED
-  GREEN
-  BLUE
-```
+...
 
 # Key Material
 
@@ -193,52 +133,22 @@ ENUM Dsa
 
 > We must add support for `Xd25519`, `secp256k1`, and `secp256r1` for [full did:dht conformance](https://did-dht.com/registry/index.html#key-type-index).
 
-## `DsaSigner`
+## `Signer`
 
 ```pseudocode!
 /// Set of functionality required to implement to be a compatible DSA signer.
-INTERFACE DsaSigner
-  /// The implementation of DsaSigner must encapsulate the private key material.
-  CONSTRUCTOR(private_key: Jwk)
-
+INTERFACE Signer
   /// Signs the given payload by using the encapsulated private key material.
-  METHOD dsa_sign(payload: []byte): []byte
+  METHOD sign(payload: []byte): []byte
 ```
 
-## `DsaVerifier`
+## `Verifier`
 
 ```pseudocode!
 /// Set of functionality required to implement to be a compatible DSA verifier.
-INTERFACE DsaVerifier
-  /// The implementation of DsaVerifier must encapsulate the public key material.
-  CONSTRUCTOR(public_key: Jwk)
-
+INTERFACE Verifier
   /// Execute the verification of the signature against the message by using the encapsulated public key material.
-  METHOD dsa_verify(message: []byte, signature: []byte): bool
-```
-
-## `JwsSigner`
-
-```pseudocode!
-/// Set of functionality required to implement to be a compatible JWS signer.
-INTERFACE JwsSigner
-  /// The implementation of JwsSigner must encapsulate the private key material.
-  CONSTRUCTOR(private_key: Jwk)
-
-  /// Signs the given payload by using the encapsulated private key material.
-  METHOD jws_sign(payload: []byte): []byte
-```
-
-## `JwsVerifier`
-
-```pseudocode!
-/// Set of functionality required to implement to be a compatible JWS verifier.
-INTERFACE JwsVerifier
-  /// The implementation of JwsVerifier must encapsulate the public key material.
-  CONSTRUCTOR(public_key: Jwk)
-
-  /// Execute the verification of the signature against the message by using the encapsulated public key material.
-  METHOD jws_verify(message: []byte, signature: []byte): bool
+  METHOD verify(message: []byte, signature: []byte): bool
 ```
 
 ## `Ed25519Generator`
@@ -253,29 +163,23 @@ CLASS Ed25519Generator
 ## `Ed25519Signer`
 
 ```pseudocode!
-/// Implementation of [`DsaSigner`](#dsasigner) and [`JwsSigner`](#jwssigner) for Ed25519.
-CLASS Ed25519Signer IMPLEMENTS DsaSigner, JwsSigner
+/// Implementation of [`Signer`](#signer) for Ed25519.
+CLASS Ed25519Signer IMPLEMENTS Signer
   CONSTRUCTOR(private_key: Jwk)
 
-  /// Implementation of DsaSigner's dsa_sign instance method for Ed25519.
-  METHOD dsa_sign(payload: []byte): []byte
-
-  /// Implementation of JwsSigner's jws_sign instance method for Ed25519.
-  METHOD jws_sign(payload: []byte): []byte
+  /// Implementation of Signer's sign instance method for Ed25519.
+  METHOD sign(payload: []byte): []byte
 ```
 
 ## `Ed25519Verifier`
 
 ```pseudocode!
-/// Implementation of [`DsaVerifier`](#dsaverifier) and [`JwsVerifier`](#jwsverifier) for Ed25519.
-CLASS Ed25519Verifier IMPLEMENTS DsaVerifier, JwsVerifier
+/// Implementation of [`Verifier`](#verifier) for Ed25519.
+CLASS Ed25519Verifier IMPLEMENTS Verifier
   CONSTRUCTOR(public_key: Jwk)
 
-  /// Implementation of DsaVerifier's dsa_verify instance method for Ed25519.
-  METHOD dsa_verify(payload: []byte): bool
-
-  /// Implementation of JwsVerifier's jws_verify instance method for Ed25519.
-  METHOD jws_verify(payload: []byte): bool
+  /// Implementation of Verifier's dsa_verify instance method for Ed25519.
+  METHOD verify(payload: []byte): bool
 ```
 
 # Decentralized Identifier's (DIDs)
@@ -528,21 +432,26 @@ CLASS DidWeb
 
 ### `DidDht`
 
+> [!WARNING]
+> The following is considered to be incomplete and must be completed in a subsequent version; the design definition below is intended to be a placeholder.
+
 ```pseudocode!
 CLASS DidDht
   PUBLIC DATA did: Did
   PUBLIC DATA document: Document
-  STATIC METHOD create(signer: DsaSigner, identity_key: Jwk, options: DidDhtCreateOptions): DidDht
+  STATIC METHOD create(identity_key: Jwk, options: DidDhtCreateOptions): DidDht
   STATIC METHOD resolve(uri: string): Resolution
-  STATIC METHOD update() 🚧 incomplete 🚧
-  STATIC METHOD deactivate() 🚧 incomplete 🚧
+  STATIC METHOD update(signer: Signer) 🚧 incomplete 🚧
+  STATIC METHOD deactivate(signer: Signer) 🚧 incomplete 🚧
 ```
+
+> [!NOTE]
+> `resolve()` makes use of [`Ed25519Verifier`](#ed25519verifier) internally for DNS packet verification.
 
 #### `DidDhtCreateOptions`
 
 ```pseudocode!
 CLASS DidDhtCreateOptions
-  PUBLIC DATA publish: bool
   PUBLIC DATA also_known_as: []string?
   PUBLIC DATA controller: []string?
   PUBLIC DATA service: []Service?
@@ -562,6 +471,9 @@ CLASS NamedIssuer
 
 ## `VerifiableCredential`
 
+> [!WARNING]
+> The following is incomplete in that an `Object` is not currently supported in the Custom DSL; the matter of the `Object` below is a placeholder and expected to be completed in a subsequent version.
+
 ```pseudocode!
 CLASS VerifiableCredential
   PUBLIC DATA @context: []string
@@ -571,9 +483,9 @@ CLASS VerifiableCredential
   PUBLIC DATA issuanceDate: string
   PUBLIC DATA expirationDate: string?
   PUBLIC DATA credentialSubject: Object  # 🚧 `Object` not supported 🚧
-  METHOD sign(jws_signer: JwsSigner): string
+  METHOD sign(signer: Signer): string
   STATIC METHOD verify(vcjwt: string): VerifiableCredential
-  STATIC METHOD verify_with_verifier(vcjwt: string, jws_verifier: JwsVerifier): VerifiableCredential
+  STATIC METHOD verify_with_verifier(vcjwt: string, verifier: Verifier): VerifiableCredential
 ```
 
 > [!NOTE]
