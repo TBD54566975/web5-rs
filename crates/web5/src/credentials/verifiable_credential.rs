@@ -1,14 +1,31 @@
-use crate::dids::{bearer::BearerDid, document::KeySelector};
-use crate::jwt::{
-    jws::Jwt,
-    {Claims, JwtError, RegisteredClaims},
-};
 use chrono::{DateTime, TimeZone, Utc};
 use core::fmt;
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 use std::{
     collections::HashMap,
+    fmt::Debug,
     fmt::{Display, Formatter},
+    sync::Arc,
+};
+
+use josekit::{
+    jwk::alg::ed::EdCurve,
+    jws::{alg::eddsa::EddsaJwsAlgorithm, JwsAlgorithm, JwsHeader, JwsSigner},
+    jwt::{encode_with_signer, JwtPayload},
+    JoseError,
+};
+
+use crate::{
+    dids::{
+        bearer::BearerDid,
+        document::{KeyIdFragment, KeySelector, VerificationMethod},
+    },
+    jwt::{
+        jws::Jwt,
+        {Claims, JwtError, RegisteredClaims},
+    },
+    keys::key_manager::KeyManager,
 };
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
@@ -141,6 +158,83 @@ impl TryFrom<JwtPayloadVerifiableCredential> for VerifiableCredential {
     }
 }
 
+pub struct CustomSigner {
+    key_manager: Arc<dyn KeyManager>,
+    key_alias: String,
+    algorithm: EddsaJwsAlgorithm,
+    curve: EdCurve,
+    key_id: Option<String>,
+}
+
+impl CustomSigner {
+    pub fn new(
+        key_manager: Arc<dyn KeyManager>,
+        key_alias: String,
+        algorithm: EddsaJwsAlgorithm,
+        curve: EdCurve,
+        key_id: Option<String>,
+    ) -> Self {
+        CustomSigner {
+            key_manager,
+            key_alias,
+            algorithm,
+            curve,
+            key_id,
+        }
+    }
+}
+
+impl Debug for CustomSigner {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CustomSigner")
+            .field("key_manager", &"<Arc<dyn KeyManager>>")
+            .field("key_alias", &self.key_alias)
+            .field("algorithm", &self.algorithm)
+            .field("curve", &self.curve)
+            .field("key_id", &self.key_id)
+            .finish()
+    }
+}
+
+impl JwsSigner for CustomSigner {
+    fn algorithm(&self) -> &dyn JwsAlgorithm {
+        &self.algorithm
+    }
+
+    fn key_id(&self) -> Option<&str> {
+        self.key_id.as_deref()
+    }
+
+    fn signature_len(&self) -> usize {
+        match self.curve {
+            EdCurve::Ed25519 => 64,
+            EdCurve::Ed448 => 114,
+        }
+    }
+
+    fn sign(&self, message: &[u8]) -> Result<Vec<u8>, JoseError> {
+        self.key_manager
+            .sign(&self.key_alias, message)
+            .map_err(|err| JoseError::InvalidSignature(err.into()))
+    }
+
+    fn box_clone(&self) -> Box<dyn JwsSigner> {
+        Box::new(self.clone())
+    }
+}
+
+impl Clone for CustomSigner {
+    fn clone(&self) -> Self {
+        Self {
+            key_manager: Arc::clone(&self.key_manager),
+            key_alias: self.key_alias.clone(),
+            algorithm: self.algorithm,
+            curve: self.curve,
+            key_id: self.key_id.clone(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CredentialSubject {
     pub id: String,
@@ -200,7 +294,35 @@ impl VerifiableCredential {
             vc_payload: self.clone().into(),
         };
 
-        let jwt = Jwt::sign(bearer_did, key_selector, None, &claims)?;
+        // Serialize the claims to JSON
+        let claims_json: String = serde_json::to_string(&claims).unwrap();
+
+        // Create a JwtPayload from the claims map
+        let claims_map: Map<String, Value> = serde_json::from_str(&claims_json).unwrap();
+        let jwt_payload: JwtPayload = JwtPayload::from_map(claims_map).unwrap();
+
+        let verification_method: VerificationMethod = bearer_did
+            .document
+            .get_verification_method(key_selector)
+            .unwrap();
+
+        let mut header: JwsHeader = JwsHeader::new();
+        header.set_algorithm(verification_method.public_key_jwk.alg.clone());
+        header.set_key_id(verification_method.id.clone());
+        header.set_token_type("JWT".to_string());
+
+        let key_alias: String = KeyIdFragment(verification_method.id.clone()).splice_key_alias();
+
+        let signer: CustomSigner = CustomSigner::new(
+            Arc::clone(&bearer_did.key_manager),
+            key_alias,
+            EddsaJwsAlgorithm::Eddsa,
+            EdCurve::Ed25519,
+            Some(verification_method.id.clone()),
+        );
+
+        // Sign the JWT
+        let jwt: String = encode_with_signer(&jwt_payload, &header, &signer).unwrap();
 
         Ok(jwt)
     }

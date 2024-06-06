@@ -15,6 +15,7 @@ did-web = "0.2.2"
 ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
 getrandom = { version = "0.2.12", features = ["js"] }
 hex = "0.4"
+josekit = "0.8.6"
 jsonpath-rust = "0.5.1"
 jsonschema = "0.17.1"
 k256 = { version = "0.13.3", features = ["ecdsa", "jwk"] }
