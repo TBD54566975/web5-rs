@@ -1,15 +1,3 @@
-> [!WARNING]
-> 🚧 Under Construction 🚧
->
-> - Incomplete doc comments
-> - Missing examples
-> - Missing test vectors
-> - VC `Object` not supported
-> - custom DSL lacks errors
-> - only a single key manager currently
-> - consistency in snake casing vs camel casing
-> - IMO we should call `Did` an `Identifier`
-
 # Web5 API Design (APID) <!-- omit in toc -->
 
 **Last Updated** May 30, 2024

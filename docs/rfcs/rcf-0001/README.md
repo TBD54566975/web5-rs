@@ -1,6 +1,3 @@
-> [!WARNING]
-> 🚧 Under Construction 🚧
-
 # RFC-0001 Standard Web5 API Design (APID) Document v0.1.0 <!-- omit in toc -->
 
 - [Summary](#summary)
@@ -67,18 +64,19 @@ The APID is versioned in accordance with [semantic versioning](https://semver.or
 
 `v0.1.0` of the APID makes a first-attempt to define the Custom DSL, but is not to be considered comprehensive, and is expected to change over time. For example, the Custom DSL does not currently support the concept of a generalized object primitive concept (AKA a JSON Object), nor does it currently support a syntax for error throwing.
 
-`v0.1.0` of the APID excludes the following features, all of which should be added in subsequent versions:
+`v0.1.0` of the APID excludes the following features (in completeness), all of which should be added in subsequent versions:
 
 - Doc comments.
 - Test vectors.
 - Examples.
 - Generalized object type (AKA a JSON Object).
 - Errors.
+- JSON Serialized key-value key name casing (we have both snake case and camel case currently throughout the data members, because the Custom DSL doesn't offer a feature for overriding the key-value's key casing).
 
 `v0.1.0` of the APID defines an incomplete design for the following features:
 
-- `DidDht`: The features for creation, updating, publishing, resolving, and deactivating are incomplete. A version is needed to complete the design for `DidDht` (and should arguably be coupled with an RFC as this is a significant feature).
 - `VerifiableCredential`: The `credentialSubject` data member on the `VerifiableCredential` is intended to be of type `Object` but the Custom DSL does not currently support such a primitive type. The requirement of the type as an `Object` originates [from the `web5-spec`](https://github.com/TBD54566975/web5-spec/blob/main/spec/vc.md#verifiable-credential-data-model). A subsequent version of the Custom DSL and the APID is expected to define this feature.
+- `InMemoryKeyManager`: The `InMemoryKeyManager` class offers sufficient support for enablement of downstream DIDs and VC features, however, there is room for additional methods on the key manager, as well as a secondary key manager altogether to showcase the degree of composability enabled in the surround design.
 
 # Drawbacks
 
