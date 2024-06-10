@@ -86,8 +86,8 @@ pub struct Filter {
     pub pattern: Option<String>,
     #[serde(rename = "const", skip_serializing_if = "Option::is_none")]
     pub const_value: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub contains: Option<Box<Filter>>,
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    // pub contains: Option<Box<Filter>>,
 }
 
 fn generate_token() -> String {
