@@ -1,10 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-// 🚧 Custom DSL's STATIC METHOD's not supported with UDL
-// 🚧 *Data struct are used for UDL dictionary's
-//
-// 🚧 try to prefer defaults over `unimplemented!()`
-
+#[derive(Default)]
 pub struct Jwk {
     pub alg: String,
     pub kty: String,
@@ -17,12 +13,21 @@ pub struct Jwk {
 pub struct InMemoryKeyManager {}
 
 impl InMemoryKeyManager {
+    // 🚧
+    pub fn new() -> Self {
+        Self {}
+    }
+
     pub fn generate_key_material(&self) -> Jwk {
-        unimplemented!()
+        println!("generate_key_material");
+        Jwk {
+            ..Default::default()
+        }
     }
 
     pub fn get_signer(&self, _public_key: Jwk) -> Arc<Ed25519Signer> {
-        unimplemented!()
+        println!("get_signer");
+        Arc::new(Ed25519Signer {})
     }
 
     pub fn import_key(&self, _private_key: Jwk) -> Jwk {
@@ -82,6 +87,7 @@ impl Verifier for Ed25519Verifier {
     }
 }
 
+#[derive(Default)]
 pub struct Did {
     pub uri: String,
     pub url: String,
@@ -99,6 +105,7 @@ impl Did {
     }
 }
 
+#[derive(Default)]
 pub struct Document {
     pub id: String,
     pub context: Option<Vec<String>>,
@@ -126,6 +133,7 @@ pub struct Service {
     pub service_endpoint: Vec<String>,
 }
 
+#[derive(Debug)]
 pub enum ResolutionMetadataError {
     InvalidDid,
     NotFound,
@@ -136,10 +144,19 @@ pub enum ResolutionMetadataError {
     InternalError,
 }
 
+// 🚧
+impl Default for ResolutionMetadataError {
+    fn default() -> Self {
+        ResolutionMetadataError::InvalidDid
+    }
+}
+
+#[derive(Default)]
 pub struct ResolutionMetadata {
     pub error: ResolutionMetadataError,
 }
 
+#[derive(Default)]
 pub struct DocumentMetadata {
     pub created: Option<String>,
     pub updated: Option<String>,
@@ -151,6 +168,7 @@ pub struct DocumentMetadata {
     pub canonical_id: Option<String>,
 }
 
+#[derive(Default)]
 pub struct ResolutionResult {
     pub document: Document,
     pub document_metadata: DocumentMetadata,
@@ -197,6 +215,7 @@ impl DidWeb {
     }
 }
 
+#[derive(Default)]
 pub struct DidDht {
     pub did: Did,
     pub document: Document,
@@ -204,23 +223,31 @@ pub struct DidDht {
 
 impl DidDht {
     pub fn from_identity_key(_identity_key: Jwk) -> Self {
-        unimplemented!()
+        println!("from_identity_key");
+        Self {
+            ..Default::default()
+        }
     }
 
     pub fn from_uri(_uri: &str) -> Self {
-        unimplemented!()
+        println!("from_uri");
+        Self {
+            ..Default::default()
+        }
     }
 
     pub fn publish(&self, _signer: Arc<dyn Signer>) {
-        unimplemented!()
+        println!("publish");
     }
 
     pub fn deactivate(&self, _signer: Arc<dyn Signer>) {
-        unimplemented!()
+        println!("deactivate");
     }
 
     pub fn resolve(_uri: &str) -> ResolutionResult {
-        unimplemented!()
+        ResolutionResult {
+            ..Default::default()
+        }
     }
 }
 

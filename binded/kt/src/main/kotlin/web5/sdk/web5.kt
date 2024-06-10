@@ -816,6 +816,8 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -850,12 +852,12 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_diddht(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_web5_uniffi_fn_constructor_diddht_from_identity_key(`identityKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_uniffi_fn_constructor_diddht_new(`didDhtData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_diddht_deactivate(`ptr`: Pointer,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_method_diddht_from_identity_key(`ptr`: Pointer,`identityKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_diddht_from_uri(`ptr`: Pointer,`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_diddht_publish(`ptr`: Pointer,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -906,6 +908,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_inmemorykeymanager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_web5_uniffi_fn_constructor_inmemorykeymanager_new(uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_generate_key_material(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(`ptr`: Pointer,`publicKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1070,8 +1074,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_diddht_deactivate(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_diddht_from_identity_key(
-    ): Short
     fun uniffi_web5_uniffi_checksum_method_diddht_from_uri(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_diddht_publish(
@@ -1114,11 +1116,15 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_verifier_verify(
     ): Short
+    fun uniffi_web5_uniffi_checksum_constructor_diddht_from_identity_key(
+    ): Short
     fun uniffi_web5_uniffi_checksum_constructor_diddht_new(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_ed25519signer_new(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_ed25519verifier_new(
+    ): Short
+    fun uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new(
     ): Short
@@ -1148,9 +1154,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_diddht_deactivate() != 45474.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_method_diddht_from_identity_key() != 64119.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_diddht_from_uri() != 28578.toShort()) {
@@ -1189,7 +1192,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_generate_key_material() != 43946.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 9107.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 22628.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_key() != 44332.toShort()) {
@@ -1216,6 +1219,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_verifier_verify() != 30245.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_web5_uniffi_checksum_constructor_diddht_from_identity_key() != 3941.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_uniffi_checksum_constructor_diddht_new() != 43758.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1223,6 +1229,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_ed25519verifier_new() != 13376.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new() != 16598.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 11443.toShort()) {
@@ -1775,8 +1784,6 @@ public interface DidDhtInterface {
     
     fun `deactivate`(`signer`: Signer)
     
-    fun `fromIdentityKey`(`identityKey`: JwkData): DidDhtData
-    
     fun `fromUri`(`uri`: kotlin.String): DidDhtData
     
     fun `publish`(`signer`: Signer)
@@ -1885,18 +1892,6 @@ open class DidDht: Disposable, AutoCloseable, DidDhtInterface {
     
     
 
-    override fun `fromIdentityKey`(`identityKey`: JwkData): DidDhtData {
-            return FfiConverterTypeDidDhtData.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_diddht_from_identity_key(
-        it, FfiConverterTypeJwkData.lower(`identityKey`),_status)
-}
-    }
-    )
-    }
-    
-
     override fun `fromUri`(`uri`: kotlin.String): DidDhtData {
             return FfiConverterTypeDidDhtData.lift(
     callWithPointer {
@@ -1935,8 +1930,19 @@ open class DidDht: Disposable, AutoCloseable, DidDhtInterface {
     
 
     
+    companion object {
+         fun `fromIdentityKey`(`identityKey`: JwkData): DidDht {
+            return FfiConverterTypeDidDht.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_diddht_from_identity_key(
+        FfiConverterTypeJwkData.lower(`identityKey`),_status)
+}
+    )
+    }
     
-    companion object
+
+        
+    }
     
 }
 
@@ -3284,7 +3290,7 @@ public interface InMemoryKeyManagerInterface {
     
     fun `generateKeyMaterial`(): JwkData
     
-    fun `getSigner`(`publicKey`: JwkData): Ed25519Signer
+    fun `getSigner`(`publicKey`: JwkData): Signer
     
     fun `importKey`(`privateKey`: JwkData): JwkData
     
@@ -3308,6 +3314,13 @@ open class InMemoryKeyManager: Disposable, AutoCloseable, InMemoryKeyManagerInte
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
+    constructor() :
+        this(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_inmemorykeymanager_new(
+        _status)
+}
+    )
 
     protected val pointer: Pointer?
     protected val cleanable: UniffiCleaner.Cleanable
@@ -3384,8 +3397,8 @@ open class InMemoryKeyManager: Disposable, AutoCloseable, InMemoryKeyManagerInte
     }
     
 
-    override fun `getSigner`(`publicKey`: JwkData): Ed25519Signer {
-            return FfiConverterTypeEd25519Signer.lift(
+    override fun `getSigner`(`publicKey`: JwkData): Signer {
+            return FfiConverterTypeSigner.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(
