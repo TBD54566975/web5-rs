@@ -78,12 +78,14 @@ impl DidWeb {
 }
 
 pub struct DidDht {
-    did_dht_data: DidDhtData,
+    inner: DidDhtData,
 }
 
 impl DidDht {
-    pub fn from_identity_key(&self, identity_key: JwkData) -> DidDhtData {
-        DidDhtData::from_identity_key(identity_key)
+    pub fn from_identity_key(identity_key: JwkData) -> Self {
+        Self {
+            inner: DidDhtData::from_identity_key(identity_key),
+        }
     }
 
     pub fn from_uri(&self, uri: &str) -> DidDhtData {
@@ -91,15 +93,17 @@ impl DidDht {
     }
 
     pub fn new(did_dht_data: DidDhtData) -> Self {
-        Self { did_dht_data }
+        Self {
+            inner: did_dht_data,
+        }
     }
 
     pub fn publish(&self, signer: Arc<dyn Signer>) {
-        self.did_dht_data.publish(signer)
+        self.inner.publish(signer)
     }
 
     pub fn deactivate(&self, signer: Arc<dyn Signer>) {
-        self.did_dht_data.deactivate(signer)
+        self.inner.deactivate(signer)
     }
 
     pub fn resolve(&self, uri: &str) -> ResolutionResultData {

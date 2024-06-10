@@ -12,8 +12,9 @@ dictionary JwkData {
 };
 
 interface InMemoryKeyManager {
+  constructor();
   JwkData generate_key_material();
-  Ed25519Signer get_signer(JwkData public_key);
+  Signer get_signer(JwkData public_key);
   JwkData import_key(JwkData private_key);
 };
 
@@ -150,9 +151,11 @@ dictionary DidDhtData {
 };
 
 interface DidDht {
-  DidDhtData from_identity_key(JwkData identity_key);
   DidDhtData from_uri([ByRef] string uri);
   ResolutionResultData resolve([ByRef] string uri);
+
+  [Name=from_identity_key]
+  constructor(JwkData identity_key);
   constructor(DidDhtData did_dht_data);
   void publish(Signer signer);
   void deactivate(Signer signer);
