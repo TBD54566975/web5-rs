@@ -2,7 +2,7 @@ namespace web5 {
   
 };
 
-dictionary Jwk {
+dictionary JwkData {
   string alg;
   string kty;
   string crv;
@@ -12,9 +12,9 @@ dictionary Jwk {
 };
 
 interface InMemoryKeyManager {
-  Jwk generate_key_material();
-  Ed25519Signer get_signer(Jwk public_key);
-  Jwk import_key(Jwk private_key);
+  JwkData generate_key_material();
+  Ed25519Signer get_signer(JwkData public_key);
+  JwkData import_key(JwkData private_key);
 };
 
 enum Dsa {
@@ -32,15 +32,30 @@ interface Verifier {
 };
 
 interface Ed25519Generator {
-  Jwk generate();
+  JwkData generate();
 };
 
 interface Ed25519Signer {
-  constructor(Jwk private_key);
+  constructor(JwkData private_key);
   bytes sign([ByRef] sequence<u8> payload);
 };
 
 interface Ed25519Verifier {
-  constructor(Jwk public_key);
+  constructor(JwkData public_key);
   boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
+};
+
+dictionary DidData {
+  string uri;
+  string url;
+  string method;
+  string id;
+  record<string, string>? params;
+  string? path;
+  string? query;
+  string? fragment;
+};
+
+interface Did {
+  DidData parse([ByRef] string uri);
 };
