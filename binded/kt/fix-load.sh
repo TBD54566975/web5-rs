@@ -9,8 +9,8 @@ awk '/^import/ {print; found=1; next} found && !/^import/ {print "import java.ni
 # Replace the specified block of code using a more BSD-friendly approach
 sed -i '' '/loadIndirect<UniffiLib>(componentName = "web5")/,/also { lib: UniffiLib ->/c\
             val tempDir = Files.createTempDirectory("library")\
-            val libraryPath = tempDir.resolve("libweb5.dylib")\
-            Thread.currentThread().contextClassLoader.getResourceAsStream("natives/libweb5.dylib").use { input ->\
+            val libraryPath = tempDir.resolve("libweb5_uniffi.dylib")\
+            Thread.currentThread().contextClassLoader.getResourceAsStream("natives/libweb5_uniffi.dylib").use { input ->\
                 Files.copy(input, libraryPath)\
             }\
             libraryPath.toFile().deleteOnExit()\
