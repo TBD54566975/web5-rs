@@ -1,3 +1,46 @@
 namespace web5 {
-  void hello_world();  
+  
+};
+
+dictionary Jwk {
+  string alg;
+  string kty;
+  string crv;
+  string? d;
+  string x;
+  string? y;
+};
+
+interface InMemoryKeyManager {
+  Jwk generate_key_material();
+  Ed25519Signer get_signer(Jwk public_key);
+  Jwk import_key(Jwk private_key);
+};
+
+enum Dsa {
+  "Ed25519"
+};
+
+[Trait]
+interface Signer {
+  bytes sign([ByRef] sequence<u8> payload);
+};
+
+[Trait]
+interface Verifier {
+  boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
+};
+
+interface Ed25519Generator {
+  Jwk generate();
+};
+
+interface Ed25519Signer {
+  constructor(Jwk private_key);
+  bytes sign([ByRef] sequence<u8> payload);
+};
+
+interface Ed25519Verifier {
+  constructor(Jwk public_key);
+  boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
 };
