@@ -354,7 +354,7 @@ private fun findLibraryName(componentName: String): String {
     if (libOverride != null) {
         return libOverride
     }
-    return "web5"
+    return "web5_uniffi"
 }
 
 private inline fun <reified Lib : Library> loadIndirect(
@@ -700,8 +700,8 @@ internal interface UniffiLib : Library {
     companion object {
         internal val INSTANCE: UniffiLib by lazy {
             val tempDir = Files.createTempDirectory("library")
-            val libraryPath = tempDir.resolve("libweb5.dylib")
-            Thread.currentThread().contextClassLoader.getResourceAsStream("natives/libweb5.dylib").use { input ->
+            val libraryPath = tempDir.resolve("libweb5_uniffi.dylib")
+            Thread.currentThread().contextClassLoader.getResourceAsStream("natives/libweb5_uniffi.dylib").use { input ->
                 Files.copy(input, libraryPath)
             }
             libraryPath.toFile().deleteOnExit()

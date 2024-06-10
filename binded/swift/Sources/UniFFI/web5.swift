@@ -25,13 +25,13 @@ fileprivate extension RustBuffer {
     }
 
     static func from(_ ptr: UnsafeBufferPointer<UInt8>) -> RustBuffer {
-        try! rustCall { ffi_web5_rustbuffer_from_bytes(ForeignBytes(bufferPointer: ptr), $0) }
+        try! rustCall { ffi_web5_uniffi_rustbuffer_from_bytes(ForeignBytes(bufferPointer: ptr), $0) }
     }
 
     // Frees the buffer in place.
     // The buffer must not be used after this is called.
     func deallocate() {
-        try! rustCall { ffi_web5_rustbuffer_free(self, $0) }
+        try! rustCall { ffi_web5_uniffi_rustbuffer_free(self, $0) }
     }
 }
 
@@ -418,6 +418,11 @@ fileprivate struct FfiConverterString: FfiConverter {
         writeBytes(&buf, value.utf8)
     }
 }
+public func helloWorld() {try! rustCall() {
+    uniffi_web5_uniffi_fn_func_hello_world($0
+    )
+}
+}
 
 private enum InitializationResult {
     case ok
@@ -430,9 +435,12 @@ private var initializationResult: InitializationResult {
     // Get the bindings contract version from our ComponentInterface
     let bindings_contract_version = 26
     // Get the scaffolding contract version by calling the into the dylib
-    let scaffolding_contract_version = ffi_web5_uniffi_contract_version()
+    let scaffolding_contract_version = ffi_web5_uniffi_uniffi_contract_version()
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_func_hello_world() != 5356) {
+        return InitializationResult.apiChecksumMismatch
     }
 
     return InitializationResult.ok
