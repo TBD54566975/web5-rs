@@ -39,46 +39,49 @@ impl Resolver {
             did_url: format!("https://{}/did.json", did_url),
         }
     }
-}
 
-// This trait implements the actual logic for resolving a DID URI to a DID Document.
-impl IntoFuture for Resolver {
-    type Output = Result<ResolutionResult, ResolutionError>;
-    type IntoFuture = Pin<Box<dyn Future<Output = Self::Output> + Send + Sync>>;
-
-    fn into_future(self) -> Self::IntoFuture {
+    async fn resolve(url: String) -> Result<ResolutionResult, ResolutionError> {
         let mut headers = HeaderMap::new();
         headers.append(
             reqwest::header::USER_AGENT,
             HeaderValue::from_static(USER_AGENT),
         );
 
-        Box::pin(async move {
-            let client = reqwest::Client::builder()
-                .default_headers(headers)
-                .build()
-                .map_err(|_| ResolutionError::InternalError)?;
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()
+            .map_err(|_| ResolutionError::InternalError)?;
 
-            let response = client
-                .get(&self.did_url)
-                .send()
+        let response = client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|_| ResolutionError::InternalError)?;
+
+        if response.status().is_success() {
+            let did_document = response
+                .json::<Document>()
                 .await
-                .map_err(|_| ResolutionError::InternalError)?;
+                .map_err(|_| ResolutionError::RepresentationNotSupported)?;
 
-            if response.status().is_success() {
-                let did_document = response
-                    .json::<Document>()
-                    .await
-                    .map_err(|_| ResolutionError::RepresentationNotSupported)?;
+            Ok(ResolutionResult {
+                did_document: Some(did_document),
+                ..Default::default()
+            })
+        } else {
+            Err(ResolutionError::NotFound)
+        }
+    }
+}
 
-                Ok(ResolutionResult {
-                    did_document: Some(did_document),
-                    ..Default::default()
-                })
-            } else {
-                Err(ResolutionError::NotFound)
-            }
-        })
+// This trait implements the actual logic for resolving a DID URI to a DID Document.
+impl IntoFuture for Resolver {
+    type Output = Result<ResolutionResult, ResolutionError>;
+    type IntoFuture = Pin<Box<dyn Future<Output = Self::Output>>>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let did_url = self.did_url;
+        Box::pin(async move { Self::resolve(did_url).await })
     }
 }
 
