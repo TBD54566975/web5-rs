@@ -407,8 +407,7 @@ impl VerifiableCredential {
             let issuer_obj: Issuer = match issuer {
                 Value::String(s) => Issuer::String(s.clone()),
                 Value::Object(_o) => {
-                    let named_issuer: NamedIssuer =
-                        serde_json::from_value(issuer.clone()).unwrap();
+                    let named_issuer: NamedIssuer = serde_json::from_value(issuer.clone()).unwrap();
                     Issuer::Object(named_issuer)
                 }
                 _ => return Err(CredentialError::ClaimMismatch("issuer".to_string())),
@@ -449,7 +448,7 @@ impl VerifiableCredential {
 
         let now = Utc::now().timestamp();
         match vc_payload.get("expiration_date") {
-            Some(ref vc_payload_expiration_date) => match exp {
+            Some(vc_payload_expiration_date) => match exp {
                 None => {
                     return Err(CredentialError::MisconfiguredExpirationDate(
                         "VC has expiration date but no exp in registered claims".to_string(),
