@@ -12,7 +12,7 @@ use std::{
 use josekit::{
     jwk::alg::ed::EdCurve,
     jws::{alg::eddsa::EddsaJwsAlgorithm, JwsAlgorithm, JwsHeader, JwsSigner},
-    jwt::{encode_with_signer, JwtPayload},
+    jwt::{decode_header, decode_with_verifier, encode_with_signer, JwtPayload},
     JoseError,
 };
 
@@ -20,11 +20,9 @@ use crate::{
     dids::{
         bearer::BearerDid,
         document::{KeyIdFragment, KeySelector, VerificationMethod},
+        resolver::Resolver,
     },
-    jwt::{
-        jws::Jwt,
-        {Claims, JwtError, RegisteredClaims},
-    },
+    jwt::{jws::Jwt, Claims, JwtError, RegisteredClaims},
     keys::key_manager::KeyManager,
 };
 
@@ -222,7 +220,6 @@ impl JwsSigner for CustomSigner {
         Box::new(self.clone())
     }
 }
-
 impl Clone for CustomSigner {
     fn clone(&self) -> Self {
         Self {
@@ -328,45 +325,122 @@ impl VerifiableCredential {
     }
 
     pub async fn verify(jwt: &str) -> Result<VerifiableCredential, CredentialError> {
-        let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
-        let vc_payload = jwt_decoded.claims.vc_payload;
-        let registered_claims = jwt_decoded.claims.registered_claims;
+        let jwt_header = decode_header(jwt).unwrap();
+
+        let key_id = jwt_header
+            .claim("kid")
+            .and_then(|kid| kid.as_str().map(String::from))
+            .unwrap();
+
+        let did_uri = KeyIdFragment(key_id.clone()).splice_uri();
+        let resolution_result = Resolver::resolve_uri(&did_uri).await;
+        if let Some(err) = resolution_result.did_resolution_metadata.error {
+            return Err(CredentialError::ClaimMismatch("todo  update".to_string()));
+            // TODO: Update error
+        }
+        let verification_method = match resolution_result.did_document {
+            Some(document) => document.get_verification_method(&KeySelector::KeyId { key_id }),
+            None => {
+                return Err(CredentialError::ClaimMismatch("todo  update".to_string()));
+                // TODO: Update error
+            }
+        }
+        .unwrap();
+
+        let public_key = verification_method.public_key_jwk.clone();
+
+        let jose_jwk: josekit::jwk::Jwk = public_key.into();
+
+        let verifier = EddsaJwsAlgorithm::Eddsa
+            .verifier_from_jwk(&jose_jwk)
+            .unwrap();
+        let jwt_decoded: (JwtPayload, JwsHeader) = decode_with_verifier(jwt, &verifier).unwrap();
+        // let verifier = ES256.verifier_from_pem(&public_key)?;
+
+        let jwt_payload: JwtPayload = jwt_decoded.0;
+
+        // let jwt_decoded = Jwt::verify::<VcJwtClaims>(jwt).await?;
+        let vc_payload = jwt_payload.claim("vc").unwrap();
+        let registered_claims = jwt_payload.claims_set();
 
         // registered claims checks
         let jti = registered_claims
-            .jti
-            .ok_or(CredentialError::MissingClaim("jti".to_string()))?;
-        let iss = registered_claims
-            .issuer
-            .ok_or(CredentialError::MissingClaim("issuer".to_string()))?;
-        let sub = registered_claims
-            .subject
-            .ok_or(CredentialError::MissingClaim("subject".to_string()))?;
-        let nbf = registered_claims
-            .not_before
-            .ok_or(CredentialError::MissingClaim("not_before".to_string()))?;
-        let exp = registered_claims.expiration;
+            .get("jti")
+            .and_then(Value::as_str)
+            .ok_or_else(|| CredentialError::MissingClaim("jti".to_string()))?
+            .to_string();
 
-        if let Some(id) = &vc_payload.id {
+        let iss = registered_claims
+            .get("iss")
+            .and_then(Value::as_str)
+            .ok_or(CredentialError::MissingClaim("iss".to_string()))?
+            .to_string();
+
+        let sub = registered_claims
+            .get("sub")
+            .and_then(Value::as_str)
+            .ok_or_else(|| CredentialError::MissingClaim("sub".to_string()))?
+            .to_string();
+
+        let nbf = registered_claims
+            .get("nbf")
+            .and_then(Value::as_i64)
+            .ok_or_else(|| CredentialError::MissingClaim("nbf".to_string()))?;
+
+        let exp = registered_claims.get("exp");
+
+        if let Some(id) = &vc_payload.get("id").and_then(Value::as_str) {
             if id != &jti {
                 return Err(CredentialError::ClaimMismatch("id".to_string()));
             }
         }
 
-        if let Some(issuer) = &vc_payload.issuer {
-            let vc_issuer = issuer.to_string();
+        // if let Some(issuer) = &vc_payload.get("issuer") {
+        //     let issuer_obj :Issuer =
+        //     let vc_issuer = issuer.to_string();
+        //     if iss != vc_issuer {
+        //         return Err(CredentialError::ClaimMismatch("issuer".to_string()));
+        //     }
+        // }
+
+        if let Some(issuer) = &vc_payload.get("issuer") {
+            let issuer_obj: Issuer = match issuer {
+                Value::String(s) => Issuer::String(s.clone()),
+                Value::Object(o) => {
+                    let named_issuer: NamedIssuer =
+                        serde_json::from_value(issuer.clone().clone()).unwrap();
+                    Issuer::Object(named_issuer)
+                }
+                _ => return Err(CredentialError::ClaimMismatch("issuer".to_string())),
+            };
+
+            let vc_issuer = match &issuer_obj {
+                Issuer::String(s) => s.to_string(),
+                Issuer::Object(o) => o.id.to_string(),
+            };
+
             if iss != vc_issuer {
                 return Err(CredentialError::ClaimMismatch("issuer".to_string()));
             }
         }
 
-        if let Some(credential_subject) = &vc_payload.credential_subject {
-            if sub != credential_subject.id {
-                return Err(CredentialError::ClaimMismatch("subject".to_string()));
+        if let Some(credential_subject) = vc_payload.get("credential_subject") {
+            if let Some(credential_subject_id) =
+                credential_subject.get("id").and_then(Value::as_str)
+            {
+                if sub != credential_subject_id {
+                    return Err(CredentialError::ClaimMismatch("subject".to_string()));
+                }
+            } else {
+                return Err(CredentialError::MissingClaim(
+                    "credential_subject.id".to_string(),
+                ));
             }
         }
 
-        if let Some(vc_payload_issuance_date) = &vc_payload.issuance_date {
+        if let Some(vc_payload_issuance_date) =
+            &vc_payload.get("issuance_date").and_then(Value::as_str)
+        {
             let vc_payload_timestamp = rfc3339_to_timestamp(vc_payload_issuance_date)?;
             if vc_payload_timestamp != nbf {
                 return Err(CredentialError::ClaimMismatch("issuance_date".to_string()));
@@ -374,7 +448,7 @@ impl VerifiableCredential {
         }
 
         let now = Utc::now().timestamp();
-        match vc_payload.expiration_date {
+        match vc_payload.get("expiration_date") {
             Some(ref vc_payload_expiration_date) => match exp {
                 None => {
                     return Err(CredentialError::MisconfiguredExpirationDate(
@@ -382,44 +456,72 @@ impl VerifiableCredential {
                     ));
                 }
                 Some(exp) => {
-                    let vc_payload_timestamp = rfc3339_to_timestamp(vc_payload_expiration_date)?;
-                    if vc_payload_timestamp != exp {
+                    let vc_payload_timestamp =
+                        rfc3339_to_timestamp(vc_payload_expiration_date.as_str().unwrap())?;
+                    if vc_payload_timestamp != exp.as_i64().unwrap() {
                         return Err(CredentialError::ClaimMismatch(
                             "expiration_date".to_string(),
                         ));
                     }
 
-                    if now > exp {
+                    if now > exp.as_i64().unwrap() {
                         return Err(CredentialError::CredentialExpired);
                     }
                 }
             },
             None => {
                 if let Some(exp) = exp {
-                    if now > exp {
+                    if now > exp.as_i64().unwrap() {
                         return Err(CredentialError::CredentialExpired);
                     }
                 }
             }
         }
 
-        let vc_issuer = vc_payload.issuer.unwrap_or(Issuer::String(iss));
+        let vc_context = vc_payload
+            .get("@context")
+            .and_then(|c| c.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default();
 
-        let vc_credential_subject = vc_payload.credential_subject.unwrap_or(CredentialSubject {
-            id: sub,
-            params: None,
-        });
+        let vc_type = vc_payload
+            .get("type")
+            .and_then(|t| t.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let vc_issuer = vc_payload
+            .get("issuer")
+            .and_then(Value::as_str)
+            .map(|s| Issuer::String(s.to_string()))
+            .unwrap_or(Issuer::String(iss));
+
+        let vc_credential_subject = vc_payload
+            .get("credential_subject")
+            .and_then(|cs| serde_json::from_value(cs.clone()).ok())
+            .unwrap_or(CredentialSubject {
+                id: sub.clone(),
+                params: None,
+            });
 
         let nbf_issuance_date = timestamp_to_rfc3339(nbf)?;
         let exp_expiration_date = match exp {
-            Some(exp_timestamp) => Some(timestamp_to_rfc3339(exp_timestamp)?),
+            Some(exp_timestamp) => Some(timestamp_to_rfc3339(exp_timestamp.as_i64().unwrap())?),
             None => None,
         };
 
         let vc = VerifiableCredential {
-            context: vc_payload.context,
+            context: vc_context,
             id: jti,
-            r#type: vc_payload.r#type,
+            r#type: vc_type,
             issuer: vc_issuer,
             issuance_date: nbf_issuance_date,
             expiration_date: exp_expiration_date,

@@ -2,6 +2,8 @@ use base64::{engine::general_purpose, Engine};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+use serde_json::{Map, Value};
+
 #[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq)]
 pub struct Jwk {
     pub alg: String,
@@ -12,6 +14,24 @@ pub struct Jwk {
     pub x: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub y: Option<String>,
+}
+
+impl From<Jwk> for josekit::jwk::Jwk {
+    fn from(my_jwk: Jwk) -> Self {
+        let mut map = Map::new();
+        map.insert("alg".to_string(), Value::String(my_jwk.alg));
+        map.insert("kty".to_string(), Value::String(my_jwk.kty));
+        map.insert("crv".to_string(), Value::String(my_jwk.crv));
+        if let Some(d) = my_jwk.d {
+            map.insert("d".to_string(), Value::String(d));
+        }
+        map.insert("x".to_string(), Value::String(my_jwk.x));
+        if let Some(y) = my_jwk.y {
+            map.insert("y".to_string(), Value::String(y));
+        };
+
+        josekit::jwk::Jwk::from_map(map).unwrap()
+    }
 }
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
