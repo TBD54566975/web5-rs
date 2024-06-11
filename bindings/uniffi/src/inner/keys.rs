@@ -14,19 +14,19 @@ pub struct InMemoryKeyManager {}
 
 impl InMemoryKeyManager {
     pub fn generate_key_material(&self) -> Jwk {
-        println!("InMemoryKeyManager.generate_key_material()");
+        println!("Invoked InMemoryKeyManager.generate_key_material()");
         Jwk {
             ..Default::default()
         }
     }
 
     pub fn get_signer(&self, _public_key: Jwk) -> Ed25519Signer {
-        println!("InMemoryKeyManager.get_signer()");
+        println!("Invoked InMemoryKeyManager.get_signer()");
         Ed25519Signer {}
     }
 
     pub fn import_key(&self, _private_key: Jwk) -> Jwk {
-        println!("InMemoryKeyManager.import_key()");
+        println!("Invoked InMemoryKeyManager.import_key()");
         Jwk {
             ..Default::default()
         }

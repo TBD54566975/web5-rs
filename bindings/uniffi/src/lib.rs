@@ -5,10 +5,12 @@
 // 🚧 try to prefer defaults over `unimplemented!()`
 // 🚧 Using PresentationDefinition from existing source code
 //      🚧 dictionary's don't support nested selfs and Filter has one
+// 🚧 unwrap()'s in various places
 
 mod dids;
 mod inner;
 mod keys;
+mod pex;
 mod vc;
 
 use crate::inner::{
@@ -26,7 +28,14 @@ use crate::inner::{
 use crate::{
     dids::{Did, DidDht, DidJwk, DidWeb, ResolutionResult},
     keys::InMemoryKeyManager,
+    pex::PresentationDefinition,
     vc::VerifiableCredential,
+};
+
+use web5::credentials::presentation_definition::{
+    Constraints as ConstraintsData, Field as FieldData, Filter as FilterData,
+    InputDescriptor as InputDescriptorData, Optionality,
+    PresentationDefinition as PresentationDefinitionData,
 };
 
 pub fn hello_world() {

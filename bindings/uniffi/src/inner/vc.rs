@@ -15,19 +15,19 @@ pub struct VerifiableCredential {
 
 impl VerifiableCredential {
     pub fn sign(&self, _signer: Arc<dyn Signer>) -> String {
-        println!("VerifiableCredential.sign()");
+        println!("Invoked VerifiableCredential.sign()");
         String::default()
     }
 
     pub fn verify(_vcjwt: &str) -> Self {
-        println!("VerifiableCredential::verify()");
+        println!("Invoked VerifiableCredential::verify()");
         Self {
             ..Default::default()
         }
     }
 
     pub fn verify_with_verifier(_vcjwt: &str, _verifier: Arc<dyn Verifier>) -> Self {
-        println!("VerifiableCredential::verify_with_verifier()");
+        println!("Invoked VerifiableCredential::verify_with_verifier()");
         Self {
             ..Default::default()
         }
