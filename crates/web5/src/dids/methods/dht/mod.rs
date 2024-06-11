@@ -68,7 +68,7 @@ pub struct DidDht {
 impl DidDht {
   pub fn create_document(
     options: DidDhtOptions,
-  ) -> Result<DidDht, MethodError> {
+  ) -> Result<Document, MethodError> {
     // TODO maybe: verify identity key is ed25519
 
     let did_uri = create_identifier(&options.identity_key_jwk);
@@ -145,15 +145,11 @@ impl DidDht {
     Ok(())
   }
 
-  pub fn publish(&self, identity_key_signer: &dyn Signer) -> Result<(), MethodError>;
+  // TODO
+  // pub fn publish(document: &Document, identity_key_signer: &dyn Signer) -> Result<(), MethodError> {}
 
-  pub fn update(&mut self, options) -> Result<(), MethodError>;
-
-  pub fn resolve(uri: &str) -> ResolutionResult {
-    ResolutionResult {
-      ..Default::default()
-    }
-  }
+  // TODO
+  // pub fn resolve(uri: &str) -> ResolutionResult {}
 }
 
 /*
