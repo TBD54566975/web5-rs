@@ -334,7 +334,7 @@ impl VerifiableCredential {
 
         let did_uri = KeyIdFragment(key_id.clone()).splice_uri();
         let resolution_result = Resolver::resolve_uri(&did_uri).await;
-        if let Some(err) = resolution_result.did_resolution_metadata.error {
+        if let Some(_err) = resolution_result.did_resolution_metadata.error {
             return Err(CredentialError::ClaimMismatch("todo  update".to_string()));
             // TODO: Update error
         }
@@ -403,12 +403,12 @@ impl VerifiableCredential {
         //     }
         // }
 
-        if let Some(issuer) = &vc_payload.get("issuer") {
+        if let Some(issuer) = vc_payload.get("issuer") {
             let issuer_obj: Issuer = match issuer {
                 Value::String(s) => Issuer::String(s.clone()),
-                Value::Object(o) => {
+                Value::Object(_o) => {
                     let named_issuer: NamedIssuer =
-                        serde_json::from_value(issuer.clone().clone()).unwrap();
+                        serde_json::from_value(issuer.clone()).unwrap();
                     Issuer::Object(named_issuer)
                 }
                 _ => return Err(CredentialError::ClaimMismatch("issuer".to_string())),
