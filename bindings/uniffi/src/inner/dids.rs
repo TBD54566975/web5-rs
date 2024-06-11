@@ -1,7 +1,8 @@
-use crate::inner::keys::Jwk;
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
-#[derive(Default)]
+use super::{dsa::Signer, keys::Jwk};
+
+#[derive(Default, Clone)]
 pub struct Did {
     pub uri: String,
     pub url: String,
@@ -92,4 +93,104 @@ pub struct ResolutionResult {
     pub document: Document,
     pub document_metadata: DocumentMetadata,
     pub resolution_metadata: ResolutionMetadata,
+}
+
+impl ResolutionResult {
+    pub fn resolve(_uri: &str) -> Self {
+        println!("ResolutionResult::resolve()");
+        Self {
+            ..Default::default()
+        }
+    }
+}
+
+#[derive(Default, Clone)]
+pub struct DidJwk {
+    pub did: Did,
+    pub document: Document,
+}
+
+impl DidJwk {
+    pub fn from_public_key(_public_key: Jwk) -> Self {
+        println!("DidJwk::from_public_key()");
+        Self {
+            ..Default::default()
+        }
+    }
+
+    pub fn from_uri(_uri: &str) -> Self {
+        println!("DidJwk::from_uri()");
+        Self {
+            ..Default::default()
+        }
+    }
+
+    // 🚧
+    // pub fn resolve(_uri: &str) -> ResolutionResult {
+    //     println!("DidJwk::resolve()");
+    //     ResolutionResult {
+    //         ..Default::default()
+    //     }
+    // }
+}
+
+#[derive(Default, Clone)]
+pub struct DidWeb {
+    pub did: Did,
+    pub document: Document,
+}
+
+impl DidWeb {
+    pub fn from_uri(_uri: &str) -> Self {
+        println!("DidWeb::from_uri()");
+        Self {
+            ..Default::default()
+        }
+    }
+
+    // 🚧
+    // pub fn resolve(_uri: &str) -> ResolutionResult {
+    //     println!("DidWeb::resolve()");
+    //     ResolutionResult {
+    //         ..Default::default()
+    //     }
+    // }
+}
+
+#[derive(Default, Clone)]
+pub struct DidDht {
+    pub did: Did,
+    pub document: Document,
+}
+
+impl DidDht {
+    pub fn from_identity_key(_identity_key: Jwk) -> Self {
+        println!("DidDht::from_identity_key()");
+        Self {
+            ..Default::default()
+        }
+    }
+
+    pub fn from_uri(_uri: &str) -> Self {
+        println!("DidDht::from_uri()");
+        Self {
+            ..Default::default()
+        }
+    }
+
+    pub fn publish(&self, _signer: Arc<dyn Signer>) {
+        println!("DidDht.publish()");
+    }
+
+    pub fn deactivate(&self, _signer: Arc<dyn Signer>) {
+        println!("DidDht.deactivate()");
+    }
+
+    // 🚧
+    // pub fn resolve(_uri: &str) -> ResolutionResult {
+    //     println!("DidDht::resolve()");
+    //     ResolutionResult {
+    //         ..Default::default()
+    //     }
+    // }
 }

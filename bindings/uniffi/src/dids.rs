@@ -1,9 +1,11 @@
 use crate::inner::dids::{
-    Did as InnerDid, Document as InnerDocument, DocumentMetadata as InnerDocumentMetadata,
+    Did as InnerDid, DidDht as InnerDidDht, DidJwk as InnerDidJwk, DidWeb as InnerDidWeb,
+    Document as InnerDocument, DocumentMetadata as InnerDocumentMetadata,
     ResolutionMetadata as InnerResolutionMetadata, ResolutionMetadataError,
     ResolutionResult as InnerResolutionResult, Service as InnerService,
     VerificationMethod as InnerVerificationMethod,
 };
+use crate::inner::dsa::Signer;
 use crate::keys::Jwk;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -17,6 +19,16 @@ impl Did {
         Self {
             0: Arc::new(RwLock::new(InnerDid::new(uri))),
         }
+    }
+
+    pub fn from_inner(inner: InnerDid) -> Did {
+        Self {
+            0: Arc::new(RwLock::new(inner)),
+        }
+    }
+
+    pub fn to_inner(&self) -> InnerDid {
+        self.0.read().unwrap().clone()
     }
 
     pub fn get_uri(&self) -> String {
@@ -521,6 +533,16 @@ impl ResolutionResult {
         }
     }
 
+    pub fn from_inner(inner: InnerResolutionResult) -> Self {
+        Self {
+            0: Arc::new(RwLock::new(inner)),
+        }
+    }
+
+    pub fn resolve(uri: &str) -> Self {
+        ResolutionResult::from_inner(InnerResolutionResult::resolve(uri))
+    }
+
     pub fn get_document(&self) -> Arc<Document> {
         Arc::new(Document::from_inner(
             self.0.read().unwrap().document.clone(),
@@ -552,5 +574,170 @@ impl ResolutionResult {
     pub fn set_resolution_metadata(&self, resolution_metadata: Arc<ResolutionMetadata>) {
         let mut inner = self.0.write().unwrap();
         inner.resolution_metadata = resolution_metadata.to_inner();
+    }
+}
+
+pub struct DidJwk(Arc<RwLock<InnerDidJwk>>);
+
+impl DidJwk {
+    pub fn new(did: Arc<Did>, document: Arc<Document>) -> Self {
+        Self {
+            0: Arc::new(RwLock::new(InnerDidJwk {
+                did: did.to_inner(),
+                document: document.to_inner(),
+            })),
+        }
+    }
+
+    pub fn from_inner(inner: InnerDidJwk) -> Self {
+        Self {
+            0: Arc::new(RwLock::new(inner)),
+        }
+    }
+
+    pub fn from_public_key(public_key: Arc<Jwk>) -> Self {
+        let inner = InnerDidJwk::from_public_key(public_key.to_inner());
+        Self::from_inner(inner)
+    }
+
+    pub fn from_uri(uri: &str) -> Self {
+        let inner = InnerDidJwk::from_uri(uri);
+        Self::from_inner(inner)
+    }
+
+    // 🚧
+    // pub fn resolve(uri: &str) -> Arc<ResolutionResult> {
+    //     Arc::new(ResolutionResult::from_inner(InnerDidJwk::resolve(uri)))
+    // }
+
+    pub fn get_did(&self) -> Arc<Did> {
+        Arc::new(Did::from_inner(self.0.read().unwrap().did.clone()))
+    }
+
+    pub fn set_did(&self, did: Arc<Did>) {
+        let mut inner = self.0.write().unwrap();
+        inner.did = did.to_inner();
+    }
+
+    pub fn get_document(&self) -> Arc<Document> {
+        Arc::new(Document::from_inner(
+            self.0.read().unwrap().document.clone(),
+        ))
+    }
+
+    pub fn set_document(&self, document: Arc<Document>) {
+        let mut inner = self.0.write().unwrap();
+        inner.document = document.to_inner();
+    }
+}
+
+pub struct DidWeb(Arc<RwLock<InnerDidWeb>>);
+
+impl DidWeb {
+    pub fn new(did: Arc<Did>, document: Arc<Document>) -> Self {
+        Self {
+            0: Arc::new(RwLock::new(InnerDidWeb {
+                did: did.to_inner(),
+                document: document.to_inner(),
+            })),
+        }
+    }
+
+    pub fn from_inner(inner: InnerDidWeb) -> Self {
+        Self {
+            0: Arc::new(RwLock::new(inner)),
+        }
+    }
+
+    pub fn from_uri(uri: &str) -> Self {
+        let inner = InnerDidWeb::from_uri(uri);
+        Self::from_inner(inner)
+    }
+
+    // 🚧
+    // pub fn resolve(uri: &str) -> Arc<ResolutionResult> {
+    //     Arc::new(ResolutionResult::from_inner(InnerDidWeb::resolve(uri)))
+    // }
+
+    pub fn get_did(&self) -> Arc<Did> {
+        Arc::new(Did::from_inner(self.0.read().unwrap().did.clone()))
+    }
+
+    pub fn set_did(&self, did: Arc<Did>) {
+        let mut inner = self.0.write().unwrap();
+        inner.did = did.to_inner();
+    }
+
+    pub fn get_document(&self) -> Arc<Document> {
+        Arc::new(Document::from_inner(
+            self.0.read().unwrap().document.clone(),
+        ))
+    }
+
+    pub fn set_document(&self, document: Arc<Document>) {
+        let mut inner = self.0.write().unwrap();
+        inner.document = document.to_inner();
+    }
+}
+
+pub struct DidDht(Arc<RwLock<InnerDidDht>>);
+
+impl DidDht {
+    pub fn new(did: Arc<Did>, document: Arc<Document>) -> Self {
+        Self {
+            0: Arc::new(RwLock::new(InnerDidDht {
+                did: did.to_inner(),
+                document: document.to_inner(),
+            })),
+        }
+    }
+
+    pub fn from_inner(inner: InnerDidDht) -> Self {
+        Self {
+            0: Arc::new(RwLock::new(inner)),
+        }
+    }
+
+    pub fn from_identity_key(identity_key: Arc<Jwk>) -> Self {
+        let inner = InnerDidDht::from_identity_key(identity_key.to_inner());
+        Self::from_inner(inner)
+    }
+
+    pub fn from_uri(uri: &str) -> Self {
+        let inner = InnerDidDht::from_uri(uri);
+        Self::from_inner(inner)
+    }
+
+    pub fn publish(&self, signer: Arc<dyn Signer>) {
+        self.0.read().unwrap().publish(signer)
+    }
+
+    pub fn deactivate(&self, signer: Arc<dyn Signer>) {
+        self.0.read().unwrap().deactivate(signer)
+    }
+
+    // 🚧
+    // pub fn resolve(uri: &str) -> Arc<ResolutionResult> {
+    //     Arc::new(ResolutionResult::from_inner(InnerDidDht::resolve(uri)))
+    // }
+
+    pub fn get_did(&self) -> Arc<Did> {
+        Arc::new(Did::from_inner(self.0.read().unwrap().did.clone()))
+    }
+
+    pub fn set_did(&self, did: Arc<Did>) {
+        let mut inner = self.0.write().unwrap();
+        inner.did = did.to_inner();
+    }
+
+    pub fn get_document(&self) -> Arc<Document> {
+        Arc::new(Document::from_inner(
+            self.0.read().unwrap().document.clone(),
+        ))
+    }
+
+    pub fn set_document(&self, document: Arc<Document>) {
+        let mut inner = self.0.write().unwrap();
+        inner.document = document.to_inner();
     }
 }

@@ -221,6 +221,8 @@ interface ResolutionResult {
     DocumentMetadata document_metadata,
     ResolutionMetadata resolution_metadata
   );
+  [Name=resolve]
+  constructor([ByRef] string uri);
 
   Document get_document();
   void set_document(Document document);
@@ -230,4 +232,86 @@ interface ResolutionResult {
 
   ResolutionMetadata get_resolution_metadata();
   void set_resolution_metadata(ResolutionMetadata resolution_metadata);
+};
+
+interface DidJwk {
+  constructor(Did did, Document document);
+  [Name=from_public_key]
+  constructor(Jwk public_key);
+  [Name=from_uri]
+  constructor([ByRef] string uri);
+
+  Did get_did();
+  void set_did(Did did);
+
+  Document get_document();
+  void set_document(Document document);
+};
+
+interface DidWeb {
+  constructor(Did did, Document document);
+  [Name=from_uri]
+  constructor([ByRef] string uri);
+
+  Did get_did();
+  void set_did(Did did);
+
+  Document get_document();
+  void set_document(Document document);
+};
+
+interface DidDht {
+  constructor(Did did, Document document);
+  [Name=from_identity_key]
+  constructor(Jwk identity_key);
+  [Name=from_uri]
+  constructor([ByRef] string uri);
+
+  void publish(Signer signer);
+  void deactivate(Signer signer);
+
+  Did get_did();
+  void set_did(Did did);
+
+  Document get_document();
+  void set_document(Document document);
+};
+
+interface VerifiableCredential {
+  constructor(
+    sequence<string> context,
+    string id,
+    sequence<string> type,
+    string issuer,
+    string issuance_date,
+    string? expiration_date,
+    string credential_subject
+  );
+  [Name=verify]
+  constructor(string vcjwt);
+  [Name=verify_with_verifier]
+  constructor(string vcjwt, Verifier verifier);
+
+  string sign(Signer signer);
+
+  sequence<string> get_context();
+  void set_context(sequence<string> context);
+
+  string get_id();
+  void set_id(string id);
+
+  sequence<string> get_type();
+  void set_type(sequence<string> type);
+
+  string get_issuer();
+  void set_issuer(string issuer);
+
+  string get_issuance_date();
+  void set_issuance_date(string issuance_date);
+
+  string? get_expiration_date();
+  void set_expiration_date(string? expiration_date);
+
+  string get_credential_subject();
+  void set_credential_subject(string credential_subject);
 };
