@@ -32,10 +32,6 @@ interface Verifier {
   boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
 };
 
-interface Ed25519Generator {
-  JwkData generate();
-};
-
 interface Ed25519Signer {
   constructor(JwkData private_key);
   bytes sign([ByRef] sequence<u8> payload);
@@ -58,7 +54,8 @@ dictionary DidData {
 };
 
 interface Did {
-  DidData parse([ByRef] string uri);
+  constructor([ByRef] string uri);
+  DidData get_data();
 };
 
 dictionary DocumentData {
@@ -73,7 +70,6 @@ dictionary DocumentData {
   sequence<string>? capability_invocation;
   sequence<string>? capability_delegation;
   sequence<ServiceData>? service;
-
 };
 
 dictionary VerificationMethodData {
@@ -121,7 +117,8 @@ dictionary ResolutionResultData {
 };
 
 interface ResolutionResult {
-  ResolutionResultData resolve([ByRef] string uri);
+  constructor([ByRef] string uri);
+  ResolutionResultData get_data();
 };
 
 dictionary DidJwkData {
@@ -130,9 +127,11 @@ dictionary DidJwkData {
 };
 
 interface DidJwk {
-  DidJwkData from_public_key(JwkData public_key);
-  DidJwkData from_uri([ByRef] string uri);
-  ResolutionResultData resolve([ByRef] string uri);
+  [Name=from_public_key]
+  constructor(JwkData public_key);
+  [Name=from_uri]
+  constructor([ByRef] string uri);
+  DidJwkData get_data();
 };
 
 dictionary DidWebData {
@@ -141,8 +140,9 @@ dictionary DidWebData {
 };
 
 interface DidWeb {
-  DidWebData from_uri([ByRef] string uri);
-  ResolutionResultData resolve([ByRef] string uri);
+  [Name=from_uri]
+  constructor([ByRef] string uri);
+  DidWebData get_data();
 };
 
 dictionary DidDhtData {
@@ -151,14 +151,13 @@ dictionary DidDhtData {
 };
 
 interface DidDht {
-  DidDhtData from_uri([ByRef] string uri);
-  ResolutionResultData resolve([ByRef] string uri);
-
   [Name=from_identity_key]
   constructor(JwkData identity_key);
-  constructor(DidDhtData did_dht_data);
+  [Name=from_uri]
+  constructor([ByRef] string uri);
   void publish(Signer signer);
   void deactivate(Signer signer);
+  DidDhtData get_data();
 };
 
 dictionary VerifiableCredentialData {
@@ -172,52 +171,11 @@ dictionary VerifiableCredentialData {
 };
 
 interface VerifiableCredential {
-  constructor(VerifiableCredentialData verifiable_credential_data);
+  constructor(VerifiableCredentialData data);
+  [Name=verify]
+  constructor([ByRef] string vcjwt);
+  [Name=verify_with_verifier]
+  constructor([ByRef] string vcjwt, Verifier verifier);
   string sign(Signer signer);
-  VerifiableCredentialData verify(string vcjwt);
-  VerifiableCredentialData verify_with_verifier(string vcjwt, Verifier verifier);
-};
-
-dictionary PresentationDefinitionData {
-  string id;
-  string? name;
-  string? purpose;
-  sequence<InputDescriptorData> input_descriptors;
-};
-
-interface PresentationDefinition {
-  constructor(PresentationDefinitionData data);
-  sequence<string> select_credentials(sequence<string> vc_jwts);
-};
-
-dictionary InputDescriptorData {
-  string id;
-  string? name;
-  string? purpose;
-  ConstraintsData constraints;
-};
-
-dictionary ConstraintsData {
-  sequence<FieldData> fields;
-};
-
-enum Optionality {
-  "Required",
-  "Preferred",
-};
-
-dictionary FieldData {
-  string? id;
-  string? name;
-  sequence<string> path;
-  string? purpose;
-  FilterData? filter;
-  boolean? optional;
-  Optionality? predicate;
-};
-
-dictionary FilterData {
-  string? type;
-  string? pattern;
-  string? const_value;
+  VerifiableCredentialData get_data();
 };

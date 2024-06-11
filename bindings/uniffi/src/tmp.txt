@@ -1,3 +1,228 @@
+namespace web5 {
+  void hello_world();  
+};
+
+dictionary JwkData {
+  string alg;
+  string kty;
+  string crv;
+  string? d;
+  string x;
+  string? y;
+};
+
+interface InMemoryKeyManager {
+  constructor();
+  JwkData generate_key_material();
+  Signer get_signer(JwkData public_key);
+  JwkData import_key(JwkData private_key);
+};
+
+enum Dsa {
+  "Ed25519"
+};
+
+[Trait]
+interface Signer {
+  bytes sign([ByRef] sequence<u8> payload);
+};
+
+[Trait]
+interface Verifier {
+  boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
+};
+
+interface Ed25519Generator {
+  JwkData generate();
+};
+
+interface Ed25519Signer {
+  constructor(JwkData private_key);
+  bytes sign([ByRef] sequence<u8> payload);
+};
+
+interface Ed25519Verifier {
+  constructor(JwkData public_key);
+  boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
+};
+
+dictionary DidData {
+  string uri;
+  string url;
+  string method;
+  string id;
+  record<string, string>? params;
+  string? path;
+  string? query;
+  string? fragment;
+};
+
+interface Did {
+  DidData parse([ByRef] string uri);
+};
+
+dictionary DocumentData {
+  string id;
+  sequence<string>? context;
+  sequence<string>? controller;
+  sequence<string>? also_known_as;
+  sequence<VerificationMethodData> verification_method;
+  sequence<string>? authentication;
+  sequence<string>? assertion_method;
+  sequence<string>? key_agreement;
+  sequence<string>? capability_invocation;
+  sequence<string>? capability_delegation;
+  sequence<ServiceData>? service;
+};
+
+dictionary VerificationMethodData {
+  string id;
+  string type;
+  string controller;
+  JwkData public_key_jwk;
+};
+
+dictionary ServiceData {
+  string id;
+  string type;
+  sequence<string> service_endpoint;
+};
+
+enum ResolutionMetadataError {
+  "InvalidDid",
+  "NotFound",
+  "RepresentationNotSupported",
+  "MethodNotSupported",
+  "InvalidDidDocument",
+  "InvalidDidDocumentLength",
+  "InternalError",
+};
+
+dictionary ResolutionMetadataData {
+  ResolutionMetadataError error;
+};
+
+dictionary DocumentMetadataData {
+  string? created;
+  string? updated;
+  boolean? deactivated;
+  string? next_update;
+  string? version_id;
+  string? next_version_id;
+  sequence<string>? equivalent_id;
+  string? canonical_id;
+};
+
+dictionary ResolutionResultData {
+  DocumentData document;
+  DocumentMetadataData document_metadata;
+  ResolutionMetadataData resolution_metadata;
+};
+
+interface ResolutionResult {
+  ResolutionResultData resolve([ByRef] string uri);
+};
+
+dictionary DidJwkData {
+  DidData did;
+  DocumentData document;
+};
+
+interface DidJwk {
+  DidJwkData from_public_key(JwkData public_key);
+  DidJwkData from_uri([ByRef] string uri);
+  ResolutionResultData resolve([ByRef] string uri);
+};
+
+dictionary DidWebData {
+  DidData did;
+  DocumentData document;
+};
+
+interface DidWeb {
+  DidWebData from_uri([ByRef] string uri);
+  ResolutionResultData resolve([ByRef] string uri);
+};
+
+dictionary DidDhtData {
+  DidData did;
+  DocumentData document;
+};
+
+interface DidDht {
+  DidDhtData from_uri([ByRef] string uri);
+  ResolutionResultData resolve([ByRef] string uri);
+
+  [Name=from_identity_key]
+  constructor(JwkData identity_key);
+  constructor(DidDhtData did_dht_data);
+  void publish(Signer signer);
+  void deactivate(Signer signer);
+};
+
+dictionary VerifiableCredentialData {
+  sequence<string> context;
+  string id;
+  sequence<string> type;
+  string issuer;
+  string issuance_date;
+  string? expiration_date;
+  string credential_subject;
+};
+
+interface VerifiableCredential {
+  constructor(VerifiableCredentialData verifiable_credential_data);
+  string sign(Signer signer);
+  VerifiableCredentialData verify(string vcjwt);
+  VerifiableCredentialData verify_with_verifier(string vcjwt, Verifier verifier);
+};
+
+dictionary PresentationDefinitionData {
+  string id;
+  string? name;
+  string? purpose;
+  sequence<InputDescriptorData> input_descriptors;
+};
+
+interface PresentationDefinition {
+  constructor(PresentationDefinitionData data);
+  sequence<string> select_credentials(sequence<string> vc_jwts);
+};
+
+dictionary InputDescriptorData {
+  string id;
+  string? name;
+  string? purpose;
+  ConstraintsData constraints;
+};
+
+dictionary ConstraintsData {
+  sequence<FieldData> fields;
+};
+
+enum Optionality {
+  "Required",
+  "Preferred",
+};
+
+dictionary FieldData {
+  string? id;
+  string? name;
+  sequence<string> path;
+  string? purpose;
+  FilterData? filter;
+  boolean? optional;
+  Optionality? predicate;
+};
+
+dictionary FilterData {
+  string? type;
+  string? pattern;
+  string? const_value;
+};
+
+---
+
 use std::{collections::HashMap, sync::Arc};
 
 #[derive(Default)]
