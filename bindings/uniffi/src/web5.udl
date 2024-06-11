@@ -2,20 +2,33 @@ namespace web5 {
   void hello_world();  
 };
 
-dictionary JwkData {
-  string alg;
-  string kty;
-  string crv;
-  string? d;
-  string x;
-  string? y;
+interface Jwk {
+  constructor(string alg, string kty, string crv, string? d, string x, string? y);
+  
+  string get_alg();
+  void set_alg(string alg);
+
+  string get_kty();
+  void set_kty(string kty);
+
+  string get_crv();
+  void set_crv(string crv);
+
+  string? get_d();
+  void set_d(string? d);
+
+  string get_x();
+  void set_x(string x);
+
+  string? get_y();
+  void set_y(string? y);
 };
 
 interface InMemoryKeyManager {
   constructor();
-  JwkData generate_key_material();
-  Signer get_signer(JwkData public_key);
-  JwkData import_key(JwkData private_key);
+  Jwk generate_key_material();
+  Signer get_signer(Jwk public_key);
+  Jwk import_key(Jwk private_key);
 };
 
 enum Dsa {
@@ -32,61 +45,120 @@ interface Verifier {
   boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
 };
 
-interface Ed25519Generator {
-  JwkData generate();
-};
-
 interface Ed25519Signer {
-  constructor(JwkData private_key);
+  constructor(Jwk private_key);
   bytes sign([ByRef] sequence<u8> payload);
 };
 
 interface Ed25519Verifier {
-  constructor(JwkData public_key);
+  constructor(Jwk public_key);
   boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
 };
 
-dictionary DidData {
-  string uri;
-  string url;
-  string method;
-  string id;
-  record<string, string>? params;
-  string? path;
-  string? query;
-  string? fragment;
-};
-
 interface Did {
-  DidData parse([ByRef] string uri);
+  constructor([ByRef] string uri);
+
+  string get_uri();
+  void set_uri(string uri);
+
+  string get_url();
+  void set_url(string url);
+
+  string get_method();
+  void set_method(string method);
+
+  string get_id();
+  void set_id(string id);
+
+  record<string, string>? get_params();
+  void set_params(record<string, string>? params);
+
+  string? get_path();
+  void set_path(string? path);
+
+  string? get_query();
+  void set_query(string? query);
+
+  string? get_fragment();
+  void set_fragment(string? fragment);
 };
 
-dictionary DocumentData {
-  string id;
-  sequence<string>? context;
-  sequence<string>? controller;
-  sequence<string>? also_known_as;
-  sequence<VerificationMethodData> verification_method;
-  sequence<string>? authentication;
-  sequence<string>? assertion_method;
-  sequence<string>? key_agreement;
-  sequence<string>? capability_invocation;
-  sequence<string>? capability_delegation;
-  sequence<ServiceData>? service;
+interface Document {
+    constructor(
+      string id,
+      sequence<string>? context,
+      sequence<string>? controller,
+      sequence<string>? also_known_as,
+      sequence<VerificationMethod> verification_method,
+      sequence<string>? authentication,
+      sequence<string>? assertion_method,
+      sequence<string>? key_agreement,
+      sequence<string>? capability_invocation,
+      sequence<string>? capability_delegation,
+      sequence<Service>? service
+    );
 
+    string get_id();
+    void set_id(string id);
+
+    sequence<string>? get_context();
+    void set_context(sequence<string>? context);
+
+    sequence<string>? get_controller();
+    void set_controller(sequence<string>? controller);
+
+    sequence<string>? get_also_known_as();
+    void set_also_known_as(sequence<string>? also_known_as);
+
+    sequence<VerificationMethod> get_verification_method();
+    void set_verification_method(sequence<VerificationMethod> verification_method);
+
+    sequence<string>? get_authentication();
+    void set_authentication(sequence<string>? authentication);
+
+    sequence<string>? get_assertion_method();
+    void set_assertion_method(sequence<string>? assertion_method);
+
+    sequence<string>? get_key_agreement();
+    void set_key_agreement(sequence<string>? key_agreement);
+
+    sequence<string>? get_capability_invocation();
+    void set_capability_invocation(sequence<string>? capability_invocation);
+
+    sequence<string>? get_capability_delegation();
+    void set_capability_delegation(sequence<string>? capability_delegation);
+
+    sequence<Service>? get_service();
+    void set_service(sequence<Service>? service);
 };
 
-dictionary VerificationMethodData {
-  string id;
-  string type;
-  string controller;
-  JwkData public_key_jwk;
+interface VerificationMethod {
+  constructor(string id, string type, string controller, Jwk public_key_jwk);
+
+  string get_id();
+  void set_id(string id);
+
+  string get_type();
+  void set_type(string type);
+
+  string get_controller();
+  void set_controller(string controller);
+
+  Jwk get_public_key_jwk();
+  void set_public_key_jwk(Jwk public_key_jwk);
 };
 
-dictionary ServiceData {
-  string id;
-  string type;
-  sequence<string> service_endpoint;
+interface Service {
+  constructor(string id, string type, sequence<string> service_endpoint);
+
+  string get_id();
+  void set_id(string id);
+
+  string get_type();
+  void set_type(string type);
+
+  sequence<string> get_service_endpoint();
+  void set_service_endpoint(sequence<string> service_endpoint);
 };
 
 enum ResolutionMetadataError {
@@ -99,125 +171,63 @@ enum ResolutionMetadataError {
   "InternalError",
 };
 
-dictionary ResolutionMetadataData {
-  ResolutionMetadataError error;
+interface ResolutionMetadata {
+  constructor(ResolutionMetadataError error);
+
+  ResolutionMetadataError get_error();
+  void set_error(ResolutionMetadataError error);
 };
 
-dictionary DocumentMetadataData {
-  string? created;
-  string? updated;
-  boolean? deactivated;
-  string? next_update;
-  string? version_id;
-  string? next_version_id;
-  sequence<string>? equivalent_id;
-  string? canonical_id;
-};
+interface DocumentMetadata {
+  constructor(
+    string? created,
+    string? updated,
+    boolean? deactivated,
+    string? next_update,
+    string? version_id,
+    string? next_version_id,
+    sequence<string>? equivalent_id,
+    string? canonical_id
+  );
 
-dictionary ResolutionResultData {
-  DocumentData document;
-  DocumentMetadataData document_metadata;
-  ResolutionMetadataData resolution_metadata;
+  string? get_created();
+  void set_created(string? created);
+
+  string? get_updated();
+  void set_updated(string? updated);
+
+  boolean? get_deactivated();
+  void set_deactivated(boolean? deactivated);
+
+  string? get_next_update();
+  void set_next_update(string? next_update);
+
+  string? get_version_id();
+  void set_version_id(string? version_id);
+
+  string? get_next_version_id();
+  void set_next_version_id(string? next_version_id);
+
+  sequence<string>? get_equivalent_id();
+  void set_equivalent_id(sequence<string>? equivalent_id);
+
+  string? get_canonical_id();
+  void set_canonical_id(string? canonical_id);
 };
 
 interface ResolutionResult {
-  ResolutionResultData resolve([ByRef] string uri);
-};
+  constructor(
+    Document document,
+    DocumentMetadata document_metadata,
+    ResolutionMetadata resolution_metadata
+  );
 
-dictionary DidJwkData {
-  DidData did;
-  DocumentData document;
-};
+  Document get_document();
+  void set_document(Document document);
 
-interface DidJwk {
-  DidJwkData from_public_key(JwkData public_key);
-  DidJwkData from_uri([ByRef] string uri);
-  ResolutionResultData resolve([ByRef] string uri);
-};
+  DocumentMetadata get_document_metadata();
+  void set_document_metadata(DocumentMetadata document_metadata);
 
-dictionary DidWebData {
-  DidData did;
-  DocumentData document;
-};
-
-interface DidWeb {
-  DidWebData from_uri([ByRef] string uri);
-  ResolutionResultData resolve([ByRef] string uri);
-};
-
-dictionary DidDhtData {
-  DidData did;
-  DocumentData document;
-};
-
-interface DidDht {
-  DidDhtData from_uri([ByRef] string uri);
-  ResolutionResultData resolve([ByRef] string uri);
-
-  [Name=from_identity_key]
-  constructor(JwkData identity_key);
-  constructor(DidDhtData did_dht_data);
-  void publish(Signer signer);
-  void deactivate(Signer signer);
-};
-
-dictionary VerifiableCredentialData {
-  sequence<string> context;
-  string id;
-  sequence<string> type;
-  string issuer;
-  string issuance_date;
-  string? expiration_date;
-  string credential_subject;
-};
-
-interface VerifiableCredential {
-  constructor(VerifiableCredentialData verifiable_credential_data);
-  string sign(Signer signer);
-  VerifiableCredentialData verify(string vcjwt);
-  VerifiableCredentialData verify_with_verifier(string vcjwt, Verifier verifier);
-};
-
-dictionary PresentationDefinitionData {
-  string id;
-  string? name;
-  string? purpose;
-  sequence<InputDescriptorData> input_descriptors;
-};
-
-interface PresentationDefinition {
-  constructor(PresentationDefinitionData data);
-  sequence<string> select_credentials(sequence<string> vc_jwts);
-};
-
-dictionary InputDescriptorData {
-  string id;
-  string? name;
-  string? purpose;
-  ConstraintsData constraints;
-};
-
-dictionary ConstraintsData {
-  sequence<FieldData> fields;
-};
-
-enum Optionality {
-  "Required",
-  "Preferred",
-};
-
-dictionary FieldData {
-  string? id;
-  string? name;
-  sequence<string> path;
-  string? purpose;
-  FilterData? filter;
-  boolean? optional;
-  Optionality? predicate;
-};
-
-dictionary FilterData {
-  string? type;
-  string? pattern;
-  string? const_value;
+  ResolutionMetadata get_resolution_metadata();
+  void set_resolution_metadata(ResolutionMetadata resolution_metadata);
 };
