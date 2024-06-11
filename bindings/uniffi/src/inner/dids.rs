@@ -16,7 +16,7 @@ pub struct Did {
 
 impl Did {
     pub fn new(_uri: &str) -> Self {
-        println!("Did::new()");
+        println!("Invoked Did::new()");
         Self {
             ..Default::default()
         }
@@ -97,7 +97,7 @@ pub struct ResolutionResult {
 
 impl ResolutionResult {
     pub fn resolve(_uri: &str) -> Self {
-        println!("ResolutionResult::resolve()");
+        println!("Invoked ResolutionResult::resolve()");
         Self {
             ..Default::default()
         }
@@ -112,14 +112,14 @@ pub struct DidJwk {
 
 impl DidJwk {
     pub fn from_public_key(_public_key: Jwk) -> Self {
-        println!("DidJwk::from_public_key()");
+        println!("Invoked DidJwk::from_public_key()");
         Self {
             ..Default::default()
         }
     }
 
     pub fn from_uri(_uri: &str) -> Self {
-        println!("DidJwk::from_uri()");
+        println!("Invoked DidJwk::from_uri()");
         Self {
             ..Default::default()
         }
@@ -127,7 +127,7 @@ impl DidJwk {
 
     // 🚧
     // pub fn resolve(_uri: &str) -> ResolutionResult {
-    //     println!("DidJwk::resolve()");
+    //     println!("Invoked DidJwk::resolve()");
     //     ResolutionResult {
     //         ..Default::default()
     //     }
@@ -142,7 +142,7 @@ pub struct DidWeb {
 
 impl DidWeb {
     pub fn from_uri(_uri: &str) -> Self {
-        println!("DidWeb::from_uri()");
+        println!("Invoked DidWeb::from_uri()");
         Self {
             ..Default::default()
         }
@@ -150,7 +150,7 @@ impl DidWeb {
 
     // 🚧
     // pub fn resolve(_uri: &str) -> ResolutionResult {
-    //     println!("DidWeb::resolve()");
+    //     println!("Invoked DidWeb::resolve()");
     //     ResolutionResult {
     //         ..Default::default()
     //     }
@@ -165,30 +165,30 @@ pub struct DidDht {
 
 impl DidDht {
     pub fn from_identity_key(_identity_key: Jwk) -> Self {
-        println!("DidDht::from_identity_key()");
+        println!("Invoked DidDht::from_identity_key()");
         Self {
             ..Default::default()
         }
     }
 
     pub fn from_uri(_uri: &str) -> Self {
-        println!("DidDht::from_uri()");
+        println!("Invoked DidDht::from_uri()");
         Self {
             ..Default::default()
         }
     }
 
     pub fn publish(&self, _signer: Arc<dyn Signer>) {
-        println!("DidDht.publish()");
+        println!("Invoked DidDht.publish()");
     }
 
     pub fn deactivate(&self, _signer: Arc<dyn Signer>) {
-        println!("DidDht.deactivate()");
+        println!("Invoked DidDht.deactivate()");
     }
 
     // 🚧
     // pub fn resolve(_uri: &str) -> ResolutionResult {
-    //     println!("DidDht::resolve()");
+    //     println!("Invoked DidDht::resolve()");
     //     ResolutionResult {
     //         ..Default::default()
     //     }
