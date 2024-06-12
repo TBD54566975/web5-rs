@@ -381,6 +381,40 @@ fileprivate class UniffiHandleMap<T> {
 // Public interface members begin here.
 
 
+fileprivate struct FfiConverterUInt8: FfiConverterPrimitive {
+    typealias FfiType = UInt8
+    typealias SwiftType = UInt8
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt8 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: UInt8, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+fileprivate struct FfiConverterBool : FfiConverter {
+    typealias FfiType = Int8
+    typealias SwiftType = Bool
+
+    public static func lift(_ value: Int8) throws -> Bool {
+        return value != 0
+    }
+
+    public static func lower(_ value: Bool) -> Int8 {
+        return value ? 1 : 0
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Bool {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: Bool, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
 fileprivate struct FfiConverterString: FfiConverter {
     typealias SwiftType = String
     typealias FfiType = RustBuffer
@@ -418,6 +452,3212 @@ fileprivate struct FfiConverterString: FfiConverter {
         writeBytes(&buf, value.utf8)
     }
 }
+
+fileprivate struct FfiConverterData: FfiConverterRustBuffer {
+    typealias SwiftType = Data
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Data {
+        let len: Int32 = try readInt(&buf)
+        return Data(try readBytes(&buf, count: Int(len)))
+    }
+
+    public static func write(_ value: Data, into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        writeBytes(&buf, value)
+    }
+}
+
+
+
+
+public protocol DidProtocol : AnyObject {
+    
+    func getData()  -> DidData
+    
+}
+
+open class Did:
+    DidProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_did(self.pointer, $0) }
+    }
+public convenience init(uri: String) {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_did_new(
+        FfiConverterString.lower(uri),$0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_did(pointer, $0) }
+    }
+
+    
+
+    
+open func getData() -> DidData {
+    return try!  FfiConverterTypeDidData.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_did_get_data(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeDid: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Did
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Did {
+        return Did(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Did) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Did {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Did, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeDid_lift(_ pointer: UnsafeMutableRawPointer) throws -> Did {
+    return try FfiConverterTypeDid.lift(pointer)
+}
+
+public func FfiConverterTypeDid_lower(_ value: Did) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeDid.lower(value)
+}
+
+
+
+
+public protocol DidDhtProtocol : AnyObject {
+    
+    func deactivate(signer: Signer) 
+    
+    func getData()  -> DidDhtData
+    
+    func publish(signer: Signer) 
+    
+}
+
+open class DidDht:
+    DidDhtProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_diddht(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_diddht(pointer, $0) }
+    }
+
+    
+public static func fromIdentityKey(identityKey: JwkData) -> DidDht {
+    return try!  FfiConverterTypeDidDht.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_diddht_from_identity_key(
+        FfiConverterTypeJwkData.lower(identityKey),$0
+    )
+})
+}
+    
+public static func fromUri(uri: String) -> DidDht {
+    return try!  FfiConverterTypeDidDht.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_diddht_from_uri(
+        FfiConverterString.lower(uri),$0
+    )
+})
+}
+    
+
+    
+open func deactivate(signer: Signer) {try! rustCall() {
+    uniffi_web5_uniffi_fn_method_diddht_deactivate(self.uniffiClonePointer(),
+        FfiConverterTypeSigner.lower(signer),$0
+    )
+}
+}
+    
+open func getData() -> DidDhtData {
+    return try!  FfiConverterTypeDidDhtData.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_diddht_get_data(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func publish(signer: Signer) {try! rustCall() {
+    uniffi_web5_uniffi_fn_method_diddht_publish(self.uniffiClonePointer(),
+        FfiConverterTypeSigner.lower(signer),$0
+    )
+}
+}
+    
+
+}
+
+public struct FfiConverterTypeDidDht: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = DidDht
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> DidDht {
+        return DidDht(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: DidDht) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DidDht {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: DidDht, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeDidDht_lift(_ pointer: UnsafeMutableRawPointer) throws -> DidDht {
+    return try FfiConverterTypeDidDht.lift(pointer)
+}
+
+public func FfiConverterTypeDidDht_lower(_ value: DidDht) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeDidDht.lower(value)
+}
+
+
+
+
+public protocol DidJwkProtocol : AnyObject {
+    
+    func getData()  -> DidJwkData
+    
+}
+
+open class DidJwk:
+    DidJwkProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_didjwk(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_didjwk(pointer, $0) }
+    }
+
+    
+public static func fromPublicKey(publicKey: JwkData) -> DidJwk {
+    return try!  FfiConverterTypeDidJwk.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_didjwk_from_public_key(
+        FfiConverterTypeJwkData.lower(publicKey),$0
+    )
+})
+}
+    
+public static func fromUri(uri: String) -> DidJwk {
+    return try!  FfiConverterTypeDidJwk.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_didjwk_from_uri(
+        FfiConverterString.lower(uri),$0
+    )
+})
+}
+    
+
+    
+open func getData() -> DidJwkData {
+    return try!  FfiConverterTypeDidJwkData.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_didjwk_get_data(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeDidJwk: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = DidJwk
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> DidJwk {
+        return DidJwk(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: DidJwk) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DidJwk {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: DidJwk, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeDidJwk_lift(_ pointer: UnsafeMutableRawPointer) throws -> DidJwk {
+    return try FfiConverterTypeDidJwk.lift(pointer)
+}
+
+public func FfiConverterTypeDidJwk_lower(_ value: DidJwk) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeDidJwk.lower(value)
+}
+
+
+
+
+public protocol DidWebProtocol : AnyObject {
+    
+    func getData()  -> DidWebData
+    
+}
+
+open class DidWeb:
+    DidWebProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_didweb(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_didweb(pointer, $0) }
+    }
+
+    
+public static func fromUri(uri: String) -> DidWeb {
+    return try!  FfiConverterTypeDidWeb.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_didweb_from_uri(
+        FfiConverterString.lower(uri),$0
+    )
+})
+}
+    
+
+    
+open func getData() -> DidWebData {
+    return try!  FfiConverterTypeDidWebData.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_didweb_get_data(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeDidWeb: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = DidWeb
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> DidWeb {
+        return DidWeb(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: DidWeb) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DidWeb {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: DidWeb, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeDidWeb_lift(_ pointer: UnsafeMutableRawPointer) throws -> DidWeb {
+    return try FfiConverterTypeDidWeb.lift(pointer)
+}
+
+public func FfiConverterTypeDidWeb_lower(_ value: DidWeb) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeDidWeb.lower(value)
+}
+
+
+
+
+public protocol Ed25519SignerProtocol : AnyObject {
+    
+    func sign(payload: [UInt8])  -> Data
+    
+}
+
+open class Ed25519Signer:
+    Ed25519SignerProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_ed25519signer(self.pointer, $0) }
+    }
+public convenience init(privateKey: JwkData) {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_ed25519signer_new(
+        FfiConverterTypeJwkData.lower(privateKey),$0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_ed25519signer(pointer, $0) }
+    }
+
+    
+
+    
+open func sign(payload: [UInt8]) -> Data {
+    return try!  FfiConverterData.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_ed25519signer_sign(self.uniffiClonePointer(),
+        FfiConverterSequenceUInt8.lower(payload),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeEd25519Signer: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Ed25519Signer
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25519Signer {
+        return Ed25519Signer(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Ed25519Signer) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ed25519Signer {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Ed25519Signer, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeEd25519Signer_lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25519Signer {
+    return try FfiConverterTypeEd25519Signer.lift(pointer)
+}
+
+public func FfiConverterTypeEd25519Signer_lower(_ value: Ed25519Signer) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeEd25519Signer.lower(value)
+}
+
+
+
+
+public protocol Ed25519VerifierProtocol : AnyObject {
+    
+    func verify(message: [UInt8], signature: [UInt8])  -> Bool
+    
+}
+
+open class Ed25519Verifier:
+    Ed25519VerifierProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_ed25519verifier(self.pointer, $0) }
+    }
+public convenience init(publicKey: JwkData) {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_ed25519verifier_new(
+        FfiConverterTypeJwkData.lower(publicKey),$0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_ed25519verifier(pointer, $0) }
+    }
+
+    
+
+    
+open func verify(message: [UInt8], signature: [UInt8]) -> Bool {
+    return try!  FfiConverterBool.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_ed25519verifier_verify(self.uniffiClonePointer(),
+        FfiConverterSequenceUInt8.lower(message),
+        FfiConverterSequenceUInt8.lower(signature),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeEd25519Verifier: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Ed25519Verifier
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25519Verifier {
+        return Ed25519Verifier(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Ed25519Verifier) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ed25519Verifier {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Ed25519Verifier, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeEd25519Verifier_lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25519Verifier {
+    return try FfiConverterTypeEd25519Verifier.lift(pointer)
+}
+
+public func FfiConverterTypeEd25519Verifier_lower(_ value: Ed25519Verifier) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeEd25519Verifier.lower(value)
+}
+
+
+
+
+public protocol InMemoryKeyManagerProtocol : AnyObject {
+    
+    func generateKeyMaterial()  -> JwkData
+    
+    func getSigner(publicKey: JwkData)  -> Signer
+    
+    func importKey(privateKey: JwkData)  -> JwkData
+    
+}
+
+open class InMemoryKeyManager:
+    InMemoryKeyManagerProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_inmemorykeymanager(self.pointer, $0) }
+    }
+public convenience init() {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_inmemorykeymanager_new($0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_inmemorykeymanager(pointer, $0) }
+    }
+
+    
+
+    
+open func generateKeyMaterial() -> JwkData {
+    return try!  FfiConverterTypeJwkData.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_inmemorykeymanager_generate_key_material(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func getSigner(publicKey: JwkData) -> Signer {
+    return try!  FfiConverterTypeSigner.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(self.uniffiClonePointer(),
+        FfiConverterTypeJwkData.lower(publicKey),$0
+    )
+})
+}
+    
+open func importKey(privateKey: JwkData) -> JwkData {
+    return try!  FfiConverterTypeJwkData.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_inmemorykeymanager_import_key(self.uniffiClonePointer(),
+        FfiConverterTypeJwkData.lower(privateKey),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeInMemoryKeyManager: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = InMemoryKeyManager
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> InMemoryKeyManager {
+        return InMemoryKeyManager(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: InMemoryKeyManager) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> InMemoryKeyManager {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: InMemoryKeyManager, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeInMemoryKeyManager_lift(_ pointer: UnsafeMutableRawPointer) throws -> InMemoryKeyManager {
+    return try FfiConverterTypeInMemoryKeyManager.lift(pointer)
+}
+
+public func FfiConverterTypeInMemoryKeyManager_lower(_ value: InMemoryKeyManager) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeInMemoryKeyManager.lower(value)
+}
+
+
+
+
+public protocol PresentationDefinitionProtocol : AnyObject {
+    
+    func selectCredentials(vcJwts: [String])  -> [String]
+    
+}
+
+open class PresentationDefinition:
+    PresentationDefinitionProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_presentationdefinition(self.pointer, $0) }
+    }
+public convenience init(data: PresentationDefinitionData) {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_presentationdefinition_new(
+        FfiConverterTypePresentationDefinitionData.lower(data),$0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_presentationdefinition(pointer, $0) }
+    }
+
+    
+
+    
+open func selectCredentials(vcJwts: [String]) -> [String] {
+    return try!  FfiConverterSequenceString.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_presentationdefinition_select_credentials(self.uniffiClonePointer(),
+        FfiConverterSequenceString.lower(vcJwts),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypePresentationDefinition: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = PresentationDefinition
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> PresentationDefinition {
+        return PresentationDefinition(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: PresentationDefinition) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PresentationDefinition {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: PresentationDefinition, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypePresentationDefinition_lift(_ pointer: UnsafeMutableRawPointer) throws -> PresentationDefinition {
+    return try FfiConverterTypePresentationDefinition.lift(pointer)
+}
+
+public func FfiConverterTypePresentationDefinition_lower(_ value: PresentationDefinition) -> UnsafeMutableRawPointer {
+    return FfiConverterTypePresentationDefinition.lower(value)
+}
+
+
+
+
+public protocol ResolutionResultProtocol : AnyObject {
+    
+    func getData()  -> ResolutionResultData
+    
+}
+
+open class ResolutionResult:
+    ResolutionResultProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_resolutionresult(self.pointer, $0) }
+    }
+public convenience init(uri: String) {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_resolutionresult_new(
+        FfiConverterString.lower(uri),$0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_resolutionresult(pointer, $0) }
+    }
+
+    
+
+    
+open func getData() -> ResolutionResultData {
+    return try!  FfiConverterTypeResolutionResultData.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_resolutionresult_get_data(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeResolutionResult: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = ResolutionResult
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> ResolutionResult {
+        return ResolutionResult(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: ResolutionResult) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ResolutionResult {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: ResolutionResult, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeResolutionResult_lift(_ pointer: UnsafeMutableRawPointer) throws -> ResolutionResult {
+    return try FfiConverterTypeResolutionResult.lift(pointer)
+}
+
+public func FfiConverterTypeResolutionResult_lower(_ value: ResolutionResult) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeResolutionResult.lower(value)
+}
+
+
+
+
+public protocol SignerProtocol : AnyObject {
+    
+    func sign(payload: [UInt8])  -> Data
+    
+}
+
+open class Signer:
+    SignerProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_signer(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_signer(pointer, $0) }
+    }
+
+    
+
+    
+open func sign(payload: [UInt8]) -> Data {
+    return try!  FfiConverterData.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_signer_sign(self.uniffiClonePointer(),
+        FfiConverterSequenceUInt8.lower(payload),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeSigner: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Signer
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Signer {
+        return Signer(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Signer) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Signer {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Signer, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeSigner_lift(_ pointer: UnsafeMutableRawPointer) throws -> Signer {
+    return try FfiConverterTypeSigner.lift(pointer)
+}
+
+public func FfiConverterTypeSigner_lower(_ value: Signer) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeSigner.lower(value)
+}
+
+
+
+
+public protocol VerifiableCredentialProtocol : AnyObject {
+    
+    func getData()  -> VerifiableCredentialData
+    
+    func sign(signer: Signer)  -> String
+    
+}
+
+open class VerifiableCredential:
+    VerifiableCredentialProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_verifiablecredential(self.pointer, $0) }
+    }
+public convenience init(data: VerifiableCredentialData) {
+    let pointer =
+        try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_verifiablecredential_new(
+        FfiConverterTypeVerifiableCredentialData.lower(data),$0
+    )
+}
+    self.init(unsafeFromRawPointer: pointer)
+}
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_verifiablecredential(pointer, $0) }
+    }
+
+    
+public static func verify(vcjwt: String) -> VerifiableCredential {
+    return try!  FfiConverterTypeVerifiableCredential.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify(
+        FfiConverterString.lower(vcjwt),$0
+    )
+})
+}
+    
+public static func verifyWithVerifier(vcjwt: String, verifier: Verifier) -> VerifiableCredential {
+    return try!  FfiConverterTypeVerifiableCredential.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify_with_verifier(
+        FfiConverterString.lower(vcjwt),
+        FfiConverterTypeVerifier.lower(verifier),$0
+    )
+})
+}
+    
+
+    
+open func getData() -> VerifiableCredentialData {
+    return try!  FfiConverterTypeVerifiableCredentialData.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(self.uniffiClonePointer(),$0
+    )
+})
+}
+    
+open func sign(signer: Signer) -> String {
+    return try!  FfiConverterString.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_verifiablecredential_sign(self.uniffiClonePointer(),
+        FfiConverterTypeSigner.lower(signer),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeVerifiableCredential: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = VerifiableCredential
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> VerifiableCredential {
+        return VerifiableCredential(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: VerifiableCredential) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VerifiableCredential {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: VerifiableCredential, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeVerifiableCredential_lift(_ pointer: UnsafeMutableRawPointer) throws -> VerifiableCredential {
+    return try FfiConverterTypeVerifiableCredential.lift(pointer)
+}
+
+public func FfiConverterTypeVerifiableCredential_lower(_ value: VerifiableCredential) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeVerifiableCredential.lower(value)
+}
+
+
+
+
+public protocol VerifierProtocol : AnyObject {
+    
+    func verify(message: [UInt8], signature: [UInt8])  -> Bool
+    
+}
+
+open class Verifier:
+    VerifierProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_web5_uniffi_fn_clone_verifier(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_web5_uniffi_fn_free_verifier(pointer, $0) }
+    }
+
+    
+
+    
+open func verify(message: [UInt8], signature: [UInt8]) -> Bool {
+    return try!  FfiConverterBool.lift(try! rustCall() {
+    uniffi_web5_uniffi_fn_method_verifier_verify(self.uniffiClonePointer(),
+        FfiConverterSequenceUInt8.lower(message),
+        FfiConverterSequenceUInt8.lower(signature),$0
+    )
+})
+}
+    
+
+}
+
+public struct FfiConverterTypeVerifier: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = Verifier
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Verifier {
+        return Verifier(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: Verifier) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Verifier {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: Verifier, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeVerifier_lift(_ pointer: UnsafeMutableRawPointer) throws -> Verifier {
+    return try FfiConverterTypeVerifier.lift(pointer)
+}
+
+public func FfiConverterTypeVerifier_lower(_ value: Verifier) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeVerifier.lower(value)
+}
+
+
+public struct ConstraintsData {
+    public var fields: [FieldData]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(fields: [FieldData]) {
+        self.fields = fields
+    }
+}
+
+
+
+extension ConstraintsData: Equatable, Hashable {
+    public static func ==(lhs: ConstraintsData, rhs: ConstraintsData) -> Bool {
+        if lhs.fields != rhs.fields {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(fields)
+    }
+}
+
+
+public struct FfiConverterTypeConstraintsData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ConstraintsData {
+        return
+            try ConstraintsData(
+                fields: FfiConverterSequenceTypeFieldData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: ConstraintsData, into buf: inout [UInt8]) {
+        FfiConverterSequenceTypeFieldData.write(value.fields, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeConstraintsData_lift(_ buf: RustBuffer) throws -> ConstraintsData {
+    return try FfiConverterTypeConstraintsData.lift(buf)
+}
+
+public func FfiConverterTypeConstraintsData_lower(_ value: ConstraintsData) -> RustBuffer {
+    return FfiConverterTypeConstraintsData.lower(value)
+}
+
+
+public struct DidData {
+    public var uri: String
+    public var url: String
+    public var method: String
+    public var id: String
+    public var params: [String: String]?
+    public var path: String?
+    public var query: String?
+    public var fragment: String?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(uri: String, url: String, method: String, id: String, params: [String: String]?, path: String?, query: String?, fragment: String?) {
+        self.uri = uri
+        self.url = url
+        self.method = method
+        self.id = id
+        self.params = params
+        self.path = path
+        self.query = query
+        self.fragment = fragment
+    }
+}
+
+
+
+extension DidData: Equatable, Hashable {
+    public static func ==(lhs: DidData, rhs: DidData) -> Bool {
+        if lhs.uri != rhs.uri {
+            return false
+        }
+        if lhs.url != rhs.url {
+            return false
+        }
+        if lhs.method != rhs.method {
+            return false
+        }
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.params != rhs.params {
+            return false
+        }
+        if lhs.path != rhs.path {
+            return false
+        }
+        if lhs.query != rhs.query {
+            return false
+        }
+        if lhs.fragment != rhs.fragment {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(uri)
+        hasher.combine(url)
+        hasher.combine(method)
+        hasher.combine(id)
+        hasher.combine(params)
+        hasher.combine(path)
+        hasher.combine(query)
+        hasher.combine(fragment)
+    }
+}
+
+
+public struct FfiConverterTypeDidData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DidData {
+        return
+            try DidData(
+                uri: FfiConverterString.read(from: &buf), 
+                url: FfiConverterString.read(from: &buf), 
+                method: FfiConverterString.read(from: &buf), 
+                id: FfiConverterString.read(from: &buf), 
+                params: FfiConverterOptionDictionaryStringString.read(from: &buf), 
+                path: FfiConverterOptionString.read(from: &buf), 
+                query: FfiConverterOptionString.read(from: &buf), 
+                fragment: FfiConverterOptionString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: DidData, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.uri, into: &buf)
+        FfiConverterString.write(value.url, into: &buf)
+        FfiConverterString.write(value.method, into: &buf)
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterOptionDictionaryStringString.write(value.params, into: &buf)
+        FfiConverterOptionString.write(value.path, into: &buf)
+        FfiConverterOptionString.write(value.query, into: &buf)
+        FfiConverterOptionString.write(value.fragment, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeDidData_lift(_ buf: RustBuffer) throws -> DidData {
+    return try FfiConverterTypeDidData.lift(buf)
+}
+
+public func FfiConverterTypeDidData_lower(_ value: DidData) -> RustBuffer {
+    return FfiConverterTypeDidData.lower(value)
+}
+
+
+public struct DidDhtData {
+    public var did: DidData
+    public var document: DocumentData
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(did: DidData, document: DocumentData) {
+        self.did = did
+        self.document = document
+    }
+}
+
+
+
+extension DidDhtData: Equatable, Hashable {
+    public static func ==(lhs: DidDhtData, rhs: DidDhtData) -> Bool {
+        if lhs.did != rhs.did {
+            return false
+        }
+        if lhs.document != rhs.document {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(did)
+        hasher.combine(document)
+    }
+}
+
+
+public struct FfiConverterTypeDidDhtData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DidDhtData {
+        return
+            try DidDhtData(
+                did: FfiConverterTypeDidData.read(from: &buf), 
+                document: FfiConverterTypeDocumentData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: DidDhtData, into buf: inout [UInt8]) {
+        FfiConverterTypeDidData.write(value.did, into: &buf)
+        FfiConverterTypeDocumentData.write(value.document, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeDidDhtData_lift(_ buf: RustBuffer) throws -> DidDhtData {
+    return try FfiConverterTypeDidDhtData.lift(buf)
+}
+
+public func FfiConverterTypeDidDhtData_lower(_ value: DidDhtData) -> RustBuffer {
+    return FfiConverterTypeDidDhtData.lower(value)
+}
+
+
+public struct DidJwkData {
+    public var did: DidData
+    public var document: DocumentData
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(did: DidData, document: DocumentData) {
+        self.did = did
+        self.document = document
+    }
+}
+
+
+
+extension DidJwkData: Equatable, Hashable {
+    public static func ==(lhs: DidJwkData, rhs: DidJwkData) -> Bool {
+        if lhs.did != rhs.did {
+            return false
+        }
+        if lhs.document != rhs.document {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(did)
+        hasher.combine(document)
+    }
+}
+
+
+public struct FfiConverterTypeDidJwkData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DidJwkData {
+        return
+            try DidJwkData(
+                did: FfiConverterTypeDidData.read(from: &buf), 
+                document: FfiConverterTypeDocumentData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: DidJwkData, into buf: inout [UInt8]) {
+        FfiConverterTypeDidData.write(value.did, into: &buf)
+        FfiConverterTypeDocumentData.write(value.document, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeDidJwkData_lift(_ buf: RustBuffer) throws -> DidJwkData {
+    return try FfiConverterTypeDidJwkData.lift(buf)
+}
+
+public func FfiConverterTypeDidJwkData_lower(_ value: DidJwkData) -> RustBuffer {
+    return FfiConverterTypeDidJwkData.lower(value)
+}
+
+
+public struct DidWebData {
+    public var did: DidData
+    public var document: DocumentData
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(did: DidData, document: DocumentData) {
+        self.did = did
+        self.document = document
+    }
+}
+
+
+
+extension DidWebData: Equatable, Hashable {
+    public static func ==(lhs: DidWebData, rhs: DidWebData) -> Bool {
+        if lhs.did != rhs.did {
+            return false
+        }
+        if lhs.document != rhs.document {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(did)
+        hasher.combine(document)
+    }
+}
+
+
+public struct FfiConverterTypeDidWebData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DidWebData {
+        return
+            try DidWebData(
+                did: FfiConverterTypeDidData.read(from: &buf), 
+                document: FfiConverterTypeDocumentData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: DidWebData, into buf: inout [UInt8]) {
+        FfiConverterTypeDidData.write(value.did, into: &buf)
+        FfiConverterTypeDocumentData.write(value.document, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeDidWebData_lift(_ buf: RustBuffer) throws -> DidWebData {
+    return try FfiConverterTypeDidWebData.lift(buf)
+}
+
+public func FfiConverterTypeDidWebData_lower(_ value: DidWebData) -> RustBuffer {
+    return FfiConverterTypeDidWebData.lower(value)
+}
+
+
+public struct DocumentData {
+    public var id: String
+    public var context: [String]?
+    public var controller: [String]?
+    public var alsoKnownAs: [String]?
+    public var verificationMethod: [VerificationMethodData]
+    public var authentication: [String]?
+    public var assertionMethod: [String]?
+    public var keyAgreement: [String]?
+    public var capabilityInvocation: [String]?
+    public var capabilityDelegation: [String]?
+    public var service: [ServiceData]?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, context: [String]?, controller: [String]?, alsoKnownAs: [String]?, verificationMethod: [VerificationMethodData], authentication: [String]?, assertionMethod: [String]?, keyAgreement: [String]?, capabilityInvocation: [String]?, capabilityDelegation: [String]?, service: [ServiceData]?) {
+        self.id = id
+        self.context = context
+        self.controller = controller
+        self.alsoKnownAs = alsoKnownAs
+        self.verificationMethod = verificationMethod
+        self.authentication = authentication
+        self.assertionMethod = assertionMethod
+        self.keyAgreement = keyAgreement
+        self.capabilityInvocation = capabilityInvocation
+        self.capabilityDelegation = capabilityDelegation
+        self.service = service
+    }
+}
+
+
+
+extension DocumentData: Equatable, Hashable {
+    public static func ==(lhs: DocumentData, rhs: DocumentData) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.context != rhs.context {
+            return false
+        }
+        if lhs.controller != rhs.controller {
+            return false
+        }
+        if lhs.alsoKnownAs != rhs.alsoKnownAs {
+            return false
+        }
+        if lhs.verificationMethod != rhs.verificationMethod {
+            return false
+        }
+        if lhs.authentication != rhs.authentication {
+            return false
+        }
+        if lhs.assertionMethod != rhs.assertionMethod {
+            return false
+        }
+        if lhs.keyAgreement != rhs.keyAgreement {
+            return false
+        }
+        if lhs.capabilityInvocation != rhs.capabilityInvocation {
+            return false
+        }
+        if lhs.capabilityDelegation != rhs.capabilityDelegation {
+            return false
+        }
+        if lhs.service != rhs.service {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(context)
+        hasher.combine(controller)
+        hasher.combine(alsoKnownAs)
+        hasher.combine(verificationMethod)
+        hasher.combine(authentication)
+        hasher.combine(assertionMethod)
+        hasher.combine(keyAgreement)
+        hasher.combine(capabilityInvocation)
+        hasher.combine(capabilityDelegation)
+        hasher.combine(service)
+    }
+}
+
+
+public struct FfiConverterTypeDocumentData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DocumentData {
+        return
+            try DocumentData(
+                id: FfiConverterString.read(from: &buf), 
+                context: FfiConverterOptionSequenceString.read(from: &buf), 
+                controller: FfiConverterOptionSequenceString.read(from: &buf), 
+                alsoKnownAs: FfiConverterOptionSequenceString.read(from: &buf), 
+                verificationMethod: FfiConverterSequenceTypeVerificationMethodData.read(from: &buf), 
+                authentication: FfiConverterOptionSequenceString.read(from: &buf), 
+                assertionMethod: FfiConverterOptionSequenceString.read(from: &buf), 
+                keyAgreement: FfiConverterOptionSequenceString.read(from: &buf), 
+                capabilityInvocation: FfiConverterOptionSequenceString.read(from: &buf), 
+                capabilityDelegation: FfiConverterOptionSequenceString.read(from: &buf), 
+                service: FfiConverterOptionSequenceTypeServiceData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: DocumentData, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterOptionSequenceString.write(value.context, into: &buf)
+        FfiConverterOptionSequenceString.write(value.controller, into: &buf)
+        FfiConverterOptionSequenceString.write(value.alsoKnownAs, into: &buf)
+        FfiConverterSequenceTypeVerificationMethodData.write(value.verificationMethod, into: &buf)
+        FfiConverterOptionSequenceString.write(value.authentication, into: &buf)
+        FfiConverterOptionSequenceString.write(value.assertionMethod, into: &buf)
+        FfiConverterOptionSequenceString.write(value.keyAgreement, into: &buf)
+        FfiConverterOptionSequenceString.write(value.capabilityInvocation, into: &buf)
+        FfiConverterOptionSequenceString.write(value.capabilityDelegation, into: &buf)
+        FfiConverterOptionSequenceTypeServiceData.write(value.service, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeDocumentData_lift(_ buf: RustBuffer) throws -> DocumentData {
+    return try FfiConverterTypeDocumentData.lift(buf)
+}
+
+public func FfiConverterTypeDocumentData_lower(_ value: DocumentData) -> RustBuffer {
+    return FfiConverterTypeDocumentData.lower(value)
+}
+
+
+public struct DocumentMetadataData {
+    public var created: String?
+    public var updated: String?
+    public var deactivated: Bool?
+    public var nextUpdate: String?
+    public var versionId: String?
+    public var nextVersionId: String?
+    public var equivalentId: [String]?
+    public var canonicalId: String?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(created: String?, updated: String?, deactivated: Bool?, nextUpdate: String?, versionId: String?, nextVersionId: String?, equivalentId: [String]?, canonicalId: String?) {
+        self.created = created
+        self.updated = updated
+        self.deactivated = deactivated
+        self.nextUpdate = nextUpdate
+        self.versionId = versionId
+        self.nextVersionId = nextVersionId
+        self.equivalentId = equivalentId
+        self.canonicalId = canonicalId
+    }
+}
+
+
+
+extension DocumentMetadataData: Equatable, Hashable {
+    public static func ==(lhs: DocumentMetadataData, rhs: DocumentMetadataData) -> Bool {
+        if lhs.created != rhs.created {
+            return false
+        }
+        if lhs.updated != rhs.updated {
+            return false
+        }
+        if lhs.deactivated != rhs.deactivated {
+            return false
+        }
+        if lhs.nextUpdate != rhs.nextUpdate {
+            return false
+        }
+        if lhs.versionId != rhs.versionId {
+            return false
+        }
+        if lhs.nextVersionId != rhs.nextVersionId {
+            return false
+        }
+        if lhs.equivalentId != rhs.equivalentId {
+            return false
+        }
+        if lhs.canonicalId != rhs.canonicalId {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(created)
+        hasher.combine(updated)
+        hasher.combine(deactivated)
+        hasher.combine(nextUpdate)
+        hasher.combine(versionId)
+        hasher.combine(nextVersionId)
+        hasher.combine(equivalentId)
+        hasher.combine(canonicalId)
+    }
+}
+
+
+public struct FfiConverterTypeDocumentMetadataData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DocumentMetadataData {
+        return
+            try DocumentMetadataData(
+                created: FfiConverterOptionString.read(from: &buf), 
+                updated: FfiConverterOptionString.read(from: &buf), 
+                deactivated: FfiConverterOptionBool.read(from: &buf), 
+                nextUpdate: FfiConverterOptionString.read(from: &buf), 
+                versionId: FfiConverterOptionString.read(from: &buf), 
+                nextVersionId: FfiConverterOptionString.read(from: &buf), 
+                equivalentId: FfiConverterOptionSequenceString.read(from: &buf), 
+                canonicalId: FfiConverterOptionString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: DocumentMetadataData, into buf: inout [UInt8]) {
+        FfiConverterOptionString.write(value.created, into: &buf)
+        FfiConverterOptionString.write(value.updated, into: &buf)
+        FfiConverterOptionBool.write(value.deactivated, into: &buf)
+        FfiConverterOptionString.write(value.nextUpdate, into: &buf)
+        FfiConverterOptionString.write(value.versionId, into: &buf)
+        FfiConverterOptionString.write(value.nextVersionId, into: &buf)
+        FfiConverterOptionSequenceString.write(value.equivalentId, into: &buf)
+        FfiConverterOptionString.write(value.canonicalId, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeDocumentMetadataData_lift(_ buf: RustBuffer) throws -> DocumentMetadataData {
+    return try FfiConverterTypeDocumentMetadataData.lift(buf)
+}
+
+public func FfiConverterTypeDocumentMetadataData_lower(_ value: DocumentMetadataData) -> RustBuffer {
+    return FfiConverterTypeDocumentMetadataData.lower(value)
+}
+
+
+public struct FieldData {
+    public var id: String?
+    public var name: String?
+    public var path: [String]
+    public var purpose: String?
+    public var filter: FilterData?
+    public var optional: Bool?
+    public var predicate: Optionality?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String?, name: String?, path: [String], purpose: String?, filter: FilterData?, optional: Bool?, predicate: Optionality?) {
+        self.id = id
+        self.name = name
+        self.path = path
+        self.purpose = purpose
+        self.filter = filter
+        self.optional = optional
+        self.predicate = predicate
+    }
+}
+
+
+
+extension FieldData: Equatable, Hashable {
+    public static func ==(lhs: FieldData, rhs: FieldData) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.name != rhs.name {
+            return false
+        }
+        if lhs.path != rhs.path {
+            return false
+        }
+        if lhs.purpose != rhs.purpose {
+            return false
+        }
+        if lhs.filter != rhs.filter {
+            return false
+        }
+        if lhs.optional != rhs.optional {
+            return false
+        }
+        if lhs.predicate != rhs.predicate {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(name)
+        hasher.combine(path)
+        hasher.combine(purpose)
+        hasher.combine(filter)
+        hasher.combine(optional)
+        hasher.combine(predicate)
+    }
+}
+
+
+public struct FfiConverterTypeFieldData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FieldData {
+        return
+            try FieldData(
+                id: FfiConverterOptionString.read(from: &buf), 
+                name: FfiConverterOptionString.read(from: &buf), 
+                path: FfiConverterSequenceString.read(from: &buf), 
+                purpose: FfiConverterOptionString.read(from: &buf), 
+                filter: FfiConverterOptionTypeFilterData.read(from: &buf), 
+                optional: FfiConverterOptionBool.read(from: &buf), 
+                predicate: FfiConverterOptionTypeOptionality.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: FieldData, into buf: inout [UInt8]) {
+        FfiConverterOptionString.write(value.id, into: &buf)
+        FfiConverterOptionString.write(value.name, into: &buf)
+        FfiConverterSequenceString.write(value.path, into: &buf)
+        FfiConverterOptionString.write(value.purpose, into: &buf)
+        FfiConverterOptionTypeFilterData.write(value.filter, into: &buf)
+        FfiConverterOptionBool.write(value.optional, into: &buf)
+        FfiConverterOptionTypeOptionality.write(value.predicate, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeFieldData_lift(_ buf: RustBuffer) throws -> FieldData {
+    return try FfiConverterTypeFieldData.lift(buf)
+}
+
+public func FfiConverterTypeFieldData_lower(_ value: FieldData) -> RustBuffer {
+    return FfiConverterTypeFieldData.lower(value)
+}
+
+
+public struct FilterData {
+    public var type: String?
+    public var pattern: String?
+    public var constValue: String?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(type: String?, pattern: String?, constValue: String?) {
+        self.type = type
+        self.pattern = pattern
+        self.constValue = constValue
+    }
+}
+
+
+
+extension FilterData: Equatable, Hashable {
+    public static func ==(lhs: FilterData, rhs: FilterData) -> Bool {
+        if lhs.type != rhs.type {
+            return false
+        }
+        if lhs.pattern != rhs.pattern {
+            return false
+        }
+        if lhs.constValue != rhs.constValue {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(type)
+        hasher.combine(pattern)
+        hasher.combine(constValue)
+    }
+}
+
+
+public struct FfiConverterTypeFilterData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FilterData {
+        return
+            try FilterData(
+                type: FfiConverterOptionString.read(from: &buf), 
+                pattern: FfiConverterOptionString.read(from: &buf), 
+                constValue: FfiConverterOptionString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: FilterData, into buf: inout [UInt8]) {
+        FfiConverterOptionString.write(value.type, into: &buf)
+        FfiConverterOptionString.write(value.pattern, into: &buf)
+        FfiConverterOptionString.write(value.constValue, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeFilterData_lift(_ buf: RustBuffer) throws -> FilterData {
+    return try FfiConverterTypeFilterData.lift(buf)
+}
+
+public func FfiConverterTypeFilterData_lower(_ value: FilterData) -> RustBuffer {
+    return FfiConverterTypeFilterData.lower(value)
+}
+
+
+public struct InputDescriptorData {
+    public var id: String
+    public var name: String?
+    public var purpose: String?
+    public var constraints: ConstraintsData
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, name: String?, purpose: String?, constraints: ConstraintsData) {
+        self.id = id
+        self.name = name
+        self.purpose = purpose
+        self.constraints = constraints
+    }
+}
+
+
+
+extension InputDescriptorData: Equatable, Hashable {
+    public static func ==(lhs: InputDescriptorData, rhs: InputDescriptorData) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.name != rhs.name {
+            return false
+        }
+        if lhs.purpose != rhs.purpose {
+            return false
+        }
+        if lhs.constraints != rhs.constraints {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(name)
+        hasher.combine(purpose)
+        hasher.combine(constraints)
+    }
+}
+
+
+public struct FfiConverterTypeInputDescriptorData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> InputDescriptorData {
+        return
+            try InputDescriptorData(
+                id: FfiConverterString.read(from: &buf), 
+                name: FfiConverterOptionString.read(from: &buf), 
+                purpose: FfiConverterOptionString.read(from: &buf), 
+                constraints: FfiConverterTypeConstraintsData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: InputDescriptorData, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterOptionString.write(value.name, into: &buf)
+        FfiConverterOptionString.write(value.purpose, into: &buf)
+        FfiConverterTypeConstraintsData.write(value.constraints, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeInputDescriptorData_lift(_ buf: RustBuffer) throws -> InputDescriptorData {
+    return try FfiConverterTypeInputDescriptorData.lift(buf)
+}
+
+public func FfiConverterTypeInputDescriptorData_lower(_ value: InputDescriptorData) -> RustBuffer {
+    return FfiConverterTypeInputDescriptorData.lower(value)
+}
+
+
+public struct JwkData {
+    public var alg: String
+    public var kty: String
+    public var crv: String
+    public var d: String?
+    public var x: String
+    public var y: String?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(alg: String, kty: String, crv: String, d: String?, x: String, y: String?) {
+        self.alg = alg
+        self.kty = kty
+        self.crv = crv
+        self.d = d
+        self.x = x
+        self.y = y
+    }
+}
+
+
+
+extension JwkData: Equatable, Hashable {
+    public static func ==(lhs: JwkData, rhs: JwkData) -> Bool {
+        if lhs.alg != rhs.alg {
+            return false
+        }
+        if lhs.kty != rhs.kty {
+            return false
+        }
+        if lhs.crv != rhs.crv {
+            return false
+        }
+        if lhs.d != rhs.d {
+            return false
+        }
+        if lhs.x != rhs.x {
+            return false
+        }
+        if lhs.y != rhs.y {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(alg)
+        hasher.combine(kty)
+        hasher.combine(crv)
+        hasher.combine(d)
+        hasher.combine(x)
+        hasher.combine(y)
+    }
+}
+
+
+public struct FfiConverterTypeJwkData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> JwkData {
+        return
+            try JwkData(
+                alg: FfiConverterString.read(from: &buf), 
+                kty: FfiConverterString.read(from: &buf), 
+                crv: FfiConverterString.read(from: &buf), 
+                d: FfiConverterOptionString.read(from: &buf), 
+                x: FfiConverterString.read(from: &buf), 
+                y: FfiConverterOptionString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: JwkData, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.alg, into: &buf)
+        FfiConverterString.write(value.kty, into: &buf)
+        FfiConverterString.write(value.crv, into: &buf)
+        FfiConverterOptionString.write(value.d, into: &buf)
+        FfiConverterString.write(value.x, into: &buf)
+        FfiConverterOptionString.write(value.y, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeJwkData_lift(_ buf: RustBuffer) throws -> JwkData {
+    return try FfiConverterTypeJwkData.lift(buf)
+}
+
+public func FfiConverterTypeJwkData_lower(_ value: JwkData) -> RustBuffer {
+    return FfiConverterTypeJwkData.lower(value)
+}
+
+
+public struct PresentationDefinitionData {
+    public var id: String
+    public var name: String?
+    public var purpose: String?
+    public var inputDescriptors: [InputDescriptorData]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, name: String?, purpose: String?, inputDescriptors: [InputDescriptorData]) {
+        self.id = id
+        self.name = name
+        self.purpose = purpose
+        self.inputDescriptors = inputDescriptors
+    }
+}
+
+
+
+extension PresentationDefinitionData: Equatable, Hashable {
+    public static func ==(lhs: PresentationDefinitionData, rhs: PresentationDefinitionData) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.name != rhs.name {
+            return false
+        }
+        if lhs.purpose != rhs.purpose {
+            return false
+        }
+        if lhs.inputDescriptors != rhs.inputDescriptors {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(name)
+        hasher.combine(purpose)
+        hasher.combine(inputDescriptors)
+    }
+}
+
+
+public struct FfiConverterTypePresentationDefinitionData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PresentationDefinitionData {
+        return
+            try PresentationDefinitionData(
+                id: FfiConverterString.read(from: &buf), 
+                name: FfiConverterOptionString.read(from: &buf), 
+                purpose: FfiConverterOptionString.read(from: &buf), 
+                inputDescriptors: FfiConverterSequenceTypeInputDescriptorData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: PresentationDefinitionData, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterOptionString.write(value.name, into: &buf)
+        FfiConverterOptionString.write(value.purpose, into: &buf)
+        FfiConverterSequenceTypeInputDescriptorData.write(value.inputDescriptors, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypePresentationDefinitionData_lift(_ buf: RustBuffer) throws -> PresentationDefinitionData {
+    return try FfiConverterTypePresentationDefinitionData.lift(buf)
+}
+
+public func FfiConverterTypePresentationDefinitionData_lower(_ value: PresentationDefinitionData) -> RustBuffer {
+    return FfiConverterTypePresentationDefinitionData.lower(value)
+}
+
+
+public struct ResolutionMetadataData {
+    public var error: ResolutionMetadataError
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(error: ResolutionMetadataError) {
+        self.error = error
+    }
+}
+
+
+
+extension ResolutionMetadataData: Equatable, Hashable {
+    public static func ==(lhs: ResolutionMetadataData, rhs: ResolutionMetadataData) -> Bool {
+        if lhs.error != rhs.error {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(error)
+    }
+}
+
+
+public struct FfiConverterTypeResolutionMetadataData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ResolutionMetadataData {
+        return
+            try ResolutionMetadataData(
+                error: FfiConverterTypeResolutionMetadataError.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: ResolutionMetadataData, into buf: inout [UInt8]) {
+        FfiConverterTypeResolutionMetadataError.write(value.error, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeResolutionMetadataData_lift(_ buf: RustBuffer) throws -> ResolutionMetadataData {
+    return try FfiConverterTypeResolutionMetadataData.lift(buf)
+}
+
+public func FfiConverterTypeResolutionMetadataData_lower(_ value: ResolutionMetadataData) -> RustBuffer {
+    return FfiConverterTypeResolutionMetadataData.lower(value)
+}
+
+
+public struct ResolutionResultData {
+    public var document: DocumentData
+    public var documentMetadata: DocumentMetadataData
+    public var resolutionMetadata: ResolutionMetadataData
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(document: DocumentData, documentMetadata: DocumentMetadataData, resolutionMetadata: ResolutionMetadataData) {
+        self.document = document
+        self.documentMetadata = documentMetadata
+        self.resolutionMetadata = resolutionMetadata
+    }
+}
+
+
+
+extension ResolutionResultData: Equatable, Hashable {
+    public static func ==(lhs: ResolutionResultData, rhs: ResolutionResultData) -> Bool {
+        if lhs.document != rhs.document {
+            return false
+        }
+        if lhs.documentMetadata != rhs.documentMetadata {
+            return false
+        }
+        if lhs.resolutionMetadata != rhs.resolutionMetadata {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(document)
+        hasher.combine(documentMetadata)
+        hasher.combine(resolutionMetadata)
+    }
+}
+
+
+public struct FfiConverterTypeResolutionResultData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ResolutionResultData {
+        return
+            try ResolutionResultData(
+                document: FfiConverterTypeDocumentData.read(from: &buf), 
+                documentMetadata: FfiConverterTypeDocumentMetadataData.read(from: &buf), 
+                resolutionMetadata: FfiConverterTypeResolutionMetadataData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: ResolutionResultData, into buf: inout [UInt8]) {
+        FfiConverterTypeDocumentData.write(value.document, into: &buf)
+        FfiConverterTypeDocumentMetadataData.write(value.documentMetadata, into: &buf)
+        FfiConverterTypeResolutionMetadataData.write(value.resolutionMetadata, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeResolutionResultData_lift(_ buf: RustBuffer) throws -> ResolutionResultData {
+    return try FfiConverterTypeResolutionResultData.lift(buf)
+}
+
+public func FfiConverterTypeResolutionResultData_lower(_ value: ResolutionResultData) -> RustBuffer {
+    return FfiConverterTypeResolutionResultData.lower(value)
+}
+
+
+public struct ServiceData {
+    public var id: String
+    public var type: String
+    public var serviceEndpoint: [String]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, type: String, serviceEndpoint: [String]) {
+        self.id = id
+        self.type = type
+        self.serviceEndpoint = serviceEndpoint
+    }
+}
+
+
+
+extension ServiceData: Equatable, Hashable {
+    public static func ==(lhs: ServiceData, rhs: ServiceData) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.type != rhs.type {
+            return false
+        }
+        if lhs.serviceEndpoint != rhs.serviceEndpoint {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(type)
+        hasher.combine(serviceEndpoint)
+    }
+}
+
+
+public struct FfiConverterTypeServiceData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ServiceData {
+        return
+            try ServiceData(
+                id: FfiConverterString.read(from: &buf), 
+                type: FfiConverterString.read(from: &buf), 
+                serviceEndpoint: FfiConverterSequenceString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: ServiceData, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.type, into: &buf)
+        FfiConverterSequenceString.write(value.serviceEndpoint, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeServiceData_lift(_ buf: RustBuffer) throws -> ServiceData {
+    return try FfiConverterTypeServiceData.lift(buf)
+}
+
+public func FfiConverterTypeServiceData_lower(_ value: ServiceData) -> RustBuffer {
+    return FfiConverterTypeServiceData.lower(value)
+}
+
+
+public struct VerifiableCredentialData {
+    public var context: [String]
+    public var id: String
+    public var type: [String]
+    public var issuer: String
+    public var issuanceDate: String
+    public var expirationDate: String?
+    public var credentialSubject: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(context: [String], id: String, type: [String], issuer: String, issuanceDate: String, expirationDate: String?, credentialSubject: String) {
+        self.context = context
+        self.id = id
+        self.type = type
+        self.issuer = issuer
+        self.issuanceDate = issuanceDate
+        self.expirationDate = expirationDate
+        self.credentialSubject = credentialSubject
+    }
+}
+
+
+
+extension VerifiableCredentialData: Equatable, Hashable {
+    public static func ==(lhs: VerifiableCredentialData, rhs: VerifiableCredentialData) -> Bool {
+        if lhs.context != rhs.context {
+            return false
+        }
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.type != rhs.type {
+            return false
+        }
+        if lhs.issuer != rhs.issuer {
+            return false
+        }
+        if lhs.issuanceDate != rhs.issuanceDate {
+            return false
+        }
+        if lhs.expirationDate != rhs.expirationDate {
+            return false
+        }
+        if lhs.credentialSubject != rhs.credentialSubject {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(context)
+        hasher.combine(id)
+        hasher.combine(type)
+        hasher.combine(issuer)
+        hasher.combine(issuanceDate)
+        hasher.combine(expirationDate)
+        hasher.combine(credentialSubject)
+    }
+}
+
+
+public struct FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VerifiableCredentialData {
+        return
+            try VerifiableCredentialData(
+                context: FfiConverterSequenceString.read(from: &buf), 
+                id: FfiConverterString.read(from: &buf), 
+                type: FfiConverterSequenceString.read(from: &buf), 
+                issuer: FfiConverterString.read(from: &buf), 
+                issuanceDate: FfiConverterString.read(from: &buf), 
+                expirationDate: FfiConverterOptionString.read(from: &buf), 
+                credentialSubject: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: VerifiableCredentialData, into buf: inout [UInt8]) {
+        FfiConverterSequenceString.write(value.context, into: &buf)
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterSequenceString.write(value.type, into: &buf)
+        FfiConverterString.write(value.issuer, into: &buf)
+        FfiConverterString.write(value.issuanceDate, into: &buf)
+        FfiConverterOptionString.write(value.expirationDate, into: &buf)
+        FfiConverterString.write(value.credentialSubject, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeVerifiableCredentialData_lift(_ buf: RustBuffer) throws -> VerifiableCredentialData {
+    return try FfiConverterTypeVerifiableCredentialData.lift(buf)
+}
+
+public func FfiConverterTypeVerifiableCredentialData_lower(_ value: VerifiableCredentialData) -> RustBuffer {
+    return FfiConverterTypeVerifiableCredentialData.lower(value)
+}
+
+
+public struct VerificationMethodData {
+    public var id: String
+    public var type: String
+    public var controller: String
+    public var publicKeyJwk: JwkData
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, type: String, controller: String, publicKeyJwk: JwkData) {
+        self.id = id
+        self.type = type
+        self.controller = controller
+        self.publicKeyJwk = publicKeyJwk
+    }
+}
+
+
+
+extension VerificationMethodData: Equatable, Hashable {
+    public static func ==(lhs: VerificationMethodData, rhs: VerificationMethodData) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.type != rhs.type {
+            return false
+        }
+        if lhs.controller != rhs.controller {
+            return false
+        }
+        if lhs.publicKeyJwk != rhs.publicKeyJwk {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(type)
+        hasher.combine(controller)
+        hasher.combine(publicKeyJwk)
+    }
+}
+
+
+public struct FfiConverterTypeVerificationMethodData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VerificationMethodData {
+        return
+            try VerificationMethodData(
+                id: FfiConverterString.read(from: &buf), 
+                type: FfiConverterString.read(from: &buf), 
+                controller: FfiConverterString.read(from: &buf), 
+                publicKeyJwk: FfiConverterTypeJwkData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: VerificationMethodData, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.type, into: &buf)
+        FfiConverterString.write(value.controller, into: &buf)
+        FfiConverterTypeJwkData.write(value.publicKeyJwk, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeVerificationMethodData_lift(_ buf: RustBuffer) throws -> VerificationMethodData {
+    return try FfiConverterTypeVerificationMethodData.lift(buf)
+}
+
+public func FfiConverterTypeVerificationMethodData_lower(_ value: VerificationMethodData) -> RustBuffer {
+    return FfiConverterTypeVerificationMethodData.lower(value)
+}
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum Dsa {
+    
+    case ed25519
+}
+
+
+public struct FfiConverterTypeDsa: FfiConverterRustBuffer {
+    typealias SwiftType = Dsa
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Dsa {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .ed25519
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: Dsa, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .ed25519:
+            writeInt(&buf, Int32(1))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeDsa_lift(_ buf: RustBuffer) throws -> Dsa {
+    return try FfiConverterTypeDsa.lift(buf)
+}
+
+public func FfiConverterTypeDsa_lower(_ value: Dsa) -> RustBuffer {
+    return FfiConverterTypeDsa.lower(value)
+}
+
+
+
+extension Dsa: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum Optionality {
+    
+    case required
+    case preferred
+}
+
+
+public struct FfiConverterTypeOptionality: FfiConverterRustBuffer {
+    typealias SwiftType = Optionality
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Optionality {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .required
+        
+        case 2: return .preferred
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: Optionality, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .required:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .preferred:
+            writeInt(&buf, Int32(2))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeOptionality_lift(_ buf: RustBuffer) throws -> Optionality {
+    return try FfiConverterTypeOptionality.lift(buf)
+}
+
+public func FfiConverterTypeOptionality_lower(_ value: Optionality) -> RustBuffer {
+    return FfiConverterTypeOptionality.lower(value)
+}
+
+
+
+extension Optionality: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum ResolutionMetadataError {
+    
+    case invalidDid
+    case notFound
+    case representationNotSupported
+    case methodNotSupported
+    case invalidDidDocument
+    case invalidDidDocumentLength
+    case internalError
+}
+
+
+public struct FfiConverterTypeResolutionMetadataError: FfiConverterRustBuffer {
+    typealias SwiftType = ResolutionMetadataError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ResolutionMetadataError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .invalidDid
+        
+        case 2: return .notFound
+        
+        case 3: return .representationNotSupported
+        
+        case 4: return .methodNotSupported
+        
+        case 5: return .invalidDidDocument
+        
+        case 6: return .invalidDidDocumentLength
+        
+        case 7: return .internalError
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: ResolutionMetadataError, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .invalidDid:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .notFound:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .representationNotSupported:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .methodNotSupported:
+            writeInt(&buf, Int32(4))
+        
+        
+        case .invalidDidDocument:
+            writeInt(&buf, Int32(5))
+        
+        
+        case .invalidDidDocumentLength:
+            writeInt(&buf, Int32(6))
+        
+        
+        case .internalError:
+            writeInt(&buf, Int32(7))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeResolutionMetadataError_lift(_ buf: RustBuffer) throws -> ResolutionMetadataError {
+    return try FfiConverterTypeResolutionMetadataError.lift(buf)
+}
+
+public func FfiConverterTypeResolutionMetadataError_lower(_ value: ResolutionMetadataError) -> RustBuffer {
+    return FfiConverterTypeResolutionMetadataError.lower(value)
+}
+
+
+
+extension ResolutionMetadataError: Equatable, Hashable {}
+
+
+
+fileprivate struct FfiConverterOptionBool: FfiConverterRustBuffer {
+    typealias SwiftType = Bool?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterBool.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterBool.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
+    typealias SwiftType = String?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterString.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeFilterData: FfiConverterRustBuffer {
+    typealias SwiftType = FilterData?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeFilterData.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeFilterData.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeOptionality: FfiConverterRustBuffer {
+    typealias SwiftType = Optionality?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeOptionality.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeOptionality.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionSequenceString: FfiConverterRustBuffer {
+    typealias SwiftType = [String]?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterSequenceString.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterSequenceString.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionSequenceTypeServiceData: FfiConverterRustBuffer {
+    typealias SwiftType = [ServiceData]?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterSequenceTypeServiceData.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterSequenceTypeServiceData.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionDictionaryStringString: FfiConverterRustBuffer {
+    typealias SwiftType = [String: String]?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterDictionaryStringString.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterDictionaryStringString.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterSequenceUInt8: FfiConverterRustBuffer {
+    typealias SwiftType = [UInt8]
+
+    public static func write(_ value: [UInt8], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterUInt8.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [UInt8] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [UInt8]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterUInt8.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
+    typealias SwiftType = [String]
+
+    public static func write(_ value: [String], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterString.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [String] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [String]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterString.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeFieldData: FfiConverterRustBuffer {
+    typealias SwiftType = [FieldData]
+
+    public static func write(_ value: [FieldData], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeFieldData.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [FieldData] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [FieldData]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeFieldData.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeInputDescriptorData: FfiConverterRustBuffer {
+    typealias SwiftType = [InputDescriptorData]
+
+    public static func write(_ value: [InputDescriptorData], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeInputDescriptorData.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [InputDescriptorData] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [InputDescriptorData]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeInputDescriptorData.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeServiceData: FfiConverterRustBuffer {
+    typealias SwiftType = [ServiceData]
+
+    public static func write(_ value: [ServiceData], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeServiceData.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [ServiceData] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [ServiceData]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeServiceData.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeVerificationMethodData: FfiConverterRustBuffer {
+    typealias SwiftType = [VerificationMethodData]
+
+    public static func write(_ value: [VerificationMethodData], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeVerificationMethodData.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [VerificationMethodData] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [VerificationMethodData]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeVerificationMethodData.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterDictionaryStringString: FfiConverterRustBuffer {
+    public static func write(_ value: [String: String], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for (key, value) in value {
+            FfiConverterString.write(key, into: &buf)
+            FfiConverterString.write(value, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [String: String] {
+        let len: Int32 = try readInt(&buf)
+        var dict = [String: String]()
+        dict.reserveCapacity(Int(len))
+        for _ in 0..<len {
+            let key = try FfiConverterString.read(from: &buf)
+            let value = try FfiConverterString.read(from: &buf)
+            dict[key] = value
+        }
+        return dict
+    }
+}
 public func helloWorld() {try! rustCall() {
     uniffi_web5_uniffi_fn_func_hello_world($0
     )
@@ -440,6 +3680,99 @@ private var initializationResult: InitializationResult {
         return InitializationResult.contractVersionMismatch
     }
     if (uniffi_web5_uniffi_checksum_func_hello_world() != 5356) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_did_get_data() != 55630) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_diddht_deactivate() != 45474) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_diddht_get_data() != 2858) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_diddht_publish() != 39875) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_didjwk_get_data() != 58319) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_didweb_get_data() != 40916) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_ed25519signer_sign() != 32590) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_ed25519verifier_verify() != 38830) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_inmemorykeymanager_generate_key_material() != 43946) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 22628) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_key() != 44332) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials() != 55162) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_resolutionresult_get_data() != 57220) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_signer_sign() != 2672) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data() != 34047) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_verifiablecredential_sign() != 21329) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_method_verifier_verify() != 30245) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_did_new() != 63453) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_diddht_from_identity_key() != 3941) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_diddht_from_uri() != 7727) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_didjwk_from_public_key() != 17403) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_didjwk_from_uri() != 46063) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_didweb_from_uri() != 3895) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_ed25519signer_new() != 48464) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_ed25519verifier_new() != 13376) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new() != 16598) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 11443) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_resolutionresult_new() != 23836) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_verifiablecredential_new() != 10738) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify() != 1594) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify_with_verifier() != 64299) {
         return InitializationResult.apiChecksumMismatch
     }
 
