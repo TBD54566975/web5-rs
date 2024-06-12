@@ -10,9 +10,7 @@ pub struct InMemoryKeyManager(InnerInMemoryKeyManager);
 impl InMemoryKeyManager {
     // 🚧 not in APID
     pub fn new() -> Self {
-        Self {
-            0: InnerInMemoryKeyManager {},
-        }
+        Self(InnerInMemoryKeyManager {})
     }
 
     pub fn generate_key_material(&self) -> Jwk {

@@ -53,8 +53,9 @@ pub struct Service {
     pub service_endpoint: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum ResolutionMetadataError {
+    #[default]
     InvalidDid,
     NotFound,
     RepresentationNotSupported,
@@ -65,11 +66,6 @@ pub enum ResolutionMetadataError {
 }
 
 // 🚧
-impl Default for ResolutionMetadataError {
-    fn default() -> Self {
-        ResolutionMetadataError::InvalidDid
-    }
-}
 
 #[derive(Default, Clone)]
 pub struct ResolutionMetadata {

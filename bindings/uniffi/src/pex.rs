@@ -4,7 +4,7 @@ pub struct PresentationDefinition(InnerPresentationDefinition);
 
 impl PresentationDefinition {
     pub fn new(data: InnerPresentationDefinition) -> Self {
-        Self { 0: data }
+        Self(data)
     }
 
     pub fn select_credentials(&self, vc_jwts: Vec<String>) -> Vec<String> {
