@@ -9,13 +9,14 @@
 - [Key Material](#key-material)
   - [`Jwk`](#jwk)
   - [`InMemoryKeyManager`](#inmemorykeymanager)
-- [Digital Signature Algorithm's (DSA)](#digital-signature-algorithms-dsa)
-  - [`Dsa`](#dsa)
-  - [`Signer`](#signer)
-  - [`Verifier`](#verifier)
-  - [`Ed25519Generator`](#ed25519generator)
-  - [`Ed25519Signer`](#ed25519signer)
-  - [`Ed25519Verifier`](#ed25519verifier)
+- [Cryptography](#cryptography)
+  - [Digital Signature Algorithm's (DSA)](#digital-signature-algorithms-dsa)
+    - [`Dsa`](#dsa)
+    - [`Signer`](#signer)
+    - [`Verifier`](#verifier)
+    - [`Ed25519Generator`](#ed25519generator)
+    - [`Ed25519Signer`](#ed25519signer)
+    - [`Ed25519Verifier`](#ed25519verifier)
 - [Decentralized Identifier's (DIDs)](#decentralized-identifiers-dids)
   - [`Did`](#did)
     - [Example: Instantiate from a `did:dht`](#example-instantiate-from-a-diddht)
@@ -41,10 +42,11 @@
       - [Example: Update a `did:dht`](#example-update-a-diddht)
       - [Example: Resolve a `did:dht`](#example-resolve-a-diddht)
 - [Verifiable Credential's (VCs)](#verifiable-credentials-vcs)
-  - [`NamedIssuer`](#namedissuer)
-  - [`VerifiableCredential`](#verifiablecredential)
-    - [Example: Create a VC \& sign](#example-create-a-vc--sign)
-    - [Example: Verify a VC-JWT](#example-verify-a-vc-jwt)
+  - [Data Model 1.1](#data-model-11)
+    - [`NamedIssuer`](#namedissuer)
+    - [`VerifiableCredential`](#verifiablecredential)
+      - [Example: Create a VC \& sign](#example-create-a-vc--sign)
+      - [Example: Verify a VC-JWT](#example-verify-a-vc-jwt)
 - [Presentation Exchange (PEX)](#presentation-exchange-pex)
   - [`PresentationDefinition`](#presentationdefinition)
   - [`InputDescriptor`](#inputdescriptor)
@@ -102,9 +104,11 @@ CLASS InMemoryKeyManager
   METHOD import_key(private_key: Jwk): Jwk
 ```
 
-# Digital Signature Algorithm's (DSA)
+# Cryptography
 
-## `Dsa`
+## Digital Signature Algorithm's (DSA)
+
+### `Dsa`
 
 ```pseudocode!
 /// The set of Digital Signature Algorithm's natively supported within this SDK.
@@ -114,7 +118,7 @@ ENUM Dsa
 
 > We must add support for `Xd25519`, `secp256k1`, and `secp256r1` for [full did:dht conformance](https://did-dht.com/registry/index.html#key-type-index).
 
-## `Signer`
+### `Signer`
 
 ```pseudocode!
 /// Set of functionality required to implement to be a compatible DSA signer.
@@ -123,7 +127,7 @@ INTERFACE Signer
   METHOD sign(payload: []byte): []byte
 ```
 
-## `Verifier`
+### `Verifier`
 
 ```pseudocode!
 /// Set of functionality required to implement to be a compatible DSA verifier.
@@ -132,7 +136,7 @@ INTERFACE Verifier
   METHOD verify(message: []byte, signature: []byte): bool
 ```
 
-## `Ed25519Generator`
+### `Ed25519Generator`
 
 ```pseudocode!
 /// Generates private key material for Ed25519.
@@ -141,7 +145,7 @@ CLASS Ed25519Generator
   STATIC METHOD generate(): Jwk
 ```
 
-## `Ed25519Signer`
+### `Ed25519Signer`
 
 ```pseudocode!
 /// Implementation of [`Signer`](#signer) for Ed25519.
@@ -152,7 +156,7 @@ CLASS Ed25519Signer IMPLEMENTS Signer
   METHOD sign(payload: []byte): []byte
 ```
 
-## `Ed25519Verifier`
+### `Ed25519Verifier`
 
 ```pseudocode!
 /// Implementation of [`Verifier`](#verifier) for Ed25519.
@@ -528,7 +532,9 @@ resolution_result = DidDht.resolve(uri)
 
 # Verifiable Credential's (VCs)
 
-## `NamedIssuer`
+## Data Model 1.1
+
+### `NamedIssuer`
 
 ```pseudocode!
 CLASS NamedIssuer
@@ -536,7 +542,7 @@ CLASS NamedIssuer
   PUBLIC DATA name: string
 ```
 
-## `VerifiableCredential`
+### `VerifiableCredential`
 
 > [!WARNING]
 > The following is incomplete in that an `Object` is not currently supported in the Custom DSL; the matter of the `Object` below is a placeholder and expected to be completed in a subsequent version.
@@ -563,7 +569,7 @@ CLASS VerifiableCredential
 >
 > `verify` and `verify_with_verifier` assume `vcjwt` is a compact serialized JWS wherein the `kid` JOSE Header is equal to a DID URI which can be dereferenced to fetch the [`publicKeyJwk`](./did.md#data-models).
 
-### Example: Create a VC & sign
+#### Example: Create a VC & sign
 
 ```pseudocode!
 key_manager = new InMemoryKeyManager()
@@ -582,7 +588,7 @@ signer = key_manager.get_signer(public_key)
 vcjwt = vc.sign(signer)
 ```
 
-### Example: Verify a VC-JWT
+#### Example: Verify a VC-JWT
 
 ```pseudocode!
 vcjwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOmUzMDc0OWVhLTg4YjctNDkwMi05ZTRlLWYwYjk1MTRjZmU1OSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTlc5Q1pGaE1OM1JEV0MxaVdtd3dOblU1V1dSU1dqQmFhbEpMTFVweFZXWmhaa1YzWjAwdFRHSm1heUo5IiwiaXNzdWFuY2VEYXRlIjoxNzE2MzEyNDU3LCJleHBpcmF0aW9uRGF0ZSI6MjM0NzQ2NDQ1NywiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lOVzlDWkZoTU4zUkRXQzFpV213d05uVTVXV1JTV2pCYWFsSkxMVXB4VldaaFprVjNaMDB0VEdKbWF5SjkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsImV4cCI6MjM0NzQ2NDQ1NywibmJmIjoxNzE2MzEyNDU3LCJqdGkiOiJ1cm46dmM6dXVpZDplMzA3NDllYS04OGI3LTQ5MDItOWU0ZS1mMGI5NTE0Y2ZlNTkifQ.a8ciqXyNgqttWPKl76CFwDTRvEoJEq5nndfM1UMkClvzhPOUWSUtE0wNHOxQFwUBBSbwozScBNe-dc-mWQFqAQ"

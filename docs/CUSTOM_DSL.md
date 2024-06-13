@@ -19,8 +19,15 @@ In order to achieve the goal of defining concrete design definitions which span 
 
 The Custom DSL does not assert requirements as to the artifact makeup (i.e. npm packages, rust crates, go modules, etc.) of the API. It is recommended to implement the entirety of an API design in a single artifact, but each implementation may choose to create multiple artifacts. However, the APID makes no regards for the matter of circular dependencies, and so it may become unviable to implement the APID in it's completeness across multiple artifacts.
 
-🚧 remove the below, add it to the PR description 🚧
-The Custom DSL does not offer a primitive type conceptually equivalent to a JSON Object wherein the concept is a hash map with N-number of distinct value types, where N > 1. In other words, the Custom DSL offers a hash map primitive concept, but the key and value types are considered to uniform over the entirety of the hash map. 
+The Custom DSL does not offer a primitive type conceptually equivalent to a JSON Object wherein the concept is a hash map with N-number of distinct value types, where N > 1. In other words, the Custom DSL offers a hash map primitive 
+concept, but the key and value types are considered to uniform over the entirety of the hash map. 
+
+> [!WARNING]
+> Concepts required but missing: 
+> - Errors.
+> - JSON Object (see above paragraph).
+> - JSON serialization naming.
+> - Namespacing.
 
 # Primitive Concepts
 

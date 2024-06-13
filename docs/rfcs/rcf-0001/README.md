@@ -72,6 +72,7 @@ The APID is versioned in accordance with [semantic versioning](https://semver.or
 - Generalized object type (AKA a JSON Object).
 - Errors.
 - JSON Serialized key-value key name casing (we have both snake case and camel case currently throughout the data members, because the Custom DSL doesn't offer a feature for overriding the key-value's key casing).
+- Namespacing.
 
 `v0.1.0` of the APID defines an incomplete design for the following features:
 
