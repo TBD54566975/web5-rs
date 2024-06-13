@@ -16,7 +16,7 @@ const PORT_SEP: &str = "%3A";
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-/// Resolver is the implementation of the did:web method for resolcing DID URIs. It is responsible
+/// Resolver is the implementation of the did:web method for resolving DID URIs. It is responsible
 /// for fetching the DID Document from the web according for the did-web spec.
 pub struct Resolver {
     did_url: String,
