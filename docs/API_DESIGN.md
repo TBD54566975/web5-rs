@@ -462,9 +462,9 @@ CLASS DidDht
   PUBLIC DATA document: Document
   CONSTRUCTOR(identity_key: Jwk)
   CONSTRUCTOR(uri: string)
-  METHOD publish(signer: DsaSigner)
-  METHOD deactivate(signer: DsaSigner)
-  STATIC METHOD resolve(uri: string)
+  METHOD publish(signer: Signer)
+  METHOD deactivate(signer: Signer)
+  STATIC METHOD resolve(uri: string): ResolutionResult
 ```
 
 > [!NOTE]
