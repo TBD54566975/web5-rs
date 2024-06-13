@@ -85,7 +85,7 @@ impl Document {
             also_known_as: spruce_document
                 .also_known_as
                 .map(|aka| aka.into_iter().map(|uri| uri.to_string()).collect()),
-            verification_method: verification_methods,
+            verification_method: Some(verification_methods),
             authentication,
             assertion_method,
             key_agreement,
@@ -241,11 +241,12 @@ mod tests {
                 "https://w3id.org/security/suites/jws-2020/v1".to_string()
             ])
         );
+        let vm = &document.verification_method.unwrap();
         assert_eq!(document.controller, None);
         assert_eq!(document.also_known_as, None);
-        assert_eq!(document.verification_method.len(), 1);
+        assert_eq!(vm.len(), 1);
 
-        let vm = &document.verification_method[0];
+        let vm = &vm[0];
         assert_eq!(vm.id, format!("{}#0", expected_did_uri));
         assert_eq!(vm.r#type, "JsonWebKey2020".to_string());
         assert_eq!(vm.controller, expected_did_uri);

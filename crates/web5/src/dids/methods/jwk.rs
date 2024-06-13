@@ -63,7 +63,7 @@ impl Create<DidJwkCreateOptions> for DidJwk {
 
         let document = Document {
             id: uri.clone(),
-            verification_method: vec![verification_method.clone()],
+            verification_method: Some(vec![verification_method.clone()]),
             authentication: Some(vec![verification_method_id.clone()]),
             assertion_method: Some(vec![verification_method_id.clone()]),
             capability_invocation: Some(vec![verification_method_id.clone()]),
@@ -123,7 +123,9 @@ mod tests {
     fn create_produces_correct_did_document() {
         let bearer_did = create_did_jwk();
 
-        let verification_method_id = bearer_did.document.verification_method[0].id.clone();
+        let verification_method_id = bearer_did.document.verification_method.unwrap()[0]
+            .id
+            .clone();
         assert_eq!(
             bearer_did.document.authentication.unwrap()[0],
             verification_method_id
@@ -161,7 +163,7 @@ mod tests {
         let did_document = result.did_document.unwrap();
         assert_eq!(did_document.id, bearer_did.identifier.uri);
 
-        let verification_method_id = did_document.verification_method[0].id.clone();
+        let verification_method_id = did_document.verification_method.unwrap()[0].id.clone();
         assert_eq!(
             did_document.authentication.unwrap()[0],
             verification_method_id

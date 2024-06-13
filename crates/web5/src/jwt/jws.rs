@@ -98,7 +98,9 @@ mod tests {
             ..Default::default()
         };
 
-        let key_id = bearer_did.document.verification_method[0].id.clone();
+        let key_id = bearer_did.document.verification_method.clone().unwrap()[0]
+            .id
+            .clone();
         let jwt = Jwt::sign(
             &bearer_did,
             &KeySelector::KeyId {
@@ -115,7 +117,7 @@ mod tests {
         assert_eq!("JWT".to_string(), jwt_decoded.header.typ);
         assert_eq!(key_id, jwt_decoded.header.kid);
         assert_eq!(
-            bearer_did.document.verification_method[0]
+            bearer_did.document.verification_method.clone().unwrap()[0]
                 .public_key_jwk
                 .alg,
             jwt_decoded.header.alg

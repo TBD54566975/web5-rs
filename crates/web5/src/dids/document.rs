@@ -10,8 +10,8 @@ pub struct Document {
     pub controller: Option<Vec<String>>,
     #[serde(rename = "alsoKnownAs", skip_serializing_if = "Option::is_none")]
     pub also_known_as: Option<Vec<String>>,
-    #[serde(rename = "verificationMethod")]
-    pub verification_method: Vec<VerificationMethod>,
+    #[serde(rename = "verificationMethod", skip_serializing_if = "Option::is_none")]
+    pub verification_method: Option<Vec<VerificationMethod>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub authentication: Option<Vec<String>>,
     #[serde(rename = "assertionMethod", skip_serializing_if = "Option::is_none")]
@@ -132,6 +132,8 @@ impl Document {
                     }
                     VerificationMethodType::VerificationMethod => {
                         self.verification_method
+                            .clone()
+                            .ok_or(DocumentError::VerificationMethodNotFound)?
                             .first()
                             .cloned()
                             .ok_or(DocumentError::VerificationMethodNotFound)?
@@ -143,6 +145,8 @@ impl Document {
 
         let verification_method = self
             .verification_method
+            .clone()
+            .ok_or(DocumentError::VerificationMethodNotFound)?
             .iter()
             .find(|method| method.id == *key_id)
             .cloned()
@@ -171,7 +175,7 @@ mod tests {
     fn test_get_verification_method() {
         let document = Document {
             id: "did:example:123".to_string(),
-            verification_method: vec![
+            verification_method: Some(vec![
                 VerificationMethod {
                     id: "did:example:123#key1".to_string(),
                     r#type: "JsonWebKey2020".to_string(),
@@ -184,7 +188,7 @@ mod tests {
                     controller: "did:example:123".to_string(),
                     public_key_jwk: Jwk::default(),
                 },
-            ],
+            ]),
             authentication: Some(vec!["did:example:123#key1".to_string()]),
             ..Default::default()
         };
