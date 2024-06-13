@@ -1,0 +1,4 @@
+# jitpack.yml
+install:
+  - cd binded/kt && mvn install -DskipTests=true
+
