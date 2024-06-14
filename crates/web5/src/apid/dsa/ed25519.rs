@@ -1,0 +1,94 @@
+use super::{Signer, Verifier};
+use crate::apid::jwk::Jwk;
+use base64::{engine::general_purpose, Engine as _};
+use ed25519_dalek::{
+    Signature, Signer as DalekSigner, SigningKey, Verifier as DalekVerifier, VerifyingKey,
+    PUBLIC_KEY_LENGTH, SECRET_KEY_LENGTH, SIGNATURE_LENGTH,
+};
+use rand::rngs::OsRng;
+
+pub struct Ed25519Generator;
+
+impl Ed25519Generator {
+    pub fn generate() -> Jwk {
+        let signing_key = SigningKey::generate(&mut OsRng {});
+        let verifying_key = signing_key.verifying_key();
+
+        let private_key_bytes = signing_key.to_bytes();
+        let public_key_bytes = verifying_key.to_bytes();
+
+        Jwk {
+            alg: "Ed25519".to_string(),
+            kty: "OKP".to_string(),
+            crv: "Ed25519".to_string(),
+            x: general_purpose::URL_SAFE_NO_PAD.encode(public_key_bytes),
+            d: Some(general_purpose::URL_SAFE_NO_PAD.encode(private_key_bytes)),
+            ..Default::default()
+        }
+    }
+}
+
+pub struct Ed25519Signer {
+    private_jwk: Jwk,
+}
+
+impl Ed25519Signer {
+    pub fn new(private_jwk: Jwk) -> Self {
+        Self { private_jwk }
+    }
+}
+
+impl Signer for Ed25519Signer {
+    fn sign(&self, payload: &[u8]) -> Vec<u8> {
+        let d = self.private_jwk.d.as_ref().unwrap();
+        let decoded_d = general_purpose::URL_SAFE_NO_PAD.decode(d).unwrap();
+        if decoded_d.len() != SECRET_KEY_LENGTH {
+            panic!()
+        }
+        let mut key_array = [0u8; 32];
+        key_array.copy_from_slice(&decoded_d);
+        let signing_key = SigningKey::from_bytes(&key_array);
+        let signature = signing_key.sign(payload);
+        signature.to_vec()
+    }
+}
+
+pub struct Ed25519Verifier {
+    public_jwk: Jwk,
+}
+
+impl Ed25519Verifier {
+    pub fn new(public_jwk: Jwk) -> Self {
+        Self { public_jwk }
+    }
+}
+
+impl Verifier for Ed25519Verifier {
+    // 🚧 rename `message` to `payload` in APID
+    fn verify(&self, payload: &[u8], signature: &[u8]) -> bool {
+        let mut public_key_bytes = [0u8; PUBLIC_KEY_LENGTH];
+        let decoded_x = general_purpose::URL_SAFE_NO_PAD
+            .decode(&self.public_jwk.x)
+            .unwrap();
+
+        if decoded_x.len() != PUBLIC_KEY_LENGTH {
+            panic!()
+        }
+
+        public_key_bytes.copy_from_slice(&decoded_x);
+        let verifying_key = VerifyingKey::from_bytes(&public_key_bytes).unwrap();
+
+        if signature.len() != SIGNATURE_LENGTH {
+            panic!()
+        }
+
+        let mut signature_bytes = [0u8; SIGNATURE_LENGTH];
+        signature_bytes.copy_from_slice(signature);
+        let verify_result = verifying_key.verify(payload, &Signature::from_bytes(&signature_bytes));
+
+        match verify_result {
+            Ok(_) => true,
+            Err(e) => false,
+        }
+    }
+}
