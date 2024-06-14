@@ -1,4 +1,4 @@
-use super::{Signer, Verifier};
+use super::{DsaError, Result, Signer, Verifier};
 use crate::apid::jwk::Jwk;
 use base64::{engine::general_purpose, Engine as _};
 use ed25519_dalek::{
@@ -39,17 +39,21 @@ impl Ed25519Signer {
 }
 
 impl Signer for Ed25519Signer {
-    fn sign(&self, payload: &[u8]) -> Vec<u8> {
-        let d = self.private_jwk.d.as_ref().unwrap();
-        let decoded_d = general_purpose::URL_SAFE_NO_PAD.decode(d).unwrap();
+    fn sign(&self, payload: &[u8]) -> Result<Vec<u8>> {
+        let d = self
+            .private_jwk
+            .d
+            .as_ref()
+            .ok_or(DsaError::MissingPrivateKey)?;
+        let decoded_d = general_purpose::URL_SAFE_NO_PAD.decode(d)?;
         if decoded_d.len() != SECRET_KEY_LENGTH {
-            panic!()
+            return Err(DsaError::InvalidKeyLength(SECRET_KEY_LENGTH.to_string()));
         }
         let mut key_array = [0u8; 32];
         key_array.copy_from_slice(&decoded_d);
         let signing_key = SigningKey::from_bytes(&key_array);
         let signature = signing_key.sign(payload);
-        signature.to_vec()
+        Ok(signature.to_vec())
     }
 }
 
@@ -64,22 +68,20 @@ impl Ed25519Verifier {
 }
 
 impl Verifier for Ed25519Verifier {
-    // 🚧 rename `message` to `payload` in APID
-    fn verify(&self, payload: &[u8], signature: &[u8]) -> bool {
+    fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<bool> {
         let mut public_key_bytes = [0u8; PUBLIC_KEY_LENGTH];
-        let decoded_x = general_purpose::URL_SAFE_NO_PAD
-            .decode(&self.public_jwk.x)
-            .unwrap();
+        let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&self.public_jwk.x)?;
 
         if decoded_x.len() != PUBLIC_KEY_LENGTH {
-            panic!()
+            return Err(DsaError::InvalidKeyLength(PUBLIC_KEY_LENGTH.to_string()));
         }
 
         public_key_bytes.copy_from_slice(&decoded_x);
-        let verifying_key = VerifyingKey::from_bytes(&public_key_bytes).unwrap();
+        let verifying_key = VerifyingKey::from_bytes(&public_key_bytes)
+            .map_err(|e| DsaError::PublicKeyFailure(e.to_string()))?;
 
         if signature.len() != SIGNATURE_LENGTH {
-            panic!()
+            return Err(DsaError::InvalidSignatureLength(self.public_jwk.x.clone()));
         }
 
         let mut signature_bytes = [0u8; SIGNATURE_LENGTH];
@@ -87,8 +89,8 @@ impl Verifier for Ed25519Verifier {
         let verify_result = verifying_key.verify(payload, &Signature::from_bytes(&signature_bytes));
 
         match verify_result {
-            Ok(_) => true,
-            Err(e) => false,
+            Ok(_) => Ok(true),
+            Err(e) => Ok(false),
         }
     }
 }
