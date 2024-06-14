@@ -20,7 +20,8 @@ lint: setup
 
 bind: setup
   just bind-kotlin
-  just bind-swift
+  # #234 temporarily commenting out swift because kotlin is the sole focus
+  # just bind-swift 
 
 bind-kotlin: setup
   cargo build --release --package web5-uniffi

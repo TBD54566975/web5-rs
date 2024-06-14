@@ -12,15 +12,24 @@ pub struct Jwk {
     pub y: Option<String>,
 }
 
+#[derive(thiserror::Error, Debug, Clone, PartialEq)]
+pub enum JwkError {
+    #[error("thumbprint computation failed {0}")]
+    ThumbprintFailed(String),
+}
+
+type Result<T> = std::result::Result<T, JwkError>;
+
 impl Jwk {
-    // 🚧 not in APID
-    pub fn compute_thumbprint(&self) -> String {
+    pub fn compute_thumbprint(&self) -> Result<String> {
         let thumbprint_json_string = match self.kty.as_str() {
             "EC" => format!(
                 r#"{{"crv":"{}","kty":"EC","x":"{}","y":"{}"}}"#,
                 self.crv,
                 self.x,
-                self.y.as_ref().unwrap(),
+                self.y
+                    .as_ref()
+                    .ok_or(JwkError::ThumbprintFailed("missing y".to_string()))?,
             ),
             "OKP" => format!(r#"{{"crv":"{}","kty":"OKP","x":"{}"}}"#, self.crv, self.x,),
             _ => {
@@ -33,6 +42,6 @@ impl Jwk {
         let digest = hasher.finalize();
         let thumbprint = general_purpose::URL_SAFE_NO_PAD.encode(digest);
 
-        thumbprint
+        Ok(thumbprint)
     }
 }

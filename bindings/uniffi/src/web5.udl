@@ -1,5 +1,5 @@
 namespace web5 {
-  void hello_world();  
+  
 };
 
 dictionary JwkData {
@@ -185,46 +185,3 @@ interface VerifiableCredential {
   VerifiableCredentialData get_data();
 };
 
-dictionary PresentationDefinitionData {
-  string id;
-  string? name;
-  string? purpose;
-  sequence<InputDescriptorData> input_descriptors;
-};
-
-interface PresentationDefinition {
-  constructor(PresentationDefinitionData data);
-  sequence<string> select_credentials(sequence<string> vc_jwts);
-};
-
-dictionary InputDescriptorData {
-  string id;
-  string? name;
-  string? purpose;
-  ConstraintsData constraints;
-};
-
-dictionary ConstraintsData {
-  sequence<FieldData> fields;
-};
-
-enum Optionality {
-  "Required",
-  "Preferred",
-};
-
-dictionary FieldData {
-  string? id;
-  string? name;
-  sequence<string> path;
-  string? purpose;
-  FilterData? filter;
-  boolean? optional;
-  Optionality? predicate;
-};
-
-dictionary FilterData {
-  string? type;
-  string? pattern;
-  string? const_value;
-};
