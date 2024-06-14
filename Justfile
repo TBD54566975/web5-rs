@@ -23,6 +23,13 @@ bind: setup
   just bind-swift
 
 bind-kotlin: setup
+  # build linux .so file
+  docker build -f BindingLinuxDockerfile -t web5-linux .
+  docker run -d --name web5-linuc-container web5-linux
+  docker cp web5-linuc-container:/app/target/release/libweb5_uniffi.so ./binded/kt/src/main/resources/natives
+  docker stop web5-linuc-container
+  docker rm web5-linuc-container
+
   cargo build --release --package web5-uniffi
   cargo run --package web5-uniffi \
     --bin uniffi-bindgen \

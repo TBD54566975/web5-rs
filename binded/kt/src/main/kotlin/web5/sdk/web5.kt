@@ -824,13 +824,45 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 internal interface UniffiLib : Library {
     companion object {
         internal val INSTANCE: UniffiLib by lazy {
-            val tempDir = Files.createTempDirectory("library")
-            val libraryPath = tempDir.resolve("libweb5_uniffi.dylib")
-            Thread.currentThread().contextClassLoader.getResourceAsStream("natives/libweb5_uniffi.dylib").use { input ->
-                Files.copy(input, libraryPath)
+            println("KW DBG unpacking native")
+            val osName = System.getProperty("os.name").lowercase()
+            println("KW DBG unpacking native $osName")
+            val libFileName = when {
+                osName.contains("mac") -> "libweb5_uniffi.dylib"
+                osName.contains("nux") || osName.contains("nix") -> "libweb5_uniffi.so"
+                else -> throw UnsupportedOperationException("Unsupported operating system: $osName")
             }
+            println("KW DBG unpacking native $libFileName")
+            val tempDir = Files.createTempDirectory("library")
+            println("KW DBG unpacking native $tempDir")
+            val libraryPath = tempDir.resolve(libFileName)
+            println("KW DBG unpacking native $libraryPath")
+//            Thread.currentThread().contextClassLoader.getResourceAsStream("natives/$libFileName").use { input ->
+//                Files.copy(input, libraryPath)
+//            }
+
+            val resourceStream = Thread.currentThread().contextClassLoader.getResourceAsStream("natives/$libFileName")
+            if (resourceStream == null) {
+                throw IllegalStateException("Resource not found: natives/$libFileName")
+            } else {
+                resourceStream.use { input ->
+                    Files.copy(input, libraryPath)
+                }
+            }
+
+            if (!Files.exists(libraryPath)) {
+                throw IllegalStateException("File not copied to: $libraryPath")
+            }
+
+            // List files in the temporary directory
+            Files.list(tempDir).use { stream ->
+                stream.forEach { path -> println("KW DBG file in tempDir: $path") }
+            }
+
             libraryPath.toFile().deleteOnExit()
+            println("KW DBG unpacking native loading")
             val lib = Native.load(libraryPath.toString(), UniffiLib::class.java)
+            println("KW DBG unpacking native loaded")
             lib.also {                uniffiCheckContractApiVersion(lib)
                 uniffiCheckApiChecksums(lib)
                 }

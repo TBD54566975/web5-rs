@@ -1,0 +1,7 @@
+FROM rust:1.78.0
+WORKDIR /app
+COPY ./Cargo.toml /app
+COPY ./bindings /app/bindings
+COPY ./crates /app/crates
+RUN cargo build --release --package web5-uniffi
+CMD tail -f /dev/null

@@ -251,6 +251,312 @@ typedef void (*UniffiForeignFutureCompleteVoid)(uint64_t, UniffiForeignFutureStr
     );
 
 #endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_SIGNER_METHOD0
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_SIGNER_METHOD0
+typedef void (*UniffiCallbackInterfaceSignerMethod0)(uint64_t, RustBuffer, RustBuffer* _Nonnull, 
+        RustCallStatus *_Nonnull uniffiCallStatus
+    );
+
+#endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_VERIFIER_METHOD0
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_VERIFIER_METHOD0
+typedef void (*UniffiCallbackInterfaceVerifierMethod0)(uint64_t, RustBuffer, RustBuffer, int8_t* _Nonnull, 
+        RustCallStatus *_Nonnull uniffiCallStatus
+    );
+
+#endif
+#ifndef UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_SIGNER
+#define UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_SIGNER
+typedef struct UniffiVTableCallbackInterfaceSigner {
+    UniffiCallbackInterfaceSignerMethod0 _Nonnull sign;
+    UniffiCallbackInterfaceFree _Nonnull uniffiFree;
+} UniffiVTableCallbackInterfaceSigner;
+
+#endif
+#ifndef UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_VERIFIER
+#define UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_VERIFIER
+typedef struct UniffiVTableCallbackInterfaceVerifier {
+    UniffiCallbackInterfaceVerifierMethod0 _Nonnull verify;
+    UniffiCallbackInterfaceFree _Nonnull uniffiFree;
+} UniffiVTableCallbackInterfaceVerifier;
+
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_DID
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_DID
+void*_Nonnull uniffi_web5_uniffi_fn_clone_did(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_DID
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_DID
+void uniffi_web5_uniffi_fn_free_did(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DID_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DID_NEW
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_did_new(RustBuffer uri, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DID_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DID_GET_DATA
+RustBuffer uniffi_web5_uniffi_fn_method_did_get_data(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_DIDDHT
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_DIDDHT
+void*_Nonnull uniffi_web5_uniffi_fn_clone_diddht(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_DIDDHT
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_DIDDHT
+void uniffi_web5_uniffi_fn_free_diddht(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DIDDHT_FROM_IDENTITY_KEY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DIDDHT_FROM_IDENTITY_KEY
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_diddht_from_identity_key(RustBuffer identity_key, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DIDDHT_FROM_URI
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DIDDHT_FROM_URI
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_diddht_from_uri(RustBuffer uri, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DIDDHT_DEACTIVATE
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DIDDHT_DEACTIVATE
+void uniffi_web5_uniffi_fn_method_diddht_deactivate(void*_Nonnull ptr, void*_Nonnull signer, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DIDDHT_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DIDDHT_GET_DATA
+RustBuffer uniffi_web5_uniffi_fn_method_diddht_get_data(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DIDDHT_PUBLISH
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DIDDHT_PUBLISH
+void uniffi_web5_uniffi_fn_method_diddht_publish(void*_Nonnull ptr, void*_Nonnull signer, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_DIDJWK
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_DIDJWK
+void*_Nonnull uniffi_web5_uniffi_fn_clone_didjwk(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_DIDJWK
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_DIDJWK
+void uniffi_web5_uniffi_fn_free_didjwk(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DIDJWK_FROM_PUBLIC_KEY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DIDJWK_FROM_PUBLIC_KEY
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_didjwk_from_public_key(RustBuffer public_key, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DIDJWK_FROM_URI
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DIDJWK_FROM_URI
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_didjwk_from_uri(RustBuffer uri, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DIDJWK_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DIDJWK_GET_DATA
+RustBuffer uniffi_web5_uniffi_fn_method_didjwk_get_data(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_DIDWEB
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_DIDWEB
+void*_Nonnull uniffi_web5_uniffi_fn_clone_didweb(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_DIDWEB
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_DIDWEB
+void uniffi_web5_uniffi_fn_free_didweb(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DIDWEB_FROM_URI
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_DIDWEB_FROM_URI
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_didweb_from_uri(RustBuffer uri, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DIDWEB_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_DIDWEB_GET_DATA
+RustBuffer uniffi_web5_uniffi_fn_method_didweb_get_data(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_ED25519SIGNER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_ED25519SIGNER
+void*_Nonnull uniffi_web5_uniffi_fn_clone_ed25519signer(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_ED25519SIGNER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_ED25519SIGNER
+void uniffi_web5_uniffi_fn_free_ed25519signer(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_ED25519SIGNER_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_ED25519SIGNER_NEW
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_ed25519signer_new(RustBuffer private_key, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_ED25519SIGNER_SIGN
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_ED25519SIGNER_SIGN
+RustBuffer uniffi_web5_uniffi_fn_method_ed25519signer_sign(void*_Nonnull ptr, RustBuffer payload, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_ED25519VERIFIER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_ED25519VERIFIER
+void*_Nonnull uniffi_web5_uniffi_fn_clone_ed25519verifier(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_ED25519VERIFIER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_ED25519VERIFIER
+void uniffi_web5_uniffi_fn_free_ed25519verifier(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_ED25519VERIFIER_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_ED25519VERIFIER_NEW
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_ed25519verifier_new(RustBuffer public_key, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_ED25519VERIFIER_VERIFY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_ED25519VERIFIER_VERIFY
+int8_t uniffi_web5_uniffi_fn_method_ed25519verifier_verify(void*_Nonnull ptr, RustBuffer message, RustBuffer signature, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_INMEMORYKEYMANAGER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_INMEMORYKEYMANAGER
+void*_Nonnull uniffi_web5_uniffi_fn_clone_inmemorykeymanager(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_INMEMORYKEYMANAGER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_INMEMORYKEYMANAGER
+void uniffi_web5_uniffi_fn_free_inmemorykeymanager(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_INMEMORYKEYMANAGER_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_INMEMORYKEYMANAGER_NEW
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_inmemorykeymanager_new(RustCallStatus *_Nonnull out_status
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_INMEMORYKEYMANAGER_GENERATE_KEY_MATERIAL
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_INMEMORYKEYMANAGER_GENERATE_KEY_MATERIAL
+RustBuffer uniffi_web5_uniffi_fn_method_inmemorykeymanager_generate_key_material(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_INMEMORYKEYMANAGER_GET_SIGNER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_INMEMORYKEYMANAGER_GET_SIGNER
+void*_Nonnull uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(void*_Nonnull ptr, RustBuffer public_key, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_INMEMORYKEYMANAGER_IMPORT_KEY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_INMEMORYKEYMANAGER_IMPORT_KEY
+RustBuffer uniffi_web5_uniffi_fn_method_inmemorykeymanager_import_key(void*_Nonnull ptr, RustBuffer private_key, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_PRESENTATIONDEFINITION
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_PRESENTATIONDEFINITION
+void*_Nonnull uniffi_web5_uniffi_fn_clone_presentationdefinition(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_PRESENTATIONDEFINITION
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_PRESENTATIONDEFINITION
+void uniffi_web5_uniffi_fn_free_presentationdefinition(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_PRESENTATIONDEFINITION_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_PRESENTATIONDEFINITION_NEW
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_presentationdefinition_new(RustBuffer data, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_PRESENTATIONDEFINITION_SELECT_CREDENTIALS
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_PRESENTATIONDEFINITION_SELECT_CREDENTIALS
+RustBuffer uniffi_web5_uniffi_fn_method_presentationdefinition_select_credentials(void*_Nonnull ptr, RustBuffer vc_jwts, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_RESOLUTIONRESULT
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_RESOLUTIONRESULT
+void*_Nonnull uniffi_web5_uniffi_fn_clone_resolutionresult(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_RESOLUTIONRESULT
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_RESOLUTIONRESULT
+void uniffi_web5_uniffi_fn_free_resolutionresult(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_RESOLUTIONRESULT_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_RESOLUTIONRESULT_NEW
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_resolutionresult_new(RustBuffer uri, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_RESOLUTIONRESULT_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_RESOLUTIONRESULT_GET_DATA
+RustBuffer uniffi_web5_uniffi_fn_method_resolutionresult_get_data(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_SIGNER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_SIGNER
+void*_Nonnull uniffi_web5_uniffi_fn_clone_signer(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_SIGNER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_SIGNER
+void uniffi_web5_uniffi_fn_free_signer(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_SIGNER_SIGN
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_SIGNER_SIGN
+RustBuffer uniffi_web5_uniffi_fn_method_signer_sign(void*_Nonnull ptr, RustBuffer payload, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_VERIFIABLECREDENTIAL
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_VERIFIABLECREDENTIAL
+void*_Nonnull uniffi_web5_uniffi_fn_clone_verifiablecredential(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_VERIFIABLECREDENTIAL
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_VERIFIABLECREDENTIAL
+void uniffi_web5_uniffi_fn_free_verifiablecredential(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_VERIFIABLECREDENTIAL_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_VERIFIABLECREDENTIAL_NEW
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_verifiablecredential_new(RustBuffer data, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_VERIFIABLECREDENTIAL_VERIFY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_VERIFIABLECREDENTIAL_VERIFY
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify(RustBuffer vcjwt, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_VERIFIABLECREDENTIAL_VERIFY_WITH_VERIFIER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CONSTRUCTOR_VERIFIABLECREDENTIAL_VERIFY_WITH_VERIFIER
+void*_Nonnull uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify_with_verifier(RustBuffer vcjwt, void*_Nonnull verifier, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_VERIFIABLECREDENTIAL_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_VERIFIABLECREDENTIAL_GET_DATA
+RustBuffer uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_VERIFIABLECREDENTIAL_SIGN
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_VERIFIABLECREDENTIAL_SIGN
+RustBuffer uniffi_web5_uniffi_fn_method_verifiablecredential_sign(void*_Nonnull ptr, void*_Nonnull signer, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_VERIFIER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_CLONE_VERIFIER
+void*_Nonnull uniffi_web5_uniffi_fn_clone_verifier(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_VERIFIER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FREE_VERIFIER
+void uniffi_web5_uniffi_fn_free_verifier(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_VERIFIER_VERIFY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_METHOD_VERIFIER_VERIFY
+int8_t uniffi_web5_uniffi_fn_method_verifier_verify(void*_Nonnull ptr, RustBuffer message, RustBuffer signature, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FUNC_HELLO_WORLD
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_FN_FUNC_HELLO_WORLD
 void uniffi_web5_uniffi_fn_func_hello_world(RustCallStatus *_Nonnull out_status
@@ -540,6 +846,192 @@ void ffi_web5_uniffi_rust_future_complete_void(uint64_t handle, RustCallStatus *
 #ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_FUNC_HELLO_WORLD
 #define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_FUNC_HELLO_WORLD
 uint16_t uniffi_web5_uniffi_checksum_func_hello_world(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DID_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DID_GET_DATA
+uint16_t uniffi_web5_uniffi_checksum_method_did_get_data(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DIDDHT_DEACTIVATE
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DIDDHT_DEACTIVATE
+uint16_t uniffi_web5_uniffi_checksum_method_diddht_deactivate(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DIDDHT_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DIDDHT_GET_DATA
+uint16_t uniffi_web5_uniffi_checksum_method_diddht_get_data(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DIDDHT_PUBLISH
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DIDDHT_PUBLISH
+uint16_t uniffi_web5_uniffi_checksum_method_diddht_publish(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DIDJWK_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DIDJWK_GET_DATA
+uint16_t uniffi_web5_uniffi_checksum_method_didjwk_get_data(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DIDWEB_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_DIDWEB_GET_DATA
+uint16_t uniffi_web5_uniffi_checksum_method_didweb_get_data(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_ED25519SIGNER_SIGN
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_ED25519SIGNER_SIGN
+uint16_t uniffi_web5_uniffi_checksum_method_ed25519signer_sign(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_ED25519VERIFIER_VERIFY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_ED25519VERIFIER_VERIFY
+uint16_t uniffi_web5_uniffi_checksum_method_ed25519verifier_verify(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_INMEMORYKEYMANAGER_GENERATE_KEY_MATERIAL
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_INMEMORYKEYMANAGER_GENERATE_KEY_MATERIAL
+uint16_t uniffi_web5_uniffi_checksum_method_inmemorykeymanager_generate_key_material(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_INMEMORYKEYMANAGER_GET_SIGNER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_INMEMORYKEYMANAGER_GET_SIGNER
+uint16_t uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_INMEMORYKEYMANAGER_IMPORT_KEY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_INMEMORYKEYMANAGER_IMPORT_KEY
+uint16_t uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_key(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_PRESENTATIONDEFINITION_SELECT_CREDENTIALS
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_PRESENTATIONDEFINITION_SELECT_CREDENTIALS
+uint16_t uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_RESOLUTIONRESULT_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_RESOLUTIONRESULT_GET_DATA
+uint16_t uniffi_web5_uniffi_checksum_method_resolutionresult_get_data(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_SIGNER_SIGN
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_SIGNER_SIGN
+uint16_t uniffi_web5_uniffi_checksum_method_signer_sign(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_VERIFIABLECREDENTIAL_GET_DATA
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_VERIFIABLECREDENTIAL_GET_DATA
+uint16_t uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_VERIFIABLECREDENTIAL_SIGN
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_VERIFIABLECREDENTIAL_SIGN
+uint16_t uniffi_web5_uniffi_checksum_method_verifiablecredential_sign(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_VERIFIER_VERIFY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_METHOD_VERIFIER_VERIFY
+uint16_t uniffi_web5_uniffi_checksum_method_verifier_verify(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DID_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DID_NEW
+uint16_t uniffi_web5_uniffi_checksum_constructor_did_new(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DIDDHT_FROM_IDENTITY_KEY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DIDDHT_FROM_IDENTITY_KEY
+uint16_t uniffi_web5_uniffi_checksum_constructor_diddht_from_identity_key(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DIDDHT_FROM_URI
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DIDDHT_FROM_URI
+uint16_t uniffi_web5_uniffi_checksum_constructor_diddht_from_uri(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DIDJWK_FROM_PUBLIC_KEY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DIDJWK_FROM_PUBLIC_KEY
+uint16_t uniffi_web5_uniffi_checksum_constructor_didjwk_from_public_key(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DIDJWK_FROM_URI
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DIDJWK_FROM_URI
+uint16_t uniffi_web5_uniffi_checksum_constructor_didjwk_from_uri(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DIDWEB_FROM_URI
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_DIDWEB_FROM_URI
+uint16_t uniffi_web5_uniffi_checksum_constructor_didweb_from_uri(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_ED25519SIGNER_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_ED25519SIGNER_NEW
+uint16_t uniffi_web5_uniffi_checksum_constructor_ed25519signer_new(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_ED25519VERIFIER_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_ED25519VERIFIER_NEW
+uint16_t uniffi_web5_uniffi_checksum_constructor_ed25519verifier_new(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_INMEMORYKEYMANAGER_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_INMEMORYKEYMANAGER_NEW
+uint16_t uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_PRESENTATIONDEFINITION_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_PRESENTATIONDEFINITION_NEW
+uint16_t uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_RESOLUTIONRESULT_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_RESOLUTIONRESULT_NEW
+uint16_t uniffi_web5_uniffi_checksum_constructor_resolutionresult_new(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_VERIFIABLECREDENTIAL_NEW
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_VERIFIABLECREDENTIAL_NEW
+uint16_t uniffi_web5_uniffi_checksum_constructor_verifiablecredential_new(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_VERIFIABLECREDENTIAL_VERIFY
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_VERIFIABLECREDENTIAL_VERIFY
+uint16_t uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_VERIFIABLECREDENTIAL_VERIFY_WITH_VERIFIER
+#define UNIFFI_FFIDEF_UNIFFI_WEB5_UNIFFI_CHECKSUM_CONSTRUCTOR_VERIFIABLECREDENTIAL_VERIFY_WITH_VERIFIER
+uint16_t uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify_with_verifier(void
     
 );
 #endif
