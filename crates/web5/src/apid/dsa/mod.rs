@@ -4,10 +4,10 @@ pub enum Dsa {
     Ed25519,
 }
 
-pub trait Signer {
+pub trait Signer: Send + Sync {
     fn sign(&self, payload: &[u8]) -> Vec<u8>;
 }
 
-pub trait Verifier {
+pub trait Verifier: Send + Sync {
     fn verify(&self, payload: &[u8], signature: &[u8]) -> bool;
 }

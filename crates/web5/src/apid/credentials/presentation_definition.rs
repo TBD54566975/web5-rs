@@ -1,4 +1,3 @@
-// use crate::jws::{CompactJws, JwsError};
 use jsonpath_rust::{
     JsonPathFinder,
     JsonPathValue::{NewValue, NoValue, Slice},

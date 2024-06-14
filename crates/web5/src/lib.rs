@@ -1,4 +1,4 @@
-mod apid;
+pub mod apid;
 
 pub mod credentials;
 pub mod crypto;

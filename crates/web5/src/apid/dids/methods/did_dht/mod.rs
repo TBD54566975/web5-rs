@@ -1,12 +1,13 @@
 use crate::apid::{
-    dids::{document::Document, identifier::Identifier, resolution_result::ResolutionResult},
+    dids::{did::Did, document::Document, resolution_result::ResolutionResult},
     dsa::Signer,
     jwk::Jwk,
 };
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub struct DidDht {
-    pub did: Identifier,
+    pub did: Did,
     pub document: Document,
 }
 
@@ -20,7 +21,7 @@ impl DidDht {
         match resolution_result.document {
             None => panic!(),
             Some(document) => {
-                let identifer = Identifier::new(uri).unwrap();
+                let identifer = Did::new(uri).unwrap();
                 Self {
                     did: identifer,
                     document,

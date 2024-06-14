@@ -1,12 +1,15 @@
 use std::sync::Arc;
-
-use crate::inner::{
+use web5::apid::{
     dids::{
-        Did as InnerDid, DidDht as InnerDidDht, DidJwk as InnerDidJwk, DidWeb as InnerDidWeb,
-        ResolutionResult as InnerResolutionResult,
+        did::Did as InnerDid,
+        methods::{
+            did_dht::DidDht as InnerDidDht, did_jwk::DidJwk as InnerDidJwk,
+            did_web::DidWeb as InnerDidWeb,
+        },
+        resolution_result::ResolutionResult as InnerResolutionResult,
     },
     dsa::Signer,
-    keys::Jwk,
+    jwk::Jwk,
 };
 
 pub struct Did(InnerDid);
@@ -14,7 +17,7 @@ pub struct Did(InnerDid);
 impl Did {
     pub fn new(uri: &str) -> Self {
         Self {
-            0: InnerDid::new(uri),
+            0: InnerDid::new(uri).unwrap(),
         }
     }
 
@@ -28,7 +31,7 @@ pub struct ResolutionResult(InnerResolutionResult);
 impl ResolutionResult {
     pub fn new(uri: &str) -> Self {
         Self {
-            0: InnerResolutionResult::resolve(uri),
+            0: InnerResolutionResult::new(uri),
         }
     }
 
@@ -40,9 +43,9 @@ impl ResolutionResult {
 pub struct DidJwk(InnerDidJwk);
 
 impl DidJwk {
-    pub fn from_public_key(public_key: Jwk) -> Self {
+    pub fn from_public_jwk(public_key: Jwk) -> Self {
         Self {
-            0: InnerDidJwk::from_public_key(public_key),
+            0: InnerDidJwk::from_public_jwk(public_key),
         }
     }
 

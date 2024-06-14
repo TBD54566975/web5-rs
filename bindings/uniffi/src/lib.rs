@@ -8,23 +8,10 @@
 // 🚧 unwrap()'s in various places
 
 mod dids;
-mod inner;
 mod keys;
 mod pex;
 mod vc;
 
-use crate::inner::{
-    dids::{
-        Did as DidData, DidDht as DidDhtData, DidJwk as DidJwkData, DidWeb as DidWebData,
-        Document as DocumentData, DocumentMetadata as DocumentMetadataData,
-        ResolutionMetadata as ResolutionMetadataData, ResolutionMetadataError,
-        ResolutionResult as ResolutionResultData, Service as ServiceData,
-        VerificationMethod as VerificationMethodData,
-    },
-    dsa::{Dsa, Ed25519Signer, Ed25519Verifier, Signer, Verifier},
-    keys::Jwk as JwkData,
-    vc::VerifiableCredential as VerifiableCredentialData,
-};
 use crate::{
     dids::{Did, DidDht, DidJwk, DidWeb, ResolutionResult},
     keys::InMemoryKeyManager,
@@ -32,10 +19,38 @@ use crate::{
     vc::VerifiableCredential,
 };
 
-use web5::credentials::presentation_definition::{
-    Constraints as ConstraintsData, Field as FieldData, Filter as FilterData,
-    InputDescriptor as InputDescriptorData, Optionality,
-    PresentationDefinition as PresentationDefinitionData,
+use web5::apid::{
+    credentials::{
+        presentation_definition::{
+            Constraints as ConstraintsData, Field as FieldData, Filter as FilterData,
+            InputDescriptor as InputDescriptorData, Optionality,
+            PresentationDefinition as PresentationDefinitionData,
+        },
+        verifiable_credential_11::{
+            CredentialSubject as CredentialSubjectData,
+            VerifiableCredential as VerifiableCredentialData,
+        },
+    },
+    dids::{
+        did::Did as DidData,
+        document::{
+            Document as DocumentData, Service as ServiceData,
+            VerificationMethod as VerificationMethodData,
+        },
+        methods::{
+            did_dht::DidDht as DidDhtData, did_jwk::DidJwk as DidJwkData,
+            did_web::DidWeb as DidWebData,
+        },
+        resolution_result::{
+            DocumentMetadata as DocumentMetadataData, ResolutionMetadata as ResolutionMetadataData,
+            ResolutionMetadataError, ResolutionResult as ResolutionResultData,
+        },
+    },
+    dsa::{
+        ed25519::{Ed25519Signer, Ed25519Verifier},
+        Dsa, Signer, Verifier,
+    },
+    jwk::Jwk as JwkData,
 };
 
 pub fn hello_world() {

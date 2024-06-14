@@ -1,4 +1,4 @@
-use web5::credentials::presentation_definition::PresentationDefinition as InnerPresentationDefinition;
+use web5::apid::credentials::presentation_definition::PresentationDefinition as InnerPresentationDefinition;
 
 pub struct PresentationDefinition(InnerPresentationDefinition);
 

@@ -1,15 +1,16 @@
 use crate::apid::{
     dids::{
         document::{Document, VerificationMethod},
-        identifier::Identifier,
+        did::Did,
         resolution_result::ResolutionResult,
     },
     jwk::Jwk,
 };
 use base64::{engine::general_purpose, Engine as _};
 
+#[derive(Clone)]
 pub struct DidJwk {
-    pub did: Identifier,
+    pub did: Did,
     pub document: Document,
 }
 
@@ -20,7 +21,7 @@ impl DidJwk {
 
         let uri = format!("did:jwk:{}", method_specific_id);
 
-        let identifier = Identifier::new(&uri).unwrap();
+        let did = Did::new(&uri).unwrap();
 
         let verification_method_id = format!("{}#0", uri);
 
@@ -42,7 +43,7 @@ impl DidJwk {
         };
 
         Self {
-            did: identifier,
+            did,
             document,
         }
     }
@@ -53,14 +54,14 @@ impl DidJwk {
         match resolution_result.document {
             None => panic!(),
             Some(document) => {
-                let did = Identifier::new(uri).unwrap();
+                let did = Did::new(uri).unwrap();
                 Self { did, document }
             }
         }
     }
 
     pub fn resolve(uri: &str) -> ResolutionResult {
-        let identifier = Identifier::new(uri).unwrap();
+        let identifier = Did::new(uri).unwrap();
         let decoded_jwk = general_purpose::URL_SAFE_NO_PAD
             .decode(identifier.id)
             .unwrap();

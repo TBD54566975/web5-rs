@@ -1,8 +1,7 @@
 use std::sync::Arc;
-
-use crate::inner::{
-    dsa::Ed25519Signer,
-    keys::{InMemoryKeyManager as InnerInMemoryKeyManager, Jwk},
+use web5::apid::{
+    dsa::ed25519::Ed25519Signer,
+    in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager, jwk::Jwk,
 };
 
 pub struct InMemoryKeyManager(InnerInMemoryKeyManager);
@@ -11,7 +10,7 @@ impl InMemoryKeyManager {
     // 🚧 not in APID
     pub fn new() -> Self {
         Self {
-            0: InnerInMemoryKeyManager {},
+            0: InnerInMemoryKeyManager::new(),
         }
     }
 

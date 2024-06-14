@@ -1,7 +1,7 @@
 use crate::apid::jwk::Jwk;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Document {
     pub id: String,
     #[serde(rename = "@context")]
@@ -42,7 +42,7 @@ pub struct VerificationMethod {
     pub public_key_jwk: Jwk,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Service {
     pub id: String,
     #[serde(rename = "type")]
