@@ -14,7 +14,7 @@ pub struct DidJwk {
 }
 
 impl DidJwk {
-    pub fn new(public_jwk: Jwk) -> Self {
+    pub fn from_public_jwk(public_jwk: Jwk) -> Self {
         let jwk_string = serde_json::to_string(&public_jwk).unwrap();
         let method_specific_id = general_purpose::URL_SAFE_NO_PAD.encode(jwk_string);
 
@@ -66,7 +66,7 @@ impl DidJwk {
             .unwrap();
         let public_jwk = serde_json::from_slice(&decoded_jwk).unwrap();
 
-        let did_jwk = DidJwk::new(public_jwk);
+        let did_jwk = DidJwk::from_public_jwk(public_jwk);
 
         ResolutionResult {
             document: Some(did_jwk.document),

@@ -1,3 +1,4 @@
+pub mod credentials;
 pub mod dids;
 pub mod dsa;
 
