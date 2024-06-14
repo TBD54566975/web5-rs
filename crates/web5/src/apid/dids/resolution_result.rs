@@ -1,7 +1,7 @@
 use super::document::Document;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ResolutionResult {
     pub resolution_metadata: ResolutionMetadata,
     pub document: Option<Document>,
@@ -15,14 +15,14 @@ impl ResolutionResult {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ResolutionMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<ResolutionError>,
+    pub error: Option<ResolutionMetadataError>,
 }
 
 #[derive(thiserror::Error, Debug, PartialEq, Serialize, Deserialize, Clone)]
-pub enum ResolutionError {
+pub enum ResolutionMetadataError {
     #[error("The requested DID was not valid and resolution could not proceed.")]
     #[serde(rename = "invalidDid")]
     InvalidDid,
@@ -46,7 +46,7 @@ pub enum ResolutionError {
     InternalError,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DocumentMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created: Option<String>,

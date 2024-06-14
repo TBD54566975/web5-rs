@@ -1,8 +1,7 @@
 use std::sync::Arc;
-
-use crate::inner::{
+use web5::apid::{
+    credentials::verifiable_credential_11::VerifiableCredential as InnerVerifiableCredential,
     dsa::{Signer, Verifier},
-    vc::VerifiableCredential as InnerVerifiableCredential,
 };
 
 pub struct VerifiableCredential(InnerVerifiableCredential);

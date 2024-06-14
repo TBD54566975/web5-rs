@@ -14,7 +14,7 @@ dictionary JwkData {
 interface InMemoryKeyManager {
   constructor();
   JwkData generate_key_material();
-  Signer get_signer(JwkData public_key);
+  Signer get_signer(JwkData public_jwk);
   JwkData import_key(JwkData private_key);
 };
 
@@ -38,7 +38,7 @@ interface Ed25519Signer {
 };
 
 interface Ed25519Verifier {
-  constructor(JwkData public_key);
+  constructor(JwkData public_jwk);
   boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
 };
 
@@ -96,7 +96,7 @@ enum ResolutionMetadataError {
 };
 
 dictionary ResolutionMetadataData {
-  ResolutionMetadataError error;
+  ResolutionMetadataError? error;
 };
 
 dictionary DocumentMetadataData {
@@ -111,8 +111,8 @@ dictionary DocumentMetadataData {
 };
 
 dictionary ResolutionResultData {
-  DocumentData document;
-  DocumentMetadataData document_metadata;
+  DocumentData? document;
+  DocumentMetadataData? document_metadata;
   ResolutionMetadataData resolution_metadata;
 };
 
@@ -127,8 +127,8 @@ dictionary DidJwkData {
 };
 
 interface DidJwk {
-  [Name=from_public_key]
-  constructor(JwkData public_key);
+  [Name=from_public_jwk]
+  constructor(JwkData public_jwk);
   [Name=from_uri]
   constructor([ByRef] string uri);
   DidJwkData get_data();
@@ -160,6 +160,11 @@ interface DidDht {
   DidDhtData get_data();
 };
 
+dictionary CredentialSubjectData {
+  string id;
+  record<string, string>? params;
+};
+
 dictionary VerifiableCredentialData {
   sequence<string> context;
   string id;
@@ -167,7 +172,7 @@ dictionary VerifiableCredentialData {
   string issuer;
   string issuance_date;
   string? expiration_date;
-  string credential_subject;
+  CredentialSubjectData credential_subject;
 };
 
 interface VerifiableCredential {

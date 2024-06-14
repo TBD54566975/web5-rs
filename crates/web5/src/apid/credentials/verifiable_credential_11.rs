@@ -48,7 +48,10 @@ pub struct VerifiableCredential {
     pub id: String,
     #[serde(rename = "type")]
     pub r#type: Vec<String>,
-    pub issuer: Issuer,
+
+    // 🚧 UDL support
+    // pub issuer: Issuer,
+    pub issuer: String,
     #[serde(rename = "issuanceDate")]
     pub issuance_date: String,
     #[serde(rename = "expirationDate")]
@@ -68,7 +71,9 @@ impl VerifiableCredential {
         id: String,
         context: Vec<String>,
         r#type: Vec<String>,
-        issuer: Issuer,
+        // 🚧 UDL
+        // issuer: Issuer,
+        issuer: String,
         issuance_date: String,
         expiration_date: Option<String>,
         credential_subject: CredentialSubject,
@@ -96,12 +101,12 @@ impl VerifiableCredential {
         unimplemented!()
     }
 
-    pub async fn verify(jwt: &str) -> Self {
+    pub fn verify(jwt: &str) -> Self {
         // 🚧 call VerifiableCredential::verify_with_verifier with Ed25519Verifier
         unimplemented!()
     }
 
-    pub async fn verify_with_verifier(vcjwt: &str, verifier: Arc<dyn Verifier>) -> Self {
+    pub fn verify_with_verifier(vcjwt: &str, verifier: Arc<dyn Verifier>) -> Self {
         unimplemented!()
     }
 }
