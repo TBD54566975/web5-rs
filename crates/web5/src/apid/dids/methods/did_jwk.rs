@@ -1,12 +1,14 @@
 use crate::apid::{
     dids::{
-        document::{Document, VerificationMethod},
         did::Did,
+        document::{Document, VerificationMethod},
         resolution_result::ResolutionResult,
     },
     jwk::Jwk,
 };
 use base64::{engine::general_purpose, Engine as _};
+
+use super::Result;
 
 #[derive(Clone)]
 pub struct DidJwk {
@@ -15,13 +17,13 @@ pub struct DidJwk {
 }
 
 impl DidJwk {
-    pub fn from_public_jwk(public_jwk: Jwk) -> Self {
-        let jwk_string = serde_json::to_string(&public_jwk).unwrap();
+    pub fn from_public_jwk(public_jwk: Jwk) -> Result<Self> {
+        let jwk_string = serde_json::to_string(&public_jwk)?;
         let method_specific_id = general_purpose::URL_SAFE_NO_PAD.encode(jwk_string);
 
         let uri = format!("did:jwk:{}", method_specific_id);
 
-        let did = Did::new(&uri).unwrap();
+        let did = Did::new(&uri)?;
 
         let verification_method_id = format!("{}#0", uri);
 
@@ -42,36 +44,31 @@ impl DidJwk {
             ..Default::default()
         };
 
-        Self {
-            did,
-            document,
-        }
+        Ok(Self { did, document })
     }
 
-    pub fn from_uri(uri: &str) -> Self {
-        let resolution_result = DidJwk::resolve(uri);
+    pub fn from_uri(uri: &str) -> Result<Self> {
+        let resolution_result = DidJwk::resolve(uri)?;
 
         match resolution_result.document {
             None => panic!(),
             Some(document) => {
-                let did = Did::new(uri).unwrap();
-                Self { did, document }
+                let did = Did::new(uri)?;
+                Ok(Self { did, document })
             }
         }
     }
 
-    pub fn resolve(uri: &str) -> ResolutionResult {
-        let identifier = Did::new(uri).unwrap();
-        let decoded_jwk = general_purpose::URL_SAFE_NO_PAD
-            .decode(identifier.id)
-            .unwrap();
-        let public_jwk = serde_json::from_slice(&decoded_jwk).unwrap();
+    pub fn resolve(uri: &str) -> Result<ResolutionResult> {
+        let identifier = Did::new(uri)?;
+        let decoded_jwk = general_purpose::URL_SAFE_NO_PAD.decode(identifier.id)?;
+        let public_jwk = serde_json::from_slice(&decoded_jwk)?;
 
-        let did_jwk = DidJwk::from_public_jwk(public_jwk);
+        let did_jwk = DidJwk::from_public_jwk(public_jwk)?;
 
-        ResolutionResult {
+        Ok(ResolutionResult {
             document: Some(did_jwk.document),
             ..Default::default()
-        }
+        })
     }
 }

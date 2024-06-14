@@ -17,7 +17,7 @@ pub struct Did(InnerDid);
 impl Did {
     pub fn new(uri: &str) -> Self {
         Self {
-            0: InnerDid::new(uri).unwrap(),
+            0: InnerDid::new(uri),
         }
     }
 

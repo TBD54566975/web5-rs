@@ -5,6 +5,8 @@ use crate::apid::{
 };
 use std::sync::Arc;
 
+use super::Result;
+
 #[derive(Clone)]
 pub struct DidDht {
     pub did: Did,
@@ -12,25 +14,25 @@ pub struct DidDht {
 }
 
 impl DidDht {
-    pub fn from_identity_key(identity_key: Jwk) -> Self {
+    pub fn from_identity_key(identity_key: Jwk) -> Result<Self> {
         unimplemented!()
     }
 
-    pub fn from_uri(uri: &str) -> Self {
-        let resolution_result = DidDht::resolve(uri);
+    pub fn from_uri(uri: &str) -> Result<Self> {
+        let resolution_result = DidDht::resolve(uri)?;
         match resolution_result.document {
             None => panic!(),
             Some(document) => {
-                let identifer = Did::new(uri).unwrap();
-                Self {
+                let identifer = Did::new(uri)?;
+                Ok(Self {
                     did: identifer,
                     document,
-                }
+                })
             }
         }
     }
 
-    pub fn resolve(uri: &str) -> ResolutionResult {
+    pub fn resolve(uri: &str) -> Result<ResolutionResult> {
         unimplemented!()
     }
 
