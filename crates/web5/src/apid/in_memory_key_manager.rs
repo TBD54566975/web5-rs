@@ -23,7 +23,9 @@ impl InMemoryKeyManager {
 
     pub fn get_signer(&self, public_jwk: Jwk) -> Ed25519Signer {
         let map_lock = self.map.read().unwrap();
-        let private_jwk = map_lock.get(&public_jwk.compute_thumbprint()).unwrap();
+        let private_jwk = map_lock
+            .get(&public_jwk.compute_thumbprint().unwrap())
+            .unwrap();
         Ed25519Signer::new(private_jwk.clone())
     }
 
@@ -32,7 +34,7 @@ impl InMemoryKeyManager {
         public_jwk.d = None;
 
         let mut map_lock = self.map.write().unwrap();
-        map_lock.insert(public_jwk.compute_thumbprint(), private_jwk);
+        map_lock.insert(public_jwk.compute_thumbprint().unwrap(), private_jwk);
         public_jwk
     }
 }

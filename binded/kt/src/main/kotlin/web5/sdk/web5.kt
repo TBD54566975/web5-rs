@@ -816,8 +816,6 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -868,7 +866,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_didjwk(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_didjwk_from_public_key(`publicKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_didjwk_from_public_jwk(`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_constructor_didjwk_from_uri(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -894,7 +892,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_ed25519verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_ed25519verifier_new(`publicKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_ed25519verifier_new(`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_ed25519verifier_verify(`ptr`: Pointer,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
@@ -906,7 +904,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_generate_key_material(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(`ptr`: Pointer,`publicKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(`ptr`: Pointer,`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_import_key(`ptr`: Pointer,`privateKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -952,8 +950,6 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_uniffi_fn_method_verifier_verify(`ptr`: Pointer,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_web5_uniffi_fn_func_hello_world(uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
     fun ffi_web5_uniffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_web5_uniffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1066,8 +1062,6 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_web5_uniffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_checksum_func_hello_world(
-    ): Short
     fun uniffi_web5_uniffi_checksum_method_did_get_data(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_diddht_deactivate(
@@ -1108,7 +1102,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_diddht_from_uri(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_didjwk_from_public_key(
+    fun uniffi_web5_uniffi_checksum_constructor_didjwk_from_public_jwk(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_didjwk_from_uri(
     ): Short
@@ -1147,9 +1141,6 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_web5_uniffi_checksum_func_hello_world() != 5356.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_web5_uniffi_checksum_method_did_get_data() != 55630.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1177,7 +1168,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_generate_key_material() != 43946.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 22628.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 23890.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_key() != 44332.toShort()) {
@@ -1210,7 +1201,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_diddht_from_uri() != 7727.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_didjwk_from_public_key() != 17403.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_didjwk_from_public_jwk() != 24062.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_didjwk_from_uri() != 46063.toShort()) {
@@ -1222,7 +1213,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_ed25519signer_new() != 48464.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_ed25519verifier_new() != 13376.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_ed25519verifier_new() != 21891.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new() != 16598.toShort()) {
@@ -2173,11 +2164,11 @@ open class DidJwk: Disposable, AutoCloseable, DidJwkInterface {
 
     
     companion object {
-         fun `fromPublicKey`(`publicKey`: JwkData): DidJwk {
+         fun `fromPublicJwk`(`publicJwk`: JwkData): DidJwk {
             return FfiConverterTypeDidJwk.lift(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didjwk_from_public_key(
-        FfiConverterTypeJwkData.lower(`publicKey`),_status)
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didjwk_from_public_jwk(
+        FfiConverterTypeJwkData.lower(`publicJwk`),_status)
 }
     )
     }
@@ -2828,11 +2819,11 @@ open class Ed25519Verifier: Disposable, AutoCloseable, Ed25519VerifierInterface 
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`publicKey`: JwkData) :
+    constructor(`publicJwk`: JwkData) :
         this(
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_ed25519verifier_new(
-        FfiConverterTypeJwkData.lower(`publicKey`),_status)
+        FfiConverterTypeJwkData.lower(`publicJwk`),_status)
 }
     )
 
@@ -3047,7 +3038,7 @@ public interface InMemoryKeyManagerInterface {
     
     fun `generateKeyMaterial`(): JwkData
     
-    fun `getSigner`(`publicKey`: JwkData): Signer
+    fun `getSigner`(`publicJwk`: JwkData): Signer
     
     fun `importKey`(`privateKey`: JwkData): JwkData
     
@@ -3154,12 +3145,12 @@ open class InMemoryKeyManager: Disposable, AutoCloseable, InMemoryKeyManagerInte
     }
     
 
-    override fun `getSigner`(`publicKey`: JwkData): Signer {
+    override fun `getSigner`(`publicJwk`: JwkData): Signer {
             return FfiConverterTypeSigner.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(
-        it, FfiConverterTypeJwkData.lower(`publicKey`),_status)
+        it, FfiConverterTypeJwkData.lower(`publicJwk`),_status)
 }
     }
     )
@@ -4454,6 +4445,35 @@ public object FfiConverterTypeConstraintsData: FfiConverterRustBuffer<Constraint
 
 
 
+data class CredentialSubjectData (
+    var `id`: kotlin.String, 
+    var `params`: Map<kotlin.String, kotlin.String>?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeCredentialSubjectData: FfiConverterRustBuffer<CredentialSubjectData> {
+    override fun read(buf: ByteBuffer): CredentialSubjectData {
+        return CredentialSubjectData(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalMapStringString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: CredentialSubjectData) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterOptionalMapStringString.allocationSize(value.`params`)
+    )
+
+    override fun write(value: CredentialSubjectData, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterOptionalMapStringString.write(value.`params`, buf)
+    }
+}
+
+
+
 data class DidData (
     var `uri`: kotlin.String, 
     var `url`: kotlin.String, 
@@ -4914,7 +4934,7 @@ public object FfiConverterTypePresentationDefinitionData: FfiConverterRustBuffer
 
 
 data class ResolutionMetadataData (
-    var `error`: ResolutionMetadataError
+    var `error`: ResolutionMetadataError?
 ) {
     
     companion object
@@ -4923,24 +4943,24 @@ data class ResolutionMetadataData (
 public object FfiConverterTypeResolutionMetadataData: FfiConverterRustBuffer<ResolutionMetadataData> {
     override fun read(buf: ByteBuffer): ResolutionMetadataData {
         return ResolutionMetadataData(
-            FfiConverterTypeResolutionMetadataError.read(buf),
+            FfiConverterOptionalTypeResolutionMetadataError.read(buf),
         )
     }
 
     override fun allocationSize(value: ResolutionMetadataData) = (
-            FfiConverterTypeResolutionMetadataError.allocationSize(value.`error`)
+            FfiConverterOptionalTypeResolutionMetadataError.allocationSize(value.`error`)
     )
 
     override fun write(value: ResolutionMetadataData, buf: ByteBuffer) {
-            FfiConverterTypeResolutionMetadataError.write(value.`error`, buf)
+            FfiConverterOptionalTypeResolutionMetadataError.write(value.`error`, buf)
     }
 }
 
 
 
 data class ResolutionResultData (
-    var `document`: DocumentData, 
-    var `documentMetadata`: DocumentMetadataData, 
+    var `document`: DocumentData?, 
+    var `documentMetadata`: DocumentMetadataData?, 
     var `resolutionMetadata`: ResolutionMetadataData
 ) {
     
@@ -4950,21 +4970,21 @@ data class ResolutionResultData (
 public object FfiConverterTypeResolutionResultData: FfiConverterRustBuffer<ResolutionResultData> {
     override fun read(buf: ByteBuffer): ResolutionResultData {
         return ResolutionResultData(
-            FfiConverterTypeDocumentData.read(buf),
-            FfiConverterTypeDocumentMetadataData.read(buf),
+            FfiConverterOptionalTypeDocumentData.read(buf),
+            FfiConverterOptionalTypeDocumentMetadataData.read(buf),
             FfiConverterTypeResolutionMetadataData.read(buf),
         )
     }
 
     override fun allocationSize(value: ResolutionResultData) = (
-            FfiConverterTypeDocumentData.allocationSize(value.`document`) +
-            FfiConverterTypeDocumentMetadataData.allocationSize(value.`documentMetadata`) +
+            FfiConverterOptionalTypeDocumentData.allocationSize(value.`document`) +
+            FfiConverterOptionalTypeDocumentMetadataData.allocationSize(value.`documentMetadata`) +
             FfiConverterTypeResolutionMetadataData.allocationSize(value.`resolutionMetadata`)
     )
 
     override fun write(value: ResolutionResultData, buf: ByteBuffer) {
-            FfiConverterTypeDocumentData.write(value.`document`, buf)
-            FfiConverterTypeDocumentMetadataData.write(value.`documentMetadata`, buf)
+            FfiConverterOptionalTypeDocumentData.write(value.`document`, buf)
+            FfiConverterOptionalTypeDocumentMetadataData.write(value.`documentMetadata`, buf)
             FfiConverterTypeResolutionMetadataData.write(value.`resolutionMetadata`, buf)
     }
 }
@@ -5011,7 +5031,7 @@ data class VerifiableCredentialData (
     var `issuer`: kotlin.String, 
     var `issuanceDate`: kotlin.String, 
     var `expirationDate`: kotlin.String?, 
-    var `credentialSubject`: kotlin.String
+    var `credentialSubject`: CredentialSubjectData
 ) {
     
     companion object
@@ -5026,7 +5046,7 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterString.read(buf),
+            FfiConverterTypeCredentialSubjectData.read(buf),
         )
     }
 
@@ -5037,7 +5057,7 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterString.allocationSize(value.`issuer`) +
             FfiConverterString.allocationSize(value.`issuanceDate`) +
             FfiConverterOptionalString.allocationSize(value.`expirationDate`) +
-            FfiConverterString.allocationSize(value.`credentialSubject`)
+            FfiConverterTypeCredentialSubjectData.allocationSize(value.`credentialSubject`)
     )
 
     override fun write(value: VerifiableCredentialData, buf: ByteBuffer) {
@@ -5047,7 +5067,7 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterString.write(value.`issuer`, buf)
             FfiConverterString.write(value.`issuanceDate`, buf)
             FfiConverterOptionalString.write(value.`expirationDate`, buf)
-            FfiConverterString.write(value.`credentialSubject`, buf)
+            FfiConverterTypeCredentialSubjectData.write(value.`credentialSubject`, buf)
     }
 }
 
@@ -5234,6 +5254,64 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
 
 
 
+public object FfiConverterOptionalTypeDocumentData: FfiConverterRustBuffer<DocumentData?> {
+    override fun read(buf: ByteBuffer): DocumentData? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeDocumentData.read(buf)
+    }
+
+    override fun allocationSize(value: DocumentData?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeDocumentData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: DocumentData?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeDocumentData.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeDocumentMetadataData: FfiConverterRustBuffer<DocumentMetadataData?> {
+    override fun read(buf: ByteBuffer): DocumentMetadataData? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeDocumentMetadataData.read(buf)
+    }
+
+    override fun allocationSize(value: DocumentMetadataData?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeDocumentMetadataData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: DocumentMetadataData?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeDocumentMetadataData.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeFilterData: FfiConverterRustBuffer<FilterData?> {
     override fun read(buf: ByteBuffer): FilterData? {
         if (buf.get().toInt() == 0) {
@@ -5285,6 +5363,35 @@ public object FfiConverterOptionalTypeOptionality: FfiConverterRustBuffer<Option
         } else {
             buf.put(1)
             FfiConverterTypeOptionality.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeResolutionMetadataError: FfiConverterRustBuffer<ResolutionMetadataError?> {
+    override fun read(buf: ByteBuffer): ResolutionMetadataError? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeResolutionMetadataError.read(buf)
+    }
+
+    override fun allocationSize(value: ResolutionMetadataError?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeResolutionMetadataError.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ResolutionMetadataError?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeResolutionMetadataError.write(value, buf)
         }
     }
 }
@@ -5559,13 +5666,5 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
             FfiConverterString.write(v, buf)
         }
     }
-} fun `helloWorld`()
-        = 
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_hello_world(
-        _status)
 }
-    
-    
-
 

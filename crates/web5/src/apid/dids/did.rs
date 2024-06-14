@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use std::fmt;
 use std::sync::OnceLock;
 
-/// Errors that can occur when working with DID methods.
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum DidError {
     #[error("Failure initializing regex pattern")]
@@ -14,40 +13,13 @@ pub enum DidError {
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Did {
-    // URI represents the complete Decentralized Identifier (DID) URI.
-    // Spec: https://www.w3.org/TR/did-core/#did-syntax
     pub uri: String,
-
-    // URL represents the DID URI + A network location identifier for a specific resource
-    // Spec: https://www.w3.org/TR/did-core/#did-url-syntax
     pub url: String,
-
-    // Method specifies the DID method in the URI, which indicates the underlying
-    // method-specific identifier scheme (e.g., jwk, dht, key, etc.).
-    // Spec: https://www.w3.org/TR/did-core/#method-schemes
     pub method: String,
-
-    // ID is the method-specific identifier in the DID URI.
-    // Spec: https://www.w3.org/TR/did-core/#method-specific-id
     pub id: String,
-
-    // Params is a map containing optional parameters present in the DID URI.
-    // These parameters are method-specific.
-    // Spec: https://www.w3.org/TR/did-core/#did-parameters
     pub params: Option<HashMap<String, String>>,
-
-    // Path is an optional path component in the DID URI.
-    // Spec: https://www.w3.org/TR/did-core/#path
     pub path: Option<String>,
-
-    // Query is an optional query component in the DID URI, used to express a request
-    // for a specific representation or resource related to the DID.
-    // Spec: https://www.w3.org/TR/did-core/#query
     pub query: Option<String>,
-
-    // Fragment is an optional fragment component in the DID URI, used to reference
-    // a specific part of a DID document.
-    // Spec: https://www.w3.org/TR/did-core/#fragment
     pub fragment: Option<String>,
 }
 
@@ -94,9 +66,6 @@ fn regex_pattern() -> &'static Result<Regex, DidError> {
 }
 
 impl Did {
-    // Parse parses a DID URI in accordance to the ABNF rules specified in the
-    // specification here: https://www.w3.org/TR/did-core/#did-syntax. Returns
-    // a DIDURI instance if parsing is successful. Otherwise, returns an error.
     pub fn new(uri: &str) -> Result<Did, DidError> {
         let pattern = regex_pattern().as_ref().map_err(|e| e.clone())?;
 

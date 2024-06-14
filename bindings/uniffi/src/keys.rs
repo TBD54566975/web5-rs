@@ -7,7 +7,6 @@ use web5::apid::{
 pub struct InMemoryKeyManager(InnerInMemoryKeyManager);
 
 impl InMemoryKeyManager {
-    // 🚧 not in APID
     pub fn new() -> Self {
         Self {
             0: InnerInMemoryKeyManager::new(),
@@ -18,7 +17,6 @@ impl InMemoryKeyManager {
         self.0.generate_key_material()
     }
 
-    // 🚧 Arc not in inner
     pub fn get_signer(&self, public_key: Jwk) -> Arc<Ed25519Signer> {
         Arc::new(self.0.get_signer(public_key))
     }
