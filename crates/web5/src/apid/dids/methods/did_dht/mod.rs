@@ -11,7 +11,7 @@ pub struct DidDht {
 }
 
 impl DidDht {
-    pub fn new(identity_key: Jwk) -> Self {
+    pub fn from_identity_key(identity_key: Jwk) -> Self {
         unimplemented!()
     }
 

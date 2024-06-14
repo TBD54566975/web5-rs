@@ -8,7 +8,7 @@ pub struct DidWeb {
 }
 
 impl DidWeb {
-    pub fn new(uri: &str) -> Self {
+    pub fn from_uri(uri: &str) -> Self {
         let resolution_result = DidWeb::resolve(uri);
         match resolution_result.document {
             None => panic!(),
