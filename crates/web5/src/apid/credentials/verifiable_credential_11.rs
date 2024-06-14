@@ -1,3 +1,4 @@
+use super::Result;
 use crate::apid::dsa::{Signer, Verifier};
 use core::fmt;
 use serde::{Deserialize, Serialize};
@@ -97,16 +98,16 @@ impl VerifiableCredential {
         }
     }
 
-    pub fn sign(&self, signer: Arc<dyn Signer>) -> String {
+    pub fn sign(&self, signer: Arc<dyn Signer>) -> Result<String> {
         unimplemented!()
     }
 
-    pub fn verify(jwt: &str) -> Self {
+    pub fn verify(jwt: &str) -> Result<Self> {
         // 🚧 call VerifiableCredential::verify_with_verifier with Ed25519Verifier
         unimplemented!()
     }
 
-    pub fn verify_with_verifier(vcjwt: &str, verifier: Arc<dyn Verifier>) -> Self {
+    pub fn verify_with_verifier(vcjwt: &str, verifier: Arc<dyn Verifier>) -> Result<Self> {
         unimplemented!()
     }
 }

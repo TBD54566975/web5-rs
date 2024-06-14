@@ -1,5 +1,7 @@
 use crate::apid::dids::{did::Did, document::Document, resolution_result::ResolutionResult};
 
+use super::Result;
+
 #[derive(Clone)]
 pub struct DidWeb {
     pub did: Did,
@@ -7,16 +9,16 @@ pub struct DidWeb {
 }
 
 impl DidWeb {
-    pub fn from_uri(uri: &str) -> Self {
+    pub fn from_uri(uri: &str) -> Result<Self> {
         let resolution_result = DidWeb::resolve(uri);
         match resolution_result.document {
             None => panic!(),
             Some(document) => {
-                let identifer = Did::new(uri).unwrap();
-                Self {
+                let identifer = Did::new(uri)?;
+                Ok(Self {
                     did: identifer,
                     document,
-                }
+                })
             }
         }
     }

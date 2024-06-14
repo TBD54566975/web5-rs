@@ -11,6 +11,8 @@ pub enum DidError {
     ParseFailure(String),
 }
 
+type Result<T> = std::result::Result<T, DidError>;
+
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Did {
     pub uri: String,
@@ -36,9 +38,9 @@ static PATH_INDEX: usize = 6;
 static QUERY_INDEX: usize = 7;
 static FRAGMENT_INDEX: usize = 8;
 
-static DID_URL_PATTERN: OnceLock<Result<Regex, DidError>> = OnceLock::new();
+static DID_URL_PATTERN: OnceLock<Result<Regex>> = OnceLock::new();
 
-fn regex_pattern() -> &'static Result<Regex, DidError> {
+fn regex_pattern() -> &'static Result<Regex> {
     DID_URL_PATTERN.get_or_init(|| {
         // relevant ABNF rules: https://www.w3.org/TR/did-core/#did-syntax
         let pct_encoded_pattern: &str = r"(?:%[0-9a-fA-F]{2})";
@@ -66,7 +68,7 @@ fn regex_pattern() -> &'static Result<Regex, DidError> {
 }
 
 impl Did {
-    pub fn new(uri: &str) -> Result<Did, DidError> {
+    pub fn new(uri: &str) -> Result<Did> {
         let pattern = regex_pattern().as_ref().map_err(|e| e.clone())?;
 
         let captures = pattern
