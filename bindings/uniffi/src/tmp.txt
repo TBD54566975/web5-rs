@@ -1,0 +1,174 @@
+interface InMemoryKeyManager {
+  constructor();
+  JwkData generate_key_material();
+  Signer get_signer(JwkData public_jwk);
+  JwkData import_key(JwkData private_key);
+};
+
+enum Dsa {
+  "Ed25519"
+};
+
+[Trait]
+interface Signer {
+  bytes sign([ByRef] sequence<u8> payload);
+};
+
+[Trait]
+interface Verifier {
+  boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
+};
+
+interface Ed25519Signer {
+  constructor(JwkData private_key);
+  bytes sign([ByRef] sequence<u8> payload);
+};
+
+interface Ed25519Verifier {
+  constructor(JwkData public_jwk);
+  boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
+};
+
+dictionary DidData {
+  string uri;
+  string url;
+  string method;
+  string id;
+  record<string, string>? params;
+  string? path;
+  string? query;
+  string? fragment;
+};
+
+interface Did {
+  constructor([ByRef] string uri);
+  DidData get_data();
+};
+
+dictionary DocumentData {
+  string id;
+  sequence<string>? context;
+  sequence<string>? controller;
+  sequence<string>? also_known_as;
+  sequence<VerificationMethodData> verification_method;
+  sequence<string>? authentication;
+  sequence<string>? assertion_method;
+  sequence<string>? key_agreement;
+  sequence<string>? capability_invocation;
+  sequence<string>? capability_delegation;
+  sequence<ServiceData>? service;
+};
+
+dictionary VerificationMethodData {
+  string id;
+  string type;
+  string controller;
+  JwkData public_key_jwk;
+};
+
+dictionary ServiceData {
+  string id;
+  string type;
+  sequence<string> service_endpoint;
+};
+
+enum ResolutionMetadataError {
+  "InvalidDid",
+  "NotFound",
+  "RepresentationNotSupported",
+  "MethodNotSupported",
+  "InvalidDidDocument",
+  "InvalidDidDocumentLength",
+  "InternalError",
+};
+
+dictionary ResolutionMetadataData {
+  ResolutionMetadataError? error;
+};
+
+dictionary DocumentMetadataData {
+  string? created;
+  string? updated;
+  boolean? deactivated;
+  string? next_update;
+  string? version_id;
+  string? next_version_id;
+  sequence<string>? equivalent_id;
+  string? canonical_id;
+};
+
+dictionary ResolutionResultData {
+  DocumentData? document;
+  DocumentMetadataData? document_metadata;
+  ResolutionMetadataData resolution_metadata;
+};
+
+interface ResolutionResult {
+  constructor([ByRef] string uri);
+  ResolutionResultData get_data();
+};
+
+dictionary DidJwkData {
+  DidData did;
+  DocumentData document;
+};
+
+interface DidJwk {
+  [Name=from_public_jwk]
+  constructor(JwkData public_jwk);
+  [Name=from_uri]
+  constructor([ByRef] string uri);
+  DidJwkData get_data();
+};
+
+dictionary DidWebData {
+  DidData did;
+  DocumentData document;
+};
+
+interface DidWeb {
+  [Name=from_uri]
+  constructor([ByRef] string uri);
+  DidWebData get_data();
+};
+
+dictionary DidDhtData {
+  DidData did;
+  DocumentData document;
+};
+
+interface DidDht {
+  [Name=from_identity_key]
+  constructor(JwkData identity_key);
+  [Name=from_uri]
+  constructor([ByRef] string uri);
+  void publish(Signer signer);
+  void deactivate(Signer signer);
+  DidDhtData get_data();
+};
+
+dictionary CredentialSubjectData {
+  string id;
+  record<string, string>? params;
+};
+
+dictionary VerifiableCredentialData {
+  sequence<string> context;
+  string id;
+  sequence<string> type;
+  string issuer;
+  string issuance_date;
+  string? expiration_date;
+  CredentialSubjectData credential_subject;
+};
+
+interface VerifiableCredential {
+  constructor(VerifiableCredentialData data);
+  [Name=verify]
+  constructor([ByRef] string vcjwt);
+  [Name=verify_with_verifier]
+  constructor([ByRef] string vcjwt, Verifier verifier);
+  string sign(Signer signer);
+  VerifiableCredentialData get_data();
+};
+
