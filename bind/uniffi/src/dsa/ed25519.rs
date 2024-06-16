@@ -13,13 +13,11 @@ pub struct RcbEd25519Signer(InnerEd25519Signer);
 
 impl RcbEd25519Signer {
     pub fn new(private_jwk: Jwk) -> Self {
-        Self {
-            0: InnerEd25519Signer::new(private_jwk),
-        }
+        Self(InnerEd25519Signer::new(private_jwk))
     }
 
     pub fn from_inner(inner: InnerEd25519Signer) -> Self {
-        Self { 0: inner }
+        Self(inner)
     }
 }
 
@@ -37,9 +35,7 @@ pub struct RcbEd25519Verifier(InnerEd25519Verifier);
 
 impl RcbEd25519Verifier {
     pub fn new(public_jwk: Jwk) -> Self {
-        Self {
-            0: InnerEd25519Verifier::new(public_jwk),
-        }
+        Self(InnerEd25519Verifier::new(public_jwk))
     }
 }
 

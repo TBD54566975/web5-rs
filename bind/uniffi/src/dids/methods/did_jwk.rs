@@ -7,12 +7,12 @@ pub struct RcbDidJwk(InnerDidJwk);
 impl RcbDidJwk {
     pub fn from_public_jwk(public_key: Jwk) -> RcbResult<Self> {
         let inner = InnerDidJwk::from_public_jwk(public_key).map_err(|e| Arc::new(e.into()))?;
-        Ok(Self { 0: inner })
+        Ok(Self(inner))
     }
 
     pub fn from_uri(uri: &str) -> RcbResult<Self> {
         let inner = InnerDidJwk::from_uri(uri).map_err(|e| Arc::new(e.into()))?;
-        Ok(Self { 0: inner })
+        Ok(Self(inner))
     }
 
     // 🚧

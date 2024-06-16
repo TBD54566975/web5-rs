@@ -10,20 +10,18 @@ pub struct RcbVerifiableCredential(InnerVerifiableCredential);
 
 impl RcbVerifiableCredential {
     pub fn new(verifiable_credential: InnerVerifiableCredential) -> Self {
-        Self {
-            0: verifiable_credential,
-        }
+        Self(verifiable_credential)
     }
 
     pub fn verify(vcjwt: &str) -> RcbResult<Self> {
         let inner = InnerVerifiableCredential::verify(vcjwt).map_err(|e| Arc::new(e.into()))?;
-        Ok(Self { 0: inner })
+        Ok(Self(inner))
     }
 
     pub fn verify_with_verifier(vcjwt: &str, verifier: Arc<dyn RcbVerifier>) -> RcbResult<Self> {
         let inner = InnerVerifiableCredential::verify_with_verifier(vcjwt, verifier.to_inner())
             .map_err(|e| Arc::new(e.into()))?;
-        Ok(Self { 0: inner })
+        Ok(Self(inner))
     }
 
     pub fn sign(&self, signer: Arc<dyn RcbSigner>) -> RcbResult<String> {

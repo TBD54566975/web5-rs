@@ -9,9 +9,7 @@ pub struct RcbInMemoryKeyManager(InnerInMemoryKeyManager);
 
 impl RcbInMemoryKeyManager {
     pub fn new() -> Self {
-        Self {
-            0: InnerInMemoryKeyManager::new(),
-        }
+        Self(InnerInMemoryKeyManager::new())
     }
 
     pub fn generate_key_material(&self) -> RcbResult<Jwk> {

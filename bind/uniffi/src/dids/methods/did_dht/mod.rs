@@ -8,12 +8,12 @@ pub struct RcbDidDht(InnerDidDht);
 impl RcbDidDht {
     pub fn from_identity_key(public_key: Jwk) -> RcbResult<Self> {
         let inner = InnerDidDht::from_identity_key(public_key).map_err(|e| Arc::new(e.into()))?;
-        Ok(Self { 0: inner })
+        Ok(Self(inner))
     }
 
     pub fn from_uri(uri: &str) -> RcbResult<Self> {
         let inner = InnerDidDht::from_uri(uri).map_err(|e| Arc::new(e.into()))?;
-        Ok(Self { 0: inner })
+        Ok(Self(inner))
     }
 
     // 🚧

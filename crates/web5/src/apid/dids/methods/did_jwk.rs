@@ -1,9 +1,9 @@
-use super::Result;
+use super::{MethodError, Result};
 use crate::apid::{
     dids::{
         did::Did,
         document::{Document, VerificationMethod},
-        resolution_result::ResolutionResult,
+        resolution_result::{ResolutionMetadataError, ResolutionResult},
     },
     jwk::Jwk,
 };
@@ -50,7 +50,10 @@ impl DidJwk {
         let resolution_result = DidJwk::resolve(uri)?;
 
         match resolution_result.document {
-            None => panic!(),
+            None => Err(match resolution_result.resolution_metadata.error {
+                None => MethodError::ResolutionError(ResolutionMetadataError::InternalError),
+                Some(e) => MethodError::ResolutionError(e),
+            }),
             Some(document) => {
                 let did = Did::new(uri)?;
                 Ok(Self { did, document })

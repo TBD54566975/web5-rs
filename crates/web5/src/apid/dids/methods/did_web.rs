@@ -1,6 +1,9 @@
-use crate::apid::dids::{did::Did, document::Document, resolution_result::ResolutionResult};
-
-use super::Result;
+use super::{MethodError, Result};
+use crate::apid::dids::{
+    did::Did,
+    document::Document,
+    resolution_result::{ResolutionMetadataError, ResolutionResult},
+};
 
 #[derive(Clone)]
 pub struct DidWeb {
@@ -12,7 +15,10 @@ impl DidWeb {
     pub fn from_uri(uri: &str) -> Result<Self> {
         let resolution_result = DidWeb::resolve(uri);
         match resolution_result.document {
-            None => panic!(),
+            None => Err(match resolution_result.resolution_metadata.error {
+                None => MethodError::ResolutionError(ResolutionMetadataError::InternalError),
+                Some(e) => MethodError::ResolutionError(e),
+            }),
             Some(document) => {
                 let identifer = Did::new(uri)?;
                 Ok(Self {

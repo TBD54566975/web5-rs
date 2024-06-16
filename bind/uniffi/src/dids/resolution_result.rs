@@ -4,9 +4,7 @@ pub struct RcbResolutionResult(InnerResolutionResult);
 
 impl RcbResolutionResult {
     pub fn new(uri: &str) -> Self {
-        Self {
-            0: InnerResolutionResult::new(uri),
-        }
+        Self(InnerResolutionResult::new(uri))
     }
 
     pub fn get_data(&self) -> InnerResolutionResult {

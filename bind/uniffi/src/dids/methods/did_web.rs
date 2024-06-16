@@ -7,7 +7,7 @@ pub struct RcbDidWeb(InnerDidWeb);
 impl RcbDidWeb {
     pub fn from_uri(uri: &str) -> RcbResult<Self> {
         let inner = InnerDidWeb::from_uri(uri).map_err(|e| Arc::new(e.into()))?;
-        Ok(Self { 0: inner })
+        Ok(Self(inner))
     }
 
     // 🚧

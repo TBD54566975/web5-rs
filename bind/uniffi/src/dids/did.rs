@@ -7,7 +7,7 @@ pub struct RcbDid(InnerDid);
 impl RcbDid {
     pub fn new(uri: &str) -> RcbResult<Self> {
         let inner = InnerDid::new(uri).map_err(|e| Arc::new(e.into()))?;
-        Ok(Self { 0: inner })
+        Ok(Self(inner))
     }
 
     pub fn get_data(&self) -> InnerDid {

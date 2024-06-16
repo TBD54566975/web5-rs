@@ -18,6 +18,7 @@ pub enum KeyManagerError {
 
 type Result<T> = std::result::Result<T, KeyManagerError>;
 
+#[derive(Default)]
 pub struct InMemoryKeyManager {
     map: RwLock<HashMap<String, Jwk>>,
 }

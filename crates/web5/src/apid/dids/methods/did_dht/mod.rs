@@ -1,11 +1,15 @@
 use crate::apid::{
-    dids::{did::Did, document::Document, resolution_result::ResolutionResult},
+    dids::{
+        did::Did,
+        document::Document,
+        resolution_result::{ResolutionMetadataError, ResolutionResult},
+    },
     dsa::Signer,
     jwk::Jwk,
 };
 use std::sync::Arc;
 
-use super::Result;
+use super::{MethodError, Result};
 
 #[derive(Clone, Default)]
 pub struct DidDht {
@@ -24,7 +28,10 @@ impl DidDht {
     pub fn from_uri(uri: &str) -> Result<Self> {
         let resolution_result = DidDht::resolve(uri)?;
         match resolution_result.document {
-            None => panic!(),
+            None => Err(match resolution_result.resolution_metadata.error {
+                None => MethodError::ResolutionError(ResolutionMetadataError::InternalError),
+                Some(e) => MethodError::ResolutionError(e),
+            }),
             Some(document) => {
                 let identifer = Did::new(uri)?;
                 Ok(Self {

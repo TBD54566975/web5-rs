@@ -33,7 +33,10 @@ impl Jwk {
             ),
             "OKP" => format!(r#"{{"crv":"{}","kty":"OKP","x":"{}"}}"#, self.crv, self.x,),
             _ => {
-                panic!()
+                return Err(JwkError::ThumbprintFailed(format!(
+                    "kty not supported {0}",
+                    self.kty
+                )))
             }
         };
         let mut hasher = Sha256::new();
