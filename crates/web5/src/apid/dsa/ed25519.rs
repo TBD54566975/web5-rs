@@ -28,6 +28,7 @@ impl Ed25519Generator {
     }
 }
 
+#[derive(Clone)]
 pub struct Ed25519Signer {
     private_jwk: Jwk,
 }
@@ -57,6 +58,7 @@ impl Signer for Ed25519Signer {
     }
 }
 
+#[derive(Clone)]
 pub struct Ed25519Verifier {
     public_jwk: Jwk,
 }

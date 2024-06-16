@@ -36,11 +36,11 @@ impl DidDht {
         unimplemented!()
     }
 
-    pub fn publish(&self, signer: Arc<dyn Signer>) {
+    pub fn publish(&self, signer: Arc<dyn Signer>) -> Result<()> {
         unimplemented!()
     }
 
-    pub fn deactivate(&self, signer: Arc<dyn Signer>) {
+    pub fn deactivate(&self, signer: Arc<dyn Signer>) -> Result<()> {
         unimplemented!()
     }
 }

@@ -1,3 +1,4 @@
+use super::Result;
 use crate::apid::{
     dids::{
         did::Did,
@@ -7,8 +8,6 @@ use crate::apid::{
     jwk::Jwk,
 };
 use base64::{engine::general_purpose, Engine as _};
-
-use super::Result;
 
 #[derive(Clone)]
 pub struct DidJwk {
