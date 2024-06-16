@@ -3,7 +3,7 @@ dev:
   java -cp "target/classes/:target/dependency/*" com.example.HelloWorldKt
 
 run:
-  (cd ../../binded/kt; mvn clean install)
+  (cd ../../bound/kt; mvn clean install)
   mvn clean compile
   mvn package
   mvn dependency:copy-dependencies

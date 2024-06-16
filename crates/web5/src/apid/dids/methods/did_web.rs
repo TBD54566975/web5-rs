@@ -25,6 +25,9 @@ impl DidWeb {
 
     pub fn resolve(uri: &str) -> ResolutionResult {
         // 🚧 use existing PR which replaces spruce dep
-        unimplemented!()
+        println!("DidWeb::resolve() called with {}", uri);
+        ResolutionResult {
+            ..Default::default()
+        }
     }
 }

@@ -92,7 +92,7 @@ impl Verifier for Ed25519Verifier {
 
         match verify_result {
             Ok(_) => Ok(true),
-            Err(e) => Ok(false),
+            Err(_) => Ok(false),
         }
     }
 }

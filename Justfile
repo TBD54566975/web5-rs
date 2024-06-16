@@ -30,9 +30,9 @@ bind-kotlin: setup
     generate --library target/release/libweb5_uniffi.dylib \
     --language kotlin \
     --out-dir target/bindgen-kotlin
-  cp target/release/libweb5_uniffi.dylib binded/kt/src/main/resources/natives
-  cp target/bindgen-kotlin/web5/sdk/web5.kt binded/kt/src/main/kotlin/web5/sdk
-  cd binded/kt && ./fix-load.sh
+  cp target/release/libweb5_uniffi.dylib bound/kt/src/main/resources/natives
+  cp target/bindgen-kotlin/web5/sdk/web5.kt bound/kt/src/main/kotlin/web5/sdk
+  cd bound/kt && ./fix-load.sh
 
 bind-swift: setup
   cargo build --release --package web5-uniffi
@@ -42,23 +42,23 @@ bind-swift: setup
     --language swift \
     --out-dir target/bindgen-swift
   mkdir -p target/xcframework-staging
-  mv target/bindgen-swift/web5.swift binded/swift/Sources/UniFFI
+  mv target/bindgen-swift/web5.swift bound/swift/Sources/UniFFI
   mv target/bindgen-swift/web5FFI.modulemap target/xcframework-staging/module.modulemap
   mv target/bindgen-swift/web5FFI.h target/xcframework-staging/
-  rm -rf binded/swift/libweb5-rs.xcframework
+  rm -rf bound/swift/libweb5-rs.xcframework
   xcodebuild -create-xcframework \
     -library target/release/libweb5_uniffi.dylib \
     -headers target/xcframework-staging \
-    -output binded/swift/libweb5-rs.xcframework
+    -output bound/swift/libweb5-rs.xcframework
 
-test-binded: setup
+test-bound: setup
   just test-kotlin
   just test-swift
 
 test-kotlin: setup
-  cd binded/kt && mvn clean test
+  cd bound/kt && mvn clean test
 
 test-swift: setup
-  cd binded/swift && \
+  cd bound/swift && \
     swift package clean && \
     swift test

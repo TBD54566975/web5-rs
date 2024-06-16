@@ -42,7 +42,7 @@ impl Display for Issuer {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct VerifiableCredential {
     #[serde(rename = "@context")]
     pub context: Vec<String>,
@@ -98,16 +98,26 @@ impl VerifiableCredential {
         }
     }
 
-    pub fn sign(&self, signer: Arc<dyn Signer>) -> Result<String> {
-        unimplemented!()
+    pub fn sign(&self, _signer: Arc<dyn Signer>) -> Result<String> {
+        println!("VerifiableCredential.sign() called");
+        Ok(String::default())
     }
 
-    pub fn verify(jwt: &str) -> Result<Self> {
+    pub fn verify(vcjwt: &str) -> Result<Self> {
         // 🚧 call VerifiableCredential::verify_with_verifier with Ed25519Verifier
-        unimplemented!()
+        println!("VerifiableCredential::verify() called with {}", vcjwt);
+        Ok(Self {
+            ..Default::default()
+        })
     }
 
-    pub fn verify_with_verifier(vcjwt: &str, verifier: Arc<dyn Verifier>) -> Result<Self> {
-        unimplemented!()
+    pub fn verify_with_verifier(vcjwt: &str, _verifier: Arc<dyn Verifier>) -> Result<Self> {
+        println!(
+            "VerifiableCredential::verify_with_verifier() called with {}",
+            vcjwt
+        );
+        Ok(Self {
+            ..Default::default()
+        })
     }
 }

@@ -3,10 +3,7 @@ use crate::{
     errors::RcbResult,
 };
 use std::sync::Arc;
-use web5::apid::{
-    dsa::ed25519::Ed25519Signer,
-    in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager, jwk::Jwk,
-};
+use web5::apid::{in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager, jwk::Jwk};
 
 pub struct RcbInMemoryKeyManager(InnerInMemoryKeyManager);
 

@@ -1,6 +1,6 @@
 use crate::errors::RcbResult;
 use std::sync::Arc;
-use web5::apid::{dids::methods::did_web::DidWeb as InnerDidWeb, jwk::Jwk};
+use web5::apid::dids::methods::did_web::DidWeb as InnerDidWeb;
 
 pub struct RcbDidWeb(InnerDidWeb);
 

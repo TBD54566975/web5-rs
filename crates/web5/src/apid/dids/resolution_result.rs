@@ -11,7 +11,10 @@ pub struct ResolutionResult {
 impl ResolutionResult {
     // 🚧 change in APID from STATIC METHOD to CONSTRUCTOR
     pub fn new(uri: &str) -> Self {
-        unimplemented!()
+        println!("ResolutionResult::new() called with {}", uri);
+        Self {
+            ..Default::default()
+        }
     }
 }
 
