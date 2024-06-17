@@ -86,10 +86,8 @@ pub struct Filter {
     pub pattern: Option<String>,
     #[serde(rename = "const", skip_serializing_if = "Option::is_none")]
     pub const_value: Option<String>,
-    // 🚧 UDL doesn't support nested types -- need to find an alternative, for now removing support
-    // 🚧 https://github.com/TBD54566975/web5-rs/pull/234
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub contains: Option<Box<Filter>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contains: Option<Box<Filter>>,
 }
 
 fn generate_token() -> String {

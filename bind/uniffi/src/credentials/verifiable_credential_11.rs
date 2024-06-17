@@ -12,13 +12,11 @@ impl RcbVerifiableCredential {
         Self(verifiable_credential)
     }
 
-    // 🚧 should be constructor in the APID
     pub fn verify(vcjwt: &str) -> RcbResult<Self> {
         let vc = VerifiableCredential::verify(vcjwt).map_err(|e| Arc::new(e.into()))?;
         Ok(Self(vc))
     }
 
-    // 🚧 should be constructor in the APID
     pub fn verify_with_verifier(vcjwt: &str, verifier: Arc<dyn RcbVerifier>) -> RcbResult<Self> {
         let vc = VerifiableCredential::verify_with_verifier(vcjwt, verifier.to_verifier())
             .map_err(|e| Arc::new(e.into()))?;
