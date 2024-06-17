@@ -6,7 +6,10 @@ mod errors;
 mod in_memory_key_manager;
 
 use crate::{
-    credentials::verifiable_credential_11::RcbVerifiableCredential,
+    credentials::{
+        presentation_definition::RcbPresentationDefinition,
+        verifiable_credential_11::RcbVerifiableCredential,
+    },
     dids::{
         did::RcbDid,
         methods::{did_dht::RcbDidDht, did_jwk::RcbDidJwk, did_web::RcbDidWeb},
@@ -21,9 +24,16 @@ use crate::{
 };
 
 use web5::apid::{
-    credentials::verifiable_credential_11::{
-        CredentialSubject as RcbCredentialSubjectData,
-        VerifiableCredential as RcbVerifiableCredentialData,
+    credentials::{
+        presentation_definition::{
+            Constraints as RcbConstraintsData, Field as RcbFieldData, Filter as RcbFilterData,
+            InputDescriptor as RcbInputDescriptorData, Optionality as RcbOptionality,
+            PresentationDefinition as RcbPresentationDefinitionData,
+        },
+        verifiable_credential_11::{
+            CredentialSubject as RcbCredentialSubjectData,
+            VerifiableCredential as RcbVerifiableCredentialData,
+        },
     },
     dids::{
         did::Did as RcbDidData,

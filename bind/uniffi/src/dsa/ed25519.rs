@@ -3,21 +3,21 @@ use crate::errors::RcbResult;
 use std::sync::Arc;
 use web5::apid::{
     dsa::{
-        ed25519::{Ed25519Signer as InnerEd25519Signer, Ed25519Verifier as InnerEd25519Verifier},
-        Signer as InnerSigner, Verifier as InnerVerifier,
+        ed25519::{Ed25519Signer, Ed25519Verifier},
+        Signer, Verifier,
     },
     jwk::Jwk,
 };
 
-pub struct RcbEd25519Signer(InnerEd25519Signer);
+pub struct RcbEd25519Signer(Ed25519Signer);
 
 impl RcbEd25519Signer {
     pub fn new(private_jwk: Jwk) -> Self {
-        Self(InnerEd25519Signer::new(private_jwk))
+        Self(Ed25519Signer::new(private_jwk))
     }
 
-    pub fn from_inner(inner: InnerEd25519Signer) -> Self {
-        Self(inner)
+    pub fn from_ed25519_signer(ed25519_signer: Ed25519Signer) -> Self {
+        Self(ed25519_signer)
     }
 }
 
@@ -26,16 +26,16 @@ impl RcbSigner for RcbEd25519Signer {
         self.0.sign(payload).map_err(|e| Arc::new(e.into()))
     }
 
-    fn to_inner(&self) -> Arc<dyn InnerSigner> {
+    fn to_signer(&self) -> Arc<dyn Signer> {
         Arc::new(self.0.clone())
     }
 }
 
-pub struct RcbEd25519Verifier(InnerEd25519Verifier);
+pub struct RcbEd25519Verifier(Ed25519Verifier);
 
 impl RcbEd25519Verifier {
     pub fn new(public_jwk: Jwk) -> Self {
-        Self(InnerEd25519Verifier::new(public_jwk))
+        Self(Ed25519Verifier::new(public_jwk))
     }
 }
 
@@ -46,7 +46,7 @@ impl RcbVerifier for RcbEd25519Verifier {
             .map_err(|e| Arc::new(e.into()))
     }
 
-    fn to_inner(&self) -> Arc<dyn InnerVerifier> {
+    fn to_verifier(&self) -> Arc<dyn Verifier> {
         Arc::new(self.0.clone())
     }
 }

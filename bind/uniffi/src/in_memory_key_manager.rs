@@ -3,13 +3,13 @@ use crate::{
     errors::RcbResult,
 };
 use std::sync::Arc;
-use web5::apid::{in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager, jwk::Jwk};
+use web5::apid::{in_memory_key_manager::InMemoryKeyManager, jwk::Jwk};
 
-pub struct RcbInMemoryKeyManager(InnerInMemoryKeyManager);
+pub struct RcbInMemoryKeyManager(InMemoryKeyManager);
 
 impl RcbInMemoryKeyManager {
     pub fn new() -> Self {
-        Self(InnerInMemoryKeyManager::new())
+        Self(InMemoryKeyManager::new())
     }
 
     pub fn generate_key_material(&self) -> RcbResult<Jwk> {
@@ -23,7 +23,7 @@ impl RcbInMemoryKeyManager {
             .0
             .get_signer(public_key)
             .map_err(|e| Arc::new(e.into()))?;
-        Ok(Arc::new(RcbEd25519Signer::from_inner(signer)))
+        Ok(Arc::new(RcbEd25519Signer::from_ed25519_signer(signer)))
     }
 
     pub fn import_key(&self, private_key: Jwk) -> RcbResult<Jwk> {

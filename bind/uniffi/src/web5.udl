@@ -201,3 +201,48 @@ interface RcbVerifiableCredential {
   string sign(RcbSigner signer);
   RcbVerifiableCredentialData get_data();
 };
+
+dictionary RcbPresentationDefinitionData {
+  string id;
+  string? name;
+  string? purpose;
+  sequence<RcbInputDescriptorData> input_descriptors;
+};
+
+dictionary RcbInputDescriptorData {
+  string id;
+  string? name;
+  string? purpose;
+  RcbConstraintsData constraints;
+};
+
+dictionary RcbConstraintsData {
+  sequence<RcbFieldData> fields;
+};
+
+enum RcbOptionality {
+  "Required",
+  "Preferred",
+};
+
+dictionary RcbFieldData {
+  string? id;
+  string? name;
+  sequence<string> path;
+  string? purpose;
+  RcbFilterData? filter;
+  boolean? optional;
+  RcbOptionality? predicate;
+};
+
+dictionary RcbFilterData {
+  string? type;
+  string? pattern;
+  string? const_value;
+};
+
+interface RcbPresentationDefinition {
+  constructor(RcbPresentationDefinitionData data);
+  [Throws=RcbError]
+  sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
+};

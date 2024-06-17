@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::{any::type_name, fmt::Debug};
 use thiserror::Error;
+use web5::apid::credentials::presentation_definition::PexError;
 use web5::apid::credentials::CredentialError;
 use web5::apid::dids::did::DidError;
 use web5::apid::dids::methods::MethodError;
@@ -93,6 +94,12 @@ impl From<MethodError> for RcbError {
 
 impl From<CredentialError> for RcbError {
     fn from(error: CredentialError) -> Self {
+        RcbError::new(error)
+    }
+}
+
+impl From<PexError> for RcbError {
+    fn from(error: PexError) -> Self {
         RcbError::new(error)
     }
 }

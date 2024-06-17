@@ -1,19 +1,19 @@
 use std::sync::Arc;
-use web5::apid::{dids::methods::did_dht::DidDht as InnerDidDht, jwk::Jwk};
+use web5::apid::{dids::methods::did_dht::DidDht, jwk::Jwk};
 
 use crate::{dsa::RcbSigner, errors::RcbResult};
 
-pub struct RcbDidDht(InnerDidDht);
+pub struct RcbDidDht(DidDht);
 
 impl RcbDidDht {
     pub fn from_identity_key(public_key: Jwk) -> RcbResult<Self> {
-        let inner = InnerDidDht::from_identity_key(public_key).map_err(|e| Arc::new(e.into()))?;
-        Ok(Self(inner))
+        let did_dht = DidDht::from_identity_key(public_key).map_err(|e| Arc::new(e.into()))?;
+        Ok(Self(did_dht))
     }
 
     pub fn from_uri(uri: &str) -> RcbResult<Self> {
-        let inner = InnerDidDht::from_uri(uri).map_err(|e| Arc::new(e.into()))?;
-        Ok(Self(inner))
+        let did_dht = DidDht::from_uri(uri).map_err(|e| Arc::new(e.into()))?;
+        Ok(Self(did_dht))
     }
 
     // 🚧
@@ -23,17 +23,17 @@ impl RcbDidDht {
 
     pub fn publish(&self, signer: Arc<dyn RcbSigner>) -> RcbResult<()> {
         self.0
-            .publish(signer.to_inner())
+            .publish(signer.to_signer())
             .map_err(|e| Arc::new(e.into()))
     }
 
     pub fn deactivate(&self, signer: Arc<dyn RcbSigner>) -> RcbResult<()> {
         self.0
-            .deactivate(signer.to_inner())
+            .deactivate(signer.to_signer())
             .map_err(|e| Arc::new(e.into()))
     }
 
-    pub fn get_data(&self) -> InnerDidDht {
+    pub fn get_data(&self) -> DidDht {
         self.0.clone()
     }
 }

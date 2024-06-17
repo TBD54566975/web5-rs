@@ -1,3 +1,4 @@
+pub mod presentation_definition;
 pub mod verifiable_credential_11;
 
 #[derive(thiserror::Error, Debug)]
