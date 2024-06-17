@@ -1,18 +1,21 @@
 package web5.sdk
 
 import org.junit.jupiter.api.Test
-import web5.sdk.DidDht
-import web5.sdk.InMemoryKeyManager
+
+import web5.sdk.rust.InMemoryKeyManager as RustCoreInMemoryKeyManager
+import web5.sdk.rust.DidDht as RustCoreDidDht
 
 class DidDhtTests {
     @Test
     fun `can do things`() {
-        val keyManager = InMemoryKeyManager()
-        val jwkData = keyManager.generateKeyMaterial()
+        val rustCoreKeyManager = RustCoreInMemoryKeyManager()
 
-        val didDht = DidDht.fromIdentityKey(jwkData)
-        val signer = keyManager.getSigner(jwkData)
-        didDht.publish(signer)
-        didDht.deactivate(signer)
+        val jwkData = rustCoreKeyManager.generateKeyMaterial()
+
+        val rustCoreDidDht = RustCoreDidDht.fromIdentityKey(jwkData)
+        val signer = rustCoreKeyManager.getSigner(jwkData)
+
+        rustCoreDidDht.publish(signer)
+        rustCoreDidDht.deactivate(signer)
     }
 }
