@@ -335,7 +335,7 @@ CLASS ResolutionResult
   PUBLIC DATA resolution_metadata: ResolutionMetadata
 
   /// Resolve via a DID URI.
-  STATIC METHOD resolve(uri: string): ResolutionResult
+  CONSTRUCTOR resolve(uri: string)
 ```
 
 **Examples**
@@ -560,14 +560,14 @@ CLASS VerifiableCredential
   PUBLIC DATA expirationDate: string?
   PUBLIC DATA credentialSubject: Object  # 🚧 `Object` not supported 🚧
   CONSTRUCTOR(context: []string, id: string, type: []string, issuer: string | NamedIssuer, issuanceDate: string, expirationDate: string?)
+  CONSTRUCTOR(vcjwt: string)
+  CONSTRUCTOR(vcjwt: string, verifier: Verifier)
   METHOD sign(signer: Signer): string
-  STATIC METHOD verify(vcjwt: string): VerifiableCredential
-  STATIC METHOD verify_with_verifier(vcjwt: string, verifier: Verifier): VerifiableCredential
 ```
 
 > [!NOTE]
 >
-> `verify` and `verify_with_verifier` assume `vcjwt` is a compact serialized JWS wherein the `kid` JOSE Header is equal to a DID URI which can be dereferenced to fetch the [`publicKeyJwk`](./did.md#data-models).
+> `CONSTRUCTOR(vcjwt: string)` and `CONSTRUCTOR(vcjwt: string, verifier: Verifier)` both execute cryprographic verification and assume `vcjwt` is a compact serialized JWS wherein the `kid` JOSE Header is equal to a DID URI which can be dereferenced to fetch the [`publicKeyJwk`](./did.md#data-models).
 
 #### Example: Create a VC & sign
 
