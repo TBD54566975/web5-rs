@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package web5.sdk;
+package web5.sdk.rust;
 
 // Common helper code.
 //
@@ -641,39 +641,39 @@ internal open class UniffiForeignFutureStructVoid(
 internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
     fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructVoid.UniffiByValue,)
 }
-internal interface UniffiCallbackInterfaceRcbSignerMethod0 : com.sun.jna.Callback {
+internal interface UniffiCallbackInterfaceSignerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`payload`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
 }
-internal interface UniffiCallbackInterfaceRcbVerifierMethod0 : com.sun.jna.Callback {
+internal interface UniffiCallbackInterfaceVerifierMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,`uniffiOutReturn`: ByteByReference,uniffiCallStatus: UniffiRustCallStatus,)
 }
 @Structure.FieldOrder("sign", "uniffiFree")
-internal open class UniffiVTableCallbackInterfaceRcbSigner(
-    @JvmField internal var `sign`: UniffiCallbackInterfaceRcbSignerMethod0? = null,
+internal open class UniffiVTableCallbackInterfaceSigner(
+    @JvmField internal var `sign`: UniffiCallbackInterfaceSignerMethod0? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
 ) : Structure() {
     class UniffiByValue(
-        `sign`: UniffiCallbackInterfaceRcbSignerMethod0? = null,
+        `sign`: UniffiCallbackInterfaceSignerMethod0? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceRcbSigner(`sign`,`uniffiFree`,), Structure.ByValue
+    ): UniffiVTableCallbackInterfaceSigner(`sign`,`uniffiFree`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceRcbSigner) {
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSigner) {
         `sign` = other.`sign`
         `uniffiFree` = other.`uniffiFree`
     }
 
 }
 @Structure.FieldOrder("verify", "uniffiFree")
-internal open class UniffiVTableCallbackInterfaceRcbVerifier(
-    @JvmField internal var `verify`: UniffiCallbackInterfaceRcbVerifierMethod0? = null,
+internal open class UniffiVTableCallbackInterfaceVerifier(
+    @JvmField internal var `verify`: UniffiCallbackInterfaceVerifierMethod0? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
 ) : Structure() {
     class UniffiByValue(
-        `verify`: UniffiCallbackInterfaceRcbVerifierMethod0? = null,
+        `verify`: UniffiCallbackInterfaceVerifierMethod0? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceRcbVerifier(`verify`,`uniffiFree`,), Structure.ByValue
+    ): UniffiVTableCallbackInterfaceVerifier(`verify`,`uniffiFree`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceRcbVerifier) {
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceVerifier) {
         `verify` = other.`verify`
         `uniffiFree` = other.`uniffiFree`
     }
@@ -863,133 +863,133 @@ internal interface UniffiLib : Library {
         }
     }
 
-    fun uniffi_web5_uniffi_fn_clone_rcbdid(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_did(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbdid(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_did(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_rcbdid_new(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_did_new(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_rcbdid_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_did_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_clone_rcbdiddht(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_diddht(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbdiddht(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_diddht(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_rcbdiddht_from_identity_key(`identityKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_diddht_from_identity_key(`identityKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_constructor_rcbdiddht_from_uri(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_diddht_from_uri(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_rcbdiddht_deactivate(`ptr`: Pointer,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_diddht_deactivate(`ptr`: Pointer,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_method_rcbdiddht_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_diddht_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_rcbdiddht_publish(`ptr`: Pointer,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_diddht_publish(`ptr`: Pointer,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_clone_rcbdidjwk(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_didjwk(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbdidjwk(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_didjwk(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_rcbdidjwk_from_public_jwk(`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_didjwk_from_public_jwk(`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_constructor_rcbdidjwk_from_uri(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_didjwk_from_uri(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_rcbdidjwk_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_didjwk_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_clone_rcbdidweb(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_didweb(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbdidweb(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_didweb(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_rcbdidweb_from_uri(`uri`: RustBuffer.ByValue,
+    fun uniffi_web5_uniffi_fn_constructor_didweb_from_uri(`uri`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_web5_uniffi_fn_method_rcbdidweb_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_didweb_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_clone_rcbed25519signer(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_ed25519signer(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbed25519signer(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_ed25519signer(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_rcbed25519signer_new(`privateKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_ed25519signer_new(`privateKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_rcbed25519signer_sign(`ptr`: Pointer,`payload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_ed25519signer_sign(`ptr`: Pointer,`payload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_clone_rcbed25519verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_ed25519verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbed25519verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_ed25519verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_rcbed25519verifier_new(`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_ed25519verifier_new(`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_rcbed25519verifier_verify(`ptr`: Pointer,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_ed25519verifier_verify(`ptr`: Pointer,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_web5_uniffi_fn_clone_rcberror(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_error(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcberror(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_error(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_method_rcberror_error_type(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_error_error_type(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_rcberror_error_variant(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_error_error_variant(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_rcberror_message(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_error_message(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_clone_rcbinmemorykeymanager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_inmemorykeymanager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbinmemorykeymanager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_inmemorykeymanager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_rcbinmemorykeymanager_new(uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_inmemorykeymanager_new(uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_rcbinmemorykeymanager_generate_key_material(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_generate_key_material(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_rcbinmemorykeymanager_get_signer(`ptr`: Pointer,`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(`ptr`: Pointer,`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_rcbinmemorykeymanager_import_key(`ptr`: Pointer,`privateKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_import_key(`ptr`: Pointer,`privateKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_clone_rcbpresentationdefinition(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_presentationdefinition(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbpresentationdefinition(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_presentationdefinition(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_rcbpresentationdefinition_new(`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_presentationdefinition_new(`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_rcbpresentationdefinition_select_credentials(`ptr`: Pointer,`vcJwts`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_presentationdefinition_select_credentials(`ptr`: Pointer,`vcJwts`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_clone_rcbresolutionresult(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_resolutionresult(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbresolutionresult(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_resolutionresult(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_rcbresolutionresult_new(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_resolutionresult_new(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_rcbresolutionresult_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_resolutionresult_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_clone_rcbsigner(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_signer(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbsigner(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_signer(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_method_rcbsigner_sign(`ptr`: Pointer,`payload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_signer_sign(`ptr`: Pointer,`payload`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_clone_rcbverifiablecredential(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_verifiablecredential(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbverifiablecredential(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_verifiablecredential(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_rcbverifiablecredential_new(`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_new(`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_constructor_rcbverifiablecredential_verify(`vcjwt`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify(`vcjwt`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_constructor_rcbverifiablecredential_verify_with_verifier(`vcjwt`: RustBuffer.ByValue,`verifier`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify_with_verifier(`vcjwt`: RustBuffer.ByValue,`verifier`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_rcbverifiablecredential_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_rcbverifiablecredential_sign(`ptr`: Pointer,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_verifiablecredential_sign(`ptr`: Pointer,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_clone_rcbverifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_clone_verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_free_rcbverifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_free_verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_method_rcbverifier_verify(`ptr`: Pointer,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_verifier_verify(`ptr`: Pointer,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_web5_uniffi_fn_func_rcb_did_dht_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_func_did_dht_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_func_rcb_did_jwk_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_func_did_jwk_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_func_rcb_did_web_resolve(`uri`: RustBuffer.ByValue,
+    fun uniffi_web5_uniffi_fn_func_did_web_resolve(`uri`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_web5_uniffi_fn_func_rcb_ed25519_generator_generate(uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_func_ed25519_generator_generate(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_web5_uniffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -1103,81 +1103,81 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_web5_uniffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_checksum_func_rcb_did_dht_resolve(
+    fun uniffi_web5_uniffi_checksum_func_did_dht_resolve(
     ): Short
-    fun uniffi_web5_uniffi_checksum_func_rcb_did_jwk_resolve(
+    fun uniffi_web5_uniffi_checksum_func_did_jwk_resolve(
     ): Short
-    fun uniffi_web5_uniffi_checksum_func_rcb_did_web_resolve(
+    fun uniffi_web5_uniffi_checksum_func_did_web_resolve(
     ): Short
-    fun uniffi_web5_uniffi_checksum_func_rcb_ed25519_generator_generate(
+    fun uniffi_web5_uniffi_checksum_func_ed25519_generator_generate(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbdid_get_data(
+    fun uniffi_web5_uniffi_checksum_method_did_get_data(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbdiddht_deactivate(
+    fun uniffi_web5_uniffi_checksum_method_diddht_deactivate(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbdiddht_get_data(
+    fun uniffi_web5_uniffi_checksum_method_diddht_get_data(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbdiddht_publish(
+    fun uniffi_web5_uniffi_checksum_method_diddht_publish(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbdidjwk_get_data(
+    fun uniffi_web5_uniffi_checksum_method_didjwk_get_data(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbdidweb_get_data(
+    fun uniffi_web5_uniffi_checksum_method_didweb_get_data(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbed25519signer_sign(
+    fun uniffi_web5_uniffi_checksum_method_ed25519signer_sign(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbed25519verifier_verify(
+    fun uniffi_web5_uniffi_checksum_method_ed25519verifier_verify(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcberror_error_type(
+    fun uniffi_web5_uniffi_checksum_method_error_error_type(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcberror_error_variant(
+    fun uniffi_web5_uniffi_checksum_method_error_error_variant(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcberror_message(
+    fun uniffi_web5_uniffi_checksum_method_error_message(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbinmemorykeymanager_generate_key_material(
+    fun uniffi_web5_uniffi_checksum_method_inmemorykeymanager_generate_key_material(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbinmemorykeymanager_get_signer(
+    fun uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbinmemorykeymanager_import_key(
+    fun uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_key(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbpresentationdefinition_select_credentials(
+    fun uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbresolutionresult_get_data(
+    fun uniffi_web5_uniffi_checksum_method_resolutionresult_get_data(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbsigner_sign(
+    fun uniffi_web5_uniffi_checksum_method_signer_sign(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbverifiablecredential_get_data(
+    fun uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbverifiablecredential_sign(
+    fun uniffi_web5_uniffi_checksum_method_verifiablecredential_sign(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rcbverifier_verify(
+    fun uniffi_web5_uniffi_checksum_method_verifier_verify(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbdid_new(
+    fun uniffi_web5_uniffi_checksum_constructor_did_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbdiddht_from_identity_key(
+    fun uniffi_web5_uniffi_checksum_constructor_diddht_from_identity_key(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbdiddht_from_uri(
+    fun uniffi_web5_uniffi_checksum_constructor_diddht_from_uri(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbdidjwk_from_public_jwk(
+    fun uniffi_web5_uniffi_checksum_constructor_didjwk_from_public_jwk(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbdidjwk_from_uri(
+    fun uniffi_web5_uniffi_checksum_constructor_didjwk_from_uri(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbdidweb_from_uri(
+    fun uniffi_web5_uniffi_checksum_constructor_didweb_from_uri(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbed25519signer_new(
+    fun uniffi_web5_uniffi_checksum_constructor_ed25519signer_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbed25519verifier_new(
+    fun uniffi_web5_uniffi_checksum_constructor_ed25519verifier_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbinmemorykeymanager_new(
+    fun uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbpresentationdefinition_new(
+    fun uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbresolutionresult_new(
+    fun uniffi_web5_uniffi_checksum_constructor_resolutionresult_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbverifiablecredential_new(
+    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbverifiablecredential_verify(
+    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_rcbverifiablecredential_verify_with_verifier(
+    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify_with_verifier(
     ): Short
     fun ffi_web5_uniffi_uniffi_contract_version(
     ): Int
@@ -1196,118 +1196,118 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_web5_uniffi_checksum_func_rcb_did_dht_resolve() != 58756.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_resolve() != 31044.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_rcb_did_jwk_resolve() != 45416.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_jwk_resolve() != 9546.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_rcb_did_web_resolve() != 42323.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_web_resolve() != 44683.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_rcb_ed25519_generator_generate() != 49978.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_ed25519_generator_generate() != 57849.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbdid_get_data() != 44720.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_did_get_data() != 55630.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbdiddht_deactivate() != 43054.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_diddht_deactivate() != 63704.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbdiddht_get_data() != 4271.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_diddht_get_data() != 2858.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbdiddht_publish() != 25869.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_diddht_publish() != 54221.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbdidjwk_get_data() != 25511.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_didjwk_get_data() != 58319.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbdidweb_get_data() != 48289.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_didweb_get_data() != 40916.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbed25519signer_sign() != 51770.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_ed25519signer_sign() != 19163.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbed25519verifier_verify() != 33553.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_ed25519verifier_verify() != 25279.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcberror_error_type() != 1812.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_error_error_type() != 46225.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcberror_error_variant() != 16553.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_error_error_variant() != 14889.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcberror_message() != 11164.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_error_message() != 18308.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbinmemorykeymanager_generate_key_material() != 49355.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_generate_key_material() != 39287.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbinmemorykeymanager_get_signer() != 6045.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 24914.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbinmemorykeymanager_import_key() != 47695.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_key() != 1918.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbpresentationdefinition_select_credentials() != 57821.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials() != 12800.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbresolutionresult_get_data() != 782.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_resolutionresult_get_data() != 57220.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbsigner_sign() != 19820.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_signer_sign() != 28006.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbverifiablecredential_get_data() != 9221.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data() != 34047.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbverifiablecredential_sign() != 59403.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_sign() != 50989.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rcbverifier_verify() != 4605.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_verifier_verify() != 23974.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbdid_new() != 61115.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_did_new() != 7198.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbdiddht_from_identity_key() != 1687.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_diddht_from_identity_key() != 2745.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbdiddht_from_uri() != 29393.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_diddht_from_uri() != 10895.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbdidjwk_from_public_jwk() != 51374.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_didjwk_from_public_jwk() != 7853.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbdidjwk_from_uri() != 15155.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_didjwk_from_uri() != 62354.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbdidweb_from_uri() != 48082.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_didweb_from_uri() != 21693.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbed25519signer_new() != 3680.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_ed25519signer_new() != 48464.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbed25519verifier_new() != 23701.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_ed25519verifier_new() != 21891.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbinmemorykeymanager_new() != 22043.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new() != 16598.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbpresentationdefinition_new() != 17100.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 11443.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbresolutionresult_new() != 34610.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_new() != 23836.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbverifiablecredential_new() != 40531.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_new() != 10738.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbverifiablecredential_verify() != 31425.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify() != 38804.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_rcbverifiablecredential_verify_with_verifier() != 40944.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify_with_verifier() != 2756.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1658,14 +1658,14 @@ private class JavaLangRefCleanable(
 ) : UniffiCleaner.Cleanable {
     override fun clean() = cleanable.clean()
 }
-public interface RcbDidInterface {
+public interface DidInterface {
     
-    fun `getData`(): RcbDidData
+    fun `getData`(): DidData
     
     companion object
 }
 
-open class RcbDid: Disposable, AutoCloseable, RcbDidInterface {
+open class Did: Disposable, AutoCloseable, DidInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -1684,8 +1684,8 @@ open class RcbDid: Disposable, AutoCloseable, RcbDidInterface {
     }
     constructor(`uri`: kotlin.String) :
         this(
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbdid_new(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_did_new(
         FfiConverterString.lower(`uri`),_status)
 }
     )
@@ -1741,7 +1741,7 @@ open class RcbDid: Disposable, AutoCloseable, RcbDidInterface {
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbdid(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_did(ptr, status)
                 }
             }
         }
@@ -1749,15 +1749,15 @@ open class RcbDid: Disposable, AutoCloseable, RcbDidInterface {
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbdid(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_did(pointer!!, status)
         }
     }
 
-    override fun `getData`(): RcbDidData {
-            return FfiConverterTypeRcbDidData.lift(
+    override fun `getData`(): DidData {
+            return FfiConverterTypeDidData.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbdid_get_data(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_did_get_data(
         it, _status)
 }
     }
@@ -1773,25 +1773,25 @@ open class RcbDid: Disposable, AutoCloseable, RcbDidInterface {
     
 }
 
-public object FfiConverterTypeRcbDid: FfiConverter<RcbDid, Pointer> {
+public object FfiConverterTypeDid: FfiConverter<Did, Pointer> {
 
-    override fun lower(value: RcbDid): Pointer {
+    override fun lower(value: Did): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbDid {
-        return RcbDid(value)
+    override fun lift(value: Pointer): Did {
+        return Did(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbDid {
+    override fun read(buf: ByteBuffer): Did {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbDid) = 8UL
+    override fun allocationSize(value: Did) = 8UL
 
-    override fun write(value: RcbDid, buf: ByteBuffer) {
+    override fun write(value: Did, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -1897,18 +1897,18 @@ public object FfiConverterTypeRcbDid: FfiConverter<RcbDid, Pointer> {
 //
 
 
-public interface RcbDidDhtInterface {
+public interface DidDhtInterface {
     
-    fun `deactivate`(`signer`: RcbSigner)
+    fun `deactivate`(`signer`: Signer)
     
-    fun `getData`(): RcbDidDhtData
+    fun `getData`(): DidDhtData
     
-    fun `publish`(`signer`: RcbSigner)
+    fun `publish`(`signer`: Signer)
     
     companion object
 }
 
-open class RcbDidDht: Disposable, AutoCloseable, RcbDidDhtInterface {
+open class DidDht: Disposable, AutoCloseable, DidDhtInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -1977,7 +1977,7 @@ open class RcbDidDht: Disposable, AutoCloseable, RcbDidDhtInterface {
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbdiddht(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_diddht(ptr, status)
                 }
             }
         }
@@ -1985,27 +1985,27 @@ open class RcbDidDht: Disposable, AutoCloseable, RcbDidDhtInterface {
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbdiddht(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_diddht(pointer!!, status)
         }
     }
 
     
-    @Throws(RcbException::class)override fun `deactivate`(`signer`: RcbSigner)
+    @Throws(Exception::class)override fun `deactivate`(`signer`: Signer)
         = 
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbdiddht_deactivate(
-        it, FfiConverterTypeRcbSigner.lower(`signer`),_status)
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_diddht_deactivate(
+        it, FfiConverterTypeSigner.lower(`signer`),_status)
 }
     }
     
     
 
-    override fun `getData`(): RcbDidDhtData {
-            return FfiConverterTypeRcbDidDhtData.lift(
+    override fun `getData`(): DidDhtData {
+            return FfiConverterTypeDidDhtData.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbdiddht_get_data(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_diddht_get_data(
         it, _status)
 }
     }
@@ -2014,12 +2014,12 @@ open class RcbDidDht: Disposable, AutoCloseable, RcbDidDhtInterface {
     
 
     
-    @Throws(RcbException::class)override fun `publish`(`signer`: RcbSigner)
+    @Throws(Exception::class)override fun `publish`(`signer`: Signer)
         = 
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbdiddht_publish(
-        it, FfiConverterTypeRcbSigner.lower(`signer`),_status)
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_diddht_publish(
+        it, FfiConverterTypeSigner.lower(`signer`),_status)
 }
     }
     
@@ -2030,21 +2030,21 @@ open class RcbDidDht: Disposable, AutoCloseable, RcbDidDhtInterface {
     
     companion object {
         
-    @Throws(RcbException::class) fun `fromIdentityKey`(`identityKey`: RcbJwkData): RcbDidDht {
-            return FfiConverterTypeRcbDidDht.lift(
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbdiddht_from_identity_key(
-        FfiConverterTypeRcbJwkData.lower(`identityKey`),_status)
+    @Throws(Exception::class) fun `fromIdentityKey`(`identityKey`: JwkData): DidDht {
+            return FfiConverterTypeDidDht.lift(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_diddht_from_identity_key(
+        FfiConverterTypeJwkData.lower(`identityKey`),_status)
 }
     )
     }
     
 
         
-    @Throws(RcbException::class) fun `fromUri`(`uri`: kotlin.String): RcbDidDht {
-            return FfiConverterTypeRcbDidDht.lift(
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbdiddht_from_uri(
+    @Throws(Exception::class) fun `fromUri`(`uri`: kotlin.String): DidDht {
+            return FfiConverterTypeDidDht.lift(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_diddht_from_uri(
         FfiConverterString.lower(`uri`),_status)
 }
     )
@@ -2056,25 +2056,25 @@ open class RcbDidDht: Disposable, AutoCloseable, RcbDidDhtInterface {
     
 }
 
-public object FfiConverterTypeRcbDidDht: FfiConverter<RcbDidDht, Pointer> {
+public object FfiConverterTypeDidDht: FfiConverter<DidDht, Pointer> {
 
-    override fun lower(value: RcbDidDht): Pointer {
+    override fun lower(value: DidDht): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbDidDht {
-        return RcbDidDht(value)
+    override fun lift(value: Pointer): DidDht {
+        return DidDht(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbDidDht {
+    override fun read(buf: ByteBuffer): DidDht {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbDidDht) = 8UL
+    override fun allocationSize(value: DidDht) = 8UL
 
-    override fun write(value: RcbDidDht, buf: ByteBuffer) {
+    override fun write(value: DidDht, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -2180,14 +2180,14 @@ public object FfiConverterTypeRcbDidDht: FfiConverter<RcbDidDht, Pointer> {
 //
 
 
-public interface RcbDidJwkInterface {
+public interface DidJwkInterface {
     
-    fun `getData`(): RcbDidJwkData
+    fun `getData`(): DidJwkData
     
     companion object
 }
 
-open class RcbDidJwk: Disposable, AutoCloseable, RcbDidJwkInterface {
+open class DidJwk: Disposable, AutoCloseable, DidJwkInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -2256,7 +2256,7 @@ open class RcbDidJwk: Disposable, AutoCloseable, RcbDidJwkInterface {
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbdidjwk(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_didjwk(ptr, status)
                 }
             }
         }
@@ -2264,15 +2264,15 @@ open class RcbDidJwk: Disposable, AutoCloseable, RcbDidJwkInterface {
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbdidjwk(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_didjwk(pointer!!, status)
         }
     }
 
-    override fun `getData`(): RcbDidJwkData {
-            return FfiConverterTypeRcbDidJwkData.lift(
+    override fun `getData`(): DidJwkData {
+            return FfiConverterTypeDidJwkData.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbdidjwk_get_data(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_didjwk_get_data(
         it, _status)
 }
     }
@@ -2285,21 +2285,21 @@ open class RcbDidJwk: Disposable, AutoCloseable, RcbDidJwkInterface {
     
     companion object {
         
-    @Throws(RcbException::class) fun `fromPublicJwk`(`publicJwk`: RcbJwkData): RcbDidJwk {
-            return FfiConverterTypeRcbDidJwk.lift(
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbdidjwk_from_public_jwk(
-        FfiConverterTypeRcbJwkData.lower(`publicJwk`),_status)
+    @Throws(Exception::class) fun `fromPublicJwk`(`publicJwk`: JwkData): DidJwk {
+            return FfiConverterTypeDidJwk.lift(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didjwk_from_public_jwk(
+        FfiConverterTypeJwkData.lower(`publicJwk`),_status)
 }
     )
     }
     
 
         
-    @Throws(RcbException::class) fun `fromUri`(`uri`: kotlin.String): RcbDidJwk {
-            return FfiConverterTypeRcbDidJwk.lift(
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbdidjwk_from_uri(
+    @Throws(Exception::class) fun `fromUri`(`uri`: kotlin.String): DidJwk {
+            return FfiConverterTypeDidJwk.lift(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didjwk_from_uri(
         FfiConverterString.lower(`uri`),_status)
 }
     )
@@ -2311,25 +2311,25 @@ open class RcbDidJwk: Disposable, AutoCloseable, RcbDidJwkInterface {
     
 }
 
-public object FfiConverterTypeRcbDidJwk: FfiConverter<RcbDidJwk, Pointer> {
+public object FfiConverterTypeDidJwk: FfiConverter<DidJwk, Pointer> {
 
-    override fun lower(value: RcbDidJwk): Pointer {
+    override fun lower(value: DidJwk): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbDidJwk {
-        return RcbDidJwk(value)
+    override fun lift(value: Pointer): DidJwk {
+        return DidJwk(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbDidJwk {
+    override fun read(buf: ByteBuffer): DidJwk {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbDidJwk) = 8UL
+    override fun allocationSize(value: DidJwk) = 8UL
 
-    override fun write(value: RcbDidJwk, buf: ByteBuffer) {
+    override fun write(value: DidJwk, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -2435,14 +2435,14 @@ public object FfiConverterTypeRcbDidJwk: FfiConverter<RcbDidJwk, Pointer> {
 //
 
 
-public interface RcbDidWebInterface {
+public interface DidWebInterface {
     
-    fun `getData`(): RcbDidWebData
+    fun `getData`(): DidWebData
     
     companion object
 }
 
-open class RcbDidWeb: Disposable, AutoCloseable, RcbDidWebInterface {
+open class DidWeb: Disposable, AutoCloseable, DidWebInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -2511,7 +2511,7 @@ open class RcbDidWeb: Disposable, AutoCloseable, RcbDidWebInterface {
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbdidweb(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_didweb(ptr, status)
                 }
             }
         }
@@ -2519,15 +2519,15 @@ open class RcbDidWeb: Disposable, AutoCloseable, RcbDidWebInterface {
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbdidweb(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_didweb(pointer!!, status)
         }
     }
 
-    override fun `getData`(): RcbDidWebData {
-            return FfiConverterTypeRcbDidWebData.lift(
+    override fun `getData`(): DidWebData {
+            return FfiConverterTypeDidWebData.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbdidweb_get_data(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_didweb_get_data(
         it, _status)
 }
     }
@@ -2540,18 +2540,18 @@ open class RcbDidWeb: Disposable, AutoCloseable, RcbDidWebInterface {
     
     companion object {
         
-    @Throws(RcbException::class)
+    @Throws(Exception::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-     suspend fun `fromUri`(`uri`: kotlin.String) : RcbDidWeb {
+     suspend fun `fromUri`(`uri`: kotlin.String) : DidWeb {
         return uniffiRustCallAsync(
-        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbdidweb_from_uri(FfiConverterString.lower(`uri`),),
+        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didweb_from_uri(FfiConverterString.lower(`uri`),),
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_poll_pointer(future, callback, continuation) },
         { future, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_complete_pointer(future, continuation) },
         { future -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_free_pointer(future) },
         // lift function
-        { FfiConverterTypeRcbDidWeb.lift(it) },
+        { FfiConverterTypeDidWeb.lift(it) },
         // Error FFI converter
-        RcbException.ErrorHandler,
+        Exception.ErrorHandler,
     )
     }
 
@@ -2560,25 +2560,25 @@ open class RcbDidWeb: Disposable, AutoCloseable, RcbDidWebInterface {
     
 }
 
-public object FfiConverterTypeRcbDidWeb: FfiConverter<RcbDidWeb, Pointer> {
+public object FfiConverterTypeDidWeb: FfiConverter<DidWeb, Pointer> {
 
-    override fun lower(value: RcbDidWeb): Pointer {
+    override fun lower(value: DidWeb): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbDidWeb {
-        return RcbDidWeb(value)
+    override fun lift(value: Pointer): DidWeb {
+        return DidWeb(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbDidWeb {
+    override fun read(buf: ByteBuffer): DidWeb {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbDidWeb) = 8UL
+    override fun allocationSize(value: DidWeb) = 8UL
 
-    override fun write(value: RcbDidWeb, buf: ByteBuffer) {
+    override fun write(value: DidWeb, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -2684,14 +2684,14 @@ public object FfiConverterTypeRcbDidWeb: FfiConverter<RcbDidWeb, Pointer> {
 //
 
 
-public interface RcbEd25519SignerInterface {
+public interface Ed25519SignerInterface {
     
     fun `sign`(`payload`: List<kotlin.UByte>): kotlin.ByteArray
     
     companion object
 }
 
-open class RcbEd25519Signer: Disposable, AutoCloseable, RcbEd25519SignerInterface {
+open class Ed25519Signer: Disposable, AutoCloseable, Ed25519SignerInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -2708,11 +2708,11 @@ open class RcbEd25519Signer: Disposable, AutoCloseable, RcbEd25519SignerInterfac
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`privateKey`: RcbJwkData) :
+    constructor(`privateKey`: JwkData) :
         this(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbed25519signer_new(
-        FfiConverterTypeRcbJwkData.lower(`privateKey`),_status)
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_ed25519signer_new(
+        FfiConverterTypeJwkData.lower(`privateKey`),_status)
 }
     )
 
@@ -2767,7 +2767,7 @@ open class RcbEd25519Signer: Disposable, AutoCloseable, RcbEd25519SignerInterfac
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbed25519signer(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_ed25519signer(ptr, status)
                 }
             }
         }
@@ -2775,16 +2775,16 @@ open class RcbEd25519Signer: Disposable, AutoCloseable, RcbEd25519SignerInterfac
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbed25519signer(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_ed25519signer(pointer!!, status)
         }
     }
 
     
-    @Throws(RcbException::class)override fun `sign`(`payload`: List<kotlin.UByte>): kotlin.ByteArray {
+    @Throws(Exception::class)override fun `sign`(`payload`: List<kotlin.UByte>): kotlin.ByteArray {
             return FfiConverterByteArray.lift(
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbed25519signer_sign(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_ed25519signer_sign(
         it, FfiConverterSequenceUByte.lower(`payload`),_status)
 }
     }
@@ -2800,25 +2800,25 @@ open class RcbEd25519Signer: Disposable, AutoCloseable, RcbEd25519SignerInterfac
     
 }
 
-public object FfiConverterTypeRcbEd25519Signer: FfiConverter<RcbEd25519Signer, Pointer> {
+public object FfiConverterTypeEd25519Signer: FfiConverter<Ed25519Signer, Pointer> {
 
-    override fun lower(value: RcbEd25519Signer): Pointer {
+    override fun lower(value: Ed25519Signer): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbEd25519Signer {
-        return RcbEd25519Signer(value)
+    override fun lift(value: Pointer): Ed25519Signer {
+        return Ed25519Signer(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbEd25519Signer {
+    override fun read(buf: ByteBuffer): Ed25519Signer {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbEd25519Signer) = 8UL
+    override fun allocationSize(value: Ed25519Signer) = 8UL
 
-    override fun write(value: RcbEd25519Signer, buf: ByteBuffer) {
+    override fun write(value: Ed25519Signer, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -2924,14 +2924,14 @@ public object FfiConverterTypeRcbEd25519Signer: FfiConverter<RcbEd25519Signer, P
 //
 
 
-public interface RcbEd25519VerifierInterface {
+public interface Ed25519VerifierInterface {
     
     fun `verify`(`message`: List<kotlin.UByte>, `signature`: List<kotlin.UByte>): kotlin.Boolean
     
     companion object
 }
 
-open class RcbEd25519Verifier: Disposable, AutoCloseable, RcbEd25519VerifierInterface {
+open class Ed25519Verifier: Disposable, AutoCloseable, Ed25519VerifierInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -2948,11 +2948,11 @@ open class RcbEd25519Verifier: Disposable, AutoCloseable, RcbEd25519VerifierInte
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`publicJwk`: RcbJwkData) :
+    constructor(`publicJwk`: JwkData) :
         this(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbed25519verifier_new(
-        FfiConverterTypeRcbJwkData.lower(`publicJwk`),_status)
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_ed25519verifier_new(
+        FfiConverterTypeJwkData.lower(`publicJwk`),_status)
 }
     )
 
@@ -3007,7 +3007,7 @@ open class RcbEd25519Verifier: Disposable, AutoCloseable, RcbEd25519VerifierInte
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbed25519verifier(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_ed25519verifier(ptr, status)
                 }
             }
         }
@@ -3015,16 +3015,16 @@ open class RcbEd25519Verifier: Disposable, AutoCloseable, RcbEd25519VerifierInte
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbed25519verifier(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_ed25519verifier(pointer!!, status)
         }
     }
 
     
-    @Throws(RcbException::class)override fun `verify`(`message`: List<kotlin.UByte>, `signature`: List<kotlin.UByte>): kotlin.Boolean {
+    @Throws(Exception::class)override fun `verify`(`message`: List<kotlin.UByte>, `signature`: List<kotlin.UByte>): kotlin.Boolean {
             return FfiConverterBoolean.lift(
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbed25519verifier_verify(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_ed25519verifier_verify(
         it, FfiConverterSequenceUByte.lower(`message`),FfiConverterSequenceUByte.lower(`signature`),_status)
 }
     }
@@ -3040,25 +3040,25 @@ open class RcbEd25519Verifier: Disposable, AutoCloseable, RcbEd25519VerifierInte
     
 }
 
-public object FfiConverterTypeRcbEd25519Verifier: FfiConverter<RcbEd25519Verifier, Pointer> {
+public object FfiConverterTypeEd25519Verifier: FfiConverter<Ed25519Verifier, Pointer> {
 
-    override fun lower(value: RcbEd25519Verifier): Pointer {
+    override fun lower(value: Ed25519Verifier): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbEd25519Verifier {
-        return RcbEd25519Verifier(value)
+    override fun lift(value: Pointer): Ed25519Verifier {
+        return Ed25519Verifier(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbEd25519Verifier {
+    override fun read(buf: ByteBuffer): Ed25519Verifier {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbEd25519Verifier) = 8UL
+    override fun allocationSize(value: Ed25519Verifier) = 8UL
 
-    override fun write(value: RcbEd25519Verifier, buf: ByteBuffer) {
+    override fun write(value: Ed25519Verifier, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -3164,7 +3164,7 @@ public object FfiConverterTypeRcbEd25519Verifier: FfiConverter<RcbEd25519Verifie
 //
 
 
-public interface RcbExceptionInterface {
+public interface ExceptionInterface {
     
     fun `errorType`(): kotlin.String
     
@@ -3176,7 +3176,7 @@ public interface RcbExceptionInterface {
 }
 
 
-open class RcbException : Exception, Disposable, AutoCloseable, RcbExceptionInterface {
+open class Exception : Exception, Disposable, AutoCloseable, ExceptionInterface {
 
 
     constructor(pointer: Pointer) {
@@ -3246,7 +3246,7 @@ open class RcbException : Exception, Disposable, AutoCloseable, RcbExceptionInte
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcberror(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_error(ptr, status)
                 }
             }
         }
@@ -3254,7 +3254,7 @@ open class RcbException : Exception, Disposable, AutoCloseable, RcbExceptionInte
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcberror(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_error(pointer!!, status)
         }
     }
 
@@ -3262,7 +3262,7 @@ open class RcbException : Exception, Disposable, AutoCloseable, RcbExceptionInte
             return FfiConverterString.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcberror_error_type(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_error_error_type(
         it, _status)
 }
     }
@@ -3274,7 +3274,7 @@ open class RcbException : Exception, Disposable, AutoCloseable, RcbExceptionInte
             return FfiConverterString.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcberror_error_variant(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_error_error_variant(
         it, _status)
 }
     }
@@ -3286,7 +3286,7 @@ open class RcbException : Exception, Disposable, AutoCloseable, RcbExceptionInte
             return FfiConverterString.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcberror_message(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_error_message(
         it, _status)
 }
     }
@@ -3298,38 +3298,38 @@ open class RcbException : Exception, Disposable, AutoCloseable, RcbExceptionInte
 
     
     
-    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<RcbException> {
-        override fun lift(error_buf: RustBuffer.ByValue): RcbException {
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<Exception> {
+        override fun lift(error_buf: RustBuffer.ByValue): Exception {
             // Due to some mismatches in the ffi converter mechanisms, errors are a RustBuffer.
             val bb = error_buf.asByteBuffer()
             if (bb == null) {
                 throw InternalException("?")
             }
-            return FfiConverterTypeRcbError.read(bb)
+            return FfiConverterTypeError.read(bb)
         }
     }
     
 }
 
-public object FfiConverterTypeRcbError: FfiConverter<RcbException, Pointer> {
+public object FfiConverterTypeError: FfiConverter<Exception, Pointer> {
 
-    override fun lower(value: RcbException): Pointer {
+    override fun lower(value: Exception): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbException {
-        return RcbException(value)
+    override fun lift(value: Pointer): Exception {
+        return Exception(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbException {
+    override fun read(buf: ByteBuffer): Exception {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbException) = 8UL
+    override fun allocationSize(value: Exception) = 8UL
 
-    override fun write(value: RcbException, buf: ByteBuffer) {
+    override fun write(value: Exception, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -3435,18 +3435,18 @@ public object FfiConverterTypeRcbError: FfiConverter<RcbException, Pointer> {
 //
 
 
-public interface RcbInMemoryKeyManagerInterface {
+public interface InMemoryKeyManagerInterface {
     
-    fun `generateKeyMaterial`(): RcbJwkData
+    fun `generateKeyMaterial`(): JwkData
     
-    fun `getSigner`(`publicJwk`: RcbJwkData): RcbSigner
+    fun `getSigner`(`publicJwk`: JwkData): Signer
     
-    fun `importKey`(`privateKey`: RcbJwkData): RcbJwkData
+    fun `importKey`(`privateKey`: JwkData): JwkData
     
     companion object
 }
 
-open class RcbInMemoryKeyManager: Disposable, AutoCloseable, RcbInMemoryKeyManagerInterface {
+open class InMemoryKeyManager: Disposable, AutoCloseable, InMemoryKeyManagerInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -3466,7 +3466,7 @@ open class RcbInMemoryKeyManager: Disposable, AutoCloseable, RcbInMemoryKeyManag
     constructor() :
         this(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbinmemorykeymanager_new(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_inmemorykeymanager_new(
         _status)
 }
     )
@@ -3522,7 +3522,7 @@ open class RcbInMemoryKeyManager: Disposable, AutoCloseable, RcbInMemoryKeyManag
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbinmemorykeymanager(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_inmemorykeymanager(ptr, status)
                 }
             }
         }
@@ -3530,16 +3530,16 @@ open class RcbInMemoryKeyManager: Disposable, AutoCloseable, RcbInMemoryKeyManag
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbinmemorykeymanager(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_inmemorykeymanager(pointer!!, status)
         }
     }
 
     
-    @Throws(RcbException::class)override fun `generateKeyMaterial`(): RcbJwkData {
-            return FfiConverterTypeRcbJwkData.lift(
+    @Throws(Exception::class)override fun `generateKeyMaterial`(): JwkData {
+            return FfiConverterTypeJwkData.lift(
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbinmemorykeymanager_generate_key_material(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_inmemorykeymanager_generate_key_material(
         it, _status)
 }
     }
@@ -3548,12 +3548,12 @@ open class RcbInMemoryKeyManager: Disposable, AutoCloseable, RcbInMemoryKeyManag
     
 
     
-    @Throws(RcbException::class)override fun `getSigner`(`publicJwk`: RcbJwkData): RcbSigner {
-            return FfiConverterTypeRcbSigner.lift(
+    @Throws(Exception::class)override fun `getSigner`(`publicJwk`: JwkData): Signer {
+            return FfiConverterTypeSigner.lift(
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbinmemorykeymanager_get_signer(
-        it, FfiConverterTypeRcbJwkData.lower(`publicJwk`),_status)
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(
+        it, FfiConverterTypeJwkData.lower(`publicJwk`),_status)
 }
     }
     )
@@ -3561,12 +3561,12 @@ open class RcbInMemoryKeyManager: Disposable, AutoCloseable, RcbInMemoryKeyManag
     
 
     
-    @Throws(RcbException::class)override fun `importKey`(`privateKey`: RcbJwkData): RcbJwkData {
-            return FfiConverterTypeRcbJwkData.lift(
+    @Throws(Exception::class)override fun `importKey`(`privateKey`: JwkData): JwkData {
+            return FfiConverterTypeJwkData.lift(
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbinmemorykeymanager_import_key(
-        it, FfiConverterTypeRcbJwkData.lower(`privateKey`),_status)
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_inmemorykeymanager_import_key(
+        it, FfiConverterTypeJwkData.lower(`privateKey`),_status)
 }
     }
     )
@@ -3581,25 +3581,25 @@ open class RcbInMemoryKeyManager: Disposable, AutoCloseable, RcbInMemoryKeyManag
     
 }
 
-public object FfiConverterTypeRcbInMemoryKeyManager: FfiConverter<RcbInMemoryKeyManager, Pointer> {
+public object FfiConverterTypeInMemoryKeyManager: FfiConverter<InMemoryKeyManager, Pointer> {
 
-    override fun lower(value: RcbInMemoryKeyManager): Pointer {
+    override fun lower(value: InMemoryKeyManager): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbInMemoryKeyManager {
-        return RcbInMemoryKeyManager(value)
+    override fun lift(value: Pointer): InMemoryKeyManager {
+        return InMemoryKeyManager(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbInMemoryKeyManager {
+    override fun read(buf: ByteBuffer): InMemoryKeyManager {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbInMemoryKeyManager) = 8UL
+    override fun allocationSize(value: InMemoryKeyManager) = 8UL
 
-    override fun write(value: RcbInMemoryKeyManager, buf: ByteBuffer) {
+    override fun write(value: InMemoryKeyManager, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -3705,14 +3705,14 @@ public object FfiConverterTypeRcbInMemoryKeyManager: FfiConverter<RcbInMemoryKey
 //
 
 
-public interface RcbPresentationDefinitionInterface {
+public interface PresentationDefinitionInterface {
     
     fun `selectCredentials`(`vcJwts`: List<kotlin.String>): List<kotlin.String>
     
     companion object
 }
 
-open class RcbPresentationDefinition: Disposable, AutoCloseable, RcbPresentationDefinitionInterface {
+open class PresentationDefinition: Disposable, AutoCloseable, PresentationDefinitionInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -3729,11 +3729,11 @@ open class RcbPresentationDefinition: Disposable, AutoCloseable, RcbPresentation
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`data`: RcbPresentationDefinitionData) :
+    constructor(`data`: PresentationDefinitionData) :
         this(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbpresentationdefinition_new(
-        FfiConverterTypeRcbPresentationDefinitionData.lower(`data`),_status)
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_presentationdefinition_new(
+        FfiConverterTypePresentationDefinitionData.lower(`data`),_status)
 }
     )
 
@@ -3788,7 +3788,7 @@ open class RcbPresentationDefinition: Disposable, AutoCloseable, RcbPresentation
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbpresentationdefinition(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_presentationdefinition(ptr, status)
                 }
             }
         }
@@ -3796,16 +3796,16 @@ open class RcbPresentationDefinition: Disposable, AutoCloseable, RcbPresentation
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbpresentationdefinition(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_presentationdefinition(pointer!!, status)
         }
     }
 
     
-    @Throws(RcbException::class)override fun `selectCredentials`(`vcJwts`: List<kotlin.String>): List<kotlin.String> {
+    @Throws(Exception::class)override fun `selectCredentials`(`vcJwts`: List<kotlin.String>): List<kotlin.String> {
             return FfiConverterSequenceString.lift(
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbpresentationdefinition_select_credentials(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_presentationdefinition_select_credentials(
         it, FfiConverterSequenceString.lower(`vcJwts`),_status)
 }
     }
@@ -3821,25 +3821,25 @@ open class RcbPresentationDefinition: Disposable, AutoCloseable, RcbPresentation
     
 }
 
-public object FfiConverterTypeRcbPresentationDefinition: FfiConverter<RcbPresentationDefinition, Pointer> {
+public object FfiConverterTypePresentationDefinition: FfiConverter<PresentationDefinition, Pointer> {
 
-    override fun lower(value: RcbPresentationDefinition): Pointer {
+    override fun lower(value: PresentationDefinition): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbPresentationDefinition {
-        return RcbPresentationDefinition(value)
+    override fun lift(value: Pointer): PresentationDefinition {
+        return PresentationDefinition(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbPresentationDefinition {
+    override fun read(buf: ByteBuffer): PresentationDefinition {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbPresentationDefinition) = 8UL
+    override fun allocationSize(value: PresentationDefinition) = 8UL
 
-    override fun write(value: RcbPresentationDefinition, buf: ByteBuffer) {
+    override fun write(value: PresentationDefinition, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -3945,14 +3945,14 @@ public object FfiConverterTypeRcbPresentationDefinition: FfiConverter<RcbPresent
 //
 
 
-public interface RcbResolutionResultInterface {
+public interface ResolutionResultInterface {
     
-    fun `getData`(): RcbResolutionResultData
+    fun `getData`(): ResolutionResultData
     
     companion object
 }
 
-open class RcbResolutionResult: Disposable, AutoCloseable, RcbResolutionResultInterface {
+open class ResolutionResult: Disposable, AutoCloseable, ResolutionResultInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -3972,7 +3972,7 @@ open class RcbResolutionResult: Disposable, AutoCloseable, RcbResolutionResultIn
     constructor(`uri`: kotlin.String) :
         this(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbresolutionresult_new(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_resolutionresult_new(
         FfiConverterString.lower(`uri`),_status)
 }
     )
@@ -4028,7 +4028,7 @@ open class RcbResolutionResult: Disposable, AutoCloseable, RcbResolutionResultIn
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbresolutionresult(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_resolutionresult(ptr, status)
                 }
             }
         }
@@ -4036,15 +4036,15 @@ open class RcbResolutionResult: Disposable, AutoCloseable, RcbResolutionResultIn
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbresolutionresult(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_resolutionresult(pointer!!, status)
         }
     }
 
-    override fun `getData`(): RcbResolutionResultData {
-            return FfiConverterTypeRcbResolutionResultData.lift(
+    override fun `getData`(): ResolutionResultData {
+            return FfiConverterTypeResolutionResultData.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbresolutionresult_get_data(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_resolutionresult_get_data(
         it, _status)
 }
     }
@@ -4060,25 +4060,25 @@ open class RcbResolutionResult: Disposable, AutoCloseable, RcbResolutionResultIn
     
 }
 
-public object FfiConverterTypeRcbResolutionResult: FfiConverter<RcbResolutionResult, Pointer> {
+public object FfiConverterTypeResolutionResult: FfiConverter<ResolutionResult, Pointer> {
 
-    override fun lower(value: RcbResolutionResult): Pointer {
+    override fun lower(value: ResolutionResult): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbResolutionResult {
-        return RcbResolutionResult(value)
+    override fun lift(value: Pointer): ResolutionResult {
+        return ResolutionResult(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbResolutionResult {
+    override fun read(buf: ByteBuffer): ResolutionResult {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbResolutionResult) = 8UL
+    override fun allocationSize(value: ResolutionResult) = 8UL
 
-    override fun write(value: RcbResolutionResult, buf: ByteBuffer) {
+    override fun write(value: ResolutionResult, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -4184,14 +4184,14 @@ public object FfiConverterTypeRcbResolutionResult: FfiConverter<RcbResolutionRes
 //
 
 
-public interface RcbSignerInterface {
+public interface SignerInterface {
     
     fun `sign`(`payload`: List<kotlin.UByte>): kotlin.ByteArray
     
     companion object
 }
 
-open class RcbSigner: Disposable, AutoCloseable, RcbSignerInterface {
+open class Signer: Disposable, AutoCloseable, SignerInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -4260,7 +4260,7 @@ open class RcbSigner: Disposable, AutoCloseable, RcbSignerInterface {
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbsigner(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_signer(ptr, status)
                 }
             }
         }
@@ -4268,16 +4268,16 @@ open class RcbSigner: Disposable, AutoCloseable, RcbSignerInterface {
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbsigner(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_signer(pointer!!, status)
         }
     }
 
     
-    @Throws(RcbException::class)override fun `sign`(`payload`: List<kotlin.UByte>): kotlin.ByteArray {
+    @Throws(Exception::class)override fun `sign`(`payload`: List<kotlin.UByte>): kotlin.ByteArray {
             return FfiConverterByteArray.lift(
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbsigner_sign(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_signer_sign(
         it, FfiConverterSequenceUByte.lower(`payload`),_status)
 }
     }
@@ -4293,25 +4293,25 @@ open class RcbSigner: Disposable, AutoCloseable, RcbSignerInterface {
     
 }
 
-public object FfiConverterTypeRcbSigner: FfiConverter<RcbSigner, Pointer> {
+public object FfiConverterTypeSigner: FfiConverter<Signer, Pointer> {
 
-    override fun lower(value: RcbSigner): Pointer {
+    override fun lower(value: Signer): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbSigner {
-        return RcbSigner(value)
+    override fun lift(value: Pointer): Signer {
+        return Signer(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbSigner {
+    override fun read(buf: ByteBuffer): Signer {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbSigner) = 8UL
+    override fun allocationSize(value: Signer) = 8UL
 
-    override fun write(value: RcbSigner, buf: ByteBuffer) {
+    override fun write(value: Signer, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -4417,16 +4417,16 @@ public object FfiConverterTypeRcbSigner: FfiConverter<RcbSigner, Pointer> {
 //
 
 
-public interface RcbVerifiableCredentialInterface {
+public interface VerifiableCredentialInterface {
     
-    fun `getData`(): RcbVerifiableCredentialData
+    fun `getData`(): VerifiableCredentialData
     
-    fun `sign`(`signer`: RcbSigner): kotlin.String
+    fun `sign`(`signer`: Signer): kotlin.String
     
     companion object
 }
 
-open class RcbVerifiableCredential: Disposable, AutoCloseable, RcbVerifiableCredentialInterface {
+open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredentialInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -4443,11 +4443,11 @@ open class RcbVerifiableCredential: Disposable, AutoCloseable, RcbVerifiableCred
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`data`: RcbVerifiableCredentialData) :
+    constructor(`data`: VerifiableCredentialData) :
         this(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbverifiablecredential_new(
-        FfiConverterTypeRcbVerifiableCredentialData.lower(`data`),_status)
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_new(
+        FfiConverterTypeVerifiableCredentialData.lower(`data`),_status)
 }
     )
 
@@ -4502,7 +4502,7 @@ open class RcbVerifiableCredential: Disposable, AutoCloseable, RcbVerifiableCred
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbverifiablecredential(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_verifiablecredential(ptr, status)
                 }
             }
         }
@@ -4510,15 +4510,15 @@ open class RcbVerifiableCredential: Disposable, AutoCloseable, RcbVerifiableCred
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbverifiablecredential(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_verifiablecredential(pointer!!, status)
         }
     }
 
-    override fun `getData`(): RcbVerifiableCredentialData {
-            return FfiConverterTypeRcbVerifiableCredentialData.lift(
+    override fun `getData`(): VerifiableCredentialData {
+            return FfiConverterTypeVerifiableCredentialData.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbverifiablecredential_get_data(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(
         it, _status)
 }
     }
@@ -4527,12 +4527,12 @@ open class RcbVerifiableCredential: Disposable, AutoCloseable, RcbVerifiableCred
     
 
     
-    @Throws(RcbException::class)override fun `sign`(`signer`: RcbSigner): kotlin.String {
+    @Throws(Exception::class)override fun `sign`(`signer`: Signer): kotlin.String {
             return FfiConverterString.lift(
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbverifiablecredential_sign(
-        it, FfiConverterTypeRcbSigner.lower(`signer`),_status)
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_sign(
+        it, FfiConverterTypeSigner.lower(`signer`),_status)
 }
     }
     )
@@ -4544,10 +4544,10 @@ open class RcbVerifiableCredential: Disposable, AutoCloseable, RcbVerifiableCred
     
     companion object {
         
-    @Throws(RcbException::class) fun `verify`(`vcjwt`: kotlin.String): RcbVerifiableCredential {
-            return FfiConverterTypeRcbVerifiableCredential.lift(
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbverifiablecredential_verify(
+    @Throws(Exception::class) fun `verify`(`vcjwt`: kotlin.String): VerifiableCredential {
+            return FfiConverterTypeVerifiableCredential.lift(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify(
         FfiConverterString.lower(`vcjwt`),_status)
 }
     )
@@ -4555,11 +4555,11 @@ open class RcbVerifiableCredential: Disposable, AutoCloseable, RcbVerifiableCred
     
 
         
-    @Throws(RcbException::class) fun `verifyWithVerifier`(`vcjwt`: kotlin.String, `verifier`: RcbVerifier): RcbVerifiableCredential {
-            return FfiConverterTypeRcbVerifiableCredential.lift(
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_rcbverifiablecredential_verify_with_verifier(
-        FfiConverterString.lower(`vcjwt`),FfiConverterTypeRcbVerifier.lower(`verifier`),_status)
+    @Throws(Exception::class) fun `verifyWithVerifier`(`vcjwt`: kotlin.String, `verifier`: Verifier): VerifiableCredential {
+            return FfiConverterTypeVerifiableCredential.lift(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify_with_verifier(
+        FfiConverterString.lower(`vcjwt`),FfiConverterTypeVerifier.lower(`verifier`),_status)
 }
     )
     }
@@ -4570,25 +4570,25 @@ open class RcbVerifiableCredential: Disposable, AutoCloseable, RcbVerifiableCred
     
 }
 
-public object FfiConverterTypeRcbVerifiableCredential: FfiConverter<RcbVerifiableCredential, Pointer> {
+public object FfiConverterTypeVerifiableCredential: FfiConverter<VerifiableCredential, Pointer> {
 
-    override fun lower(value: RcbVerifiableCredential): Pointer {
+    override fun lower(value: VerifiableCredential): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbVerifiableCredential {
-        return RcbVerifiableCredential(value)
+    override fun lift(value: Pointer): VerifiableCredential {
+        return VerifiableCredential(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbVerifiableCredential {
+    override fun read(buf: ByteBuffer): VerifiableCredential {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbVerifiableCredential) = 8UL
+    override fun allocationSize(value: VerifiableCredential) = 8UL
 
-    override fun write(value: RcbVerifiableCredential, buf: ByteBuffer) {
+    override fun write(value: VerifiableCredential, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -4694,14 +4694,14 @@ public object FfiConverterTypeRcbVerifiableCredential: FfiConverter<RcbVerifiabl
 //
 
 
-public interface RcbVerifierInterface {
+public interface VerifierInterface {
     
     fun `verify`(`message`: List<kotlin.UByte>, `signature`: List<kotlin.UByte>): kotlin.Boolean
     
     companion object
 }
 
-open class RcbVerifier: Disposable, AutoCloseable, RcbVerifierInterface {
+open class Verifier: Disposable, AutoCloseable, VerifierInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -4770,7 +4770,7 @@ open class RcbVerifier: Disposable, AutoCloseable, RcbVerifierInterface {
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_rcbverifier(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_verifier(ptr, status)
                 }
             }
         }
@@ -4778,16 +4778,16 @@ open class RcbVerifier: Disposable, AutoCloseable, RcbVerifierInterface {
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_rcbverifier(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_verifier(pointer!!, status)
         }
     }
 
     
-    @Throws(RcbException::class)override fun `verify`(`message`: List<kotlin.UByte>, `signature`: List<kotlin.UByte>): kotlin.Boolean {
+    @Throws(Exception::class)override fun `verify`(`message`: List<kotlin.UByte>, `signature`: List<kotlin.UByte>): kotlin.Boolean {
             return FfiConverterBoolean.lift(
     callWithPointer {
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rcbverifier_verify(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifier_verify(
         it, FfiConverterSequenceUByte.lower(`message`),FfiConverterSequenceUByte.lower(`signature`),_status)
 }
     }
@@ -4803,25 +4803,25 @@ open class RcbVerifier: Disposable, AutoCloseable, RcbVerifierInterface {
     
 }
 
-public object FfiConverterTypeRcbVerifier: FfiConverter<RcbVerifier, Pointer> {
+public object FfiConverterTypeVerifier: FfiConverter<Verifier, Pointer> {
 
-    override fun lower(value: RcbVerifier): Pointer {
+    override fun lower(value: Verifier): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): RcbVerifier {
-        return RcbVerifier(value)
+    override fun lift(value: Pointer): Verifier {
+        return Verifier(value)
     }
 
-    override fun read(buf: ByteBuffer): RcbVerifier {
+    override fun read(buf: ByteBuffer): Verifier {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RcbVerifier) = 8UL
+    override fun allocationSize(value: Verifier) = 8UL
 
-    override fun write(value: RcbVerifier, buf: ByteBuffer) {
+    override fun write(value: Verifier, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -4830,32 +4830,32 @@ public object FfiConverterTypeRcbVerifier: FfiConverter<RcbVerifier, Pointer> {
 
 
 
-data class RcbConstraintsData (
-    var `fields`: List<RcbFieldData>
+data class ConstraintsData (
+    var `fields`: List<FieldData>
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbConstraintsData: FfiConverterRustBuffer<RcbConstraintsData> {
-    override fun read(buf: ByteBuffer): RcbConstraintsData {
-        return RcbConstraintsData(
-            FfiConverterSequenceTypeRcbFieldData.read(buf),
+public object FfiConverterTypeConstraintsData: FfiConverterRustBuffer<ConstraintsData> {
+    override fun read(buf: ByteBuffer): ConstraintsData {
+        return ConstraintsData(
+            FfiConverterSequenceTypeFieldData.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbConstraintsData) = (
-            FfiConverterSequenceTypeRcbFieldData.allocationSize(value.`fields`)
+    override fun allocationSize(value: ConstraintsData) = (
+            FfiConverterSequenceTypeFieldData.allocationSize(value.`fields`)
     )
 
-    override fun write(value: RcbConstraintsData, buf: ByteBuffer) {
-            FfiConverterSequenceTypeRcbFieldData.write(value.`fields`, buf)
+    override fun write(value: ConstraintsData, buf: ByteBuffer) {
+            FfiConverterSequenceTypeFieldData.write(value.`fields`, buf)
     }
 }
 
 
 
-data class RcbCredentialSubjectData (
+data class CredentialSubjectData (
     var `id`: kotlin.String, 
     var `params`: Map<kotlin.String, kotlin.String>?
 ) {
@@ -4863,20 +4863,20 @@ data class RcbCredentialSubjectData (
     companion object
 }
 
-public object FfiConverterTypeRcbCredentialSubjectData: FfiConverterRustBuffer<RcbCredentialSubjectData> {
-    override fun read(buf: ByteBuffer): RcbCredentialSubjectData {
-        return RcbCredentialSubjectData(
+public object FfiConverterTypeCredentialSubjectData: FfiConverterRustBuffer<CredentialSubjectData> {
+    override fun read(buf: ByteBuffer): CredentialSubjectData {
+        return CredentialSubjectData(
             FfiConverterString.read(buf),
             FfiConverterOptionalMapStringString.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbCredentialSubjectData) = (
+    override fun allocationSize(value: CredentialSubjectData) = (
             FfiConverterString.allocationSize(value.`id`) +
             FfiConverterOptionalMapStringString.allocationSize(value.`params`)
     )
 
-    override fun write(value: RcbCredentialSubjectData, buf: ByteBuffer) {
+    override fun write(value: CredentialSubjectData, buf: ByteBuffer) {
             FfiConverterString.write(value.`id`, buf)
             FfiConverterOptionalMapStringString.write(value.`params`, buf)
     }
@@ -4884,7 +4884,7 @@ public object FfiConverterTypeRcbCredentialSubjectData: FfiConverterRustBuffer<R
 
 
 
-data class RcbDidData (
+data class DidData (
     var `uri`: kotlin.String, 
     var `url`: kotlin.String, 
     var `method`: kotlin.String, 
@@ -4898,9 +4898,9 @@ data class RcbDidData (
     companion object
 }
 
-public object FfiConverterTypeRcbDidData: FfiConverterRustBuffer<RcbDidData> {
-    override fun read(buf: ByteBuffer): RcbDidData {
-        return RcbDidData(
+public object FfiConverterTypeDidData: FfiConverterRustBuffer<DidData> {
+    override fun read(buf: ByteBuffer): DidData {
+        return DidData(
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
@@ -4912,7 +4912,7 @@ public object FfiConverterTypeRcbDidData: FfiConverterRustBuffer<RcbDidData> {
         )
     }
 
-    override fun allocationSize(value: RcbDidData) = (
+    override fun allocationSize(value: DidData) = (
             FfiConverterString.allocationSize(value.`uri`) +
             FfiConverterString.allocationSize(value.`url`) +
             FfiConverterString.allocationSize(value.`method`) +
@@ -4923,7 +4923,7 @@ public object FfiConverterTypeRcbDidData: FfiConverterRustBuffer<RcbDidData> {
             FfiConverterOptionalString.allocationSize(value.`fragment`)
     )
 
-    override fun write(value: RcbDidData, buf: ByteBuffer) {
+    override fun write(value: DidData, buf: ByteBuffer) {
             FfiConverterString.write(value.`uri`, buf)
             FfiConverterString.write(value.`url`, buf)
             FfiConverterString.write(value.`method`, buf)
@@ -4937,159 +4937,159 @@ public object FfiConverterTypeRcbDidData: FfiConverterRustBuffer<RcbDidData> {
 
 
 
-data class RcbDidDhtData (
-    var `did`: RcbDidData, 
-    var `document`: RcbDocumentData
+data class DidDhtData (
+    var `did`: DidData, 
+    var `document`: DocumentData
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbDidDhtData: FfiConverterRustBuffer<RcbDidDhtData> {
-    override fun read(buf: ByteBuffer): RcbDidDhtData {
-        return RcbDidDhtData(
-            FfiConverterTypeRcbDidData.read(buf),
-            FfiConverterTypeRcbDocumentData.read(buf),
+public object FfiConverterTypeDidDhtData: FfiConverterRustBuffer<DidDhtData> {
+    override fun read(buf: ByteBuffer): DidDhtData {
+        return DidDhtData(
+            FfiConverterTypeDidData.read(buf),
+            FfiConverterTypeDocumentData.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbDidDhtData) = (
-            FfiConverterTypeRcbDidData.allocationSize(value.`did`) +
-            FfiConverterTypeRcbDocumentData.allocationSize(value.`document`)
+    override fun allocationSize(value: DidDhtData) = (
+            FfiConverterTypeDidData.allocationSize(value.`did`) +
+            FfiConverterTypeDocumentData.allocationSize(value.`document`)
     )
 
-    override fun write(value: RcbDidDhtData, buf: ByteBuffer) {
-            FfiConverterTypeRcbDidData.write(value.`did`, buf)
-            FfiConverterTypeRcbDocumentData.write(value.`document`, buf)
+    override fun write(value: DidDhtData, buf: ByteBuffer) {
+            FfiConverterTypeDidData.write(value.`did`, buf)
+            FfiConverterTypeDocumentData.write(value.`document`, buf)
     }
 }
 
 
 
-data class RcbDidJwkData (
-    var `did`: RcbDidData, 
-    var `document`: RcbDocumentData
+data class DidJwkData (
+    var `did`: DidData, 
+    var `document`: DocumentData
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbDidJwkData: FfiConverterRustBuffer<RcbDidJwkData> {
-    override fun read(buf: ByteBuffer): RcbDidJwkData {
-        return RcbDidJwkData(
-            FfiConverterTypeRcbDidData.read(buf),
-            FfiConverterTypeRcbDocumentData.read(buf),
+public object FfiConverterTypeDidJwkData: FfiConverterRustBuffer<DidJwkData> {
+    override fun read(buf: ByteBuffer): DidJwkData {
+        return DidJwkData(
+            FfiConverterTypeDidData.read(buf),
+            FfiConverterTypeDocumentData.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbDidJwkData) = (
-            FfiConverterTypeRcbDidData.allocationSize(value.`did`) +
-            FfiConverterTypeRcbDocumentData.allocationSize(value.`document`)
+    override fun allocationSize(value: DidJwkData) = (
+            FfiConverterTypeDidData.allocationSize(value.`did`) +
+            FfiConverterTypeDocumentData.allocationSize(value.`document`)
     )
 
-    override fun write(value: RcbDidJwkData, buf: ByteBuffer) {
-            FfiConverterTypeRcbDidData.write(value.`did`, buf)
-            FfiConverterTypeRcbDocumentData.write(value.`document`, buf)
+    override fun write(value: DidJwkData, buf: ByteBuffer) {
+            FfiConverterTypeDidData.write(value.`did`, buf)
+            FfiConverterTypeDocumentData.write(value.`document`, buf)
     }
 }
 
 
 
-data class RcbDidWebData (
-    var `did`: RcbDidData, 
-    var `document`: RcbDocumentData
+data class DidWebData (
+    var `did`: DidData, 
+    var `document`: DocumentData
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbDidWebData: FfiConverterRustBuffer<RcbDidWebData> {
-    override fun read(buf: ByteBuffer): RcbDidWebData {
-        return RcbDidWebData(
-            FfiConverterTypeRcbDidData.read(buf),
-            FfiConverterTypeRcbDocumentData.read(buf),
+public object FfiConverterTypeDidWebData: FfiConverterRustBuffer<DidWebData> {
+    override fun read(buf: ByteBuffer): DidWebData {
+        return DidWebData(
+            FfiConverterTypeDidData.read(buf),
+            FfiConverterTypeDocumentData.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbDidWebData) = (
-            FfiConverterTypeRcbDidData.allocationSize(value.`did`) +
-            FfiConverterTypeRcbDocumentData.allocationSize(value.`document`)
+    override fun allocationSize(value: DidWebData) = (
+            FfiConverterTypeDidData.allocationSize(value.`did`) +
+            FfiConverterTypeDocumentData.allocationSize(value.`document`)
     )
 
-    override fun write(value: RcbDidWebData, buf: ByteBuffer) {
-            FfiConverterTypeRcbDidData.write(value.`did`, buf)
-            FfiConverterTypeRcbDocumentData.write(value.`document`, buf)
+    override fun write(value: DidWebData, buf: ByteBuffer) {
+            FfiConverterTypeDidData.write(value.`did`, buf)
+            FfiConverterTypeDocumentData.write(value.`document`, buf)
     }
 }
 
 
 
-data class RcbDocumentData (
+data class DocumentData (
     var `id`: kotlin.String, 
     var `context`: List<kotlin.String>?, 
     var `controller`: List<kotlin.String>?, 
     var `alsoKnownAs`: List<kotlin.String>?, 
-    var `verificationMethod`: List<RcbVerificationMethodData>, 
+    var `verificationMethod`: List<VerificationMethodData>, 
     var `authentication`: List<kotlin.String>?, 
     var `assertionMethod`: List<kotlin.String>?, 
     var `keyAgreement`: List<kotlin.String>?, 
     var `capabilityInvocation`: List<kotlin.String>?, 
     var `capabilityDelegation`: List<kotlin.String>?, 
-    var `service`: List<RcbServiceData>?
+    var `service`: List<ServiceData>?
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbDocumentData: FfiConverterRustBuffer<RcbDocumentData> {
-    override fun read(buf: ByteBuffer): RcbDocumentData {
-        return RcbDocumentData(
+public object FfiConverterTypeDocumentData: FfiConverterRustBuffer<DocumentData> {
+    override fun read(buf: ByteBuffer): DocumentData {
+        return DocumentData(
             FfiConverterString.read(buf),
             FfiConverterOptionalSequenceString.read(buf),
             FfiConverterOptionalSequenceString.read(buf),
             FfiConverterOptionalSequenceString.read(buf),
-            FfiConverterSequenceTypeRcbVerificationMethodData.read(buf),
+            FfiConverterSequenceTypeVerificationMethodData.read(buf),
             FfiConverterOptionalSequenceString.read(buf),
             FfiConverterOptionalSequenceString.read(buf),
             FfiConverterOptionalSequenceString.read(buf),
             FfiConverterOptionalSequenceString.read(buf),
             FfiConverterOptionalSequenceString.read(buf),
-            FfiConverterOptionalSequenceTypeRcbServiceData.read(buf),
+            FfiConverterOptionalSequenceTypeServiceData.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbDocumentData) = (
+    override fun allocationSize(value: DocumentData) = (
             FfiConverterString.allocationSize(value.`id`) +
             FfiConverterOptionalSequenceString.allocationSize(value.`context`) +
             FfiConverterOptionalSequenceString.allocationSize(value.`controller`) +
             FfiConverterOptionalSequenceString.allocationSize(value.`alsoKnownAs`) +
-            FfiConverterSequenceTypeRcbVerificationMethodData.allocationSize(value.`verificationMethod`) +
+            FfiConverterSequenceTypeVerificationMethodData.allocationSize(value.`verificationMethod`) +
             FfiConverterOptionalSequenceString.allocationSize(value.`authentication`) +
             FfiConverterOptionalSequenceString.allocationSize(value.`assertionMethod`) +
             FfiConverterOptionalSequenceString.allocationSize(value.`keyAgreement`) +
             FfiConverterOptionalSequenceString.allocationSize(value.`capabilityInvocation`) +
             FfiConverterOptionalSequenceString.allocationSize(value.`capabilityDelegation`) +
-            FfiConverterOptionalSequenceTypeRcbServiceData.allocationSize(value.`service`)
+            FfiConverterOptionalSequenceTypeServiceData.allocationSize(value.`service`)
     )
 
-    override fun write(value: RcbDocumentData, buf: ByteBuffer) {
+    override fun write(value: DocumentData, buf: ByteBuffer) {
             FfiConverterString.write(value.`id`, buf)
             FfiConverterOptionalSequenceString.write(value.`context`, buf)
             FfiConverterOptionalSequenceString.write(value.`controller`, buf)
             FfiConverterOptionalSequenceString.write(value.`alsoKnownAs`, buf)
-            FfiConverterSequenceTypeRcbVerificationMethodData.write(value.`verificationMethod`, buf)
+            FfiConverterSequenceTypeVerificationMethodData.write(value.`verificationMethod`, buf)
             FfiConverterOptionalSequenceString.write(value.`authentication`, buf)
             FfiConverterOptionalSequenceString.write(value.`assertionMethod`, buf)
             FfiConverterOptionalSequenceString.write(value.`keyAgreement`, buf)
             FfiConverterOptionalSequenceString.write(value.`capabilityInvocation`, buf)
             FfiConverterOptionalSequenceString.write(value.`capabilityDelegation`, buf)
-            FfiConverterOptionalSequenceTypeRcbServiceData.write(value.`service`, buf)
+            FfiConverterOptionalSequenceTypeServiceData.write(value.`service`, buf)
     }
 }
 
 
 
-data class RcbDocumentMetadataData (
+data class DocumentMetadataData (
     var `created`: kotlin.String?, 
     var `updated`: kotlin.String?, 
     var `deactivated`: kotlin.Boolean?, 
@@ -5103,9 +5103,9 @@ data class RcbDocumentMetadataData (
     companion object
 }
 
-public object FfiConverterTypeRcbDocumentMetadataData: FfiConverterRustBuffer<RcbDocumentMetadataData> {
-    override fun read(buf: ByteBuffer): RcbDocumentMetadataData {
-        return RcbDocumentMetadataData(
+public object FfiConverterTypeDocumentMetadataData: FfiConverterRustBuffer<DocumentMetadataData> {
+    override fun read(buf: ByteBuffer): DocumentMetadataData {
+        return DocumentMetadataData(
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalBoolean.read(buf),
@@ -5117,7 +5117,7 @@ public object FfiConverterTypeRcbDocumentMetadataData: FfiConverterRustBuffer<Rc
         )
     }
 
-    override fun allocationSize(value: RcbDocumentMetadataData) = (
+    override fun allocationSize(value: DocumentMetadataData) = (
             FfiConverterOptionalString.allocationSize(value.`created`) +
             FfiConverterOptionalString.allocationSize(value.`updated`) +
             FfiConverterOptionalBoolean.allocationSize(value.`deactivated`) +
@@ -5128,7 +5128,7 @@ public object FfiConverterTypeRcbDocumentMetadataData: FfiConverterRustBuffer<Rc
             FfiConverterOptionalString.allocationSize(value.`canonicalId`)
     )
 
-    override fun write(value: RcbDocumentMetadataData, buf: ByteBuffer) {
+    override fun write(value: DocumentMetadataData, buf: ByteBuffer) {
             FfiConverterOptionalString.write(value.`created`, buf)
             FfiConverterOptionalString.write(value.`updated`, buf)
             FfiConverterOptionalBoolean.write(value.`deactivated`, buf)
@@ -5142,56 +5142,56 @@ public object FfiConverterTypeRcbDocumentMetadataData: FfiConverterRustBuffer<Rc
 
 
 
-data class RcbFieldData (
+data class FieldData (
     var `id`: kotlin.String?, 
     var `name`: kotlin.String?, 
     var `path`: List<kotlin.String>, 
     var `purpose`: kotlin.String?, 
-    var `filter`: RcbFilterData?, 
+    var `filter`: FilterData?, 
     var `optional`: kotlin.Boolean?, 
-    var `predicate`: RcbOptionality?
+    var `predicate`: Optionality?
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbFieldData: FfiConverterRustBuffer<RcbFieldData> {
-    override fun read(buf: ByteBuffer): RcbFieldData {
-        return RcbFieldData(
+public object FfiConverterTypeFieldData: FfiConverterRustBuffer<FieldData> {
+    override fun read(buf: ByteBuffer): FieldData {
+        return FieldData(
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterSequenceString.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalTypeRcbFilterData.read(buf),
+            FfiConverterOptionalTypeFilterData.read(buf),
             FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalTypeRcbOptionality.read(buf),
+            FfiConverterOptionalTypeOptionality.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbFieldData) = (
+    override fun allocationSize(value: FieldData) = (
             FfiConverterOptionalString.allocationSize(value.`id`) +
             FfiConverterOptionalString.allocationSize(value.`name`) +
             FfiConverterSequenceString.allocationSize(value.`path`) +
             FfiConverterOptionalString.allocationSize(value.`purpose`) +
-            FfiConverterOptionalTypeRcbFilterData.allocationSize(value.`filter`) +
+            FfiConverterOptionalTypeFilterData.allocationSize(value.`filter`) +
             FfiConverterOptionalBoolean.allocationSize(value.`optional`) +
-            FfiConverterOptionalTypeRcbOptionality.allocationSize(value.`predicate`)
+            FfiConverterOptionalTypeOptionality.allocationSize(value.`predicate`)
     )
 
-    override fun write(value: RcbFieldData, buf: ByteBuffer) {
+    override fun write(value: FieldData, buf: ByteBuffer) {
             FfiConverterOptionalString.write(value.`id`, buf)
             FfiConverterOptionalString.write(value.`name`, buf)
             FfiConverterSequenceString.write(value.`path`, buf)
             FfiConverterOptionalString.write(value.`purpose`, buf)
-            FfiConverterOptionalTypeRcbFilterData.write(value.`filter`, buf)
+            FfiConverterOptionalTypeFilterData.write(value.`filter`, buf)
             FfiConverterOptionalBoolean.write(value.`optional`, buf)
-            FfiConverterOptionalTypeRcbOptionality.write(value.`predicate`, buf)
+            FfiConverterOptionalTypeOptionality.write(value.`predicate`, buf)
     }
 }
 
 
 
-data class RcbFilterData (
+data class FilterData (
     var `type`: kotlin.String?, 
     var `pattern`: kotlin.String?, 
     var `constValue`: kotlin.String?
@@ -5200,22 +5200,22 @@ data class RcbFilterData (
     companion object
 }
 
-public object FfiConverterTypeRcbFilterData: FfiConverterRustBuffer<RcbFilterData> {
-    override fun read(buf: ByteBuffer): RcbFilterData {
-        return RcbFilterData(
+public object FfiConverterTypeFilterData: FfiConverterRustBuffer<FilterData> {
+    override fun read(buf: ByteBuffer): FilterData {
+        return FilterData(
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbFilterData) = (
+    override fun allocationSize(value: FilterData) = (
             FfiConverterOptionalString.allocationSize(value.`type`) +
             FfiConverterOptionalString.allocationSize(value.`pattern`) +
             FfiConverterOptionalString.allocationSize(value.`constValue`)
     )
 
-    override fun write(value: RcbFilterData, buf: ByteBuffer) {
+    override fun write(value: FilterData, buf: ByteBuffer) {
             FfiConverterOptionalString.write(value.`type`, buf)
             FfiConverterOptionalString.write(value.`pattern`, buf)
             FfiConverterOptionalString.write(value.`constValue`, buf)
@@ -5224,44 +5224,44 @@ public object FfiConverterTypeRcbFilterData: FfiConverterRustBuffer<RcbFilterDat
 
 
 
-data class RcbInputDescriptorData (
+data class InputDescriptorData (
     var `id`: kotlin.String, 
     var `name`: kotlin.String?, 
     var `purpose`: kotlin.String?, 
-    var `constraints`: RcbConstraintsData
+    var `constraints`: ConstraintsData
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbInputDescriptorData: FfiConverterRustBuffer<RcbInputDescriptorData> {
-    override fun read(buf: ByteBuffer): RcbInputDescriptorData {
-        return RcbInputDescriptorData(
+public object FfiConverterTypeInputDescriptorData: FfiConverterRustBuffer<InputDescriptorData> {
+    override fun read(buf: ByteBuffer): InputDescriptorData {
+        return InputDescriptorData(
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterTypeRcbConstraintsData.read(buf),
+            FfiConverterTypeConstraintsData.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbInputDescriptorData) = (
+    override fun allocationSize(value: InputDescriptorData) = (
             FfiConverterString.allocationSize(value.`id`) +
             FfiConverterOptionalString.allocationSize(value.`name`) +
             FfiConverterOptionalString.allocationSize(value.`purpose`) +
-            FfiConverterTypeRcbConstraintsData.allocationSize(value.`constraints`)
+            FfiConverterTypeConstraintsData.allocationSize(value.`constraints`)
     )
 
-    override fun write(value: RcbInputDescriptorData, buf: ByteBuffer) {
+    override fun write(value: InputDescriptorData, buf: ByteBuffer) {
             FfiConverterString.write(value.`id`, buf)
             FfiConverterOptionalString.write(value.`name`, buf)
             FfiConverterOptionalString.write(value.`purpose`, buf)
-            FfiConverterTypeRcbConstraintsData.write(value.`constraints`, buf)
+            FfiConverterTypeConstraintsData.write(value.`constraints`, buf)
     }
 }
 
 
 
-data class RcbJwkData (
+data class JwkData (
     var `alg`: kotlin.String, 
     var `kty`: kotlin.String, 
     var `crv`: kotlin.String, 
@@ -5273,9 +5273,9 @@ data class RcbJwkData (
     companion object
 }
 
-public object FfiConverterTypeRcbJwkData: FfiConverterRustBuffer<RcbJwkData> {
-    override fun read(buf: ByteBuffer): RcbJwkData {
-        return RcbJwkData(
+public object FfiConverterTypeJwkData: FfiConverterRustBuffer<JwkData> {
+    override fun read(buf: ByteBuffer): JwkData {
+        return JwkData(
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
@@ -5285,7 +5285,7 @@ public object FfiConverterTypeRcbJwkData: FfiConverterRustBuffer<RcbJwkData> {
         )
     }
 
-    override fun allocationSize(value: RcbJwkData) = (
+    override fun allocationSize(value: JwkData) = (
             FfiConverterString.allocationSize(value.`alg`) +
             FfiConverterString.allocationSize(value.`kty`) +
             FfiConverterString.allocationSize(value.`crv`) +
@@ -5294,7 +5294,7 @@ public object FfiConverterTypeRcbJwkData: FfiConverterRustBuffer<RcbJwkData> {
             FfiConverterOptionalString.allocationSize(value.`y`)
     )
 
-    override fun write(value: RcbJwkData, buf: ByteBuffer) {
+    override fun write(value: JwkData, buf: ByteBuffer) {
             FfiConverterString.write(value.`alg`, buf)
             FfiConverterString.write(value.`kty`, buf)
             FfiConverterString.write(value.`crv`, buf)
@@ -5306,102 +5306,102 @@ public object FfiConverterTypeRcbJwkData: FfiConverterRustBuffer<RcbJwkData> {
 
 
 
-data class RcbPresentationDefinitionData (
+data class PresentationDefinitionData (
     var `id`: kotlin.String, 
     var `name`: kotlin.String?, 
     var `purpose`: kotlin.String?, 
-    var `inputDescriptors`: List<RcbInputDescriptorData>
+    var `inputDescriptors`: List<InputDescriptorData>
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbPresentationDefinitionData: FfiConverterRustBuffer<RcbPresentationDefinitionData> {
-    override fun read(buf: ByteBuffer): RcbPresentationDefinitionData {
-        return RcbPresentationDefinitionData(
+public object FfiConverterTypePresentationDefinitionData: FfiConverterRustBuffer<PresentationDefinitionData> {
+    override fun read(buf: ByteBuffer): PresentationDefinitionData {
+        return PresentationDefinitionData(
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterSequenceTypeRcbInputDescriptorData.read(buf),
+            FfiConverterSequenceTypeInputDescriptorData.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbPresentationDefinitionData) = (
+    override fun allocationSize(value: PresentationDefinitionData) = (
             FfiConverterString.allocationSize(value.`id`) +
             FfiConverterOptionalString.allocationSize(value.`name`) +
             FfiConverterOptionalString.allocationSize(value.`purpose`) +
-            FfiConverterSequenceTypeRcbInputDescriptorData.allocationSize(value.`inputDescriptors`)
+            FfiConverterSequenceTypeInputDescriptorData.allocationSize(value.`inputDescriptors`)
     )
 
-    override fun write(value: RcbPresentationDefinitionData, buf: ByteBuffer) {
+    override fun write(value: PresentationDefinitionData, buf: ByteBuffer) {
             FfiConverterString.write(value.`id`, buf)
             FfiConverterOptionalString.write(value.`name`, buf)
             FfiConverterOptionalString.write(value.`purpose`, buf)
-            FfiConverterSequenceTypeRcbInputDescriptorData.write(value.`inputDescriptors`, buf)
+            FfiConverterSequenceTypeInputDescriptorData.write(value.`inputDescriptors`, buf)
     }
 }
 
 
 
-data class RcbResolutionMetadataData (
-    var `error`: RcbResolutionMetadataError?
+data class ResolutionMetadataData (
+    var `error`: ResolutionMetadataError?
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbResolutionMetadataData: FfiConverterRustBuffer<RcbResolutionMetadataData> {
-    override fun read(buf: ByteBuffer): RcbResolutionMetadataData {
-        return RcbResolutionMetadataData(
-            FfiConverterOptionalTypeRcbResolutionMetadataError.read(buf),
+public object FfiConverterTypeResolutionMetadataData: FfiConverterRustBuffer<ResolutionMetadataData> {
+    override fun read(buf: ByteBuffer): ResolutionMetadataData {
+        return ResolutionMetadataData(
+            FfiConverterOptionalTypeResolutionMetadataError.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbResolutionMetadataData) = (
-            FfiConverterOptionalTypeRcbResolutionMetadataError.allocationSize(value.`error`)
+    override fun allocationSize(value: ResolutionMetadataData) = (
+            FfiConverterOptionalTypeResolutionMetadataError.allocationSize(value.`error`)
     )
 
-    override fun write(value: RcbResolutionMetadataData, buf: ByteBuffer) {
-            FfiConverterOptionalTypeRcbResolutionMetadataError.write(value.`error`, buf)
+    override fun write(value: ResolutionMetadataData, buf: ByteBuffer) {
+            FfiConverterOptionalTypeResolutionMetadataError.write(value.`error`, buf)
     }
 }
 
 
 
-data class RcbResolutionResultData (
-    var `document`: RcbDocumentData?, 
-    var `documentMetadata`: RcbDocumentMetadataData?, 
-    var `resolutionMetadata`: RcbResolutionMetadataData
+data class ResolutionResultData (
+    var `document`: DocumentData?, 
+    var `documentMetadata`: DocumentMetadataData?, 
+    var `resolutionMetadata`: ResolutionMetadataData
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbResolutionResultData: FfiConverterRustBuffer<RcbResolutionResultData> {
-    override fun read(buf: ByteBuffer): RcbResolutionResultData {
-        return RcbResolutionResultData(
-            FfiConverterOptionalTypeRcbDocumentData.read(buf),
-            FfiConverterOptionalTypeRcbDocumentMetadataData.read(buf),
-            FfiConverterTypeRcbResolutionMetadataData.read(buf),
+public object FfiConverterTypeResolutionResultData: FfiConverterRustBuffer<ResolutionResultData> {
+    override fun read(buf: ByteBuffer): ResolutionResultData {
+        return ResolutionResultData(
+            FfiConverterOptionalTypeDocumentData.read(buf),
+            FfiConverterOptionalTypeDocumentMetadataData.read(buf),
+            FfiConverterTypeResolutionMetadataData.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbResolutionResultData) = (
-            FfiConverterOptionalTypeRcbDocumentData.allocationSize(value.`document`) +
-            FfiConverterOptionalTypeRcbDocumentMetadataData.allocationSize(value.`documentMetadata`) +
-            FfiConverterTypeRcbResolutionMetadataData.allocationSize(value.`resolutionMetadata`)
+    override fun allocationSize(value: ResolutionResultData) = (
+            FfiConverterOptionalTypeDocumentData.allocationSize(value.`document`) +
+            FfiConverterOptionalTypeDocumentMetadataData.allocationSize(value.`documentMetadata`) +
+            FfiConverterTypeResolutionMetadataData.allocationSize(value.`resolutionMetadata`)
     )
 
-    override fun write(value: RcbResolutionResultData, buf: ByteBuffer) {
-            FfiConverterOptionalTypeRcbDocumentData.write(value.`document`, buf)
-            FfiConverterOptionalTypeRcbDocumentMetadataData.write(value.`documentMetadata`, buf)
-            FfiConverterTypeRcbResolutionMetadataData.write(value.`resolutionMetadata`, buf)
+    override fun write(value: ResolutionResultData, buf: ByteBuffer) {
+            FfiConverterOptionalTypeDocumentData.write(value.`document`, buf)
+            FfiConverterOptionalTypeDocumentMetadataData.write(value.`documentMetadata`, buf)
+            FfiConverterTypeResolutionMetadataData.write(value.`resolutionMetadata`, buf)
     }
 }
 
 
 
-data class RcbServiceData (
+data class ServiceData (
     var `id`: kotlin.String, 
     var `type`: kotlin.String, 
     var `serviceEndpoint`: List<kotlin.String>
@@ -5410,22 +5410,22 @@ data class RcbServiceData (
     companion object
 }
 
-public object FfiConverterTypeRcbServiceData: FfiConverterRustBuffer<RcbServiceData> {
-    override fun read(buf: ByteBuffer): RcbServiceData {
-        return RcbServiceData(
+public object FfiConverterTypeServiceData: FfiConverterRustBuffer<ServiceData> {
+    override fun read(buf: ByteBuffer): ServiceData {
+        return ServiceData(
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterSequenceString.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbServiceData) = (
+    override fun allocationSize(value: ServiceData) = (
             FfiConverterString.allocationSize(value.`id`) +
             FfiConverterString.allocationSize(value.`type`) +
             FfiConverterSequenceString.allocationSize(value.`serviceEndpoint`)
     )
 
-    override fun write(value: RcbServiceData, buf: ByteBuffer) {
+    override fun write(value: ServiceData, buf: ByteBuffer) {
             FfiConverterString.write(value.`id`, buf)
             FfiConverterString.write(value.`type`, buf)
             FfiConverterSequenceString.write(value.`serviceEndpoint`, buf)
@@ -5434,110 +5434,110 @@ public object FfiConverterTypeRcbServiceData: FfiConverterRustBuffer<RcbServiceD
 
 
 
-data class RcbVerifiableCredentialData (
+data class VerifiableCredentialData (
     var `context`: List<kotlin.String>, 
     var `id`: kotlin.String, 
     var `type`: List<kotlin.String>, 
     var `issuer`: kotlin.String, 
     var `issuanceDate`: kotlin.String, 
     var `expirationDate`: kotlin.String?, 
-    var `credentialSubject`: RcbCredentialSubjectData
+    var `credentialSubject`: CredentialSubjectData
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbVerifiableCredentialData: FfiConverterRustBuffer<RcbVerifiableCredentialData> {
-    override fun read(buf: ByteBuffer): RcbVerifiableCredentialData {
-        return RcbVerifiableCredentialData(
+public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<VerifiableCredentialData> {
+    override fun read(buf: ByteBuffer): VerifiableCredentialData {
+        return VerifiableCredentialData(
             FfiConverterSequenceString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterSequenceString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterTypeRcbCredentialSubjectData.read(buf),
+            FfiConverterTypeCredentialSubjectData.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbVerifiableCredentialData) = (
+    override fun allocationSize(value: VerifiableCredentialData) = (
             FfiConverterSequenceString.allocationSize(value.`context`) +
             FfiConverterString.allocationSize(value.`id`) +
             FfiConverterSequenceString.allocationSize(value.`type`) +
             FfiConverterString.allocationSize(value.`issuer`) +
             FfiConverterString.allocationSize(value.`issuanceDate`) +
             FfiConverterOptionalString.allocationSize(value.`expirationDate`) +
-            FfiConverterTypeRcbCredentialSubjectData.allocationSize(value.`credentialSubject`)
+            FfiConverterTypeCredentialSubjectData.allocationSize(value.`credentialSubject`)
     )
 
-    override fun write(value: RcbVerifiableCredentialData, buf: ByteBuffer) {
+    override fun write(value: VerifiableCredentialData, buf: ByteBuffer) {
             FfiConverterSequenceString.write(value.`context`, buf)
             FfiConverterString.write(value.`id`, buf)
             FfiConverterSequenceString.write(value.`type`, buf)
             FfiConverterString.write(value.`issuer`, buf)
             FfiConverterString.write(value.`issuanceDate`, buf)
             FfiConverterOptionalString.write(value.`expirationDate`, buf)
-            FfiConverterTypeRcbCredentialSubjectData.write(value.`credentialSubject`, buf)
+            FfiConverterTypeCredentialSubjectData.write(value.`credentialSubject`, buf)
     }
 }
 
 
 
-data class RcbVerificationMethodData (
+data class VerificationMethodData (
     var `id`: kotlin.String, 
     var `type`: kotlin.String, 
     var `controller`: kotlin.String, 
-    var `publicKeyJwk`: RcbJwkData
+    var `publicKeyJwk`: JwkData
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRcbVerificationMethodData: FfiConverterRustBuffer<RcbVerificationMethodData> {
-    override fun read(buf: ByteBuffer): RcbVerificationMethodData {
-        return RcbVerificationMethodData(
+public object FfiConverterTypeVerificationMethodData: FfiConverterRustBuffer<VerificationMethodData> {
+    override fun read(buf: ByteBuffer): VerificationMethodData {
+        return VerificationMethodData(
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
-            FfiConverterTypeRcbJwkData.read(buf),
+            FfiConverterTypeJwkData.read(buf),
         )
     }
 
-    override fun allocationSize(value: RcbVerificationMethodData) = (
+    override fun allocationSize(value: VerificationMethodData) = (
             FfiConverterString.allocationSize(value.`id`) +
             FfiConverterString.allocationSize(value.`type`) +
             FfiConverterString.allocationSize(value.`controller`) +
-            FfiConverterTypeRcbJwkData.allocationSize(value.`publicKeyJwk`)
+            FfiConverterTypeJwkData.allocationSize(value.`publicKeyJwk`)
     )
 
-    override fun write(value: RcbVerificationMethodData, buf: ByteBuffer) {
+    override fun write(value: VerificationMethodData, buf: ByteBuffer) {
             FfiConverterString.write(value.`id`, buf)
             FfiConverterString.write(value.`type`, buf)
             FfiConverterString.write(value.`controller`, buf)
-            FfiConverterTypeRcbJwkData.write(value.`publicKeyJwk`, buf)
+            FfiConverterTypeJwkData.write(value.`publicKeyJwk`, buf)
     }
 }
 
 
 
 
-enum class RcbDsa {
+enum class Dsa {
     
     ED25519;
     companion object
 }
 
 
-public object FfiConverterTypeRcbDsa: FfiConverterRustBuffer<RcbDsa> {
+public object FfiConverterTypeDsa: FfiConverterRustBuffer<Dsa> {
     override fun read(buf: ByteBuffer) = try {
-        RcbDsa.values()[buf.getInt() - 1]
+        Dsa.values()[buf.getInt() - 1]
     } catch (e: IndexOutOfBoundsException) {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: RcbDsa) = 4UL
+    override fun allocationSize(value: Dsa) = 4UL
 
-    override fun write(value: RcbDsa, buf: ByteBuffer) {
+    override fun write(value: Dsa, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
@@ -5547,7 +5547,7 @@ public object FfiConverterTypeRcbDsa: FfiConverterRustBuffer<RcbDsa> {
 
 
 
-enum class RcbOptionality {
+enum class Optionality {
     
     REQUIRED,
     PREFERRED;
@@ -5555,16 +5555,16 @@ enum class RcbOptionality {
 }
 
 
-public object FfiConverterTypeRcbOptionality: FfiConverterRustBuffer<RcbOptionality> {
+public object FfiConverterTypeOptionality: FfiConverterRustBuffer<Optionality> {
     override fun read(buf: ByteBuffer) = try {
-        RcbOptionality.values()[buf.getInt() - 1]
+        Optionality.values()[buf.getInt() - 1]
     } catch (e: IndexOutOfBoundsException) {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: RcbOptionality) = 4UL
+    override fun allocationSize(value: Optionality) = 4UL
 
-    override fun write(value: RcbOptionality, buf: ByteBuffer) {
+    override fun write(value: Optionality, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
@@ -5574,7 +5574,7 @@ public object FfiConverterTypeRcbOptionality: FfiConverterRustBuffer<RcbOptional
 
 
 
-enum class RcbResolutionMetadataError {
+enum class ResolutionMetadataError {
     
     INVALID_DID,
     NOT_FOUND,
@@ -5587,16 +5587,16 @@ enum class RcbResolutionMetadataError {
 }
 
 
-public object FfiConverterTypeRcbResolutionMetadataError: FfiConverterRustBuffer<RcbResolutionMetadataError> {
+public object FfiConverterTypeResolutionMetadataError: FfiConverterRustBuffer<ResolutionMetadataError> {
     override fun read(buf: ByteBuffer) = try {
-        RcbResolutionMetadataError.values()[buf.getInt() - 1]
+        ResolutionMetadataError.values()[buf.getInt() - 1]
     } catch (e: IndexOutOfBoundsException) {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: RcbResolutionMetadataError) = 4UL
+    override fun allocationSize(value: ResolutionMetadataError) = 4UL
 
-    override fun write(value: RcbResolutionMetadataError, buf: ByteBuffer) {
+    override fun write(value: ResolutionMetadataError, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
@@ -5664,28 +5664,28 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
 
 
 
-public object FfiConverterOptionalTypeRcbDocumentData: FfiConverterRustBuffer<RcbDocumentData?> {
-    override fun read(buf: ByteBuffer): RcbDocumentData? {
+public object FfiConverterOptionalTypeDocumentData: FfiConverterRustBuffer<DocumentData?> {
+    override fun read(buf: ByteBuffer): DocumentData? {
         if (buf.get().toInt() == 0) {
             return null
         }
-        return FfiConverterTypeRcbDocumentData.read(buf)
+        return FfiConverterTypeDocumentData.read(buf)
     }
 
-    override fun allocationSize(value: RcbDocumentData?): ULong {
+    override fun allocationSize(value: DocumentData?): ULong {
         if (value == null) {
             return 1UL
         } else {
-            return 1UL + FfiConverterTypeRcbDocumentData.allocationSize(value)
+            return 1UL + FfiConverterTypeDocumentData.allocationSize(value)
         }
     }
 
-    override fun write(value: RcbDocumentData?, buf: ByteBuffer) {
+    override fun write(value: DocumentData?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
             buf.put(1)
-            FfiConverterTypeRcbDocumentData.write(value, buf)
+            FfiConverterTypeDocumentData.write(value, buf)
         }
     }
 }
@@ -5693,28 +5693,28 @@ public object FfiConverterOptionalTypeRcbDocumentData: FfiConverterRustBuffer<Rc
 
 
 
-public object FfiConverterOptionalTypeRcbDocumentMetadataData: FfiConverterRustBuffer<RcbDocumentMetadataData?> {
-    override fun read(buf: ByteBuffer): RcbDocumentMetadataData? {
+public object FfiConverterOptionalTypeDocumentMetadataData: FfiConverterRustBuffer<DocumentMetadataData?> {
+    override fun read(buf: ByteBuffer): DocumentMetadataData? {
         if (buf.get().toInt() == 0) {
             return null
         }
-        return FfiConverterTypeRcbDocumentMetadataData.read(buf)
+        return FfiConverterTypeDocumentMetadataData.read(buf)
     }
 
-    override fun allocationSize(value: RcbDocumentMetadataData?): ULong {
+    override fun allocationSize(value: DocumentMetadataData?): ULong {
         if (value == null) {
             return 1UL
         } else {
-            return 1UL + FfiConverterTypeRcbDocumentMetadataData.allocationSize(value)
+            return 1UL + FfiConverterTypeDocumentMetadataData.allocationSize(value)
         }
     }
 
-    override fun write(value: RcbDocumentMetadataData?, buf: ByteBuffer) {
+    override fun write(value: DocumentMetadataData?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
             buf.put(1)
-            FfiConverterTypeRcbDocumentMetadataData.write(value, buf)
+            FfiConverterTypeDocumentMetadataData.write(value, buf)
         }
     }
 }
@@ -5722,28 +5722,28 @@ public object FfiConverterOptionalTypeRcbDocumentMetadataData: FfiConverterRustB
 
 
 
-public object FfiConverterOptionalTypeRcbFilterData: FfiConverterRustBuffer<RcbFilterData?> {
-    override fun read(buf: ByteBuffer): RcbFilterData? {
+public object FfiConverterOptionalTypeFilterData: FfiConverterRustBuffer<FilterData?> {
+    override fun read(buf: ByteBuffer): FilterData? {
         if (buf.get().toInt() == 0) {
             return null
         }
-        return FfiConverterTypeRcbFilterData.read(buf)
+        return FfiConverterTypeFilterData.read(buf)
     }
 
-    override fun allocationSize(value: RcbFilterData?): ULong {
+    override fun allocationSize(value: FilterData?): ULong {
         if (value == null) {
             return 1UL
         } else {
-            return 1UL + FfiConverterTypeRcbFilterData.allocationSize(value)
+            return 1UL + FfiConverterTypeFilterData.allocationSize(value)
         }
     }
 
-    override fun write(value: RcbFilterData?, buf: ByteBuffer) {
+    override fun write(value: FilterData?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
             buf.put(1)
-            FfiConverterTypeRcbFilterData.write(value, buf)
+            FfiConverterTypeFilterData.write(value, buf)
         }
     }
 }
@@ -5751,28 +5751,28 @@ public object FfiConverterOptionalTypeRcbFilterData: FfiConverterRustBuffer<RcbF
 
 
 
-public object FfiConverterOptionalTypeRcbOptionality: FfiConverterRustBuffer<RcbOptionality?> {
-    override fun read(buf: ByteBuffer): RcbOptionality? {
+public object FfiConverterOptionalTypeOptionality: FfiConverterRustBuffer<Optionality?> {
+    override fun read(buf: ByteBuffer): Optionality? {
         if (buf.get().toInt() == 0) {
             return null
         }
-        return FfiConverterTypeRcbOptionality.read(buf)
+        return FfiConverterTypeOptionality.read(buf)
     }
 
-    override fun allocationSize(value: RcbOptionality?): ULong {
+    override fun allocationSize(value: Optionality?): ULong {
         if (value == null) {
             return 1UL
         } else {
-            return 1UL + FfiConverterTypeRcbOptionality.allocationSize(value)
+            return 1UL + FfiConverterTypeOptionality.allocationSize(value)
         }
     }
 
-    override fun write(value: RcbOptionality?, buf: ByteBuffer) {
+    override fun write(value: Optionality?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
             buf.put(1)
-            FfiConverterTypeRcbOptionality.write(value, buf)
+            FfiConverterTypeOptionality.write(value, buf)
         }
     }
 }
@@ -5780,28 +5780,28 @@ public object FfiConverterOptionalTypeRcbOptionality: FfiConverterRustBuffer<Rcb
 
 
 
-public object FfiConverterOptionalTypeRcbResolutionMetadataError: FfiConverterRustBuffer<RcbResolutionMetadataError?> {
-    override fun read(buf: ByteBuffer): RcbResolutionMetadataError? {
+public object FfiConverterOptionalTypeResolutionMetadataError: FfiConverterRustBuffer<ResolutionMetadataError?> {
+    override fun read(buf: ByteBuffer): ResolutionMetadataError? {
         if (buf.get().toInt() == 0) {
             return null
         }
-        return FfiConverterTypeRcbResolutionMetadataError.read(buf)
+        return FfiConverterTypeResolutionMetadataError.read(buf)
     }
 
-    override fun allocationSize(value: RcbResolutionMetadataError?): ULong {
+    override fun allocationSize(value: ResolutionMetadataError?): ULong {
         if (value == null) {
             return 1UL
         } else {
-            return 1UL + FfiConverterTypeRcbResolutionMetadataError.allocationSize(value)
+            return 1UL + FfiConverterTypeResolutionMetadataError.allocationSize(value)
         }
     }
 
-    override fun write(value: RcbResolutionMetadataError?, buf: ByteBuffer) {
+    override fun write(value: ResolutionMetadataError?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
             buf.put(1)
-            FfiConverterTypeRcbResolutionMetadataError.write(value, buf)
+            FfiConverterTypeResolutionMetadataError.write(value, buf)
         }
     }
 }
@@ -5838,28 +5838,28 @@ public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<ko
 
 
 
-public object FfiConverterOptionalSequenceTypeRcbServiceData: FfiConverterRustBuffer<List<RcbServiceData>?> {
-    override fun read(buf: ByteBuffer): List<RcbServiceData>? {
+public object FfiConverterOptionalSequenceTypeServiceData: FfiConverterRustBuffer<List<ServiceData>?> {
+    override fun read(buf: ByteBuffer): List<ServiceData>? {
         if (buf.get().toInt() == 0) {
             return null
         }
-        return FfiConverterSequenceTypeRcbServiceData.read(buf)
+        return FfiConverterSequenceTypeServiceData.read(buf)
     }
 
-    override fun allocationSize(value: List<RcbServiceData>?): ULong {
+    override fun allocationSize(value: List<ServiceData>?): ULong {
         if (value == null) {
             return 1UL
         } else {
-            return 1UL + FfiConverterSequenceTypeRcbServiceData.allocationSize(value)
+            return 1UL + FfiConverterSequenceTypeServiceData.allocationSize(value)
         }
     }
 
-    override fun write(value: List<RcbServiceData>?, buf: ByteBuffer) {
+    override fun write(value: List<ServiceData>?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
             buf.put(1)
-            FfiConverterSequenceTypeRcbServiceData.write(value, buf)
+            FfiConverterSequenceTypeServiceData.write(value, buf)
         }
     }
 }
@@ -5946,24 +5946,24 @@ public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.Str
 
 
 
-public object FfiConverterSequenceTypeRcbFieldData: FfiConverterRustBuffer<List<RcbFieldData>> {
-    override fun read(buf: ByteBuffer): List<RcbFieldData> {
+public object FfiConverterSequenceTypeFieldData: FfiConverterRustBuffer<List<FieldData>> {
+    override fun read(buf: ByteBuffer): List<FieldData> {
         val len = buf.getInt()
-        return List<RcbFieldData>(len) {
-            FfiConverterTypeRcbFieldData.read(buf)
+        return List<FieldData>(len) {
+            FfiConverterTypeFieldData.read(buf)
         }
     }
 
-    override fun allocationSize(value: List<RcbFieldData>): ULong {
+    override fun allocationSize(value: List<FieldData>): ULong {
         val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeRcbFieldData.allocationSize(it) }.sum()
+        val sizeForItems = value.map { FfiConverterTypeFieldData.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
-    override fun write(value: List<RcbFieldData>, buf: ByteBuffer) {
+    override fun write(value: List<FieldData>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
-            FfiConverterTypeRcbFieldData.write(it, buf)
+            FfiConverterTypeFieldData.write(it, buf)
         }
     }
 }
@@ -5971,24 +5971,24 @@ public object FfiConverterSequenceTypeRcbFieldData: FfiConverterRustBuffer<List<
 
 
 
-public object FfiConverterSequenceTypeRcbInputDescriptorData: FfiConverterRustBuffer<List<RcbInputDescriptorData>> {
-    override fun read(buf: ByteBuffer): List<RcbInputDescriptorData> {
+public object FfiConverterSequenceTypeInputDescriptorData: FfiConverterRustBuffer<List<InputDescriptorData>> {
+    override fun read(buf: ByteBuffer): List<InputDescriptorData> {
         val len = buf.getInt()
-        return List<RcbInputDescriptorData>(len) {
-            FfiConverterTypeRcbInputDescriptorData.read(buf)
+        return List<InputDescriptorData>(len) {
+            FfiConverterTypeInputDescriptorData.read(buf)
         }
     }
 
-    override fun allocationSize(value: List<RcbInputDescriptorData>): ULong {
+    override fun allocationSize(value: List<InputDescriptorData>): ULong {
         val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeRcbInputDescriptorData.allocationSize(it) }.sum()
+        val sizeForItems = value.map { FfiConverterTypeInputDescriptorData.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
-    override fun write(value: List<RcbInputDescriptorData>, buf: ByteBuffer) {
+    override fun write(value: List<InputDescriptorData>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
-            FfiConverterTypeRcbInputDescriptorData.write(it, buf)
+            FfiConverterTypeInputDescriptorData.write(it, buf)
         }
     }
 }
@@ -5996,24 +5996,24 @@ public object FfiConverterSequenceTypeRcbInputDescriptorData: FfiConverterRustBu
 
 
 
-public object FfiConverterSequenceTypeRcbServiceData: FfiConverterRustBuffer<List<RcbServiceData>> {
-    override fun read(buf: ByteBuffer): List<RcbServiceData> {
+public object FfiConverterSequenceTypeServiceData: FfiConverterRustBuffer<List<ServiceData>> {
+    override fun read(buf: ByteBuffer): List<ServiceData> {
         val len = buf.getInt()
-        return List<RcbServiceData>(len) {
-            FfiConverterTypeRcbServiceData.read(buf)
+        return List<ServiceData>(len) {
+            FfiConverterTypeServiceData.read(buf)
         }
     }
 
-    override fun allocationSize(value: List<RcbServiceData>): ULong {
+    override fun allocationSize(value: List<ServiceData>): ULong {
         val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeRcbServiceData.allocationSize(it) }.sum()
+        val sizeForItems = value.map { FfiConverterTypeServiceData.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
-    override fun write(value: List<RcbServiceData>, buf: ByteBuffer) {
+    override fun write(value: List<ServiceData>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
-            FfiConverterTypeRcbServiceData.write(it, buf)
+            FfiConverterTypeServiceData.write(it, buf)
         }
     }
 }
@@ -6021,24 +6021,24 @@ public object FfiConverterSequenceTypeRcbServiceData: FfiConverterRustBuffer<Lis
 
 
 
-public object FfiConverterSequenceTypeRcbVerificationMethodData: FfiConverterRustBuffer<List<RcbVerificationMethodData>> {
-    override fun read(buf: ByteBuffer): List<RcbVerificationMethodData> {
+public object FfiConverterSequenceTypeVerificationMethodData: FfiConverterRustBuffer<List<VerificationMethodData>> {
+    override fun read(buf: ByteBuffer): List<VerificationMethodData> {
         val len = buf.getInt()
-        return List<RcbVerificationMethodData>(len) {
-            FfiConverterTypeRcbVerificationMethodData.read(buf)
+        return List<VerificationMethodData>(len) {
+            FfiConverterTypeVerificationMethodData.read(buf)
         }
     }
 
-    override fun allocationSize(value: List<RcbVerificationMethodData>): ULong {
+    override fun allocationSize(value: List<VerificationMethodData>): ULong {
         val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeRcbVerificationMethodData.allocationSize(it) }.sum()
+        val sizeForItems = value.map { FfiConverterTypeVerificationMethodData.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
-    override fun write(value: List<RcbVerificationMethodData>, buf: ByteBuffer) {
+    override fun write(value: List<VerificationMethodData>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
-            FfiConverterTypeRcbVerificationMethodData.write(it, buf)
+            FfiConverterTypeVerificationMethodData.write(it, buf)
         }
     }
 }
@@ -6085,44 +6085,44 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
 
 
 
-    @Throws(RcbException::class) fun `rcbDidDhtResolve`(`uri`: kotlin.String): RcbResolutionResult {
-            return FfiConverterTypeRcbResolutionResult.lift(
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_rcb_did_dht_resolve(
+    @Throws(Exception::class) fun `didDhtResolve`(`uri`: kotlin.String): ResolutionResult {
+            return FfiConverterTypeResolutionResult.lift(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_resolve(
         FfiConverterString.lower(`uri`),_status)
 }
     )
     }
     
 
-    @Throws(RcbException::class) fun `rcbDidJwkResolve`(`uri`: kotlin.String): RcbResolutionResult {
-            return FfiConverterTypeRcbResolutionResult.lift(
-    uniffiRustCallWithError(RcbException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_rcb_did_jwk_resolve(
+    @Throws(Exception::class) fun `didJwkResolve`(`uri`: kotlin.String): ResolutionResult {
+            return FfiConverterTypeResolutionResult.lift(
+    uniffiRustCallWithError(Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_jwk_resolve(
         FfiConverterString.lower(`uri`),_status)
 }
     )
     }
     
 
-    @Throws(RcbException::class)
+    @Throws(Exception::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-     suspend fun `rcbDidWebResolve`(`uri`: kotlin.String) : RcbResolutionResult {
+     suspend fun `didWebResolve`(`uri`: kotlin.String) : ResolutionResult {
         return uniffiRustCallAsync(
-        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_rcb_did_web_resolve(FfiConverterString.lower(`uri`),),
+        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_web_resolve(FfiConverterString.lower(`uri`),),
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_poll_pointer(future, callback, continuation) },
         { future, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_complete_pointer(future, continuation) },
         { future -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_free_pointer(future) },
         // lift function
-        { FfiConverterTypeRcbResolutionResult.lift(it) },
+        { FfiConverterTypeResolutionResult.lift(it) },
         // Error FFI converter
-        RcbException.ErrorHandler,
+        Exception.ErrorHandler,
     )
     }
- fun `rcbEd25519GeneratorGenerate`(): RcbJwkData {
-            return FfiConverterTypeRcbJwkData.lift(
+ fun `ed25519GeneratorGenerate`(): JwkData {
+            return FfiConverterTypeJwkData.lift(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_rcb_ed25519_generator_generate(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_ed25519_generator_generate(
         _status)
 }
     )

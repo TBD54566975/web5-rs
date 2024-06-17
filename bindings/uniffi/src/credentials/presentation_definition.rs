@@ -1,15 +1,15 @@
-use crate::errors::RcbResult;
+use crate::errors::Result;
 use std::sync::Arc;
-use web5::apid::credentials::presentation_definition::PresentationDefinition;
+use web5::apid::credentials::presentation_definition::PresentationDefinition as InnerPresentationDefinition;
 
-pub struct RcbPresentationDefinition(pub PresentationDefinition);
+pub struct PresentationDefinition(pub InnerPresentationDefinition);
 
-impl RcbPresentationDefinition {
-    pub fn new(pd: PresentationDefinition) -> Self {
+impl PresentationDefinition {
+    pub fn new(pd: InnerPresentationDefinition) -> Self {
         Self(pd)
     }
 
-    pub fn select_credentials(&self, vc_jwts: &Vec<String>) -> RcbResult<Vec<String>> {
+    pub fn select_credentials(&self, vc_jwts: &Vec<String>) -> Result<Vec<String>> {
         self.0
             .select_credentials(vc_jwts)
             .map_err(|e| Arc::new(e.into()))

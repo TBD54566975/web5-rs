@@ -1,21 +1,21 @@
 namespace web5 {
-  RcbJwkData rcb_ed25519_generator_generate();
+  JwkData ed25519_generator_generate();
 
-  [Throws=RcbError]
-  RcbResolutionResult rcb_did_jwk_resolve([ByRef] string uri);
-  [Async, Throws=RcbError]
-  RcbResolutionResult rcb_did_web_resolve([ByRef] string uri);
-  [Throws=RcbError]
-  RcbResolutionResult rcb_did_dht_resolve([ByRef] string uri);
+  [Throws=Error]
+  ResolutionResult did_jwk_resolve([ByRef] string uri);
+  [Async, Throws=Error]
+  ResolutionResult did_web_resolve([ByRef] string uri);
+  [Throws=Error]
+  ResolutionResult did_dht_resolve([ByRef] string uri);
 };
 
-interface RcbError {
+interface Error {
   string message();
   string error_type();
   string error_variant();
 };
 
-dictionary RcbJwkData {
+dictionary JwkData {
   string alg;
   string kty;
   string crv;
@@ -24,45 +24,45 @@ dictionary RcbJwkData {
   string? y;
 };
 
-interface RcbInMemoryKeyManager {
+interface InMemoryKeyManager {
   constructor();
-  [Throws=RcbError]
-  RcbJwkData generate_key_material();
-  [Throws=RcbError]
-  RcbSigner get_signer(RcbJwkData public_jwk);
-  [Throws=RcbError]
-  RcbJwkData import_key(RcbJwkData private_key);
+  [Throws=Error]
+  JwkData generate_key_material();
+  [Throws=Error]
+  Signer get_signer(JwkData public_jwk);
+  [Throws=Error]
+  JwkData import_key(JwkData private_key);
 };
 
-enum RcbDsa {
+enum Dsa {
   "Ed25519"
 };
 
 [Trait]
-interface RcbSigner {
-  [Throws=RcbError]
+interface Signer {
+  [Throws=Error]
   bytes sign([ByRef] sequence<u8> payload);
 };
 
 [Trait]
-interface RcbVerifier {
-  [Throws=RcbError]
+interface Verifier {
+  [Throws=Error]
   boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
 };
 
-interface RcbEd25519Signer {
-  constructor(RcbJwkData private_key);
-  [Throws=RcbError]
+interface Ed25519Signer {
+  constructor(JwkData private_key);
+  [Throws=Error]
   bytes sign([ByRef] sequence<u8> payload);
 };
 
-interface RcbEd25519Verifier {
-  constructor(RcbJwkData public_jwk);
-  [Throws=RcbError]
+interface Ed25519Verifier {
+  constructor(JwkData public_jwk);
+  [Throws=Error]
   boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
 };
 
-dictionary RcbDidData {
+dictionary DidData {
   string uri;
   string url;
   string method;
@@ -73,40 +73,40 @@ dictionary RcbDidData {
   string? fragment;
 };
 
-interface RcbDid {
-  [Throws=RcbError]
+interface Did {
+  [Throws=Error]
   constructor([ByRef] string uri);
-  RcbDidData get_data();
+  DidData get_data();
 };
 
-dictionary RcbDocumentData {
+dictionary DocumentData {
   string id;
   sequence<string>? context;
   sequence<string>? controller;
   sequence<string>? also_known_as;
-  sequence<RcbVerificationMethodData> verification_method;
+  sequence<VerificationMethodData> verification_method;
   sequence<string>? authentication;
   sequence<string>? assertion_method;
   sequence<string>? key_agreement;
   sequence<string>? capability_invocation;
   sequence<string>? capability_delegation;
-  sequence<RcbServiceData>? service;
+  sequence<ServiceData>? service;
 };
 
-dictionary RcbVerificationMethodData {
+dictionary VerificationMethodData {
   string id;
   string type;
   string controller;
-  RcbJwkData public_key_jwk;
+  JwkData public_key_jwk;
 };
 
-dictionary RcbServiceData {
+dictionary ServiceData {
   string id;
   string type;
   sequence<string> service_endpoint;
 };
 
-enum RcbResolutionMetadataError {
+enum ResolutionMetadataError {
   "InvalidDid",
   "NotFound",
   "RepresentationNotSupported",
@@ -116,11 +116,11 @@ enum RcbResolutionMetadataError {
   "InternalError",
 };
 
-dictionary RcbResolutionMetadataData {
-  RcbResolutionMetadataError? error;
+dictionary ResolutionMetadataData {
+  ResolutionMetadataError? error;
 };
 
-dictionary RcbDocumentMetadataData {
+dictionary DocumentMetadataData {
   string? created;
   string? updated;
   boolean? deactivated;
@@ -131,125 +131,125 @@ dictionary RcbDocumentMetadataData {
   string? canonical_id;
 };
 
-dictionary RcbResolutionResultData {
-  RcbDocumentData? document;
-  RcbDocumentMetadataData? document_metadata;
-  RcbResolutionMetadataData resolution_metadata;
+dictionary ResolutionResultData {
+  DocumentData? document;
+  DocumentMetadataData? document_metadata;
+  ResolutionMetadataData resolution_metadata;
 };
 
-interface RcbResolutionResult {
+interface ResolutionResult {
   constructor([ByRef] string uri);
-  RcbResolutionResultData get_data();
+  ResolutionResultData get_data();
 };
 
-dictionary RcbDidJwkData {
-  RcbDidData did;
-  RcbDocumentData document;
+dictionary DidJwkData {
+  DidData did;
+  DocumentData document;
 };
 
-interface RcbDidJwk {
-  [Name=from_public_jwk, Throws=RcbError]
-  constructor(RcbJwkData public_jwk);
-  [Name=from_uri, Throws=RcbError]
+interface DidJwk {
+  [Name=from_public_jwk, Throws=Error]
+  constructor(JwkData public_jwk);
+  [Name=from_uri, Throws=Error]
   constructor([ByRef] string uri);
-  RcbDidJwkData get_data();
+  DidJwkData get_data();
 };
 
-dictionary RcbDidWebData {
-  RcbDidData did;
-  RcbDocumentData document;
+dictionary DidWebData {
+  DidData did;
+  DocumentData document;
 };
 
-interface RcbDidWeb {
-  [Async, Name=from_uri, Throws=RcbError]
+interface DidWeb {
+  [Async, Name=from_uri, Throws=Error]
   constructor([ByRef] string uri);
-  RcbDidWebData get_data();
+  DidWebData get_data();
 };
 
-dictionary RcbDidDhtData {
-  RcbDidData did;
-  RcbDocumentData document;
+dictionary DidDhtData {
+  DidData did;
+  DocumentData document;
 };
 
-interface RcbDidDht {
-  [Name=from_identity_key, Throws=RcbError]
-  constructor(RcbJwkData identity_key);
-  [Name=from_uri, Throws=RcbError]
+interface DidDht {
+  [Name=from_identity_key, Throws=Error]
+  constructor(JwkData identity_key);
+  [Name=from_uri, Throws=Error]
   constructor([ByRef] string uri);
-  [Throws=RcbError]
-  void publish(RcbSigner signer);
-  [Throws=RcbError]
-  void deactivate(RcbSigner signer);
-  RcbDidDhtData get_data();
+  [Throws=Error]
+  void publish(Signer signer);
+  [Throws=Error]
+  void deactivate(Signer signer);
+  DidDhtData get_data();
 };
 
-dictionary RcbCredentialSubjectData {
+dictionary CredentialSubjectData {
   string id;
   record<string, string>? params;
 };
 
-dictionary RcbVerifiableCredentialData {
+dictionary VerifiableCredentialData {
   sequence<string> context;
   string id;
   sequence<string> type;
   string issuer;
   string issuance_date;
   string? expiration_date;
-  RcbCredentialSubjectData credential_subject;
+  CredentialSubjectData credential_subject;
 };
 
-interface RcbVerifiableCredential {
-  constructor(RcbVerifiableCredentialData data);
-  [Name=verify, Throws=RcbError]
+interface VerifiableCredential {
+  constructor(VerifiableCredentialData data);
+  [Name=verify, Throws=Error]
   constructor([ByRef] string vcjwt);
-  [Name=verify_with_verifier, Throws=RcbError]
-  constructor([ByRef] string vcjwt, RcbVerifier verifier);
-  [Throws=RcbError]
-  string sign(RcbSigner signer);
-  RcbVerifiableCredentialData get_data();
+  [Name=verify_with_verifier, Throws=Error]
+  constructor([ByRef] string vcjwt, Verifier verifier);
+  [Throws=Error]
+  string sign(Signer signer);
+  VerifiableCredentialData get_data();
 };
 
-dictionary RcbPresentationDefinitionData {
+dictionary PresentationDefinitionData {
   string id;
   string? name;
   string? purpose;
-  sequence<RcbInputDescriptorData> input_descriptors;
+  sequence<InputDescriptorData> input_descriptors;
 };
 
-dictionary RcbInputDescriptorData {
+dictionary InputDescriptorData {
   string id;
   string? name;
   string? purpose;
-  RcbConstraintsData constraints;
+  ConstraintsData constraints;
 };
 
-dictionary RcbConstraintsData {
-  sequence<RcbFieldData> fields;
+dictionary ConstraintsData {
+  sequence<FieldData> fields;
 };
 
-enum RcbOptionality {
+enum Optionality {
   "Required",
   "Preferred",
 };
 
-dictionary RcbFieldData {
+dictionary FieldData {
   string? id;
   string? name;
   sequence<string> path;
   string? purpose;
-  RcbFilterData? filter;
+  FilterData? filter;
   boolean? optional;
-  RcbOptionality? predicate;
+  Optionality? predicate;
 };
 
-dictionary RcbFilterData {
+dictionary FilterData {
   string? type;
   string? pattern;
   string? const_value;
 };
 
-interface RcbPresentationDefinition {
-  constructor(RcbPresentationDefinitionData data);
-  [Throws=RcbError]
+interface PresentationDefinition {
+  constructor(PresentationDefinitionData data);
+  [Throws=Error]
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
 };

@@ -7,57 +7,55 @@ mod in_memory_key_manager;
 
 use crate::{
     credentials::{
-        presentation_definition::RcbPresentationDefinition,
-        verifiable_credential_11::RcbVerifiableCredential,
+        presentation_definition::PresentationDefinition,
+        verifiable_credential_11::VerifiableCredential,
     },
     dids::{
-        did::RcbDid,
+        did::Did,
         methods::{
-            did_dht::{rcb_did_dht_resolve, RcbDidDht},
-            did_jwk::{rcb_did_jwk_resolve, RcbDidJwk},
-            did_web::{rcb_did_web_resolve, RcbDidWeb},
+            did_dht::{did_dht_resolve, DidDht},
+            did_jwk::{did_jwk_resolve, DidJwk},
+            did_web::{did_web_resolve, DidWeb},
         },
-        resolution_result::RcbResolutionResult,
+        resolution_result::ResolutionResult,
     },
     dsa::{
-        ed25519::{rcb_ed25519_generator_generate, RcbEd25519Signer, RcbEd25519Verifier},
-        RcbSigner, RcbVerifier,
+        ed25519::{ed25519_generator_generate, Ed25519Signer, Ed25519Verifier},
+        Signer, Verifier,
     },
-    errors::RcbError,
-    in_memory_key_manager::RcbInMemoryKeyManager,
+    errors::Error,
+    in_memory_key_manager::InMemoryKeyManager,
 };
 
 use web5::apid::{
     credentials::{
         presentation_definition::{
-            Constraints as RcbConstraintsData, Field as RcbFieldData, Filter as RcbFilterData,
-            InputDescriptor as RcbInputDescriptorData, Optionality as RcbOptionality,
-            PresentationDefinition as RcbPresentationDefinitionData,
+            Constraints as ConstraintsData, Field as FieldData, Filter as FilterData,
+            InputDescriptor as InputDescriptorData, Optionality,
+            PresentationDefinition as PresentationDefinitionData,
         },
         verifiable_credential_11::{
-            CredentialSubject as RcbCredentialSubjectData,
-            VerifiableCredential as RcbVerifiableCredentialData,
+            CredentialSubject as CredentialSubjectData,
+            VerifiableCredential as VerifiableCredentialData,
         },
     },
     dids::{
-        did::Did as RcbDidData,
+        did::Did as DidData,
         document::{
-            Document as RcbDocumentData, Service as RcbServiceData,
-            VerificationMethod as RcbVerificationMethodData,
+            Document as DocumentData, Service as ServiceData,
+            VerificationMethod as VerificationMethodData,
         },
         methods::{
-            did_dht::DidDht as RcbDidDhtData, did_jwk::DidJwk as RcbDidJwkData,
-            did_web::DidWeb as RcbDidWebData,
+            did_dht::DidDht as DidDhtData, did_jwk::DidJwk as DidJwkData,
+            did_web::DidWeb as DidWebData,
         },
         resolution_result::{
-            DocumentMetadata as RcbDocumentMetadataData,
-            ResolutionMetadata as RcbResolutionMetadataData,
-            ResolutionMetadataError as RcbResolutionMetadataError,
-            ResolutionResult as RcbResolutionResultData,
+            DocumentMetadata as DocumentMetadataData, ResolutionMetadata as ResolutionMetadataData,
+            ResolutionMetadataError, ResolutionResult as ResolutionResultData,
         },
     },
-    dsa::Dsa as RcbDsa,
-    jwk::Jwk as RcbJwkData,
+    dsa::Dsa,
+    jwk::Jwk as JwkData,
 };
 
 uniffi::include_scaffolding!("web5");

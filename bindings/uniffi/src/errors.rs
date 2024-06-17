@@ -9,7 +9,7 @@ use web5::apid::dsa::DsaError;
 use web5::apid::{in_memory_key_manager::KeyManagerError, jwk::JwkError};
 
 #[derive(Debug, Error)]
-pub enum RcbError {
+pub enum Error {
     #[error("{message}")]
     Error {
         message: String,
@@ -18,7 +18,7 @@ pub enum RcbError {
     },
 }
 
-impl RcbError {
+impl Error {
     fn new<T>(error: T) -> Self
     where
         T: std::error::Error + 'static,
@@ -32,19 +32,19 @@ impl RcbError {
 
     pub fn message(&self) -> String {
         match self {
-            RcbError::Error { message, .. } => message.clone(),
+            Error::Error { message, .. } => message.clone(),
         }
     }
 
     pub fn error_type(&self) -> String {
         match self {
-            RcbError::Error { error_type, .. } => error_type.clone(),
+            Error::Error { error_type, .. } => error_type.clone(),
         }
     }
 
     pub fn error_variant(&self) -> String {
         match self {
-            RcbError::Error { error_variant, .. } => error_variant.clone(),
+            Error::Error { error_variant, .. } => error_variant.clone(),
         }
     }
 }
@@ -62,46 +62,46 @@ where
     variant_name.to_string()
 }
 
-impl From<JwkError> for RcbError {
+impl From<JwkError> for Error {
     fn from(error: JwkError) -> Self {
-        RcbError::new(error)
+        Error::new(error)
     }
 }
 
-impl From<KeyManagerError> for RcbError {
+impl From<KeyManagerError> for Error {
     fn from(error: KeyManagerError) -> Self {
-        RcbError::new(error)
+        Error::new(error)
     }
 }
 
-impl From<DsaError> for RcbError {
+impl From<DsaError> for Error {
     fn from(error: DsaError) -> Self {
-        RcbError::new(error)
+        Error::new(error)
     }
 }
 
-impl From<DidError> for RcbError {
+impl From<DidError> for Error {
     fn from(error: DidError) -> Self {
-        RcbError::new(error)
+        Error::new(error)
     }
 }
 
-impl From<MethodError> for RcbError {
+impl From<MethodError> for Error {
     fn from(error: MethodError) -> Self {
-        RcbError::new(error)
+        Error::new(error)
     }
 }
 
-impl From<CredentialError> for RcbError {
+impl From<CredentialError> for Error {
     fn from(error: CredentialError) -> Self {
-        RcbError::new(error)
+        Error::new(error)
     }
 }
 
-impl From<PexError> for RcbError {
+impl From<PexError> for Error {
     fn from(error: PexError) -> Self {
-        RcbError::new(error)
+        Error::new(error)
     }
 }
 
-pub type RcbResult<T> = std::result::Result<T, Arc<RcbError>>;
+pub type Result<T> = std::result::Result<T, Arc<Error>>;

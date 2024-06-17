@@ -1,16 +1,16 @@
-use crate::errors::RcbResult;
+use crate::errors::Result;
 use std::sync::Arc;
-use web5::apid::dids::did::Did;
+use web5::apid::dids::did::Did as InnerDid;
 
-pub struct RcbDid(pub Did);
+pub struct Did(pub InnerDid);
 
-impl RcbDid {
-    pub fn new(uri: &str) -> RcbResult<Self> {
-        let did = Did::new(uri).map_err(|e| Arc::new(e.into()))?;
+impl Did {
+    pub fn new(uri: &str) -> Result<Self> {
+        let did = InnerDid::new(uri).map_err(|e| Arc::new(e.into()))?;
         Ok(Self(did))
     }
 
-    pub fn get_data(&self) -> Did {
+    pub fn get_data(&self) -> InnerDid {
         self.0.clone()
     }
 }

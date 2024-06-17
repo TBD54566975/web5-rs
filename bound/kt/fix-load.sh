@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Path to your Kotlin file
-FILE="src/main/kotlin/web5/sdk/web5.kt"
+FILE="src/main/kotlin/web5/sdk/rust/web5.kt"
 
 # Add the import line after the last import
 awk '/^import/ {print; found=1; next} found && !/^import/ {print "import java.nio.file.Files"; found=0} {print}' $FILE > tmpfile && mv tmpfile $FILE

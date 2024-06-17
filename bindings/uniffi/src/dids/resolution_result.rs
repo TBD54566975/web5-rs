@@ -1,13 +1,13 @@
-use web5::apid::dids::resolution_result::ResolutionResult;
+use web5::apid::dids::resolution_result::ResolutionResult as InnerResolutionResult;
 
-pub struct RcbResolutionResult(pub ResolutionResult);
+pub struct ResolutionResult(pub InnerResolutionResult);
 
-impl RcbResolutionResult {
+impl ResolutionResult {
     pub fn new(uri: &str) -> Self {
-        Self(ResolutionResult::new(uri))
+        Self(InnerResolutionResult::new(uri))
     }
 
-    pub fn get_data(&self) -> ResolutionResult {
+    pub fn get_data(&self) -> InnerResolutionResult {
         self.0.clone()
     }
 }
