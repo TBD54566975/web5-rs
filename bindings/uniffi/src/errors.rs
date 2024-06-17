@@ -30,13 +30,7 @@ impl RustCoreError {
         }
     }
 
-    pub fn message(&self) -> String {
-        match self {
-            RustCoreError::Error { message, .. } => message.clone(),
-        }
-    }
-
-    pub fn r#type(&self) -> String {
+    pub fn error_type(&self) -> String {
         match self {
             RustCoreError::Error {
                 r#type: error_type, ..
@@ -50,6 +44,12 @@ impl RustCoreError {
                 variant: error_variant,
                 ..
             } => error_variant.clone(),
+        }
+    }
+
+    pub fn message(&self) -> String {
+        match self {
+            RustCoreError::Error { message, .. } => message.clone(),
         }
     }
 }

@@ -10,7 +10,7 @@ namespace web5 {
 };
 
 interface RustCoreError {
-  string type();
+  string error_type();
   string variant();
   string message();
 };

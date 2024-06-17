@@ -951,9 +951,9 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_rustcoreerror(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_method_rustcoreerror_message(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_rustcoreerror_error_type(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_rustcoreerror_type(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_rustcoreerror_message(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_rustcoreerror_variant(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -1137,9 +1137,9 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_resolutionresult_get_data(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rustcoreerror_message(
+    fun uniffi_web5_uniffi_checksum_method_rustcoreerror_error_type(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_rustcoreerror_type(
+    fun uniffi_web5_uniffi_checksum_method_rustcoreerror_message(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_rustcoreerror_variant(
     ): Short
@@ -1247,10 +1247,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_resolutionresult_get_data() != 57220.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rustcoreerror_message() != 34405.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_rustcoreerror_error_type() != 9133.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_rustcoreerror_type() != 37507.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_rustcoreerror_message() != 34405.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_rustcoreerror_variant() != 22241.toShort()) {
@@ -3915,9 +3915,9 @@ public object FfiConverterTypeResolutionResult: FfiConverter<ResolutionResult, P
 
 public interface RustCoreExceptionInterface {
     
-    fun `message`(): kotlin.String
+    fun `errorType`(): kotlin.String
     
-    fun `type`(): kotlin.String
+    fun `message`(): kotlin.String
     
     fun `variant`(): kotlin.String
     
@@ -4007,11 +4007,11 @@ open class RustCoreException : Exception, Disposable, AutoCloseable, RustCoreExc
         }
     }
 
-    override fun `message`(): kotlin.String {
+    override fun `errorType`(): kotlin.String {
             return FfiConverterString.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rustcoreerror_message(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rustcoreerror_error_type(
         it, _status)
 }
     }
@@ -4019,11 +4019,11 @@ open class RustCoreException : Exception, Disposable, AutoCloseable, RustCoreExc
     }
     
 
-    override fun `type`(): kotlin.String {
+    override fun `message`(): kotlin.String {
             return FfiConverterString.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rustcoreerror_type(
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_rustcoreerror_message(
         it, _status)
 }
     }
