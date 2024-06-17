@@ -12,11 +12,15 @@ use crate::{
     },
     dids::{
         did::RcbDid,
-        methods::{did_dht::RcbDidDht, did_jwk::RcbDidJwk, did_web::RcbDidWeb},
+        methods::{
+            did_dht::{rcb_did_dht_resolve, RcbDidDht},
+            did_jwk::{rcb_did_jwk_resolve, RcbDidJwk},
+            did_web::{rcb_did_web_resolve, RcbDidWeb},
+        },
         resolution_result::RcbResolutionResult,
     },
     dsa::{
-        ed25519::{RcbEd25519Signer, RcbEd25519Verifier},
+        ed25519::{rcb_ed25519_generator_generate, RcbEd25519Signer, RcbEd25519Verifier},
         RcbSigner, RcbVerifier,
     },
     errors::RcbError,

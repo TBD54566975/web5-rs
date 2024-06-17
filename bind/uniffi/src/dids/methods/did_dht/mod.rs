@@ -1,9 +1,13 @@
+use crate::{dids::resolution_result::RcbResolutionResult, dsa::RcbSigner, errors::RcbResult};
 use std::sync::Arc;
 use web5::apid::{dids::methods::did_dht::DidDht, jwk::Jwk};
 
-use crate::{dsa::RcbSigner, errors::RcbResult};
+pub struct RcbDidDht(pub DidDht);
 
-pub struct RcbDidDht(DidDht);
+pub fn rcb_did_dht_resolve(uri: &str) -> RcbResult<Arc<RcbResolutionResult>> {
+    let resolution_result = DidDht::resolve(uri).map_err(|e| Arc::new(e.into()))?;
+    Ok(Arc::new(RcbResolutionResult(resolution_result)))
+}
 
 impl RcbDidDht {
     pub fn from_identity_key(public_key: Jwk) -> RcbResult<Self> {
@@ -15,11 +19,6 @@ impl RcbDidDht {
         let did_dht = DidDht::from_uri(uri).map_err(|e| Arc::new(e.into()))?;
         Ok(Self(did_dht))
     }
-
-    // 🚧
-    // pub fn resolve(_uri: &str) -> ResolutionResult {
-    //
-    // }
 
     pub fn publish(&self, signer: Arc<dyn RcbSigner>) -> RcbResult<()> {
         self.0

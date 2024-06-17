@@ -2,7 +2,7 @@ use crate::errors::RcbResult;
 use std::sync::Arc;
 use web5::apid::credentials::presentation_definition::PresentationDefinition;
 
-pub struct RcbPresentationDefinition(PresentationDefinition);
+pub struct RcbPresentationDefinition(pub PresentationDefinition);
 
 impl RcbPresentationDefinition {
     pub fn new(pd: PresentationDefinition) -> Self {

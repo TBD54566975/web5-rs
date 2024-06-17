@@ -1,6 +1,6 @@
 use web5::apid::dids::resolution_result::ResolutionResult;
 
-pub struct RcbResolutionResult(ResolutionResult);
+pub struct RcbResolutionResult(pub ResolutionResult);
 
 impl RcbResolutionResult {
     pub fn new(uri: &str) -> Self {

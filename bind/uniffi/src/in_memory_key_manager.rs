@@ -5,7 +5,7 @@ use crate::{
 use std::sync::Arc;
 use web5::apid::{in_memory_key_manager::InMemoryKeyManager, jwk::Jwk};
 
-pub struct RcbInMemoryKeyManager(InMemoryKeyManager);
+pub struct RcbInMemoryKeyManager(pub InMemoryKeyManager);
 
 impl RcbInMemoryKeyManager {
     pub fn new() -> Self {
@@ -23,7 +23,7 @@ impl RcbInMemoryKeyManager {
             .0
             .get_signer(public_key)
             .map_err(|e| Arc::new(e.into()))?;
-        Ok(Arc::new(RcbEd25519Signer::from_ed25519_signer(signer)))
+        Ok(Arc::new(RcbEd25519Signer(signer)))
     }
 
     pub fn import_key(&self, private_key: Jwk) -> RcbResult<Jwk> {

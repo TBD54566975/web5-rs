@@ -1,5 +1,12 @@
 namespace web5 {
-   
+  RcbJwkData rcb_ed25519_generator_generate();
+
+  [Throws=RcbError]
+  RcbResolutionResult rcb_did_jwk_resolve([ByRef] string uri);
+  [Throws=RcbError]
+  RcbResolutionResult rcb_did_web_resolve([ByRef] string uri);
+  [Throws=RcbError]
+  RcbResolutionResult rcb_did_dht_resolve([ByRef] string uri);
 };
 
 interface RcbError {

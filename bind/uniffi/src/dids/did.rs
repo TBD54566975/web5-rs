@@ -2,7 +2,7 @@ use crate::errors::RcbResult;
 use std::sync::Arc;
 use web5::apid::dids::did::Did;
 
-pub struct RcbDid(Did);
+pub struct RcbDid(pub Did);
 
 impl RcbDid {
     pub fn new(uri: &str) -> RcbResult<Self> {

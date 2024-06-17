@@ -13,7 +13,7 @@ pub struct DidWeb {
 
 impl DidWeb {
     pub fn from_uri(uri: &str) -> Result<Self> {
-        let resolution_result = DidWeb::resolve(uri);
+        let resolution_result = DidWeb::resolve(uri)?;
         match resolution_result.document {
             None => Err(match resolution_result.resolution_metadata.error {
                 None => MethodError::ResolutionError(ResolutionMetadataError::InternalError),
@@ -29,11 +29,11 @@ impl DidWeb {
         }
     }
 
-    pub fn resolve(uri: &str) -> ResolutionResult {
+    pub fn resolve(uri: &str) -> Result<ResolutionResult> {
         // 🚧 use existing PR which replaces spruce dep
         println!("DidWeb::resolve() called with {}", uri);
-        ResolutionResult {
+        Ok(ResolutionResult {
             ..Default::default()
-        }
+        })
     }
 }
