@@ -23,7 +23,7 @@ use crate::{
         ed25519::{ed25519_generator_generate, Ed25519Signer, Ed25519Verifier},
         Signer, Verifier,
     },
-    errors::Error,
+    errors::RustCoreError,
     in_memory_key_manager::InMemoryKeyManager,
 };
 

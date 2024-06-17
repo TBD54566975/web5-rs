@@ -9,42 +9,47 @@ use web5::apid::dsa::DsaError;
 use web5::apid::{in_memory_key_manager::KeyManagerError, jwk::JwkError};
 
 #[derive(Debug, Error)]
-pub enum Error {
+pub enum RustCoreError {
     #[error("{message}")]
     Error {
+        r#type: String,
+        variant: String,
         message: String,
-        error_type: String,
-        error_variant: String,
     },
 }
 
-impl Error {
+impl RustCoreError {
     fn new<T>(error: T) -> Self
     where
         T: std::error::Error + 'static,
     {
         Self::Error {
+            r#type: type_of(&error).to_string(),
+            variant: variant_name(&error),
             message: error.to_string(),
-            error_type: type_of(&error).to_string(),
-            error_variant: variant_name(&error),
         }
     }
 
     pub fn message(&self) -> String {
         match self {
-            Error::Error { message, .. } => message.clone(),
+            RustCoreError::Error { message, .. } => message.clone(),
         }
     }
 
-    pub fn error_type(&self) -> String {
+    pub fn r#type(&self) -> String {
         match self {
-            Error::Error { error_type, .. } => error_type.clone(),
+            RustCoreError::Error {
+                r#type: error_type, ..
+            } => error_type.clone(),
         }
     }
 
-    pub fn error_variant(&self) -> String {
+    pub fn variant(&self) -> String {
         match self {
-            Error::Error { error_variant, .. } => error_variant.clone(),
+            RustCoreError::Error {
+                variant: error_variant,
+                ..
+            } => error_variant.clone(),
         }
     }
 }
@@ -62,46 +67,46 @@ where
     variant_name.to_string()
 }
 
-impl From<JwkError> for Error {
+impl From<JwkError> for RustCoreError {
     fn from(error: JwkError) -> Self {
-        Error::new(error)
+        RustCoreError::new(error)
     }
 }
 
-impl From<KeyManagerError> for Error {
+impl From<KeyManagerError> for RustCoreError {
     fn from(error: KeyManagerError) -> Self {
-        Error::new(error)
+        RustCoreError::new(error)
     }
 }
 
-impl From<DsaError> for Error {
+impl From<DsaError> for RustCoreError {
     fn from(error: DsaError) -> Self {
-        Error::new(error)
+        RustCoreError::new(error)
     }
 }
 
-impl From<DidError> for Error {
+impl From<DidError> for RustCoreError {
     fn from(error: DidError) -> Self {
-        Error::new(error)
+        RustCoreError::new(error)
     }
 }
 
-impl From<MethodError> for Error {
+impl From<MethodError> for RustCoreError {
     fn from(error: MethodError) -> Self {
-        Error::new(error)
+        RustCoreError::new(error)
     }
 }
 
-impl From<CredentialError> for Error {
+impl From<CredentialError> for RustCoreError {
     fn from(error: CredentialError) -> Self {
-        Error::new(error)
+        RustCoreError::new(error)
     }
 }
 
-impl From<PexError> for Error {
+impl From<PexError> for RustCoreError {
     fn from(error: PexError) -> Self {
-        Error::new(error)
+        RustCoreError::new(error)
     }
 }
 
-pub type Result<T> = std::result::Result<T, Arc<Error>>;
+pub type Result<T> = std::result::Result<T, Arc<RustCoreError>>;

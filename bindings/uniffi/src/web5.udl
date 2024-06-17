@@ -1,18 +1,18 @@
 namespace web5 {
   JwkData ed25519_generator_generate();
 
-  [Throws=Error]
+  [Throws=RustCoreError]
   ResolutionResult did_jwk_resolve([ByRef] string uri);
-  [Async, Throws=Error]
+  [Async, Throws=RustCoreError]
   ResolutionResult did_web_resolve([ByRef] string uri);
-  [Throws=Error]
+  [Throws=RustCoreError]
   ResolutionResult did_dht_resolve([ByRef] string uri);
 };
 
-interface Error {
+interface RustCoreError {
+  string type();
+  string variant();
   string message();
-  string error_type();
-  string error_variant();
 };
 
 dictionary JwkData {
@@ -26,11 +26,11 @@ dictionary JwkData {
 
 interface InMemoryKeyManager {
   constructor();
-  [Throws=Error]
+  [Throws=RustCoreError]
   JwkData generate_key_material();
-  [Throws=Error]
+  [Throws=RustCoreError]
   Signer get_signer(JwkData public_jwk);
-  [Throws=Error]
+  [Throws=RustCoreError]
   JwkData import_key(JwkData private_key);
 };
 
@@ -40,25 +40,25 @@ enum Dsa {
 
 [Trait]
 interface Signer {
-  [Throws=Error]
+  [Throws=RustCoreError]
   bytes sign([ByRef] sequence<u8> payload);
 };
 
 [Trait]
 interface Verifier {
-  [Throws=Error]
+  [Throws=RustCoreError]
   boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
 };
 
 interface Ed25519Signer {
   constructor(JwkData private_key);
-  [Throws=Error]
+  [Throws=RustCoreError]
   bytes sign([ByRef] sequence<u8> payload);
 };
 
 interface Ed25519Verifier {
   constructor(JwkData public_jwk);
-  [Throws=Error]
+  [Throws=RustCoreError]
   boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
 };
 
@@ -74,7 +74,7 @@ dictionary DidData {
 };
 
 interface Did {
-  [Throws=Error]
+  [Throws=RustCoreError]
   constructor([ByRef] string uri);
   DidData get_data();
 };
@@ -148,9 +148,9 @@ dictionary DidJwkData {
 };
 
 interface DidJwk {
-  [Name=from_public_jwk, Throws=Error]
+  [Name=from_public_jwk, Throws=RustCoreError]
   constructor(JwkData public_jwk);
-  [Name=from_uri, Throws=Error]
+  [Name=from_uri, Throws=RustCoreError]
   constructor([ByRef] string uri);
   DidJwkData get_data();
 };
@@ -161,7 +161,7 @@ dictionary DidWebData {
 };
 
 interface DidWeb {
-  [Async, Name=from_uri, Throws=Error]
+  [Async, Name=from_uri, Throws=RustCoreError]
   constructor([ByRef] string uri);
   DidWebData get_data();
 };
@@ -172,13 +172,13 @@ dictionary DidDhtData {
 };
 
 interface DidDht {
-  [Name=from_identity_key, Throws=Error]
+  [Name=from_identity_key, Throws=RustCoreError]
   constructor(JwkData identity_key);
-  [Name=from_uri, Throws=Error]
+  [Name=from_uri, Throws=RustCoreError]
   constructor([ByRef] string uri);
-  [Throws=Error]
+  [Throws=RustCoreError]
   void publish(Signer signer);
-  [Throws=Error]
+  [Throws=RustCoreError]
   void deactivate(Signer signer);
   DidDhtData get_data();
 };
@@ -200,11 +200,11 @@ dictionary VerifiableCredentialData {
 
 interface VerifiableCredential {
   constructor(VerifiableCredentialData data);
-  [Name=verify, Throws=Error]
+  [Name=verify, Throws=RustCoreError]
   constructor([ByRef] string vcjwt);
-  [Name=verify_with_verifier, Throws=Error]
+  [Name=verify_with_verifier, Throws=RustCoreError]
   constructor([ByRef] string vcjwt, Verifier verifier);
-  [Throws=Error]
+  [Throws=RustCoreError]
   string sign(Signer signer);
   VerifiableCredentialData get_data();
 };
@@ -250,6 +250,6 @@ dictionary FilterData {
 
 interface PresentationDefinition {
   constructor(PresentationDefinitionData data);
-  [Throws=Error]
+  [Throws=RustCoreError]
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
 };
