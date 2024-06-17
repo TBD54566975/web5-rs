@@ -1,6 +1,6 @@
 package web5.sdk.crypto.keys
 
-import web5.sdk.JwkData
+import web5.sdk.JwkData as RcbJwkData
 
 /**
  * Partial representation of a [JSON Web Key as per RFC7517](https://tools.ietf.org/html/rfc7517).
@@ -42,8 +42,8 @@ data class Jwk(
     /**
      * Converts this Jwk instance to a JwkData object.
      */
-    fun toBinded(): JwkData {
-        return JwkData(
+    fun toBinding(): RcbJwkData {
+        return RcbJwkData(
             alg = this.alg,
             kty = this.kty,
             crv = this.crv,
@@ -57,7 +57,7 @@ data class Jwk(
         /**
          * Creates an instance of Jwk from a JwkData object.
          */
-        fun fromBinded(jwkData: JwkData): Jwk {
+        fun fromBinding(jwkData: RcbJwkData): Jwk {
             return Jwk(
                 alg = jwkData.alg,
                 kty = jwkData.kty,

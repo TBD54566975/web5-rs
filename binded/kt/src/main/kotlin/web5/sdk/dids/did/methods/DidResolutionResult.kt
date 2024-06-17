@@ -6,25 +6,25 @@ import web5.sdk.ResolutionMetadataData
 import web5.sdk.ResolutionMetadataError
 import web5.sdk.ResolutionResultData
 
-public data class DidResolutionResult(
+data class DidResolutionResult(
     @JsonProperty("@context")
     val context: String? = null,
     val didDocument: DidDocument? = null,
     val didDocumentMetadata: DidDocumentMetadata = DidDocumentMetadata(),
     val didResolutionMetadata: DidResolutionMetadata = DidResolutionMetadata()
 ) {
-    fun toBinded(): ResolutionResultData {
+    fun toBinding(): ResolutionResultData {
         return ResolutionResultData(
-            document = this.didDocument?.toBinded()!!,
+            document = this.didDocument?.toBinding()!!,
             documentMetadata = this.didDocumentMetadata.toBinded(),
             resolutionMetadata = this.didResolutionMetadata.toBinded()
         )
     }
 
     companion object {
-        fun fromBinded(data: ResolutionResultData): DidResolutionResult {
+        fun fromBinding(data: ResolutionResultData): DidResolutionResult {
             return DidResolutionResult(
-                didDocument = data.document?.let { DidDocument.fromBinded(it) },
+                didDocument = data.document?.let { DidDocument.fromBinding(it) },
                 didDocumentMetadata = DidDocumentMetadata.fromBinded(data.documentMetadata),
                 didResolutionMetadata = DidResolutionMetadata.fromBinded(data.resolutionMetadata)
             )
@@ -32,7 +32,7 @@ public data class DidResolutionResult(
     }
 }
 
-public open class DidDocumentMetadata(
+data class DidDocumentMetadata(
     var created: String? = null,
     var updated: String? = null,
     var deactivated: Boolean? = null,
@@ -73,7 +73,7 @@ public open class DidDocumentMetadata(
 
 
 
-public class DidResolutionMetadata(
+data class DidResolutionMetadata(
     var error: String? = null,
 ) {
     fun toBinded(): ResolutionMetadataData {

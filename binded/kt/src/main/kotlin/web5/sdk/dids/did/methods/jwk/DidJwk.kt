@@ -5,29 +5,29 @@ import web5.sdk.dids.did.methods.Did
 import web5.sdk.dids.did.methods.DidDocument
 import web5.sdk.dids.did.methods.DidResolutionResult
 
-//CLASS DidJwk
-//PUBLIC DATA did: Did
-//PUBLIC DATA document: Document
-//CONSTRUCTOR(public_key: Jwk)
-//CONSTRUCTOR(uri: string)
-//STATIC METHOD resolve(uri: string): ResolutionResult
+import web5.sdk.DidJwk as RcbDidJwk
 
-public class DidJwk {
-    public val did: Did
-    public val document: DidDocument
+class DidJwk {
+    val did: Did
+    val document: DidDocument
 
     constructor(publicKey: Jwk) {
-        val didJwk = web5.sdk.DidJwk.fromPublicKey(publicKey.toBinded());
+        val didJwk = RcbDidJwk.fromPublicKey(publicKey.toBinding());
 
-        this.did = Did.fromBinded(didJwk.getData().did)
-        this.document = DidDocument.fromBinded(didJwk.getData().document)
+        this.did = Did.fromBinding(didJwk.getData().did)
+        this.document = DidDocument.fromBinding(didJwk.getData().document)
     }
 
-//    constructor(uri: String) {
-//        val resolutionResult = resolve(uri)
-//        this.did = resolutionResult.
-//        this.document = resolutionResult.didDocument!!
-//    }
+    constructor(uri: String) {
+        val resolutionResult = resolve(uri)
+        val verificationMethod = resolutionResult.didDocument?.verificationMethod?.get(0)
+        val publicKey = verificationMethod?.publicKeyJwk!!
+
+        val rcbDidJwk = RcbDidJwk.fromPublicKey(publicKey.toBinding());
+
+        this.did = Did.fromBinding(rcbDidJwk.getData().did)
+        this.document = DidDocument.fromBinding(rcbDidJwk.getData().document)
+    }
 
     companion object {
         @JvmStatic

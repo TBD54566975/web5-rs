@@ -6,18 +6,18 @@ import web5.sdk.ServiceData
 import web5.sdk.VerificationMethodData
 import web5.sdk.crypto.keys.Jwk
 
-public class VerificationMethod(
-    public val id: String,
-    public val type: String,
-    public val controller: String,
-    public val publicKeyJwk: Jwk? = null
+class VerificationMethod(
+    val id: String,
+    val type: String,
+    val controller: String,
+    val publicKeyJwk: Jwk? = null
 ) {
     fun toVerificationMethodData(): VerificationMethodData {
         return VerificationMethodData(
             id = this.id,
             type = this.type,
             controller = this.controller,
-            publicKeyJwk = this.publicKeyJwk!!.toBinded()
+            publicKeyJwk = this.publicKeyJwk!!.toBinding()
         )
     }
 
@@ -27,16 +27,16 @@ public class VerificationMethod(
                 id = data.id,
                 type = data.type,
                 controller = data.controller,
-                publicKeyJwk = Jwk.fromBinded(data.publicKeyJwk)
+                publicKeyJwk = Jwk.fromBinding(data.publicKeyJwk)
             )
         }
     }
 }
 
-public class Service(
-    public val id: String,
-    public val type: String,
-    public val serviceEndpoint: List<String>
+class Service(
+    val id: String,
+    val type: String,
+    val serviceEndpoint: List<String>
 ) {
     fun toServiceData(): ServiceData {
         return ServiceData(
@@ -58,7 +58,7 @@ public class Service(
 }
 
 // Define the DidDocument class
-public data class DidDocument(
+data class DidDocument(
     val id: String,
     @JsonProperty("@context")
     val context: List<String>? = null,
@@ -72,7 +72,7 @@ public data class DidDocument(
     val capabilityDelegation: List<String>? = null,
     val capabilityInvocation: List<String>? = null
 ) {
-    fun toBinded(): DocumentData {
+    fun toBinding(): DocumentData {
         return DocumentData(
             id = this.id,
             context = this.context,
@@ -89,7 +89,7 @@ public data class DidDocument(
     }
 
     companion object {
-        fun fromBinded(documentData: DocumentData): DidDocument {
+        fun fromBinding(documentData: DocumentData): DidDocument {
             return DidDocument(
                 id = documentData.id,
                 context = documentData.context,

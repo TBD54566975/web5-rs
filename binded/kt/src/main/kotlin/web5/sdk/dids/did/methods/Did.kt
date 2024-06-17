@@ -2,7 +2,7 @@ package web5.sdk.dids.did.methods
 
 import web5.sdk.DidData
 
-public data class Did(
+data class Did(
     val uri: String,
     val url: String,
     val method: String,
@@ -12,13 +12,13 @@ public data class Did(
     val query: String? = null,
     val fragment: String? = null
 ) {
-    fun toBinded(): DidData {
+    fun toBinding(): DidData {
         return DidData(
             uri = this.uri,
             url = this.url,
             method = this.method,
             id = this.id,
-            params = if (this.params.isEmpty()) null else this.params,
+            params = this.params.ifEmpty { null },
             path = this.path,
             query = this.query,
             fragment = this.fragment
@@ -26,7 +26,7 @@ public data class Did(
     }
 
     companion object {
-        fun fromBinded(didData: DidData): Did {
+        fun fromBinding(didData: DidData): Did {
             return Did(
                 uri = didData.uri,
                 url = didData.url,
