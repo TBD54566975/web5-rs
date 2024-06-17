@@ -18,14 +18,14 @@ impl VerifiableCredential {
     }
 
     pub fn verify_with_verifier(vcjwt: &str, verifier: Arc<dyn Verifier>) -> Result<Self> {
-        let vc = InnerVerifiableCredential::verify_with_verifier(vcjwt, verifier.to_verifier())
+        let vc = InnerVerifiableCredential::verify_with_verifier(vcjwt, verifier.to_inner())
             .map_err(|e| Arc::new(e.into()))?;
         Ok(Self(vc))
     }
 
     pub fn sign(&self, signer: Arc<dyn Signer>) -> Result<String> {
         self.0
-            .sign(signer.to_signer())
+            .sign(signer.to_inner())
             .map_err(|e| Arc::new(e.into()))
     }
 

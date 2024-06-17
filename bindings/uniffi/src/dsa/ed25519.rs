@@ -29,7 +29,7 @@ impl Signer for Ed25519Signer {
         self.0.sign(payload).map_err(|e| Arc::new(e.into()))
     }
 
-    fn to_signer(&self) -> Arc<dyn InnerSigner> {
+    fn to_inner(&self) -> Arc<dyn InnerSigner> {
         Arc::new(self.0.clone())
     }
 }
@@ -49,7 +49,7 @@ impl Verifier for Ed25519Verifier {
             .map_err(|e| Arc::new(e.into()))
     }
 
-    fn to_verifier(&self) -> Arc<dyn InnerVerifier> {
+    fn to_inner(&self) -> Arc<dyn InnerVerifier> {
         Arc::new(self.0.clone())
     }
 }

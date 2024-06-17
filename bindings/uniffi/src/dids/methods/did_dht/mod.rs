@@ -22,13 +22,13 @@ impl DidDht {
 
     pub fn publish(&self, signer: Arc<dyn Signer>) -> Result<()> {
         self.0
-            .publish(signer.to_signer())
+            .publish(signer.to_inner())
             .map_err(|e| Arc::new(e.into()))
     }
 
     pub fn deactivate(&self, signer: Arc<dyn Signer>) -> Result<()> {
         self.0
-            .deactivate(signer.to_signer())
+            .deactivate(signer.to_inner())
             .map_err(|e| Arc::new(e.into()))
     }
 
