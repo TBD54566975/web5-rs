@@ -3,9 +3,9 @@ use base64::DecodeError;
 use serde_json::Error as SerdeJsonError;
 
 pub mod did_dht;
+pub mod did_web;
 
 pub mod did_jwk;
-pub mod did_web;
 
 #[derive(thiserror::Error, Debug)]
 pub enum MethodError {

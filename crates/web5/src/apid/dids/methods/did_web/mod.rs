@@ -1,9 +1,12 @@
+mod resolver;
+
 use super::{MethodError, Result};
 use crate::apid::dids::{
     did::Did,
     document::Document,
-    resolution_result::{ResolutionMetadataError, ResolutionResult},
+    resolution_result::{ResolutionMetadata, ResolutionMetadataError, ResolutionResult},
 };
+use resolver::Resolver;
 
 #[derive(Clone)]
 pub struct DidWeb {
@@ -12,8 +15,8 @@ pub struct DidWeb {
 }
 
 impl DidWeb {
-    pub fn from_uri(uri: &str) -> Result<Self> {
-        let resolution_result = DidWeb::resolve(uri)?;
+    pub async fn from_uri(uri: &str) -> Result<Self> {
+        let resolution_result = DidWeb::resolve(uri).await?;
         match resolution_result.document {
             None => Err(match resolution_result.resolution_metadata.error {
                 None => MethodError::ResolutionError(ResolutionMetadataError::InternalError),
@@ -29,11 +32,16 @@ impl DidWeb {
         }
     }
 
-    pub fn resolve(uri: &str) -> Result<ResolutionResult> {
-        // 🚧 use existing PR which replaces spruce dep
-        println!("DidWeb::resolve() called with {}", uri);
-        Ok(ResolutionResult {
-            ..Default::default()
+    pub async fn resolve(uri: &str) -> Result<ResolutionResult> {
+        let did = Did::new(uri)?;
+        let resolution_result = Resolver::new(did).await;
+
+        Ok(match resolution_result {
+            Err(e) => ResolutionResult {
+                resolution_metadata: ResolutionMetadata { error: Some(e) },
+                ..Default::default()
+            },
+            Ok(r) => r,
         })
     }
 }

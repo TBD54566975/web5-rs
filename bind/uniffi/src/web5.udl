@@ -3,7 +3,7 @@ namespace web5 {
 
   [Throws=RcbError]
   RcbResolutionResult rcb_did_jwk_resolve([ByRef] string uri);
-  [Throws=RcbError]
+  [Async, Throws=RcbError]
   RcbResolutionResult rcb_did_web_resolve([ByRef] string uri);
   [Throws=RcbError]
   RcbResolutionResult rcb_did_dht_resolve([ByRef] string uri);
@@ -161,7 +161,7 @@ dictionary RcbDidWebData {
 };
 
 interface RcbDidWeb {
-  [Name=from_uri, Throws=RcbError]
+  [Async, Name=from_uri, Throws=RcbError]
   constructor([ByRef] string uri);
   RcbDidWebData get_data();
 };
