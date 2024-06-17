@@ -3,7 +3,7 @@ use crate::{
     errors::Result,
 };
 use std::sync::Arc;
-use web5::apid::credentials::verifiable_credential_11::VerifiableCredential as InnerVerifiableCredential;
+use web5::apid::credentials::verifiable_credential_1_1::VerifiableCredential as InnerVerifiableCredential;
 
 pub struct VerifiableCredential(pub InnerVerifiableCredential);
 

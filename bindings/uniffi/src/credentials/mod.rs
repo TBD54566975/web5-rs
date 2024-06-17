@@ -1,2 +1,2 @@
 pub mod presentation_definition;
-pub mod verifiable_credential_11;
+pub mod verifiable_credential_1_1;

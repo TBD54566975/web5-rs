@@ -8,7 +8,7 @@ mod in_memory_key_manager;
 use crate::{
     credentials::{
         presentation_definition::PresentationDefinition,
-        verifiable_credential_11::VerifiableCredential,
+        verifiable_credential_1_1::VerifiableCredential,
     },
     dids::{
         did::Did,
@@ -34,7 +34,7 @@ use web5::apid::{
             InputDescriptor as InputDescriptorData, Optionality,
             PresentationDefinition as PresentationDefinitionData,
         },
-        verifiable_credential_11::{
+        verifiable_credential_1_1::{
             CredentialSubject as CredentialSubjectData,
             VerifiableCredential as VerifiableCredentialData,
         },
