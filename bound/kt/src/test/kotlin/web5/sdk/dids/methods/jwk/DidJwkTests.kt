@@ -1,10 +1,9 @@
-package web5.sdk
+package web5.sdk.dids.methods.jwk
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import web5.sdk.crypto.keys.InMemoryKeyManager
-import web5.sdk.dids.methods.jwk.DidJwk
 
 import web5.sdk.rust.DidJwk as RustCoreDidJwk
 
