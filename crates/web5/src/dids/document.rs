@@ -10,7 +10,7 @@ pub struct Document {
     pub controller: Option<Vec<String>>,
     #[serde(rename = "alsoKnownAs", skip_serializing_if = "Option::is_none")]
     pub also_known_as: Option<Vec<String>>,
-    #[serde(rename = "verificationMethod")]
+    #[serde(rename = "verificationMethod", default = "Vec::new")]
     pub verification_method: Vec<VerificationMethod>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub authentication: Option<Vec<String>>,

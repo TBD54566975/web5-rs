@@ -1,6 +1,11 @@
-use crate::dids::methods::{Method, ResolutionResult, Resolve};
-use did_web::DIDWeb as SpruceDidWebMethod;
-use ssi_dids::did_resolve::{DIDResolver, ResolutionInputMetadata};
+mod resolver;
+
+use crate::dids::{
+    identifier::Identifier,
+    methods::{Method, ResolutionResult, Resolve},
+    resolver::ResolutionError,
+};
+use resolver::Resolver;
 
 /// Concrete implementation for a did:web DID
 pub struct DidWeb {}
@@ -11,16 +16,13 @@ impl Method for DidWeb {
 
 impl Resolve for DidWeb {
     async fn resolve(did_uri: &str) -> ResolutionResult {
-        let input_metadata = ResolutionInputMetadata::default();
-        let (spruce_resolution_metadata, spruce_document, spruce_document_metadata) =
-            SpruceDidWebMethod.resolve(did_uri, &input_metadata).await;
+        let identifier = match Identifier::parse(did_uri) {
+            Ok(identifier) => identifier,
+            Err(_) => return ResolutionResult::from_error(ResolutionError::InvalidDid),
+        };
 
-        match ResolutionResult::from_spruce(
-            spruce_resolution_metadata,
-            spruce_document,
-            spruce_document_metadata,
-        ) {
-            Ok(r) => r,
+        match Resolver::new(identifier).await {
+            Ok(result) => result,
             Err(e) => ResolutionResult::from_error(e),
         }
     }
