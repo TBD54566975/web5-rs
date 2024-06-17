@@ -10,7 +10,7 @@
   - [`Jwk`](#jwk)
   - [`InMemoryKeyManager`](#inmemorykeymanager)
 - [Cryptography](#cryptography)
-  - [Digital Signature Algorithm's (DSA)](#digital-signature-algorithms-dsa)
+  - [Digital Signature Algorithms (DSA)](#digital-signature-algorithms-dsa)
     - [`Dsa`](#dsa)
     - [`Signer`](#signer)
     - [`Verifier`](#verifier)
@@ -106,12 +106,12 @@ CLASS InMemoryKeyManager
 
 # Cryptography
 
-## Digital Signature Algorithm's (DSA)
+## Digital Signature Algorithms (DSA)
 
 ### `Dsa`
 
 ```pseudocode!
-/// The set of Digital Signature Algorithm's natively supported within this SDK.
+/// The set of Digital Signature Algorithms natively supported within this SDK.
 ENUM Dsa
   Ed25519
 ```
