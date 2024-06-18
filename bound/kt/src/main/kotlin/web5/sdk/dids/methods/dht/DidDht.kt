@@ -72,8 +72,7 @@ class DidDht {
          */
         @JvmStatic
         fun resolve(uri: String): ResolutionResult {
-            val rustCoreResolutionObject = rustCoreDidDhtResolve(uri).getData()
-            return rustCoreResolutionObject
+            return rustCoreDidDhtResolve(uri).getData()
         }
     }
 }

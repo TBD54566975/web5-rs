@@ -37,7 +37,6 @@ class InMemoryKeyManager {
      * @return Jwk the public key for the given private key.
      */
     fun importKey(privateKey: Jwk): Jwk {
-        val rustCoreJwk = rustCoreKeyManager.importKey(privateKey)
-        return rustCoreJwk
+        return rustCoreKeyManager.importKey(privateKey)
     }
 }

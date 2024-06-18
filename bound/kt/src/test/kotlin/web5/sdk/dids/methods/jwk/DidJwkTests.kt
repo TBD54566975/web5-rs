@@ -8,17 +8,6 @@ import web5.sdk.rust.RustCoreException
 import web5.sdk.rust.DidJwk as RustCoreDidJwk
 
 class DidJwkTests {
-
-    @Test
-    fun `can create did jwk`() {
-        val keyManager = InMemoryKeyManager()
-        val jwk = keyManager.generateKeyMaterial()
-
-        val didJwk = DidJwk(jwk)
-
-        assertNotNull(didJwk.document.id)
-    }
-
     @Test
     fun `can create did jwk same as rust core`() {
         val keyManager = InMemoryKeyManager()
@@ -43,7 +32,6 @@ class DidJwkTests {
 
     @Test
     fun `throws exception if did method is not jwk`() {
-
         // TODO: Should this behave differently - https://github.com/TBD54566975/web5-rs/issues/237
         assertThrows(RustCoreException::class.java) {
             DidJwk.resolve("did:example:123")
