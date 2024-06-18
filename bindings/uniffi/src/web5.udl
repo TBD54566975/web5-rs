@@ -29,7 +29,7 @@ interface InMemoryKeyManager {
   [Throws=RustCoreError]
   JwkData generate_key_material();
   [Throws=RustCoreError]
-  Signer get_signer(JwkData public_jwk);
+  Ed25519Signer get_signer(JwkData public_jwk);
   [Throws=RustCoreError]
   JwkData import_key(JwkData private_key);
 };
