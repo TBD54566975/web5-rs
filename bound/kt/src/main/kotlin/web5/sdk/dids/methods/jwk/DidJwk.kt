@@ -2,8 +2,8 @@ package web5.sdk.dids.methods.jwk
 
 import web5.sdk.crypto.keys.Jwk
 import web5.sdk.dids.Did
-import web5.sdk.dids.DidDocument
-import web5.sdk.dids.DidResolutionResult
+import web5.sdk.dids.Document
+import web5.sdk.dids.ResolutionResult
 
 import web5.sdk.rust.didJwkResolve as rustCoreDidJwkResolve
 import web5.sdk.rust.DidJwk as RustCoreDidJwk
@@ -16,7 +16,7 @@ import web5.sdk.rust.DidJwk as RustCoreDidJwk
  */
 class DidJwk {
     val did: Did
-    val document: DidDocument
+    val document: Document
 
     /**
      * Constructs a DidJwk instance using a public key.
@@ -24,10 +24,10 @@ class DidJwk {
      * @param publicKey The public key represented as a Jwk.
      */
     constructor(publicKey: Jwk) {
-        val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(publicKey.toBinding())
+        val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(publicKey.toRustCore())
 
-        this.did = Did.fromBinding(rustCoreDidJwk.getData().did)
-        this.document = DidDocument.fromBinding(rustCoreDidJwk.getData().document)
+        this.did = Did.fromRustCore(rustCoreDidJwk.getData().did)
+        this.document = Document.fromRustCore(rustCoreDidJwk.getData().document)
     }
 
     /**
@@ -38,8 +38,8 @@ class DidJwk {
     constructor(uri: String) {
         val rustCoreDidJwk = RustCoreDidJwk.fromUri(uri)
 
-        this.did = Did.fromBinding(rustCoreDidJwk.getData().did)
-        this.document = DidDocument.fromBinding(rustCoreDidJwk.getData().document)
+        this.did = Did.fromRustCore(rustCoreDidJwk.getData().did)
+        this.document = Document.fromRustCore(rustCoreDidJwk.getData().document)
     }
 
     companion object {
@@ -50,9 +50,9 @@ class DidJwk {
          * @return DidResolutionResult The result of the DID resolution.
          */
         @JvmStatic
-        fun resolve(uri: String): DidResolutionResult {
+        fun resolve(uri: String): ResolutionResult {
             val rustCoreResolutionObject = rustCoreDidJwkResolve(uri).getData()
-            return DidResolutionResult.fromBinding(rustCoreResolutionObject)
+            return ResolutionResult.fromRustCore(rustCoreResolutionObject)
         }
     }
 }

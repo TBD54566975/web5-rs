@@ -29,7 +29,7 @@ data class Did(
      *
      * @return RustCoreDidData the corresponding RustCoreDidData object.
      */
-    fun toBinding(): RustCoreDidData {
+    fun toRustCore(): RustCoreDidData {
         return RustCoreDidData(
             uri = this.uri,
             url = this.url,
@@ -49,7 +49,7 @@ data class Did(
          * @param didData the RustCoreDidData object.
          * @return Did the corresponding Did instance.
          */
-        fun fromBinding(didData: RustCoreDidData): Did {
+        fun fromRustCore(didData: RustCoreDidData): Did {
             return Did(
                 uri = didData.uri,
                 url = didData.url,

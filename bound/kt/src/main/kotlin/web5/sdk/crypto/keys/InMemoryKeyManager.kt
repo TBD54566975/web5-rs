@@ -2,11 +2,12 @@ package web5.sdk.crypto.keys
 
 import web5.sdk.crypto.signers.Ed25519Signer
 import web5.sdk.rust.InMemoryKeyManager as RustCoreInMemoryKeyManager
+import web5.sdk.rust.Ed25519Signer as RustCoreEd25519Signer
 
 /**
  * A class for managing cryptographic keys in-memory.
  */
-class InMemoryKeyManager : KeyManager {
+class InMemoryKeyManager {
     private val rustCoreKeyManager = RustCoreInMemoryKeyManager()
 
     /**
@@ -14,9 +15,9 @@ class InMemoryKeyManager : KeyManager {
      *
      * @return Jwk the public key represented as a Jwk.
      */
-    override fun generateKeyMaterial(): Jwk {
+    fun generateKeyMaterial(): Jwk {
         val jwkData = rustCoreKeyManager.generateKeyMaterial()
-        return Jwk.fromBinding(jwkData)
+        return Jwk.fromRustCore(jwkData)
     }
 
     /**
@@ -25,8 +26,12 @@ class InMemoryKeyManager : KeyManager {
      * @param publicKey the public key represented as a Jwk.
      * @return Ed25519Signer the signer for the given public key.
      */
-    override fun getSigner(publicKey: Jwk): Ed25519Signer {
-        return Ed25519Signer(publicKey)
+    fun getSigner(publicKey: Jwk): Ed25519Signer {
+        val rustCorePublicKey = publicKey.toRustCore()
+
+        // TODO: This cast will never work
+        val rustCoreSigner = rustCoreKeyManager.getSigner(rustCorePublicKey) as RustCoreEd25519Signer
+        return Ed25519Signer.fromRustCore(rustCoreSigner)
     }
 
     /**
@@ -36,8 +41,8 @@ class InMemoryKeyManager : KeyManager {
      * @param privateKey the private key represented as a Jwk.
      * @return Jwk the public key for the given private key.
      */
-    override fun importKey(privateKey: Jwk): Jwk {
-        val rustCoreJwk = rustCoreKeyManager.importKey(privateKey.toBinding())
-        return Jwk.fromBinding(rustCoreJwk)
+    fun importKey(privateKey: Jwk): Jwk {
+        val rustCoreJwk = rustCoreKeyManager.importKey(privateKey.toRustCore())
+        return Jwk.fromRustCore(rustCoreJwk)
     }
 }

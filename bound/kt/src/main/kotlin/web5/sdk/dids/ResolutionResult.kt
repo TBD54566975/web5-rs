@@ -8,12 +8,12 @@ import web5.sdk.rust.ResolutionResultData as RustCoreResolutionResultData
 /**
  * Representation of the result of a DID (Decentralized Identifier) resolution.
  *
- * @property didDocument The resolved DID document, if available.
+ * @property document The resolved DID document, if available.
  * @property didDocumentMetadata The metadata associated with the DID document.
  * @property didResolutionMetadata The metadata associated with the DID resolution process.
  */
-data class DidResolutionResult(
-    val didDocument: DidDocument? = null,
+data class ResolutionResult(
+    val document: Document? = null,
     val didDocumentMetadata: DidDocumentMetadata? = null,
     val didResolutionMetadata: DidResolutionMetadata = DidResolutionMetadata()
 ) {
@@ -22,11 +22,11 @@ data class DidResolutionResult(
      *
      * @return RustCoreResolutionResultData the corresponding RustCoreResolutionResultData object.
      */
-    fun toBinding(): RustCoreResolutionResultData {
+    fun toRustCore(): RustCoreResolutionResultData {
         return RustCoreResolutionResultData(
-            document = this.didDocument?.toBinding(),
-            documentMetadata = this.didDocumentMetadata?.toBinding(),
-            resolutionMetadata = this.didResolutionMetadata.toBinding()
+            document = this.document?.toRustCore(),
+            documentMetadata = this.didDocumentMetadata?.toRustCore(),
+            resolutionMetadata = this.didResolutionMetadata.toRustCore()
         )
     }
 
@@ -37,11 +37,11 @@ data class DidResolutionResult(
          * @param data the RustCoreResolutionResultData object.
          * @return DidResolutionResult the corresponding DidResolutionResult instance.
          */
-        fun fromBinding(data: RustCoreResolutionResultData): DidResolutionResult {
-            return DidResolutionResult(
-                didDocument = data.document?.let { DidDocument.fromBinding(it) },
-                didDocumentMetadata = data.documentMetadata?.let { DidDocumentMetadata.fromBinding(it) },
-                didResolutionMetadata = DidResolutionMetadata.fromBinding(data.resolutionMetadata)
+        fun fromRustCore(data: RustCoreResolutionResultData): ResolutionResult {
+            return ResolutionResult(
+                document = data.document?.let { Document.fromRustCore(it) },
+                didDocumentMetadata = data.documentMetadata?.let { DidDocumentMetadata.fromRustCore(it) },
+                didResolutionMetadata = DidResolutionMetadata.fromRustCore(data.resolutionMetadata)
             )
         }
     }
@@ -74,7 +74,7 @@ data class DidDocumentMetadata(
      *
      * @return RustCoreDocumentMetadataData the corresponding RustCoreDocumentMetadataData object.
      */
-    fun toBinding(): RustCoreDocumentMetadataData {
+    fun toRustCore(): RustCoreDocumentMetadataData {
         return RustCoreDocumentMetadataData(
             created = this.created,
             updated = this.updated,
@@ -94,7 +94,7 @@ data class DidDocumentMetadata(
          * @param data the RustCoreDocumentMetadataData object.
          * @return DidDocumentMetadata the corresponding DidDocumentMetadata instance.
          */
-        fun fromBinding(data: RustCoreDocumentMetadataData): DidDocumentMetadata {
+        fun fromRustCore(data: RustCoreDocumentMetadataData): DidDocumentMetadata {
             return DidDocumentMetadata(
                 created = data.created,
                 updated = data.updated,
@@ -122,7 +122,7 @@ data class DidResolutionMetadata(
      *
      * @return RustCoreResolutionMetadataData the corresponding RustCoreResolutionMetadataData object.
      */
-    fun toBinding(): RustCoreResolutionMetadataData {
+    fun toRustCore(): RustCoreResolutionMetadataData {
         return RustCoreResolutionMetadataData(
             error = RustCoreResolutionMetadataError.INTERNAL_ERROR // TODO: Add correct errors and not hardcoded
         )
@@ -135,7 +135,7 @@ data class DidResolutionMetadata(
          * @param data the RustCoreResolutionMetadataData object.
          * @return DidResolutionMetadata the corresponding DidResolutionMetadata instance.
          */
-        fun fromBinding(data: RustCoreResolutionMetadataData): DidResolutionMetadata {
+        fun fromRustCore(data: RustCoreResolutionMetadataData): DidResolutionMetadata {
             return DidResolutionMetadata(
                 error = data.error.toString()
             )

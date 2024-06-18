@@ -42,7 +42,7 @@ data class Jwk(
     /**
      * Converts this Jwk instance to a JwkData object.
      */
-    fun toBinding(): RustCoreJwkData {
+    fun toRustCore(): RustCoreJwkData {
         return RustCoreJwkData(
             alg = this.alg,
             kty = this.kty,
@@ -57,7 +57,7 @@ data class Jwk(
         /**
          * Creates an instance of Jwk from a JwkData object.
          */
-        fun fromBinding(jwkData: RustCoreJwkData): Jwk {
+        fun fromRustCore(jwkData: RustCoreJwkData): Jwk {
             return Jwk(
                 alg = jwkData.alg,
                 kty = jwkData.kty,

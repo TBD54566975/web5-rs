@@ -22,7 +22,7 @@ import web5.sdk.rust.VerificationMethodData as RustCoreVerificationMethodData
  * @property capabilityDelegation The capabilityDelegation verification relationship used to specify a mechanism for delegating a cryptographic capability.
  * @property service Services are used in DID documents to express ways of communicating with the DID subject or associated entities.
  */
-data class DidDocument(
+data class Document(
     val id: String,
     @JsonProperty("@context")
     val context: List<String>? = null,
@@ -41,19 +41,19 @@ data class DidDocument(
      *
      * @return RustCoreDocumentData the corresponding RustCoreDocumentData object.
      */
-    fun toBinding(): RustCoreDocumentData {
+    fun toRustCore(): RustCoreDocumentData {
         return RustCoreDocumentData(
             id = this.id,
             context = this.context,
             controller = this.controller,
             alsoKnownAs = this.alsoKnownAs,
-            verificationMethod = this.verificationMethod?.map { it.toBinding() } ?: emptyList(),
+            verificationMethod = this.verificationMethod?.map { it.toRustCore() } ?: emptyList(),
             authentication = this.authentication,
             assertionMethod = this.assertionMethod,
             keyAgreement = this.keyAgreement,
             capabilityInvocation = this.capabilityInvocation,
             capabilityDelegation = this.capabilityDelegation,
-            service = this.service?.map { it.toBinding() } ?: emptyList()
+            service = this.service?.map { it.toRustCore() } ?: emptyList()
         )
     }
 
@@ -64,19 +64,19 @@ data class DidDocument(
          * @param documentData the RustCoreDocumentData object.
          * @return DidDocument the corresponding DidDocument instance.
          */
-        fun fromBinding(documentData: RustCoreDocumentData): DidDocument {
-            return DidDocument(
+        fun fromRustCore(documentData: RustCoreDocumentData): Document {
+            return Document(
                 id = documentData.id,
                 context = documentData.context,
                 controller = documentData.controller,
                 alsoKnownAs = documentData.alsoKnownAs,
-                verificationMethod = documentData.verificationMethod.map { VerificationMethod.fromBinding(it) },
+                verificationMethod = documentData.verificationMethod.map { VerificationMethod.fromRustCore(it) },
                 authentication = documentData.authentication,
                 assertionMethod = documentData.assertionMethod,
                 keyAgreement = documentData.keyAgreement,
                 capabilityInvocation = documentData.capabilityInvocation,
                 capabilityDelegation = documentData.capabilityDelegation,
-                service = documentData.service?.map { Service.fromBinding(it) }
+                service = documentData.service?.map { Service.fromRustCore(it) }
             )
         }
     }
@@ -101,12 +101,12 @@ class VerificationMethod(
      *
      * @return RustCoreVerificationMethodData the corresponding RustCoreVerificationMethodData object.
      */
-    fun toBinding(): RustCoreVerificationMethodData {
+    fun toRustCore(): RustCoreVerificationMethodData {
         return RustCoreVerificationMethodData(
             id = this.id,
             type = this.type,
             controller = this.controller,
-            publicKeyJwk = this.publicKeyJwk.toBinding()
+            publicKeyJwk = this.publicKeyJwk.toRustCore()
         )
     }
 
@@ -117,12 +117,12 @@ class VerificationMethod(
          * @param data the RustCoreVerificationMethodData object.
          * @return VerificationMethod the corresponding VerificationMethod instance.
          */
-        fun fromBinding(data: RustCoreVerificationMethodData): VerificationMethod {
+        fun fromRustCore(data: RustCoreVerificationMethodData): VerificationMethod {
             return VerificationMethod(
                 id = data.id,
                 type = data.type,
                 controller = data.controller,
-                publicKeyJwk = Jwk.fromBinding(data.publicKeyJwk)
+                publicKeyJwk = Jwk.fromRustCore(data.publicKeyJwk)
             )
         }
     }
@@ -145,7 +145,7 @@ class Service(
      *
      * @return RustCoreServiceData the corresponding RustCoreServiceData object.
      */
-    fun toBinding(): RustCoreServiceData {
+    fun toRustCore(): RustCoreServiceData {
         return RustCoreServiceData(
             id = this.id,
             type = this.type,
@@ -160,7 +160,7 @@ class Service(
          * @param data the RustCoreServiceData object.
          * @return Service the corresponding Service instance.
          */
-        fun fromBinding(data: RustCoreServiceData): Service {
+        fun fromRustCore(data: RustCoreServiceData): Service {
             return Service(
                 id = data.id,
                 type = data.type,
