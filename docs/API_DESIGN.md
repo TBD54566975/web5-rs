@@ -132,8 +132,8 @@ INTERFACE Signer
 ```pseudocode!
 /// Set of functionality required to implement to be a compatible DSA verifier.
 INTERFACE Verifier
-  /// Execute the verification of the signature against the message by using the encapsulated public key material.
-  METHOD verify(message: []byte, signature: []byte): bool
+  /// Execute the verification of the signature against the payload by using the encapsulated public key material.
+  METHOD verify(payload: []byte, signature: []byte): bool
 ```
 
 ### `Ed25519Generator`
