@@ -1,7 +1,4 @@
-use crate::{
-    dsa::ed25519::Ed25519Signer,
-    errors::Result,
-};
+use crate::{dsa::ed25519::Ed25519Signer, errors::Result};
 use std::sync::Arc;
 use web5::apid::{in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager, jwk::Jwk};
 
