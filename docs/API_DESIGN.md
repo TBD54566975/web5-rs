@@ -7,9 +7,13 @@
 **[Custom DSL](./CUSTOM_DSL.md) Version**: 0.2.0
 
 - [Crypto](#crypto)
-  - [Keys](#keys)
     - [`Jwk`](#jwk)
+  - [Key Managers](#key-managers)
     - [`InMemoryKeyManager`](#inmemorykeymanager)
+    - [`KeyManager`](#keymanager)
+    - [`KeyReader`](#keyreader)
+    - [`EnvKeyReader`](#envkeyreader)
+    - [`LocalKeyManager`](#localkeymanager)
   - [Digital Signature Algorithms (DSA)](#digital-signature-algorithms-dsa)
     - [`Dsa`](#dsa)
     - [`Signer`](#signer)
@@ -43,6 +47,13 @@
       - [Example: Instantiate an existing `did:dht`](#example-instantiate-an-existing-diddht)
       - [Example: Update a `did:dht`](#example-update-a-diddht)
       - [Example: Resolve a `did:dht`](#example-resolve-a-diddht)
+  - [Bearer DIDs](#bearer-dids)
+    - [`BearerDid`](#bearerdid)
+    - [`VerificationMethodSelector`](#verificationmethodselector)
+    - [Methods](#methods-1)
+      - [`DidJwk`](#didjwk-1)
+      - [`DidWeb`](#didweb-1)
+      - [`DidDht`](#diddht-1)
 - [Verifiable Credentials (VCs)](#verifiable-credentials-vcs)
   - [Data Model 1.1](#data-model-11)
     - [`NamedIssuer`](#namedissuer)
@@ -62,15 +73,13 @@
 
 # Crypto
 
-## Keys
+### `Jwk`
 
 > [!NOTE]
 > Public & private *key material* are currently strictly represented as [Jwk](#jwk-object-oriented-class), but as the requirement for additional representations (ex: CBOR) present themselves, key material will need to be disintermediated via a polymorphic base class such as `PublicKeyMaterial` (which would expose an instance method for `get_verifier_bytes()`) and `PrivateKeyMaterial` (which would expose instance methods for `to_public_key_material()` and `get_signer_bytes()`), both of which would implement `as_jwk()`, `as_cbor()` and any other concrete representations as instance methods.
 
-### `Jwk`
-
 ```pseudocode!
-NAMESPACE crypto.keys
+NAMESPACE crypto
 
 /// Partial representation of a [JSON Web Key as per RFC7517](https://tools.ietf.org/html/rfc7517).
 /// Note that this is a subset of the spec.
@@ -95,10 +104,18 @@ CLASS Jwk
   PUBLIC DATA d: string?
 ```
 
+## Key Managers
+
 ### `InMemoryKeyManager`
 
+🚧 TODO: consider renaming this to `SimpleKeyManager` 🚧
+
+> [!NOTE]
+>
+> The `InMemoryKeyManager` **DOES NOT** implement the `KeyManager` polymorphic base class. This key manager exists for use cases which exclude the requirement of a [`BearerDid`](#bearer-dids).
+
 ```pseudocode!
-NAMESPACE crypto.keys
+NAMESPACE crypto.key_managers
 
 /// An encapsulation of key material stored in-memory.
 CLASS InMemoryKeyManager
@@ -111,6 +128,61 @@ CLASS InMemoryKeyManager
   /// For importing keys which may be stored somewhere such as environment variables. Return Jwk is the public key for the given private key.
   METHOD import_key(private_key: Jwk): Jwk
 ```
+
+### `KeyManager`
+
+```pseudocode!
+NAMESPACE crypto.key_managers
+
+INTERFACE KeyManager
+  METHOD generate_private_key(algorithm_id: string): string
+  METHOD get_public_key(key_id string): Jwk
+  METHOD get_signer(key_id: string): Signer
+```
+
+### `KeyReader`
+
+```pseudocode!
+NAMESPACE crypto.key_managers
+
+INTERFACE KeyReader
+  METHOD read_keys(): []Jwk
+```
+
+### `EnvKeyReader`
+
+> [!NOTE]
+>
+> The `EnvKeyReader` makes use of private keys, serialized as an JSON array of [`Jwk`](#jwk), which are accessible via an environment variable with the name `WEB5_PRIVATE_JWKS`.
+
+```pseudocode!
+NAMESPACE crypto.key_managers
+
+CLASS EnvKeyReader IMPLEMENTS KeyReader
+  METHOD read_keys(): []Jwk
+```
+
+### `LocalKeyManager`
+
+```pseudocode!
+NAMESPACE crypto.key_managers
+
+CLASS LocalKeyManager IMPLEMENTS KeyManager
+  CONSTRUCTOR(reader: KeyReader)
+  METHOD generate_private_key(algorithm_id: string): string
+  METHOD get_public_key(key_id string): Jwk
+  METHOD get_signer(key_id: string): Signer
+```
+
+> [!WARNING]
+>
+> As of `0.2.0`, `LocalKeyManager` only supports `"Ed25519"` for the `algorithm_id`, and any other value will result in an error.
+
+> [!NOTE]
+>
+> For instances of administering private key material for production environments, invoke (in a secure setting) one of the generator implementations within the `crypto.dsa` namespace and import to your key manager via the `import_key()` instance method.
+>
+> 🚧 We will expose a CLI tool for this process.
 
 ## Digital Signature Algorithms (DSA)
 
@@ -572,6 +644,69 @@ did_dht.publish(signer)
 ```pseudocode!
 uri = "did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y"
 resolution_result = DidDht.resolve(uri)
+```
+
+## Bearer DIDs
+
+### `BearerDid`
+
+🚧
+
+```pseudocode!
+NAMESPACE dids.bearer_dids
+
+CLASS BearerDid
+  PUBLIC DATA did: Did
+  PUBLIC DATA document: Document
+  CONSTRUCTOR(did: Did, document: Document, key_manager: KeyManager)
+  CONSTRUCTOR(portable_did: string)
+  METHOD get_signer(selector: VerificationMethodSelector): Signer
+  METHOD to_portable_did(): string
+```
+
+### `VerificationMethodSelector`
+
+🚧
+
+```pseudocode!
+NAMESPACE dids.bearer_dids
+
+🚧
+```
+
+### Methods
+
+#### `DidJwk`
+
+🚧
+
+```pseudocode!
+NAMESPACE dids.bearer_dids.methods
+
+CLASS DidJwk
+  STATIC METHOD create() 🚧
+```
+
+#### `DidWeb`
+
+🚧
+
+```pseudocode!
+NAMESPACE dids.bearer_dids.methods
+
+CLASS DidJwk
+  STATIC METHOD create() 🚧
+```
+
+#### `DidDht`
+
+🚧
+
+```pseudocode!
+NAMESPACE dids.bearer_dids.methods
+
+CLASS DidJwk
+  STATIC METHOD create() 🚧
 ```
 
 # Verifiable Credentials (VCs)
