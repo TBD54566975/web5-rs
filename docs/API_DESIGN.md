@@ -41,7 +41,7 @@
       - [Example: Instantiate an existing `did:dht`](#example-instantiate-an-existing-diddht)
       - [Example: Update a `did:dht`](#example-update-a-diddht)
       - [Example: Resolve a `did:dht`](#example-resolve-a-diddht)
-- [Verifiable Credential's (VCs)](#verifiable-credentials-vcs)
+- [Verifiable Credentials (VCs)](#verifiable-credentials-vcs)
   - [Data Model 1.1](#data-model-11)
     - [`NamedIssuer`](#namedissuer)
     - [`VerifiableCredential`](#verifiablecredential)
@@ -530,7 +530,7 @@ uri = "did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y"
 resolution_result = DidDht.resolve(uri)
 ```
 
-# Verifiable Credential's (VCs)
+# Verifiable Credentials (VCs)
 
 ## Data Model 1.1
 
