@@ -27,10 +27,10 @@ class DidDht {
      * @param identityKey The identity key represented as a Jwk.
      */
     constructor(identityKey: Jwk) {
-        rustCoreDidDht = RustCoreDidDht.fromIdentityKey(identityKey.toRustCore())
+        rustCoreDidDht = RustCoreDidDht.fromIdentityKey(identityKey)
 
         this.did = Did.fromRustCore(rustCoreDidDht.getData().did)
-        this.document = Document.fromRustCore(rustCoreDidDht.getData().document)
+        this.document = rustCoreDidDht.getData().document
     }
 
     /**
@@ -42,7 +42,7 @@ class DidDht {
         rustCoreDidDht = RustCoreDidDht.fromUri(uri)
 
         this.did = Did.fromRustCore(rustCoreDidDht.getData().did)
-        this.document = Document.fromRustCore(rustCoreDidDht.getData().document)
+        this.document = rustCoreDidDht.getData().document
     }
 
     /**
@@ -72,8 +72,7 @@ class DidDht {
          */
         @JvmStatic
         fun resolve(uri: String): ResolutionResult {
-            val rustCoreResolutionObject = rustCoreDidDhtResolve(uri).getData()
-            return ResolutionResult.fromRustCore(rustCoreResolutionObject)
+            return rustCoreDidDhtResolve(uri).getData()
         }
     }
 }

@@ -1,7 +1,4 @@
-use crate::{
-    dsa::{ed25519::Ed25519Signer, Signer},
-    errors::Result,
-};
+use crate::{dsa::ed25519::Ed25519Signer, errors::Result};
 use std::sync::Arc;
 use web5::apid::{in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager, jwk::Jwk};
 
@@ -18,7 +15,7 @@ impl InMemoryKeyManager {
             .map_err(|e| Arc::new(e.into()))
     }
 
-    pub fn get_signer(&self, public_key: Jwk) -> Result<Arc<dyn Signer>> {
+    pub fn get_signer(&self, public_key: Jwk) -> Result<Arc<Ed25519Signer>> {
         let signer = self
             .0
             .get_signer(public_key)

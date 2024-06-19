@@ -1235,7 +1235,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_generate_key_material() != 25694.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 34113.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 60027.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_key() != 16160.toShort()) {
@@ -3168,7 +3168,7 @@ public interface InMemoryKeyManagerInterface {
     
     fun `generateKeyMaterial`(): JwkData
     
-    fun `getSigner`(`publicJwk`: JwkData): Signer
+    fun `getSigner`(`publicJwk`: JwkData): Ed25519Signer
     
     fun `importKey`(`privateKey`: JwkData): JwkData
     
@@ -3277,8 +3277,8 @@ open class InMemoryKeyManager: Disposable, AutoCloseable, InMemoryKeyManagerInte
     
 
     
-    @Throws(RustCoreException::class)override fun `getSigner`(`publicJwk`: JwkData): Signer {
-            return FfiConverterTypeSigner.lift(
+    @Throws(RustCoreException::class)override fun `getSigner`(`publicJwk`: JwkData): Ed25519Signer {
+            return FfiConverterTypeEd25519Signer.lift(
     callWithPointer {
     uniffiRustCallWithError(RustCoreException) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(

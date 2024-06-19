@@ -24,10 +24,10 @@ class DidJwk {
      * @param publicKey The public key represented as a Jwk.
      */
     constructor(publicKey: Jwk) {
-        val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(publicKey.toRustCore())
+        val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(publicKey)
 
         this.did = Did.fromRustCore(rustCoreDidJwk.getData().did)
-        this.document = Document.fromRustCore(rustCoreDidJwk.getData().document)
+        this.document = rustCoreDidJwk.getData().document
     }
 
     /**
@@ -39,7 +39,7 @@ class DidJwk {
         val rustCoreDidJwk = RustCoreDidJwk.fromUri(uri)
 
         this.did = Did.fromRustCore(rustCoreDidJwk.getData().did)
-        this.document = Document.fromRustCore(rustCoreDidJwk.getData().document)
+        this.document = rustCoreDidJwk.getData().document
     }
 
     companion object {
@@ -52,7 +52,7 @@ class DidJwk {
         @JvmStatic
         fun resolve(uri: String): ResolutionResult {
             val rustCoreResolutionObject = rustCoreDidJwkResolve(uri).getData()
-            return ResolutionResult.fromRustCore(rustCoreResolutionObject)
+            return rustCoreResolutionObject
         }
     }
 }
