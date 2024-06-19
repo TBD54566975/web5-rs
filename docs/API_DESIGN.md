@@ -2,14 +2,14 @@
 
 **Last Updated** May 30, 2024
 
-**Version** 0.1.0
+**Version** 0.2.0
 
-**[Custom DSL](./CUSTOM_DSL.md) Version**: 0.1.0
+**[Custom DSL](./CUSTOM_DSL.md) Version**: 0.2.0
 
-- [Key Material](#key-material)
-  - [`Jwk`](#jwk)
-  - [`InMemoryKeyManager`](#inmemorykeymanager)
-- [Cryptography](#cryptography)
+- [Crypto](#crypto)
+  - [Keys](#keys)
+    - [`Jwk`](#jwk)
+    - [`InMemoryKeyManager`](#inmemorykeymanager)
   - [Digital Signature Algorithms (DSA)](#digital-signature-algorithms-dsa)
     - [`Dsa`](#dsa)
     - [`Signer`](#signer)
@@ -20,10 +20,12 @@
 - [Decentralized Identifier's (DIDs)](#decentralized-identifiers-dids)
   - [`Did`](#did)
     - [Example: Instantiate from a `did:dht`](#example-instantiate-from-a-diddht)
-  - [`Document`](#document)
+  - [Data Model](#data-model)
+    - [`Document`](#document)
     - [`VerificationMethod`](#verificationmethod)
     - [`Service`](#service)
-  - [`ResolutionResult`](#resolutionresult)
+  - [Resolution](#resolution)
+    - [`ResolutionResult`](#resolutionresult)
     - [`ResolutionMetadataError`](#resolutionmetadataerror)
     - [`ResolutionMetadata`](#resolutionmetadata)
     - [`DocumentMetadata`](#documentmetadata)
@@ -58,14 +60,18 @@
 > [!NOTE]
 > Refer to the [Custom DSL](./CUSTOM_DSL.md) for below syntax definitions.
 
-# Key Material
+# Crypto
+
+## Keys
 
 > [!NOTE]
 > Public & private *key material* are currently strictly represented as [Jwk](#jwk-object-oriented-class), but as the requirement for additional representations (ex: CBOR) present themselves, key material will need to be disintermediated via a polymorphic base class such as `PublicKeyMaterial` (which would expose an instance method for `get_verifier_bytes()`) and `PrivateKeyMaterial` (which would expose instance methods for `to_public_key_material()` and `get_signer_bytes()`), both of which would implement `as_jwk()`, `as_cbor()` and any other concrete representations as instance methods.
 
-## `Jwk`
+### `Jwk`
 
 ```pseudocode!
+NAMESPACE crypto.keys
+
 /// Partial representation of a [JSON Web Key as per RFC7517](https://tools.ietf.org/html/rfc7517).
 /// Note that this is a subset of the spec.
 CLASS Jwk
@@ -89,9 +95,11 @@ CLASS Jwk
   PUBLIC DATA d: string?
 ```
 
-## `InMemoryKeyManager`
+### `InMemoryKeyManager`
 
 ```pseudocode!
+NAMESPACE crypto.keys
+
 /// An encapsulation of key material stored in-memory.
 CLASS InMemoryKeyManager
   /// Generates new key material and returns the public key represented as a Jwk.
@@ -104,13 +112,13 @@ CLASS InMemoryKeyManager
   METHOD import_key(private_key: Jwk): Jwk
 ```
 
-# Cryptography
-
 ## Digital Signature Algorithms (DSA)
 
 ### `Dsa`
 
 ```pseudocode!
+NAMESPACE crypto.dsa
+
 /// The set of Digital Signature Algorithms natively supported within this SDK.
 ENUM Dsa
   Ed25519
@@ -121,6 +129,8 @@ ENUM Dsa
 ### `Signer`
 
 ```pseudocode!
+NAMESPACE crypto.dsa
+
 /// Set of functionality required to implement to be a compatible DSA signer.
 INTERFACE Signer
   /// Signs the given payload by using the encapsulated private key material.
@@ -130,6 +140,8 @@ INTERFACE Signer
 ### `Verifier`
 
 ```pseudocode!
+NAMESPACE crypto.dsa
+
 /// Set of functionality required to implement to be a compatible DSA verifier.
 INTERFACE Verifier
   /// Execute the verification of the signature against the payload by using the encapsulated public key material.
@@ -139,6 +151,8 @@ INTERFACE Verifier
 ### `Ed25519Generator`
 
 ```pseudocode!
+NAMESPACE crypto.dsa
+
 /// Generates private key material for Ed25519.
 CLASS Ed25519Generator
   /// Generate the private key material; return Jwk includes private key material.
@@ -148,6 +162,8 @@ CLASS Ed25519Generator
 ### `Ed25519Signer`
 
 ```pseudocode!
+NAMESPACE crypto.dsa
+
 /// Implementation of [`Signer`](#signer) for Ed25519.
 CLASS Ed25519Signer IMPLEMENTS Signer
   CONSTRUCTOR(private_key: Jwk)
@@ -159,6 +175,8 @@ CLASS Ed25519Signer IMPLEMENTS Signer
 ### `Ed25519Verifier`
 
 ```pseudocode!
+NAMESPACE crypto.dsa
+
 /// Implementation of [`Verifier`](#verifier) for Ed25519.
 CLASS Ed25519Verifier IMPLEMENTS Verifier
   CONSTRUCTOR(public_key: Jwk)
@@ -172,6 +190,8 @@ CLASS Ed25519Verifier IMPLEMENTS Verifier
 ## `Did`
 
 ```pseudocode!
+NAMESPACE dids
+
 /// Representation of a [DID Core Identifier](https://www.w3.org/TR/did-core/#identifiers).
 CLASS Did
   /// URI represents the complete Decentralized Identifier (DID) URI.
@@ -216,9 +236,13 @@ uri = "did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y"
 did = new Did(uri)
 ```
 
-## `Document`
+## Data Model
+
+### `Document`
 
 ```pseudocode!
+NAMESPACE dids.data_model
+
 /// Representation of a [DID Document](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md)
 CLASS Document
   /// The DID URI for a particular DID subject is expressed using the id property in the DID document.
@@ -290,6 +314,8 @@ CLASS Document
 ### `VerificationMethod`
 
 ```pseudocode!
+NAMESPACE dids.data_model
+
 /// Representation of a DID Document's [Verification Method](https://www.w3.org/TR/did-core/#verification-methods).
 CLASS VerificationMethod
   /// 🚧
@@ -308,6 +334,8 @@ CLASS VerificationMethod
 ### `Service`
 
 ```pseudocode!
+NAMESPACE dids.data_model
+
 /// Representation of a DID Document's [Service](https://www.w3.org/TR/did-core/#service).
 CLASS Service
   /// 🚧
@@ -320,9 +348,13 @@ CLASS Service
   PUBLIC DATA serviceEndpoint: []string
 ```
 
-## `ResolutionResult`
+## Resolution
+
+### `ResolutionResult`
 
 ```pseudocode!
+NAMESPACE dids.resolution
+
 /// Representation of the result of a DID (Decentralized Identifier) resolution.
 CLASS ResolutionResult
   /// The resolved DID document, if available.
@@ -347,6 +379,8 @@ CLASS ResolutionResult
 ### `ResolutionMetadataError`
 
 ```pseudocode!
+NAMESPACE dids.resolution
+
 /// The error code from the resolution process.
 ENUM ResolutionMetadataError
   invalidDid
@@ -361,6 +395,8 @@ ENUM ResolutionMetadataError
 ### `ResolutionMetadata`
 
 ```pseudocode!
+NAMESPACE dids.resolution
+
 /// Metadata about the given resolution.
 CLASS ResolutionMetadata
   /// The error code from the resolution process.
@@ -370,6 +406,8 @@ CLASS ResolutionMetadata
 ### `DocumentMetadata`
 
 ```pseudocode!
+NAMESPACE dids.resolution
+
 /// Metadata about the DID Document.
 CLASS DocumentMetadata
   /// 🚧
@@ -402,6 +440,8 @@ CLASS DocumentMetadata
 ### `DidJwk`
 
 ```pseudocode!
+NAMESPACE dids.methods
+
 CLASS DidJwk
   PUBLIC DATA did: Did
   PUBLIC DATA document: Document
@@ -435,6 +475,8 @@ resolution_result = DidJwk.resolve(uri)
 ### `DidWeb`
 
 ```pseudocode!
+NAMESPACE dids.methods
+
 CLASS DidWeb
   CONSTRUCTOR(uri: string)
   STATIC METHOD resolve(uri: string): ResolutionResult
@@ -457,6 +499,8 @@ resolution_result = DidWeb.resolve(uri)
 ### `DidDht`
 
 ```pseudocode!
+NAMESPACE dids.methods
+
 CLASS DidDht
   PUBLIC DATA did: Did
   PUBLIC DATA document: Document
@@ -537,6 +581,8 @@ resolution_result = DidDht.resolve(uri)
 ### `NamedIssuer`
 
 ```pseudocode!
+NAMESPACE verifiable_credentials.data_model_1_1
+
 CLASS NamedIssuer
   PUBLIC DATA id: string
   PUBLIC DATA name: string
@@ -551,6 +597,8 @@ CLASS NamedIssuer
 > We need to consider default behaviors such as always including the base `@context` and `type`
 
 ```pseudocode!
+NAMESPACE verifiable_credentials.data_model_1_1
+
 CLASS VerifiableCredential
   PUBLIC DATA @context: []string
   PUBLIC DATA id: string
@@ -601,6 +649,8 @@ vc = VerifiableCredential.verify(vcjwt)
 ## `PresentationDefinition` 
 
 ```pseudocode!
+NAMESPACE presentation_exchange
+
 CLASS PresentationDefinition
   PUBLIC DATA id: string
   PUBLIC DATA name: string?
@@ -612,6 +662,8 @@ CLASS PresentationDefinition
 ## `InputDescriptor` 
 
 ```pseudocode!
+NAMESPACE presentation_exchange
+
 CLASS InputDescriptor
   PUBLIC DATA id: string
   PUBLIC DATA name: string?
@@ -622,6 +674,8 @@ CLASS InputDescriptor
 ## `Constraints`
 
 ```pseudocode!
+NAMESPACE presentation_exchange
+
 CLASS Constraints
   PUBLIC DATA fields: []Field
 ```
@@ -629,6 +683,8 @@ CLASS Constraints
 ## `Field`
 
 ```pseudocode!
+NAMESPACE presentation_exchange
+
 CLASS Field
   PUBLIC DATA id: string?
   PUBLIC DATA name: string?
@@ -642,6 +698,8 @@ CLASS Field
 ## `Optionality`
 
 ```pseudocode!
+NAMESPACE presentation_exchange
+
 ENUM Optionality
   Required
   Preferred
@@ -650,6 +708,8 @@ ENUM Optionality
 ## `Filter`
 
 ```pseudocode!
+NAMESPACE presentation_exchange
+
 CLASS Filter
   PUBLIC DATA type: string?
   PUBLIC DATA pattern: string?

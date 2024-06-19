@@ -2,7 +2,7 @@
 
 **Last Updated:** May 30, 2024
 
-**Version:** 0.1.0
+**Version:** 0.2.0
 
 The design definitions within the Custom DSL are intended to span any programming language, so long as the given programming language supports the [High-Level Concepts](#high-level-concepts) and [Primitive Concepts](#primitive-concepts) in one form or another. The instantiations of these concepts will be unique to the given idioms of the target programming language.
 
@@ -12,6 +12,7 @@ The design definitions within the Custom DSL are intended to span any programmin
   - [Polymorphic Base Class](#polymorphic-base-class)
   - [Class](#class)
   - [Enumeration](#enumeration)
+  - [Namespace](#namespace)
 
 # Limitations
 
@@ -52,7 +53,7 @@ concept, but the key and value types are considered to uniform over the entirety
 
 **Example**
 
-```psuedocode
+```psuedocode!
 INTERFACE Shape
   METHOD area(): int
   METHOD perimeter(): int
@@ -72,7 +73,7 @@ INTERFACE Shape
 
 **Example**
 
-```psuedocode
+```psuedocode!
 CLASS Circle IMPLEMENTS Shape
   PUBLIC DATA radius: int
   CONSTRUCTOR(radius: int)
@@ -90,9 +91,26 @@ CLASS Circle IMPLEMENTS Shape
 
 **Example:**
 
-```psuedocode
+```psuedocode!
 ENUM Color
   RED
   GREEN
   BLUE
+```
+
+## Namespace
+
+- `NAMESPACE namespace.path`: Defines a namespace.
+
+**Example:**
+
+```pseudocode!
+NAMESPACE shapes.ellipses
+
+CLASS Circle IMPLEMENTS Shape
+  PUBLIC DATA radius: int
+  CONSTRUCTOR(radius: int)
+  METHOD area(): int
+  METHOD perimeter(): int
+  STATIC METHOD unit_circle(): Circle
 ```
