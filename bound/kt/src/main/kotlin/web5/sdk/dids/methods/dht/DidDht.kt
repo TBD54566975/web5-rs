@@ -8,6 +8,7 @@ import web5.sdk.dids.ResolutionResult
 
 import web5.sdk.rust.didDhtResolve as rustCoreDidDhtResolve
 import web5.sdk.rust.DidDht as RustCoreDidDht
+import web5.sdk.rust.Signer as RustCoreSigner
 
 /**
  * A class representing a DID (Decentralized Identifier) using the DHT method.
@@ -51,7 +52,7 @@ class DidDht {
      * @param signer The signer used to sign the publish operation.
      */
     fun publish(signer: Signer) {
-        // TODO: Implement publish method
+        rustCoreDidDht.publish(signer as RustCoreSigner)
     }
 
     /**
@@ -60,7 +61,7 @@ class DidDht {
      * @param signer The signer used to sign the deactivate operation.
      */
     fun deactivate(signer: Signer) {
-        // TODO: Implement deactivate method
+        rustCoreDidDht.deactivate(signer as RustCoreSigner)
     }
 
     companion object {
