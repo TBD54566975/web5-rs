@@ -114,7 +114,7 @@ CLASS InMemoryKeyManager IMPLEMENTS KeyManager
   METHOD get_signer(public_jwk: Jwk): Signer
 
   /// For importing keys which may be stored somewhere such as environment variables. Return Jwk is the public key for the given private key.
-  METHOD import_jwk(private_jwk: Jwk): Jwk
+  METHOD import_private_jwk(private_jwk: Jwk): Jwk
 ```
 
 ## Digital Signature Algorithms (DSA)
@@ -535,7 +535,7 @@ did_dht.document.alsoKnownAs = "did:example:efgh"
 /// Note: you could also add a verification method, set the controller etc.
 
 key_manager = new InMemoryKeyManager()
-public_key = key_manager.import_key(private_key) /// assume private_key pre-exists, eg. read from env var
+public_key = key_manager.import_private_jwk(private_key) /// assume private_key pre-exists, eg. read from env var
 signer = key_manager.get_signer(public_key)
 
 did_dht.publish(signer)
