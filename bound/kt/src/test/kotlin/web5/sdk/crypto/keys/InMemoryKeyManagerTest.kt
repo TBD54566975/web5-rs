@@ -5,18 +5,20 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 
 import org.junit.jupiter.api.Test
 import web5.sdk.rust.RustCoreException
-import web5.sdk.rust.ed25519GeneratorGenerate
+
+import web5.sdk.rust.ed25519GeneratorGenerate as rustCoreEd25519GeneratorGenerate
 
 class InMemoryKeyManagerTest {
 
   @Test
   fun `test key manager`() {
+    val privateJwk = rustCoreEd25519GeneratorGenerate()
+
     val keyManager = InMemoryKeyManager()
+    val publicJwk = keyManager.importPrivateKey(privateJwk)
 
-    val jwk = keyManager.generateKeyMaterial()
-    val signer = keyManager.getSigner(jwk)
-
-    val payload = signer.sign("abc".toByteArray())
+    val signer = keyManager.getSigner(publicJwk)
+    val payload = signer.sign("abc".map { it.code.toUByte() })
 
     assertNotNull(payload)
   }
@@ -33,15 +35,15 @@ class InMemoryKeyManagerTest {
 
   @Test
   fun `test key manager import key`() {
-    val rustCorePrivateJwk = ed25519GeneratorGenerate()
+    val rustCorePrivateJwk = rustCoreEd25519GeneratorGenerate()
 
     val keyManager = InMemoryKeyManager()
-    keyManager.importKey(rustCorePrivateJwk)
+    keyManager.importPrivateKey(rustCorePrivateJwk)
 
     rustCorePrivateJwk.d = null
     val signer = keyManager.getSigner(rustCorePrivateJwk)
 
-    val payload = signer.sign("abc".toByteArray())
+    val payload = signer.sign("abc".map { it.code.toUByte() })
 
     assertNotNull(payload)
   }
