@@ -1,5 +1,5 @@
 [package]
-name = "web5-uniffi"
+name = "web5_uniffi"
 version = "0.1.0"
 edition = "2021"
 homepage.workspace = true

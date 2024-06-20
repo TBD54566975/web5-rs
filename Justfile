@@ -24,8 +24,8 @@ bind: setup
   # just bind-swift 
 
 bind-kotlin: setup
-  cargo build --release --package web5-uniffi
-  cargo run --package web5-uniffi \
+  cargo build --release --package web5_uniffi
+  cargo run --package web5_uniffi \
     --bin uniffi-bindgen \
     generate --library target/release/libweb5_uniffi.dylib \
     --language kotlin \
@@ -35,8 +35,8 @@ bind-kotlin: setup
   cd bound/kt && ./fix-load.sh
 
 bind-swift: setup
-  cargo build --release --package web5-uniffi
-  cargo run --package web5-uniffi \
+  cargo build --release --package web5_uniffi
+  cargo run --package web5_uniffi \
     --bin uniffi-bindgen \
     generate --library target/release/libweb5_uniffi.dylib \
     --language swift \
