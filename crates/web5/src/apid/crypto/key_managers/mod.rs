@@ -1,4 +1,5 @@
 pub mod in_memory_key_manager;
+pub mod key_manager;
 
 use crate::apid::crypto::jwk::JwkError;
 
@@ -14,4 +15,4 @@ pub enum KeyManagerError {
     KeyNotFound(String),
 }
 
-pub type Result<T> = std::result::Result<T, KeyManagerError>;
+type Result<T> = std::result::Result<T, KeyManagerError>;

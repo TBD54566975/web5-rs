@@ -1,8 +1,17 @@
-use crate::{dsa::ed25519::Ed25519Signer, errors::Result};
+use crate::{
+    dsa::{OuterSigner, Signer},
+    errors::Result,
+};
 use std::sync::Arc;
 use web5::apid::crypto::{
-    jwk::Jwk, key_managers::in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager,
+    jwk::Jwk,
+    key_managers::{
+        in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager,
+        key_manager::KeyManager as InnerKeyManager,
+    },
 };
+
+use super::key_manager::KeyManager;
 
 pub struct InMemoryKeyManager(pub InnerInMemoryKeyManager);
 
@@ -11,23 +20,24 @@ impl InMemoryKeyManager {
         Self(InnerInMemoryKeyManager::new())
     }
 
-    pub fn generate_key_material(&self) -> Result<Jwk> {
+    pub fn import_private_jwk(&self, private_key: Jwk) -> Result<Jwk> {
         self.0
-            .generate_key_material()
+            .import_private_jwk(private_key)
             .map_err(|e| Arc::new(e.into()))
     }
+}
 
-    pub fn get_signer(&self, public_key: Jwk) -> Result<Arc<Ed25519Signer>> {
+impl KeyManager for InMemoryKeyManager {
+    fn get_signer(&self, public_key: Jwk) -> Result<Arc<dyn Signer>> {
         let signer = self
             .0
             .get_signer(public_key)
             .map_err(|e| Arc::new(e.into()))?;
-        Ok(Arc::new(Ed25519Signer(signer)))
+        let outer_signer = OuterSigner(signer);
+        Ok(Arc::new(outer_signer))
     }
 
-    pub fn import_key(&self, private_key: Jwk) -> Result<Jwk> {
-        self.0
-            .import_key(private_key)
-            .map_err(|e| Arc::new(e.into()))
+    fn to_inner(&self) -> Arc<dyn InnerKeyManager> {
+        Arc::new(self.0.clone())
     }
 }

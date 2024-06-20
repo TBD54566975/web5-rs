@@ -24,14 +24,18 @@ dictionary JwkData {
   string? y;
 };
 
+[Trait]
+interface KeyManager {
+  [Throws=RustCoreError]
+  Signer get_signer(JwkData public_jwk);
+};
+
 interface InMemoryKeyManager {
   constructor();
   [Throws=RustCoreError]
-  JwkData generate_key_material();
+  Signer get_signer(JwkData public_jwk);
   [Throws=RustCoreError]
-  Ed25519Signer get_signer(JwkData public_jwk);
-  [Throws=RustCoreError]
-  JwkData import_key(JwkData private_key);
+  JwkData import_private_jwk(JwkData private_key);
 };
 
 enum Dsa {

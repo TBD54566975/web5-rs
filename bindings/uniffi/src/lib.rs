@@ -10,7 +10,7 @@ use crate::{
         presentation_definition::PresentationDefinition,
         verifiable_credential_1_1::VerifiableCredential,
     },
-    crypto::in_memory_key_manager::InMemoryKeyManager,
+    crypto::{in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager},
     dids::{
         did::Did,
         methods::{

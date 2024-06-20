@@ -1,3 +1,4 @@
+use super::{MethodError, Result};
 use crate::apid::{
     crypto::jwk::Jwk,
     dids::{
@@ -10,8 +11,6 @@ use crate::apid::{
     dsa::Signer,
 };
 use std::sync::Arc;
-
-use super::{MethodError, Result};
 
 #[derive(Clone, Default)]
 pub struct DidDht {
