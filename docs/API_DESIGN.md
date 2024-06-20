@@ -2,14 +2,15 @@
 
 **Last Updated** May 30, 2024
 
-**Version** 0.1.0
+**Version** 1.0.0
 
 **[Custom DSL](./CUSTOM_DSL.md) Version**: 0.1.0
 
-- [Key Material](#key-material)
+- [Crypto](#crypto)
   - [`Jwk`](#jwk)
-  - [`InMemoryKeyManager`](#inmemorykeymanager)
-- [Cryptography](#cryptography)
+  - [Key Managers](#key-managers)
+    - [`KeyManager`](#keymanager)
+    - [`InMemoryKeyManager`](#inmemorykeymanager)
   - [Digital Signature Algorithms (DSA)](#digital-signature-algorithms-dsa)
     - [`Dsa`](#dsa)
     - [`Signer`](#signer)
@@ -20,10 +21,12 @@
 - [Decentralized Identifier's (DIDs)](#decentralized-identifiers-dids)
   - [`Did`](#did)
     - [Example: Instantiate from a `did:dht`](#example-instantiate-from-a-diddht)
-  - [`Document`](#document)
+  - [Data Model](#data-model)
+    - [`Document`](#document)
     - [`VerificationMethod`](#verificationmethod)
     - [`Service`](#service)
-  - [`ResolutionResult`](#resolutionresult)
+  - [Resolution](#resolution)
+    - [`ResolutionResult`](#resolutionresult)
     - [`ResolutionMetadataError`](#resolutionmetadataerror)
     - [`ResolutionMetadata`](#resolutionmetadata)
     - [`DocumentMetadata`](#documentmetadata)
@@ -41,6 +44,7 @@
       - [Example: Instantiate an existing `did:dht`](#example-instantiate-an-existing-diddht)
       - [Example: Update a `did:dht`](#example-update-a-diddht)
       - [Example: Resolve a `did:dht`](#example-resolve-a-diddht)
+  - [`BearerDid`](#bearerdid)
 - [Verifiable Credentials (VCs)](#verifiable-credentials-vcs)
   - [Data Model 1.1](#data-model-11)
     - [`NamedIssuer`](#namedissuer)
@@ -58,12 +62,12 @@
 > [!NOTE]
 > Refer to the [Custom DSL](./CUSTOM_DSL.md) for below syntax definitions.
 
-# Key Material
+# Crypto
+
+## `Jwk`
 
 > [!NOTE]
 > Public & private *key material* are currently strictly represented as [Jwk](#jwk-object-oriented-class), but as the requirement for additional representations (ex: CBOR) present themselves, key material will need to be disintermediated via a polymorphic base class such as `PublicKeyMaterial` (which would expose an instance method for `get_verifier_bytes()`) and `PrivateKeyMaterial` (which would expose instance methods for `to_public_key_material()` and `get_signer_bytes()`), both of which would implement `as_jwk()`, `as_cbor()` and any other concrete representations as instance methods.
-
-## `Jwk`
 
 ```pseudocode!
 /// Partial representation of a [JSON Web Key as per RFC7517](https://tools.ietf.org/html/rfc7517).
@@ -89,22 +93,29 @@ CLASS Jwk
   PUBLIC DATA d: string?
 ```
 
-## `InMemoryKeyManager`
+## Key Managers 
+
+### `KeyManager`
+
+```pseudocode!
+INTERFACE KeyManager
+  /// Returns the signer for the given public key.
+  METHOD get_signer(public_jwk: Jwk): Signer
+```
+
+### `InMemoryKeyManager`
 
 ```pseudocode!
 /// An encapsulation of key material stored in-memory.
-CLASS InMemoryKeyManager
-  /// Generates new key material and returns the public key represented as a Jwk.
-  METHOD generate_key_material(): Jwk
+CLASS InMemoryKeyManager IMPLEMENTS KeyManager
+  CONSTRUCTOR(private_jwks: []Jwk)
 
-  /// Returns the Ed25519Signer for the given public key.
-  METHOD get_signer(public_key: Jwk): Ed25519Signer
+  /// Returns the signer for the given public key.
+  METHOD get_signer(public_jwk: Jwk): Signer
 
   /// For importing keys which may be stored somewhere such as environment variables. Return Jwk is the public key for the given private key.
-  METHOD import_key(private_key: Jwk): Jwk
+  METHOD import_jwk(private_jwk: Jwk): Jwk
 ```
-
-# Cryptography
 
 ## Digital Signature Algorithms (DSA)
 
@@ -216,7 +227,9 @@ uri = "did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y"
 did = new Did(uri)
 ```
 
-## `Document`
+## Data Model
+
+### `Document`
 
 ```pseudocode!
 /// Representation of a [DID Document](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md)
@@ -285,6 +298,9 @@ CLASS Document
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#services)
   PUBLIC DATA service: []Service?
+
+  /// Return the Jwk from the Verification Method with the matching key ID.
+  METHOD find_public_key_jwk(key_id: string): Jwk
 ```
 
 ### `VerificationMethod`
@@ -320,7 +336,9 @@ CLASS Service
   PUBLIC DATA serviceEndpoint: []string
 ```
 
-## `ResolutionResult`
+## Resolution
+
+### `ResolutionResult`
 
 ```pseudocode!
 /// Representation of the result of a DID (Decentralized Identifier) resolution.
@@ -529,6 +547,20 @@ did_dht.publish(signer)
 uri = "did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y"
 resolution_result = DidDht.resolve(uri)
 ```
+
+## `BearerDid`
+
+```pseudocode!
+CLASS BearerDid
+  PUBLIC DATA did: Did
+  PUBLIC DATA document: Document
+  CONSTRUCTOR(did: Did, key_manager: KeyManager)
+  METHOD get_signer(): Signer
+```
+
+> [!WARNING]
+>
+> We'll need to add support for the developer to select a VM other than defaulting to the first in the `verification_method` array; add `METHOD get_signer_by_kid(key_id: string): Signer`.
 
 # Verifiable Credentials (VCs)
 
