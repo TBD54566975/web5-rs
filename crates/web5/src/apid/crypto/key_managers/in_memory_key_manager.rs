@@ -1,6 +1,6 @@
-use super::{
+use crate::apid::{
     dsa::ed25519::{Ed25519Generator, Ed25519Signer},
-    jwk::{Jwk, JwkError},
+    crypto::jwk::{Jwk, JwkError},
 };
 use std::{collections::HashMap, sync::RwLock};
 

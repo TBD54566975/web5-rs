@@ -1,11 +1,13 @@
 use crate::apid::{
+    crypto::jwk::Jwk,
     dids::{
+        data_model::document::Document,
         did::Did,
-        document::Document,
-        resolution_result::{ResolutionMetadataError, ResolutionResult},
+        resolution::{
+            resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
+        },
     },
     dsa::Signer,
-    jwk::Jwk,
 };
 use std::sync::Arc;
 

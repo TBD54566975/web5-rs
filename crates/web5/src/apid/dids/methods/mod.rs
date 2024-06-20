@@ -1,4 +1,4 @@
-use super::{did::DidError, resolution_result::ResolutionMetadataError};
+use super::{did::DidError, resolution::resolution_metadata::ResolutionMetadataError};
 use base64::DecodeError;
 use serde_json::Error as SerdeJsonError;
 
