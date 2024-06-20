@@ -1,11 +1,6 @@
-pub mod credentials;
-pub mod crypto;
-pub mod dids;
-pub mod dsa;
 
-pub mod errors;
 
-use crate::{
+use web5_uniffi_wrapper::{
     credentials::{
         presentation_definition::PresentationDefinition,
         verifiable_credential_1_1::VerifiableCredential,

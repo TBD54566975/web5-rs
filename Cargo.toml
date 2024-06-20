@@ -1,7 +1,8 @@
 [workspace]
 members = [ 
     "crates/web5", 
-    "bindings/uniffi",
+    "bindings/uniffi", 
+    "bindings/uniffi-wrapper",
 ]
 default-members = [
     "crates/web5",
