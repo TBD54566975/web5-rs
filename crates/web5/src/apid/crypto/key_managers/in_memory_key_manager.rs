@@ -1,22 +1,10 @@
 use crate::apid::{
+    crypto::jwk::Jwk,
     dsa::ed25519::{Ed25519Generator, Ed25519Signer},
-    crypto::jwk::{Jwk, JwkError},
 };
 use std::{collections::HashMap, sync::RwLock};
 
-#[derive(thiserror::Error, Debug, Clone, PartialEq)]
-pub enum KeyManagerError {
-    #[error(transparent)]
-    JwkError(#[from] JwkError),
-    #[error("Key generation failed")]
-    KeyGenerationFailed,
-    #[error("{0}")]
-    InternalKeyStoreError(String),
-    #[error("key not found {0}")]
-    KeyNotFound(String),
-}
-
-type Result<T> = std::result::Result<T, KeyManagerError>;
+use super::{KeyManagerError, Result};
 
 #[derive(Default)]
 pub struct InMemoryKeyManager {

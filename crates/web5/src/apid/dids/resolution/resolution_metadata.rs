@@ -30,4 +30,3 @@ pub enum ResolutionMetadataError {
     #[serde(rename = "internalError")]
     InternalError,
 }
-

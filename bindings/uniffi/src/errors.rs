@@ -3,7 +3,7 @@ use std::{any::type_name, fmt::Debug};
 use thiserror::Error;
 use web5::apid::credentials::presentation_definition::PexError;
 use web5::apid::credentials::CredentialError;
-use web5::apid::crypto::{jwk::JwkError, key_managers::in_memory_key_manager::KeyManagerError};
+use web5::apid::crypto::{jwk::JwkError, key_managers::KeyManagerError};
 use web5::apid::dids::did::DidError;
 use web5::apid::dids::methods::MethodError;
 use web5::apid::dsa::DsaError;
