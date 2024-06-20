@@ -1,15 +1,16 @@
 mod credentials;
+mod crypto;
 mod dids;
 mod dsa;
 
 mod errors;
-mod in_memory_key_manager;
 
 use crate::{
     credentials::{
         presentation_definition::PresentationDefinition,
         verifiable_credential_1_1::VerifiableCredential,
     },
+    crypto::in_memory_key_manager::InMemoryKeyManager,
     dids::{
         did::Did,
         methods::{
@@ -17,14 +18,13 @@ use crate::{
             did_jwk::{did_jwk_resolve, DidJwk},
             did_web::{did_web_resolve, DidWeb},
         },
-        resolution_result::ResolutionResult,
+        resolution::resolution_result::ResolutionResult,
     },
     dsa::{
         ed25519::{ed25519_generator_generate, Ed25519Signer, Ed25519Verifier},
         Signer, Verifier,
     },
     errors::RustCoreError,
-    in_memory_key_manager::InMemoryKeyManager,
 };
 
 use web5::apid::{
@@ -39,23 +39,26 @@ use web5::apid::{
             VerifiableCredential as VerifiableCredentialData,
         },
     },
+    crypto::jwk::Jwk as JwkData,
     dids::{
-        did::Did as DidData,
-        document::{
-            Document as DocumentData, Service as ServiceData,
-            VerificationMethod as VerificationMethodData,
+        data_model::{
+            document::Document as DocumentData, service::Service as ServiceData,
+            verification_method::VerificationMethod as VerificationMethodData,
         },
+        did::Did as DidData,
         methods::{
             did_dht::DidDht as DidDhtData, did_jwk::DidJwk as DidJwkData,
             did_web::DidWeb as DidWebData,
         },
-        resolution_result::{
-            DocumentMetadata as DocumentMetadataData, ResolutionMetadata as ResolutionMetadataData,
-            ResolutionMetadataError, ResolutionResult as ResolutionResultData,
+        resolution::{
+            document_metadata::DocumentMetadata as DocumentMetadataData,
+            resolution_metadata::{
+                ResolutionMetadata as ResolutionMetadataData, ResolutionMetadataError,
+            },
+            resolution_result::ResolutionResult as ResolutionResultData,
         },
     },
     dsa::Dsa,
-    jwk::Jwk as JwkData,
 };
 
 uniffi::include_scaffolding!("web5");

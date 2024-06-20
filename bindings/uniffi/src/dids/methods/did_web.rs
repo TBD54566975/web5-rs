@@ -1,4 +1,4 @@
-use crate::{dids::resolution_result::ResolutionResult, errors::Result};
+use crate::{dids::resolution::resolution_result::ResolutionResult, errors::Result};
 use std::sync::Arc;
 use web5::apid::dids::methods::did_web::DidWeb as InnerDidWeb;
 

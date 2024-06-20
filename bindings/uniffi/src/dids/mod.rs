@@ -1,3 +1,4 @@
-pub mod did;
 pub mod methods;
-pub mod resolution_result;
+pub mod resolution;
+
+pub mod did;

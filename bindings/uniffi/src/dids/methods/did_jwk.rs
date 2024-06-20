@@ -1,6 +1,6 @@
-use crate::{dids::resolution_result::ResolutionResult, errors::Result};
+use crate::{dids::resolution::resolution_result::ResolutionResult, errors::Result};
 use std::sync::Arc;
-use web5::apid::{dids::methods::did_jwk::DidJwk as InnerDidJwk, jwk::Jwk};
+use web5::apid::{crypto::jwk::Jwk, dids::methods::did_jwk::DidJwk as InnerDidJwk};
 
 pub struct DidJwk(pub InnerDidJwk);
 
