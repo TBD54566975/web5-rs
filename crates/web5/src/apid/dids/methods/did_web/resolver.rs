@@ -1,7 +1,9 @@
 use crate::apid::dids::{
+    data_model::document::Document,
     did::Did,
-    document::Document,
-    resolution_result::{ResolutionMetadataError, ResolutionResult},
+    resolution::{
+        resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
+    },
 };
 use reqwest::header::HeaderMap;
 use std::{

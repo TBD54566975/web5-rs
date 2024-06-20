@@ -2,9 +2,12 @@ mod resolver;
 
 use super::{MethodError, Result};
 use crate::apid::dids::{
+    data_model::document::Document,
     did::Did,
-    document::Document,
-    resolution_result::{ResolutionMetadata, ResolutionMetadataError, ResolutionResult},
+    resolution::{
+        resolution_metadata::{ResolutionMetadata, ResolutionMetadataError},
+        resolution_result::ResolutionResult,
+    },
 };
 use resolver::Resolver;
 

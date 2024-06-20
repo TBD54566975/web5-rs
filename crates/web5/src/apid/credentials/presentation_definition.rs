@@ -22,7 +22,7 @@ type Result<T> = std::result::Result<T, PexError>;
 
 /// Represents a DIF Presentation Definition defined [here](https://identity.foundation/presentation-exchange/#presentation-definition).
 /// Presentation Definitions are objects that articulate what proofs a Verifier requires.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PresentationDefinition {
     pub id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -34,7 +34,7 @@ pub struct PresentationDefinition {
 
 /// Represents a DIF Input Descriptor defined [here](https://identity.foundation/presentation-exchange/#input-descriptor).
 /// Input Descriptors are used to describe the information a Verifier requires of a Holder.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InputDescriptor {
     pub id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -45,14 +45,14 @@ pub struct InputDescriptor {
 }
 
 /// Contains the requirements for a given Input Descriptor.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Constraints {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub fields: Vec<Field>,
 }
 
 /// Contains the requirements for a given field within a proof.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Field {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
@@ -71,14 +71,14 @@ pub struct Field {
 }
 
 /// Type alias for the possible values of the predicate field.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Optionality {
     Required,
     Preferred,
 }
 
 /// A JSON Schema that is applied against the value of a field.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Filter {
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub r#type: Option<String>,

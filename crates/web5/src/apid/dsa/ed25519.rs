@@ -1,5 +1,5 @@
 use super::{DsaError, Result, Signer, Verifier};
-use crate::apid::jwk::Jwk;
+use crate::apid::crypto::jwk::Jwk;
 use base64::{engine::general_purpose, Engine as _};
 use ed25519_dalek::{
     Signature, Signer as DalekSigner, SigningKey, Verifier as DalekVerifier, VerifyingKey,

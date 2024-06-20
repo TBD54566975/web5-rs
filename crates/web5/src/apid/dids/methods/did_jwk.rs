@@ -1,11 +1,13 @@
 use super::{MethodError, Result};
 use crate::apid::{
+    crypto::jwk::Jwk,
     dids::{
+        data_model::{document::Document, verification_method::VerificationMethod},
         did::Did,
-        document::{Document, VerificationMethod},
-        resolution_result::{ResolutionMetadataError, ResolutionResult},
+        resolution::{
+            resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
+        },
     },
-    jwk::Jwk,
 };
 use base64::{engine::general_purpose, Engine as _};
 

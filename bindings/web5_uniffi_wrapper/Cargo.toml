@@ -1,0 +1,11 @@
+[package]
+name = "web5_uniffi_wrapper"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+thiserror = { workspace = true }
+web5 = { path = "../../crates/web5" }

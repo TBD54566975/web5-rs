@@ -1,4 +1,4 @@
-use super::{did::DidError, resolution_result::ResolutionMetadataError};
+use super::{did::DidError, resolution::resolution_metadata::ResolutionMetadataError};
 use base64::DecodeError;
 use serde_json::Error as SerdeJsonError;
 
@@ -17,8 +17,8 @@ pub enum MethodError {
     SerdeJsonError(String),
     #[error(transparent)]
     DecodeError(#[from] DecodeError),
-    #[error("Resolution error {0}")]
-    ResolutionError(ResolutionMetadataError),
+    #[error(transparent)]
+    ResolutionError(#[from] ResolutionMetadataError),
 }
 
 impl From<SerdeJsonError> for MethodError {
