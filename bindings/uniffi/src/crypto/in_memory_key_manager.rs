@@ -41,3 +41,9 @@ impl KeyManager for InMemoryKeyManager {
         Arc::new(self.0.clone())
     }
 }
+
+impl Default for InMemoryKeyManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
