@@ -10,7 +10,7 @@ license-file.workspace = true
 thiserror = { workspace = true }
 web5 = { path = "../../crates/web5" }
 uniffi = { version = "0.27.1", features = ["cli"] }
-web5_uniffi_wrapper = { path = "../uniffi-wrapper" }
+web5_uniffi_wrapper = { path = "../web5_uniffi_wrapper" }
 
 [build-dependencies]
 uniffi = { version = "0.27.1", features = ["build"] }
