@@ -1,9 +1,9 @@
-mod credentials;
-mod crypto;
-mod dids;
-mod dsa;
+pub mod credentials;
+pub mod crypto;
+pub mod dids;
+pub mod dsa;
 
-mod errors;
+pub mod errors;
 
 use crate::{
     credentials::{
