@@ -1,4 +1,5 @@
-use super::{service::Service, verification_method::VerificationMethod};
+use super::{service::Service, verification_method::VerificationMethod, Result};
+use crate::apid::crypto::jwk::Jwk;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -30,4 +31,15 @@ pub struct Document {
     pub capability_delegation: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service: Option<Vec<Service>>,
+}
+
+impl Document {
+    pub fn find_public_key_jwk(&self, key_id: String) -> Result<Jwk> {
+        for vm in &self.verification_method {
+            if vm.id == key_id {
+                return Ok(vm.public_key_jwk.clone());
+            }
+        }
+        Err(super::DataModelError::PublicKeyJwk(key_id))
+    }
 }

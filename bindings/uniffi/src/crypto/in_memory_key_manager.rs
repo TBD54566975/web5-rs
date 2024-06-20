@@ -28,10 +28,10 @@ impl InMemoryKeyManager {
 }
 
 impl KeyManager for InMemoryKeyManager {
-    fn get_signer(&self, public_key: Jwk) -> Result<Arc<dyn Signer>> {
+    fn get_signer(&self, public_jwk: Jwk) -> Result<Arc<dyn Signer>> {
         let signer = self
             .0
-            .get_signer(public_key)
+            .get_signer(public_jwk)
             .map_err(|e| Arc::new(e.into()))?;
         let outer_signer = OuterSigner(signer);
         Ok(Arc::new(outer_signer))

@@ -17,8 +17,8 @@ pub enum MethodError {
     SerdeJsonError(String),
     #[error(transparent)]
     DecodeError(#[from] DecodeError),
-    #[error("Resolution error {0}")]
-    ResolutionError(ResolutionMetadataError),
+    #[error(transparent)]
+    ResolutionError(#[from] ResolutionMetadataError),
 }
 
 impl From<SerdeJsonError> for MethodError {

@@ -1,10 +1,7 @@
 use super::{key_manager::KeyManager, KeyManagerError, Result};
 use crate::apid::{
     crypto::jwk::Jwk,
-    dsa::{
-        ed25519::{Ed25519Generator, Ed25519Signer},
-        Signer,
-    },
+    dsa::{ed25519::Ed25519Signer, Signer},
 };
 use std::{
     collections::HashMap,

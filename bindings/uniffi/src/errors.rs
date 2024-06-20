@@ -4,6 +4,8 @@ use thiserror::Error;
 use web5::apid::credentials::presentation_definition::PexError;
 use web5::apid::credentials::CredentialError;
 use web5::apid::crypto::{jwk::JwkError, key_managers::KeyManagerError};
+use web5::apid::dids::bearer_did::BearerDidError;
+use web5::apid::dids::data_model::DataModelError as DidDataModelError;
 use web5::apid::dids::did::DidError;
 use web5::apid::dids::methods::MethodError;
 use web5::apid::dsa::DsaError;
@@ -105,6 +107,18 @@ impl From<CredentialError> for RustCoreError {
 
 impl From<PexError> for RustCoreError {
     fn from(error: PexError) -> Self {
+        RustCoreError::new(error)
+    }
+}
+
+impl From<DidDataModelError> for RustCoreError {
+    fn from(error: DidDataModelError) -> Self {
+        RustCoreError::new(error)
+    }
+}
+
+impl From<BearerDidError> for RustCoreError {
+    fn from(error: BearerDidError) -> Self {
         RustCoreError::new(error)
     }
 }

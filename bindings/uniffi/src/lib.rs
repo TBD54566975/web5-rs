@@ -12,6 +12,8 @@ use crate::{
     },
     crypto::{in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager},
     dids::{
+        bearer_did::{BearerDid, BearerDidData},
+        data_model::document::Document,
         did::Did,
         methods::{
             did_dht::{did_dht_resolve, DidDht},

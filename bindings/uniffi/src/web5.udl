@@ -110,6 +110,13 @@ dictionary ServiceData {
   sequence<string> service_endpoint;
 };
 
+interface Document {
+  constructor(DocumentData data);
+  DocumentData get_data();
+  [Throws=RustCoreError]
+  JwkData find_public_key_jwk(string key_id);
+};
+
 enum ResolutionMetadataError {
   "InvalidDid",
   "NotFound",
@@ -185,6 +192,20 @@ interface DidDht {
   [Throws=RustCoreError]
   void deactivate(Signer signer);
   DidDhtData get_data();
+};
+
+dictionary BearerDidData {
+  DidData did;
+  DocumentData document;
+  KeyManager key_manager;
+};
+
+interface BearerDid {
+  [Throws=RustCoreError]
+  constructor([ByRef] string uri, KeyManager key_manager);
+  BearerDidData get_data();
+  [Throws=RustCoreError]
+  Signer get_signer(string key_id);
 };
 
 dictionary CredentialSubjectData {
