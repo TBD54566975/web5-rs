@@ -1,5 +1,3 @@
-
-
 use web5_uniffi_wrapper::{
     credentials::{
         presentation_definition::PresentationDefinition,
