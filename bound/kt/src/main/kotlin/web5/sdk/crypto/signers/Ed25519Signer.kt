@@ -4,7 +4,7 @@ import web5.sdk.crypto.keys.Jwk
 
 import web5.sdk.rust.Ed25519Signer as RustCoreEd25519Signer
 
-class Ed25519Signer : Signer {
+class Ed25519Signer : SignerInterface {
     private val rustCoreSigner: RustCoreEd25519Signer
 
     constructor(privateKey: Jwk) {

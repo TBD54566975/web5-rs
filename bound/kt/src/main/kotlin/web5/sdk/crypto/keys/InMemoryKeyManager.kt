@@ -1,23 +1,23 @@
 package web5.sdk.crypto.keys
 
-import web5.sdk.crypto.signers.Signer
-
+import web5.sdk.rust.KeyManager
 import web5.sdk.rust.InMemoryKeyManager as RustCoreInMemoryKeyManager
+import web5.sdk.rust.Signer as RustCoreSigner
 
 /**
  * A class for managing cryptographic keys in-memory.
  */
-class InMemoryKeyManager {
+class InMemoryKeyManager : KeyManagerInterface {
     private val rustCoreKeyManager = RustCoreInMemoryKeyManager()
 
     /**
      * Returns the Ed25519Signer for the given public key.
      *
-     * @param publicKey the public key represented as a Jwk.
+     * @param publicJwk the public key represented as a Jwk.
      * @return Ed25519Signer the signer for the given public key.
      */
-    fun getSigner(publicKey: Jwk): Signer {
-        return rustCoreKeyManager.getSigner(publicKey)
+    override fun getSigner(publicJwk: Jwk): RustCoreSigner {
+        return rustCoreKeyManager.getSigner(publicJwk)
     }
 
     /**

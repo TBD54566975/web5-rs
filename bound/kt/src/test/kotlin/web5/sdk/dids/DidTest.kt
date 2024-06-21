@@ -12,6 +12,10 @@ class DidTest {
       url = "did:example:123#0",
       method = "example",
       id = "123",
+      fragment = "fragment",
+      params = mapOf("foo" to "bar"),
+      path = "path",
+      query = "query"
       )
     assertEquals("did:example:123#0", did.url)
   }
