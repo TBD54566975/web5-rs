@@ -1,7 +1,6 @@
 namespace web5 {
   JwkData ed25519_generator_generate();
 
-  [Throws=RustCoreError]
   ResolutionResult did_jwk_resolve([ByRef] string uri);
   [Async, Throws=RustCoreError]
   ResolutionResult did_web_resolve([ByRef] string uri);

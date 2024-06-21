@@ -60,9 +60,8 @@ impl BearerDid {
 
 #[cfg(test)]
 mod tests {
-    use crate::apid::crypto::key_managers::in_memory_key_manager::InMemoryKeyManager;
-
     use super::*;
+    use crate::apid::crypto::key_managers::in_memory_key_manager::InMemoryKeyManager;
 
     #[test]
     fn can_instantiate_did_jwk() {
