@@ -275,6 +275,7 @@ dictionary FilterData {
 
 interface PresentationDefinition {
   constructor(PresentationDefinitionData data);
+  PresentationDefinitionData get_data();
   [Throws=RustCoreError]
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
 };
