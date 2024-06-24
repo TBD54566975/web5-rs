@@ -1,8 +1,12 @@
 use std::{collections::HashMap, str::FromStr};
 
-use crate::dids::document::VerificationMethod;
-
-use crate::crypto::{ed25519::Ed25519, secp256k1::Secp256k1, Curve};
+use crate::{
+    apid::{
+        dids::data_model::verification_method::VerificationMethod, dsa::ed25519,
+        dsa::secp256k1::Secp256k1,
+    },
+    crypto::Curve,
+};
 use base64::{engine::general_purpose, Engine as _};
 use simple_dns::{
     rdata::{RData, TXT},
@@ -83,7 +87,7 @@ impl VerificationMethod {
         };
 
         let public_key_bytes = match curve {
-            Curve::Ed25519 => Ed25519::extract_public_key(&self.public_key_jwk)?,
+            Curve::Ed25519 => ed25519::extract_public_key(&self.public_key_jwk)?,
             Curve::Secp256k1 => Secp256k1::extract_public_key(&self.public_key_jwk)?,
         };
         let k = general_purpose::URL_SAFE_NO_PAD.encode(public_key_bytes);
@@ -143,12 +147,18 @@ impl VerificationMethod {
                 )
             })?;
         let mut public_key_jwk = match curve {
-            Curve::Ed25519 => Ed25519::from_public_key(&public_key_bytes)?,
+            Curve::Ed25519 => ed25519::from_public_key(&public_key_bytes)?,
             Curve::Secp256k1 => Secp256k1::from_public_key(&public_key_bytes)?,
         };
-        if let Some(alg) = vm_rdata.a {
-            public_key_jwk.alg = alg;
-        }
+        public_key_jwk.alg = if let Some(alg) = vm_rdata.a {
+            alg
+        } else {
+            match public_key_jwk.crv.as_str() {
+                "secp256k1" => "ES256K".to_string(),
+                "Ed25519" => "Ed25519".to_string(),
+                _ => public_key_jwk.alg,
+            }
+        };
 
         let id_fragment = if identity_key {
             "0".to_string()
@@ -169,7 +179,7 @@ impl VerificationMethod {
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto::CurveOperations;
+    use ed25519::Ed25519Generator;
     use simple_dns::rdata::A;
 
     use super::*;
@@ -177,7 +187,7 @@ mod tests {
     #[test]
     fn test_to_and_from_resource_record_ed25519() {
         let did_uri = "did:dht:123";
-        let public_key_jwk = Ed25519::generate().unwrap().to_public_jwk();
+        let public_key_jwk = ed25519::to_public_jwk(&Ed25519Generator::generate());
         let id = format!(
             "{}#{}",
             did_uri,
@@ -201,7 +211,7 @@ mod tests {
     #[test]
     fn test_to_and_from_resource_record_identity_key() {
         let did_uri = "did:dht:123";
-        let public_key_jwk = Ed25519::generate().unwrap().to_public_jwk();
+        let public_key_jwk = ed25519::to_public_jwk(&Ed25519Generator::generate());
         let id = format!("{}#0", did_uri);
         let vm = VerificationMethod {
             id,
@@ -221,7 +231,7 @@ mod tests {
     #[test]
     fn test_to_and_from_resource_record_secp256k1() {
         let did_uri = "did:dht:123";
-        let public_key_jwk = Secp256k1::generate().unwrap().to_public_jwk();
+        let public_key_jwk = Secp256k1::to_public_jwk(&Secp256k1::generate());
         let id = format!(
             "{}#{}",
             did_uri,
@@ -245,7 +255,7 @@ mod tests {
     #[test]
     fn test_to_resource_record_unsupported_key_type() {
         let did_uri = "did:dht:123";
-        let mut public_key_jwk = Ed25519::generate().unwrap().to_public_jwk();
+        let mut public_key_jwk = ed25519::to_public_jwk(&Ed25519Generator::generate());
         public_key_jwk.crv = "nonsense".to_string();
         let id = format!(
             "{}#{}",
@@ -283,7 +293,7 @@ mod tests {
     #[test]
     fn test_to_and_from_resource_record_non_default_alg() {
         let did_uri = "did:dht:123";
-        let mut public_key_jwk = Ed25519::generate().unwrap().to_public_jwk();
+        let mut public_key_jwk = ed25519::to_public_jwk(&Ed25519Generator::generate());
         public_key_jwk.alg = "nonstandard".to_string();
         let id = format!(
             "{}#{}",

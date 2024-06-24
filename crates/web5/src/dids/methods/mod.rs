@@ -1,4 +1,3 @@
-pub mod dht;
 pub mod jwk;
 pub mod spruce_mappers;
 pub mod web;

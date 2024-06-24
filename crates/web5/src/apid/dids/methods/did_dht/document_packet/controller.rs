@@ -44,7 +44,7 @@ impl Controller {
 
 #[cfg(test)]
 mod tests {
-    use crate::dids::methods::dht::document_packet::also_known_as::AlsoKnownAs;
+    use crate::apid::dids::methods::did_dht::document_packet::also_known_as::AlsoKnownAs;
 
     use super::*;
 

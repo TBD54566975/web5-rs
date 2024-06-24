@@ -33,11 +33,11 @@ pub struct Document {
 }
 
 pub enum VerificationPurposes {
-  Authentication,
-  AssertionMethod,
-  CapabilityInvocation,
-  CapabilityDelegation,
-  KeyAgreement
+    Authentication,
+    AssertionMethod,
+    CapabilityInvocation,
+    CapabilityDelegation,
+    KeyAgreement,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

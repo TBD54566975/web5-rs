@@ -1,11 +1,11 @@
-use crate::crypto::CryptoError;
-use crate::jwk::JwkError;
+use crate::apid::crypto::jwk::JwkError;
+use crate::apid::dids::data_model::document::Document;
+use crate::apid::dids::data_model::{service::Service, verification_method::VerificationMethod};
+use crate::apid::dsa::DsaError;
 use simple_dns::SimpleDnsError;
 use std::collections::HashMap;
 
 use simple_dns::{Packet, ResourceRecord};
-
-use crate::dids::document::{Document, Service, VerificationMethod};
 
 use self::{also_known_as::AlsoKnownAs, controller::Controller, root_record::RootRecord};
 
@@ -47,7 +47,7 @@ fn reconstitute_verification_relationship(
 #[derive(thiserror::Error, Debug)]
 pub enum DocumentPacketError {
     #[error(transparent)]
-    CryptoError(#[from] CryptoError),
+    DsaError(#[from] DsaError),
     #[error("DID Document is malformed for did:dht: {0}")]
     DocumentError(String),
     #[error(transparent)]
@@ -64,8 +64,16 @@ pub enum DocumentPacketError {
     RDataError(String),
 }
 
+impl<'a> TryFrom<Packet<'a>> for Document {
+    type Error = DocumentPacketError;
+
+    fn try_from(packet: Packet) -> Result<Self, Self::Error> {
+        Document::from_packet(&packet)
+    }
+}
+
 impl Document {
-    pub fn to_dns_packet(&self) -> Result<Packet, DocumentPacketError> {
+    pub fn to_packet(&self) -> Result<Packet, DocumentPacketError> {
         // 0. Init root_record and empty answers array
         let did_uri = &self.id;
         let did_id = did_uri
@@ -104,22 +112,19 @@ impl Document {
 
         // 1.2 Add all other verification methods
         let mut idx = 1;
-        self.verification_method
-            .iter()
-            .try_for_each(|vm| -> Result<(), DocumentPacketError> {
-                // skip identity key because we already added it
-                if vm.id == identity_key_id {
-                    return Ok(());
-                }
+        for vm in self.verification_method.iter() {
+            // skip identity key because we already added it
+            if vm.id == identity_key_id {
+                continue;
+            }
 
-                let vm_record = vm.to_resource_record(did_uri, idx)?.to_owned();
-                answers.push(vm_record);
-                root_record.vm.push(idx);
-                vm_id_to_idx.insert(vm.id.clone(), idx);
+            let vm_record = vm.to_resource_record(did_uri, idx)?.to_owned();
+            answers.push(vm_record);
+            root_record.vm.push(idx);
+            vm_id_to_idx.insert(vm.id.clone(), idx);
 
-                idx += 1;
-                Ok(())
-            })?;
+            idx += 1;
+        }
 
         // 2. Add verification relationships to root_record
         // 2.1 Add assertion methods to root_record
@@ -201,7 +206,7 @@ impl Document {
         Ok(packet)
     }
 
-    pub fn from_dns_packet(packet: Packet) -> Result<Document, DocumentPacketError> {
+    pub fn from_packet(packet: &Packet) -> Result<Document, DocumentPacketError> {
         let answers = &packet.answers;
 
         // 0. Get root record
@@ -323,45 +328,27 @@ impl Document {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
-    use crate::crypto::Curve;
-    use crate::keys::key_manager::local_key_manager::LocalKeyManager;
-    use crate::keys::key_manager::KeyManager;
+    use crate::apid::dsa::ed25519::{self, Ed25519Generator};
 
     use super::*;
 
     fn generate_identity_key_vm(did_uri: &str) -> VerificationMethod {
-        let key_manager = Arc::new(LocalKeyManager::new());
-        let key_alias = key_manager
-            .generate_private_key(Curve::Ed25519, Some("0".to_string()))
-            .unwrap();
-        let public_key = key_manager.get_public_key(&key_alias).unwrap();
-        let public_jwk = public_key.jwk().unwrap();
-
         VerificationMethod {
             id: format!("{}#0", did_uri),
             r#type: "JsonWebKey".to_string(),
             controller: did_uri.to_string(),
-            public_key_jwk: public_jwk.clone(),
+            public_key_jwk: ed25519::to_public_jwk(&Ed25519Generator::generate()),
         }
     }
 
     fn generate_additional_vm(did_uri: &str) -> VerificationMethod {
-        let key_manager = Arc::new(LocalKeyManager::new());
-        let key_alias = key_manager
-            .generate_private_key(Curve::Ed25519, Some("0".to_string()))
-            .unwrap();
-        let public_key = key_manager.get_public_key(&key_alias).unwrap();
-        let public_jwk = public_key.jwk().unwrap();
-
+        let public_jwk = ed25519::to_public_jwk(&Ed25519Generator::generate());
         let thumbprint = public_jwk.compute_thumbprint().unwrap();
-
         VerificationMethod {
             id: format!("{}#{}", did_uri, thumbprint),
             r#type: "JsonWebKey".to_string(),
             controller: did_uri.to_string(),
-            public_key_jwk: public_jwk.clone(),
+            public_key_jwk: public_jwk,
         }
     }
 
@@ -407,11 +394,12 @@ mod tests {
         };
 
         let packet = document
-            .to_dns_packet()
+            .to_packet()
             .expect("expected to convert document to packet");
 
-        let document2 =
-            Document::from_dns_packet(packet).expect("expected to convert back from packet");
+        let document2: Document = packet
+            .try_into()
+            .expect("expected to convert back from packet");
 
         assert_eq!(document, document2);
     }
@@ -428,11 +416,12 @@ mod tests {
         };
 
         let packet = document
-            .to_dns_packet()
+            .to_packet()
             .expect("expected to convert document to packet");
 
-        let document2 =
-            Document::from_dns_packet(packet).expect("expected to convert back from packet");
+        let document2: Document = packet
+            .try_into()
+            .expect("expected to convert back from packet");
 
         assert_eq!(document, document2);
     }
