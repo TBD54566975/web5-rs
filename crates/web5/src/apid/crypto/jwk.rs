@@ -7,8 +7,10 @@ pub struct Jwk {
     pub alg: String,
     pub kty: String,
     pub crv: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub d: Option<String>,
     pub x: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub y: Option<String>,
 }
 

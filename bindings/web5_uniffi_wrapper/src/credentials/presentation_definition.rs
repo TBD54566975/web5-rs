@@ -14,4 +14,8 @@ impl PresentationDefinition {
             .select_credentials(vc_jwts)
             .map_err(|e| Arc::new(e.into()))
     }
+
+    pub fn get_data(&self) -> InnerPresentationDefinition {
+        self.0.clone()
+    }
 }

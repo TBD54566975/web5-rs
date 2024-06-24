@@ -4,9 +4,9 @@ use web5::apid::{crypto::jwk::Jwk, dids::methods::did_jwk::DidJwk as InnerDidJwk
 
 pub struct DidJwk(pub InnerDidJwk);
 
-pub fn did_jwk_resolve(uri: &str) -> Result<Arc<ResolutionResult>> {
-    let resolution_result = InnerDidJwk::resolve(uri).map_err(|e| Arc::new(e.into()))?;
-    Ok(Arc::new(ResolutionResult(resolution_result)))
+pub fn did_jwk_resolve(uri: &str) -> Arc<ResolutionResult> {
+    let resolution_result = InnerDidJwk::resolve(uri);
+    Arc::new(ResolutionResult(resolution_result))
 }
 
 impl DidJwk {

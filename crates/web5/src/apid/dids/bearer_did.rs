@@ -57,3 +57,19 @@ impl BearerDid {
         Ok(self.key_manager.get_signer(public_jwk)?)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::apid::crypto::key_managers::in_memory_key_manager::InMemoryKeyManager;
+
+    #[test]
+    fn can_instantiate_did_jwk() {
+        let did_uri = "did:jwk:eyJrdHkiOiJPS1AiLCJ1c2UiOiJzaWciLCJjcnYiOiJFZDI1NTE5Iiwia2lkIjoiVnRTSFhQbEtEdzFFRW9PajVYTjNYV2hqU1BZVk52WC1lNHZqUk8weVlKQSIsIngiOiJpejcwc3ZTTHhOWmhzRHhlSlFfam5PVmJYM0tGTmtjQmNNaldqWm1YRXNBIiwiYWxnIjoiRWREU0EifQ";
+        let key_manager = InMemoryKeyManager::new();
+
+        let bearer_did = BearerDid::new(did_uri, Arc::new(key_manager)).unwrap();
+
+        assert_eq!(did_uri, bearer_did.document.id);
+    }
+}
