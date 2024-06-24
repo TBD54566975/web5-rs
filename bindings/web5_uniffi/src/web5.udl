@@ -1,7 +1,6 @@
 namespace web5 {
   JwkData ed25519_generator_generate();
 
-  [Throws=RustCoreError]
   ResolutionResult did_jwk_resolve([ByRef] string uri);
   [Async, Throws=RustCoreError]
   ResolutionResult did_web_resolve([ByRef] string uri);
@@ -36,6 +35,7 @@ interface InMemoryKeyManager {
   Signer get_signer(JwkData public_jwk);
   [Throws=RustCoreError]
   JwkData import_private_jwk(JwkData private_key);
+  KeyManager get_as_key_manager();
 };
 
 enum Dsa {
@@ -275,6 +275,7 @@ dictionary FilterData {
 
 interface PresentationDefinition {
   constructor(PresentationDefinitionData data);
+  PresentationDefinitionData get_data();
   [Throws=RustCoreError]
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
 };

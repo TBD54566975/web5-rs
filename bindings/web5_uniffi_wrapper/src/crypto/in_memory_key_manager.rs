@@ -1,3 +1,4 @@
+use super::key_manager::KeyManager;
 use crate::{
     dsa::{OuterSigner, Signer},
     errors::Result,
@@ -11,8 +12,7 @@ use web5::apid::crypto::{
     },
 };
 
-use super::key_manager::KeyManager;
-
+#[derive(Clone)]
 pub struct InMemoryKeyManager(pub InnerInMemoryKeyManager);
 
 impl InMemoryKeyManager {
@@ -24,6 +24,10 @@ impl InMemoryKeyManager {
         self.0
             .import_private_jwk(private_key)
             .map_err(|e| Arc::new(e.into()))
+    }
+
+    pub fn get_as_key_manager(&self) -> Arc<dyn KeyManager> {
+        Arc::new(self.clone())
     }
 }
 
