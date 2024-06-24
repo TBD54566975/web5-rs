@@ -13,7 +13,7 @@ class Ed25519SignerTest {
         val rustCorePrivateJwk = rustCoreEd25519GeneratorGenerate()
         val ed25519Signer = Ed25519Signer(rustCorePrivateJwk)
 
-        val payload = ed25519Signer.sign("abc".map { it.code.toUByte() })
+        val payload = ed25519Signer.sign("abc".toByteArray())
 
         assertNotNull(payload)
     }
@@ -22,11 +22,11 @@ class Ed25519SignerTest {
     fun `test signer with key manager`() {
         val privateJwk = rustCoreEd25519GeneratorGenerate()
 
-        val keyManager = InMemoryKeyManager()
-        val publicJwk = keyManager.importPrivateKey(privateJwk)
+        val keyManager = InMemoryKeyManager(listOf())
+        val publicJwk = keyManager.importPrivateJwk(privateJwk)
 
         val ed25519Signer = keyManager.getSigner(publicJwk)
-        val payload = ed25519Signer.sign("abc".map { it.code.toUByte() })
+        val payload = ed25519Signer.sign("abc".toByteArray())
 
         assertNotNull(payload)
     }

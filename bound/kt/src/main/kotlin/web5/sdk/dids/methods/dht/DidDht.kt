@@ -1,7 +1,7 @@
 package web5.sdk.dids.methods.dht
 
 import web5.sdk.crypto.keys.Jwk
-import web5.sdk.crypto.signers.SignerInterface
+import web5.sdk.crypto.signers.Signer
 import web5.sdk.dids.Did
 import web5.sdk.dids.Document
 import web5.sdk.dids.ResolutionResult
@@ -51,7 +51,7 @@ class DidDht {
      *
      * @param signer The signer used to sign the publish operation.
      */
-    fun publish(signer: SignerInterface) {
+    fun publish(signer: Signer) {
         rustCoreDidDht.publish(signer as RustCoreSigner)
     }
 
@@ -60,7 +60,7 @@ class DidDht {
      *
      * @param signer The signer used to sign the deactivate operation.
      */
-    fun deactivate(signer: SignerInterface) {
+    fun deactivate(signer: Signer) {
         rustCoreDidDht.deactivate(signer as RustCoreSigner)
     }
 

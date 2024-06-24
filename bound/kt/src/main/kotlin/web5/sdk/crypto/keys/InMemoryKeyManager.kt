@@ -1,33 +1,54 @@
 package web5.sdk.crypto.keys
 
-import web5.sdk.rust.KeyManager
+import web5.sdk.crypto.signers.OuterSigner
+import web5.sdk.crypto.signers.Signer
 import web5.sdk.rust.InMemoryKeyManager as RustCoreInMemoryKeyManager
-import web5.sdk.rust.Signer as RustCoreSigner
+import web5.sdk.rust.KeyManager as RustCoreKeyManager
 
 /**
  * A class for managing cryptographic keys in-memory.
  */
-class InMemoryKeyManager : KeyManagerInterface {
-    private val rustCoreKeyManager = RustCoreInMemoryKeyManager()
+class InMemoryKeyManager : KeyManager {
+    private val rustCoreInMemoryKeyManager = RustCoreInMemoryKeyManager()
 
     /**
-     * Returns the Ed25519Signer for the given public key.
+     * Constructs an InMemoryKeyManager with the given private keys.
      *
-     * @param publicJwk the public key represented as a Jwk.
-     * @return Ed25519Signer the signer for the given public key.
+     * @param privateJwks A list of private keys represented as JWKs (JSON Web Keys).
      */
-    override fun getSigner(publicJwk: Jwk): RustCoreSigner {
-        return rustCoreKeyManager.getSigner(publicJwk)
+    constructor(privateJwks: List<Jwk>) {
+        privateJwks.forEach {
+            this.rustCoreInMemoryKeyManager.importPrivateJwk(it)
+        }
     }
 
     /**
-     * For importing private keys which may be stored somewhere such as environment variables.
-     * Returns Jwk which is the public key for the given private key.
+     * Returns the Signer for the given public key.
      *
-     * @param privateKey the private key represented as a Jwk.
-     * @return Jwk the public key for the given private key.
+     * @param publicJwk The public key represented as a JWK.
+     * @return Signer The signer for the given public key.
      */
-    fun importPrivateKey(privateKey: Jwk): Jwk {
-        return rustCoreKeyManager.importPrivateJwk(privateKey)
+    override fun getSigner(publicJwk: Jwk): Signer {
+        val innerSigner = this.rustCoreInMemoryKeyManager.getSigner(publicJwk)
+        return OuterSigner(innerSigner)
+    }
+
+    /**
+     * Returns the RustCoreKeyManager.
+     *
+     * @return RustCoreKeyManager The rust core key manager.
+     */
+    override fun getRustCoreKeyManager(): RustCoreKeyManager {
+        return this.rustCoreInMemoryKeyManager.getAsKeyManager()
+    }
+
+    /**
+     * Imports a private key which may be stored somewhere such as environment variables.
+     *
+     * @param privateJwk The private key represented as a JWK.
+     * @return Jwk The public key represented as a JWK.
+     */
+    fun importPrivateJwk(privateJwk: Jwk): Jwk {
+        return this.rustCoreInMemoryKeyManager.importPrivateJwk(privateJwk)
     }
 }

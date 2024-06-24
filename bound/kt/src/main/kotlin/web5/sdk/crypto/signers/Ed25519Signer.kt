@@ -4,7 +4,7 @@ import web5.sdk.crypto.keys.Jwk
 
 import web5.sdk.rust.Ed25519Signer as RustCoreEd25519Signer
 
-class Ed25519Signer : SignerInterface {
+class Ed25519Signer : Signer {
     private val rustCoreSigner: RustCoreEd25519Signer
 
     constructor(privateKey: Jwk) {
@@ -22,7 +22,7 @@ class Ed25519Signer : SignerInterface {
      * @return ByteArray the signature.
      */
     @OptIn(ExperimentalUnsignedTypes::class)
-    override fun sign(payload: List<UByte>): ByteArray {
+    override fun sign(payload: ByteArray): ByteArray {
         val uByteList = payload.toUByteArray().toList()
         return rustCoreSigner.sign(uByteList)
     }

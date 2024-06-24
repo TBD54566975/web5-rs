@@ -30,6 +30,12 @@ impl InMemoryKeyManager {
     }
 
     pub fn import_private_jwk(&self, private_jwk: Jwk) -> Result<Jwk> {
+        if private_jwk.is_public_key() {
+            return Err(KeyManagerError::InternalKeyStoreError(
+                "Provided JWK does is not a private key".to_string(),
+            ));
+        }
+
         let mut public_jwk = private_jwk.clone();
         public_jwk.d = None;
 

@@ -14,36 +14,33 @@ class InMemoryKeyManagerTest {
   fun `test key manager`() {
     val privateJwk = rustCoreEd25519GeneratorGenerate()
 
-    val keyManager = InMemoryKeyManager()
-    val publicJwk = keyManager.importPrivateKey(privateJwk)
+    val keyManager = InMemoryKeyManager(listOf(privateJwk))
 
-    val signer = keyManager.getSigner(publicJwk)
-    val payload = signer.sign("abc".map { it.code.toUByte() })
+    val signer = keyManager.getSigner(privateJwk)
+    val payload = signer.sign("abc".toByteArray())
 
     assertNotNull(payload)
   }
 
   @Test
   fun `test wrong jwk for key manager`() {
-    val jwk = Jwk(alg="Ed25519", kty="OKP", crv="Ed25519", d=null, x="yxTpaqbGhLNMfOCu31znPNNei0OtDiQ_AS9DxC7Bstg", y=null)
-    val keyManager = InMemoryKeyManager()
+    val publicJwk = Jwk(alg="Ed25519", kty="OKP", crv="Ed25519", d=null, x="yxTpaqbGhLNMfOCu31znPNNei0OtDiQ_AS9DxC7Bstg", y=null)
 
     assertThrows(RustCoreException::class.java) {
-      keyManager.getSigner(jwk)
+      InMemoryKeyManager(listOf(publicJwk))
     }
   }
 
   @Test
   fun `test key manager import key`() {
-    val rustCorePrivateJwk = rustCoreEd25519GeneratorGenerate()
+    val privateJwk = rustCoreEd25519GeneratorGenerate()
 
-    val keyManager = InMemoryKeyManager()
-    keyManager.importPrivateKey(rustCorePrivateJwk)
+    val keyManager = InMemoryKeyManager(listOf())
+    keyManager.importPrivateJwk(privateJwk)
 
-    rustCorePrivateJwk.d = null
-    val signer = keyManager.getSigner(rustCorePrivateJwk)
-
-    val payload = signer.sign("abc".map { it.code.toUByte() })
+    privateJwk.d = null
+    val signer = keyManager.getSigner(privateJwk)
+    val payload = signer.sign("abc".toByteArray())
 
     assertNotNull(payload)
   }

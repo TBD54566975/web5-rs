@@ -36,6 +36,7 @@ interface InMemoryKeyManager {
   Signer get_signer(JwkData public_jwk);
   [Throws=RustCoreError]
   JwkData import_private_jwk(JwkData private_key);
+  KeyManager get_as_key_manager();
 };
 
 enum Dsa {

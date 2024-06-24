@@ -876,6 +876,8 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -981,6 +983,8 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_uniffi_fn_free_inmemorykeymanager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_web5_uniffi_fn_constructor_inmemorykeymanager_new(uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_as_key_manager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(`ptr`: Pointer,`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1196,6 +1200,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_ed25519verifier_verify(
     ): Short
+    fun uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_as_key_manager(
+    ): Short
     fun uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_private_jwk(
@@ -1315,6 +1321,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_ed25519verifier_verify() != 2607.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_as_key_manager() != 27709.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 34113.toShort()) {
@@ -3765,6 +3774,8 @@ public object FfiConverterTypeEd25519Verifier: FfiConverter<Ed25519Verifier, Poi
 
 public interface InMemoryKeyManagerInterface {
     
+    fun `getAsKeyManager`(): KeyManager
+    
     fun `getSigner`(`publicJwk`: JwkData): Signer
     
     fun `importPrivateJwk`(`privateKey`: JwkData): JwkData
@@ -3859,6 +3870,18 @@ open class InMemoryKeyManager: Disposable, AutoCloseable, InMemoryKeyManagerInte
             UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_inmemorykeymanager(pointer!!, status)
         }
     }
+
+    override fun `getAsKeyManager`(): KeyManager {
+            return FfiConverterTypeKeyManager.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_as_key_manager(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
     @Throws(RustCoreException::class)override fun `getSigner`(`publicJwk`: JwkData): Signer {

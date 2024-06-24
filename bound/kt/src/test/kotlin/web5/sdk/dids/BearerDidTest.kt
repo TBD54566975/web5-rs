@@ -11,11 +11,12 @@ class BearerDidTest {
     fun `test basic bearer did creation`() {
         val privateJwk = ed25519GeneratorGenerate()
 
-        val keyManager = InMemoryKeyManager()
-        val publicJwk = keyManager.importPrivateKey(privateJwk)
+        val keyManager = InMemoryKeyManager(listOf())
+        val publicJwk = keyManager.importPrivateJwk(privateJwk)
 
         val didJwk = DidJwk(publicJwk)
 
-        val bearerDid = BearerDid(didJwk.did.uri, keyManager)
+        // TODO: This is throwing an error on the rust side
+         val bearerDid = BearerDid(didJwk.did.uri, keyManager)
     }
 }

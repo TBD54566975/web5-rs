@@ -1,8 +1,8 @@
 package web5.sdk.dids
 
-import web5.sdk.crypto.keys.KeyManagerInterface
-import web5.sdk.crypto.signers.SignerInterface
-import web5.sdk.rust.KeyManager
+import web5.sdk.crypto.signers.Signer
+import web5.sdk.crypto.keys.KeyManager
+import web5.sdk.crypto.signers.OuterSigner
 
 import web5.sdk.rust.BearerDid as RustCoreBearerDid
 
@@ -20,6 +20,7 @@ import web5.sdk.rust.didDhtResolve as rustCoreDidDhtResolve
 class BearerDid {
     val did: Did
     val document: Document
+    val keyManager: KeyManager
 
     private val rustCoreBearerDid: RustCoreBearerDid
 
@@ -29,12 +30,12 @@ class BearerDid {
      * @param uri The DID URI.
      * @param keyManager The key manager to handle keys.
      */
-    constructor(uri: String, keyManager: KeyManagerInterface) {
-        // TODO: This can never work
-        val keyManagerImpl = keyManager as KeyManager
-        this.rustCoreBearerDid = RustCoreBearerDid(uri, keyManagerImpl)
+    constructor(uri: String, keyManager: KeyManager) {
+        this.rustCoreBearerDid = RustCoreBearerDid(uri, keyManager.getRustCoreKeyManager())
+
         this.did = this.rustCoreBearerDid.getData().did
         this.document = this.rustCoreBearerDid.getData().document
+        this.keyManager = keyManager
     }
 
     /**
@@ -42,9 +43,10 @@ class BearerDid {
      *
      * @return Signer The signer for the DID.
      */
-    fun getSigner(): SignerInterface {
-        val kid = document.verificationMethod[0].id
-        return rustCoreBearerDid.getSigner(kid)
+    fun getSigner(): Signer {
+        val keyId = this.document.verificationMethod.first().id
+        val innerSigner = this.rustCoreBearerDid.getSigner(keyId)
+        return OuterSigner(innerSigner)
     }
 
     companion object {
