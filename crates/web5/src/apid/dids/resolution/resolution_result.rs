@@ -14,7 +14,17 @@ pub struct ResolutionResult {
 
 impl ResolutionResult {
     pub fn new(uri: &str) -> Self {
-        let did = Did::new(uri).unwrap(); // 🚧
+        let did = match Did::new(uri) {
+            Ok(did) => did,
+            Err(_) => {
+                return ResolutionResult {
+                    resolution_metadata: ResolutionMetadata {
+                        error: Some(ResolutionMetadataError::InvalidDid),
+                    },
+                    ..Default::default()
+                }
+            }
+        };
 
         match did.method.as_str() {
             "jwk" => DidJwk::resolve(uri),
