@@ -878,6 +878,8 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1002,6 +1004,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_uniffi_fn_constructor_presentationdefinition_new(`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_web5_uniffi_fn_method_presentationdefinition_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_presentationdefinition_select_credentials(`ptr`: Pointer,`vcJwts`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_resolutionresult(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1208,6 +1212,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_keymanager_get_signer(
     ): Short
+    fun uniffi_web5_uniffi_checksum_method_presentationdefinition_get_data(
+    ): Short
     fun uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_resolutionresult_get_data(
@@ -1278,7 +1284,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_func_did_dht_resolve() != 23167.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_did_jwk_resolve() != 620.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_jwk_resolve() != 47278.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_func_did_web_resolve() != 55137.toShort()) {
@@ -1333,6 +1339,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_keymanager_get_signer() != 63327.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_get_data() != 37998.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials() != 8073.toShort()) {
@@ -4276,6 +4285,8 @@ public object FfiConverterTypeKeyManager: FfiConverter<KeyManager, Pointer> {
 
 public interface PresentationDefinitionInterface {
     
+    fun `getData`(): PresentationDefinitionData
+    
     fun `selectCredentials`(`vcJwts`: List<kotlin.String>): List<kotlin.String>
     
     companion object
@@ -4368,6 +4379,18 @@ open class PresentationDefinition: Disposable, AutoCloseable, PresentationDefini
             UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_presentationdefinition(pointer!!, status)
         }
     }
+
+    override fun `getData`(): PresentationDefinitionData {
+            return FfiConverterTypePresentationDefinitionData.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_presentationdefinition_get_data(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
     @Throws(RustCoreException::class)override fun `selectCredentials`(`vcJwts`: List<kotlin.String>): List<kotlin.String> {
@@ -6976,10 +6999,9 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
     )
     }
     
-
-    @Throws(RustCoreException::class) fun `didJwkResolve`(`uri`: kotlin.String): ResolutionResult {
+ fun `didJwkResolve`(`uri`: kotlin.String): ResolutionResult {
             return FfiConverterTypeResolutionResult.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_jwk_resolve(
         FfiConverterString.lower(`uri`),_status)
 }
