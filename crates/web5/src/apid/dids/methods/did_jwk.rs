@@ -1,11 +1,14 @@
 use super::{MethodError, Result};
 use crate::apid::{
+    crypto::jwk::Jwk,
     dids::{
+        data_model::{document::Document, verification_method::VerificationMethod},
         did::Did,
-        document::{Document, VerificationMethod},
-        resolution_result::{ResolutionMetadataError, ResolutionResult},
+        resolution::{
+            resolution_metadata::{ResolutionMetadata, ResolutionMetadataError},
+            resolution_result::ResolutionResult,
+        },
     },
-    jwk::Jwk,
 };
 use base64::{engine::general_purpose, Engine as _};
 
@@ -47,7 +50,7 @@ impl DidJwk {
     }
 
     pub fn from_uri(uri: &str) -> Result<Self> {
-        let resolution_result = DidJwk::resolve(uri)?;
+        let resolution_result = DidJwk::resolve(uri);
 
         match resolution_result.document {
             None => Err(match resolution_result.resolution_metadata.error {
@@ -61,16 +64,43 @@ impl DidJwk {
         }
     }
 
-    pub fn resolve(uri: &str) -> Result<ResolutionResult> {
-        let identifier = Did::new(uri)?;
-        let decoded_jwk = general_purpose::URL_SAFE_NO_PAD.decode(identifier.id)?;
-        let public_jwk = serde_json::from_slice(&decoded_jwk)?;
+    pub fn resolve(uri: &str) -> ResolutionResult {
+        let result: Result<ResolutionResult> = (|| {
+            let identifier = Did::new(uri)?;
+            let decoded_jwk = general_purpose::URL_SAFE_NO_PAD.decode(identifier.id)?;
+            let public_jwk = serde_json::from_slice::<Jwk>(&decoded_jwk)?;
 
-        let did_jwk = DidJwk::from_public_jwk(public_jwk)?;
+            let kid = format!("{}#0", identifier.uri);
+            let document = Document {
+                id: identifier.uri.clone(),
+                verification_method: vec![VerificationMethod {
+                    id: kid.clone(),
+                    r#type: "JsonWebKey".to_string(),
+                    controller: identifier.uri.clone(),
+                    public_key_jwk: public_jwk,
+                }],
+                assertion_method: Some(vec![kid.clone()]),
+                authentication: Some(vec![kid.clone()]),
+                capability_invocation: Some(vec![kid.clone()]),
+                capability_delegation: Some(vec![kid.clone()]),
+                key_agreement: Some(vec![kid.clone()]),
+                ..Default::default()
+            };
 
-        Ok(ResolutionResult {
-            document: Some(did_jwk.document),
-            ..Default::default()
-        })
+            Ok(ResolutionResult {
+                document: Some(document),
+                ..Default::default()
+            })
+        })();
+
+        match result {
+            Ok(resolution_result) => resolution_result,
+            Err(_) => ResolutionResult {
+                resolution_metadata: ResolutionMetadata {
+                    error: Some(ResolutionMetadataError::InternalError),
+                },
+                ..Default::default()
+            },
+        }
     }
 }
