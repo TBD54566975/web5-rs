@@ -14,6 +14,16 @@ pub struct Jwk {
     pub y: Option<String>,
 }
 
+impl Jwk {
+    pub fn is_private_key(&self) -> bool {
+        self.d.is_some()
+    }
+
+    pub fn is_public_key(&self) -> bool {
+        self.d.is_none()
+    }
+}
+
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum JwkError {
     #[error("thumbprint computation failed {0}")]

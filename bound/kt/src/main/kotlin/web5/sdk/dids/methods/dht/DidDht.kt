@@ -30,7 +30,7 @@ class DidDht {
     constructor(identityKey: Jwk) {
         rustCoreDidDht = RustCoreDidDht.fromIdentityKey(identityKey)
 
-        this.did = Did.fromRustCore(rustCoreDidDht.getData().did)
+        this.did = rustCoreDidDht.getData().did
         this.document = rustCoreDidDht.getData().document
     }
 
@@ -42,7 +42,7 @@ class DidDht {
     constructor(uri: String) {
         rustCoreDidDht = RustCoreDidDht.fromUri(uri)
 
-        this.did = Did.fromRustCore(rustCoreDidDht.getData().did)
+        this.did = rustCoreDidDht.getData().did
         this.document = rustCoreDidDht.getData().document
     }
 

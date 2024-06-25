@@ -22,7 +22,7 @@ class Ed25519Signer : Signer {
      * @return ByteArray the signature.
      */
     @OptIn(ExperimentalUnsignedTypes::class)
-    override fun sign(payload: List<UByte>): ByteArray {
+    override fun sign(payload: ByteArray): ByteArray {
         val uByteList = payload.toUByteArray().toList()
         return rustCoreSigner.sign(uByteList)
     }
