@@ -6,10 +6,6 @@ import web5.sdk.crypto.signers.OuterSigner
 
 import web5.sdk.rust.BearerDid as RustCoreBearerDid
 
-import web5.sdk.rust.didJwkResolve as rustCoreDidJwkResolve
-import web5.sdk.rust.didWebResolve as rustCoreDidWebResolve
-import web5.sdk.rust.didDhtResolve as rustCoreDidDhtResolve
-
 /**
  * Represents a Decentralized Identifier (DID) along with its DID document, key manager, metadata,
  * and convenience functions.
@@ -20,8 +16,8 @@ import web5.sdk.rust.didDhtResolve as rustCoreDidDhtResolve
 class BearerDid {
     val did: Did
     val document: Document
-    val keyManager: KeyManager
 
+    private val keyManager: KeyManager
     private val rustCoreBearerDid: RustCoreBearerDid
 
     /**
@@ -47,32 +43,5 @@ class BearerDid {
         val keyId = this.document.verificationMethod.first().id
         val innerSigner = this.rustCoreBearerDid.getSigner(keyId)
         return OuterSigner(innerSigner)
-    }
-
-    companion object {
-        /**
-         * Resolves a DID URI to a ResolutionResult.
-         *
-         * @param uri The DID URI to resolve.
-         * @return ResolutionResult The result of the DID resolution.
-         */
-        @JvmStatic
-        suspend fun resolve(uri: String): ResolutionResult {
-            // TODO: Add a concept of a universal resolver - https://github.com/TBD54566975/web5-rs/issues/246
-            val method = uri.substringAfter(":").substringBefore(":")
-            if(method == "jwk") {
-                return rustCoreDidJwkResolve(uri).getData()
-            }
-
-            if(method == "dht") {
-                return rustCoreDidDhtResolve(uri).getData()
-            }
-
-            if(method == "web") {
-                return rustCoreDidWebResolve(uri).getData()
-            }
-
-            throw IllegalArgumentException("Unknown method '$method'")
-        }
     }
 }
