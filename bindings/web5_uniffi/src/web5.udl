@@ -230,7 +230,9 @@ interface VerifiableCredential {
   [Name=verify_with_verifier, Throws=RustCoreError]
   constructor([ByRef] string vcjwt, Verifier verifier);
   [Throws=RustCoreError]
-  string sign(Signer signer);
+  string sign(BearerDid bearer_did);
+  [Throws=RustCoreError]
+  string sign_with_signer([ByRef] string key_id, Signer signer);
   VerifiableCredentialData get_data();
 };
 

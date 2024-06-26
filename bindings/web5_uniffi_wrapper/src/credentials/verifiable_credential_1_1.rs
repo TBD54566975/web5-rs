@@ -1,4 +1,5 @@
 use crate::{
+    dids::bearer_did::BearerDid,
     dsa::{Signer, Verifier},
     errors::Result,
 };
@@ -23,9 +24,13 @@ impl VerifiableCredential {
         Ok(Self(vc))
     }
 
-    pub fn sign(&self, signer: Arc<dyn Signer>) -> Result<String> {
+    pub fn sign(&self, bearer_did: Arc<BearerDid>) -> Result<String> {
+        self.0.sign(&bearer_did.0).map_err(|e| Arc::new(e.into()))
+    }
+
+    pub fn sign_with_signer(&self, key_id: &str, signer: Arc<dyn Signer>) -> Result<String> {
         self.0
-            .sign(signer.to_inner())
+            .sign_with_signer(key_id, signer.to_inner())
             .map_err(|e| Arc::new(e.into()))
     }
 

@@ -118,12 +118,12 @@ impl VerifiableCredential {
         }
     }
 
-    pub fn sign(&self, bearer_did: BearerDid) -> Result<String> {
+    pub fn sign(&self, bearer_did: &BearerDid) -> Result<String> {
         // default to first VM
         let key_id = bearer_did.document.verification_method[0].id.clone();
         let signer = bearer_did.get_signer(key_id.clone())?;
 
-        Ok(self.sign_with_signer(&key_id, signer)?)
+        self.sign_with_signer(&key_id, signer)
     }
 
     pub fn sign_with_signer(&self, key_id: &str, signer: Arc<dyn Signer>) -> Result<String> {
@@ -152,6 +152,7 @@ impl VerifiableCredential {
     }
 
     pub fn verify(vc_jwt: &str) -> Result<Self> {
+        // this function currently only supports Ed25519
         let header = josekit::jwt::decode_header(vc_jwt)?;
 
         let kid = header
@@ -174,7 +175,6 @@ impl VerifiableCredential {
             })?
             .find_public_key_jwk(kid.to_string())?;
 
-        // this function currently only supports Ed25519
         let verifier = Ed25519Verifier::new(public_key_jwk);
 
         Self::verify_with_verifier(vc_jwt, Arc::new(verifier))
@@ -434,8 +434,7 @@ mod tests {
             },
         );
 
-        let vc_jwt = vc.sign(bearer_did).unwrap();
-        println!("{:?}", vc_jwt);
+        let vc_jwt = vc.sign(&bearer_did).unwrap();
         assert_ne!(String::default(), vc_jwt);
 
         VerifiableCredential::verify(&vc_jwt).unwrap();

@@ -2,7 +2,8 @@ use josekit::JoseError as JosekitError;
 use serde_json::Error as SerdeJsonError;
 
 use super::dids::{
-    bearer_did::BearerDidError, data_model::DataModelError, did::DidError, resolution::resolution_metadata::ResolutionMetadataError
+    bearer_did::BearerDidError, data_model::DataModelError, did::DidError,
+    resolution::resolution_metadata::ResolutionMetadataError,
 };
 
 pub mod presentation_definition;
