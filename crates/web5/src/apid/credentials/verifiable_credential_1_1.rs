@@ -291,8 +291,6 @@ impl VerifiableCredential {
             }
         }
 
-        // TODO prioritize JWT claims -- hit up Neal
-
         validate_vc_data_model(&vc)?;
 
         Ok(vc)
