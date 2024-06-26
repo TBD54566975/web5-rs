@@ -132,6 +132,7 @@ pub struct VerifiableCredential {
         deserialize_with = "deserialize_option_system_time"
     )]
     pub expiration_date: Option<SystemTime>,
+    #[serde(rename = "credentialSubject")]
     pub credential_subject: CredentialSubject,
 }
 
@@ -140,6 +141,32 @@ pub struct CredentialSubject {
     pub id: String,
     #[serde(flatten)]
     pub params: Option<HashMap<String, String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct JwtPayloadVerifiableCredential {
+    #[serde(rename = "@context")]
+    context: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<String>,
+    #[serde(rename = "type")]
+    r#type: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    issuer: Option<Issuer>,
+    #[serde(
+        rename = "issuanceDate",
+        serialize_with = "serialize_option_system_time",
+        deserialize_with = "deserialize_option_system_time"
+    )]
+    issuance_date: Option<SystemTime>,
+    #[serde(
+        rename = "expirationDate",
+        serialize_with = "serialize_option_system_time",
+        deserialize_with = "deserialize_option_system_time"
+    )]
+    expiration_date: Option<SystemTime>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "credentialSubject")]
+    credential_subject: Option<CredentialSubject>,
 }
 
 impl VerifiableCredential {
@@ -181,8 +208,16 @@ impl VerifiableCredential {
 
     pub fn sign_with_signer(&self, key_id: &str, signer: Arc<dyn Signer>) -> Result<String> {
         let mut payload = JwtPayload::new();
-        let vc_value = serde_json::to_value(self)?;
-        payload.set_claim("vc", Some(vc_value))?;
+        let vc_claim = JwtPayloadVerifiableCredential {
+            context: self.context.clone(),
+            id: Some(self.id.clone()),
+            r#type: self.r#type.clone(),
+            issuer: Some(self.issuer.clone()),
+            issuance_date: Some(self.issuance_date),
+            expiration_date: self.expiration_date,
+            credential_subject: Some(self.credential_subject.clone()),
+        };
+        payload.set_claim("vc", Some(serde_json::to_value(vc_claim)?))?;
         payload.set_issuer(&self.issuer.to_string());
         payload.set_jwt_id(&self.id);
         payload.set_subject(&self.credential_subject.id);
@@ -249,7 +284,8 @@ impl VerifiableCredential {
         let vc_claim = jwt_payload
             .claim("vc")
             .ok_or(CredentialError::MissingClaim("vc".to_string()))?;
-        let vc = serde_json::from_value::<Self>(vc_claim.clone())?;
+        let vc_payload =
+            serde_json::from_value::<JwtPayloadVerifiableCredential>(vc_claim.clone())?;
 
         // registered claims checks
         let jti = jwt_payload
@@ -266,30 +302,74 @@ impl VerifiableCredential {
             .ok_or(CredentialError::MissingClaim("not_before".to_string()))?;
         let exp = jwt_payload.expires_at();
 
-        if jti != vc.id {
-            return Err(CredentialError::ClaimMismatch("id".to_string()));
-        }
-
-        if iss != vc.issuer.to_string() {
-            return Err(CredentialError::ClaimMismatch("issuer".to_string()));
-        }
-
-        if sub != vc.credential_subject.id {
-            return Err(CredentialError::ClaimMismatch("subject".to_string()));
-        }
-
-        // disregard nano-seconds which may be slightly different as a result of different time libraries
-        if nbf.duration_since(UNIX_EPOCH)?.as_secs()
-            != vc.issuance_date.duration_since(UNIX_EPOCH)?.as_secs()
-        {
-            return Err(CredentialError::ClaimMismatch("issuance_date".to_string()));
-        }
-
-        if let Some(exp) = exp {
-            if SystemTime::now() > exp {
-                return Err(CredentialError::CredentialExpired);
+        if let Some(id) = &vc_payload.id {
+            if id != jti {
+                return Err(CredentialError::ClaimMismatch("id".to_string()));
             }
         }
+
+        if let Some(issuer) = &vc_payload.issuer {
+            let vc_issuer = issuer.to_string();
+            if iss != vc_issuer {
+                return Err(CredentialError::ClaimMismatch("issuer".to_string()));
+            }
+        }
+
+        if let Some(credential_subject) = &vc_payload.credential_subject {
+            if sub != credential_subject.id {
+                return Err(CredentialError::ClaimMismatch("subject".to_string()));
+            }
+        }
+
+        let now = SystemTime::now();
+        match vc_payload.expiration_date {
+            Some(ref vc_payload_expiration_date) => match exp {
+                None => {
+                    return Err(CredentialError::MisconfiguredExpirationDate(
+                        "VC has expiration date but no exp in registered claims".to_string(),
+                    ));
+                }
+                Some(exp) => {
+                    if vc_payload_expiration_date
+                        .duration_since(UNIX_EPOCH)?
+                        .as_secs()
+                        != exp.duration_since(UNIX_EPOCH)?.as_secs()
+                    {
+                        return Err(CredentialError::ClaimMismatch(
+                            "expiration_date".to_string(),
+                        ));
+                    }
+
+                    if now > exp {
+                        return Err(CredentialError::CredentialExpired);
+                    }
+                }
+            },
+            None => {
+                if let Some(exp) = exp {
+                    if now > exp {
+                        return Err(CredentialError::CredentialExpired);
+                    }
+                }
+            }
+        }
+
+        let vc_issuer = vc_payload.issuer.unwrap_or(Issuer::String(iss.to_string()));
+
+        let vc_credential_subject = vc_payload.credential_subject.unwrap_or(CredentialSubject {
+            id: sub.to_string(),
+            params: None,
+        });
+
+        let vc = VerifiableCredential {
+            context: vc_payload.context,
+            id: jti.to_string(),
+            r#type: vc_payload.r#type,
+            issuer: vc_issuer,
+            issuance_date: nbf,
+            expiration_date: exp,
+            credential_subject: vc_credential_subject,
+        };
 
         validate_vc_data_model(&vc)?;
 
