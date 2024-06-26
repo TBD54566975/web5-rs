@@ -20,12 +20,12 @@ use josekit::{
     jwt::JwtPayload,
     JoseError as JosekitError,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{
     collections::HashMap,
     fmt::{Display, Formatter},
     sync::Arc,
-    time::SystemTime,
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
@@ -62,6 +62,56 @@ impl Display for Issuer {
     }
 }
 
+fn serialize_system_time<S>(
+    time: &SystemTime,
+    serializer: S,
+) -> std::result::Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let datetime: chrono::DateTime<Utc> = (*time).into();
+    let s = datetime.to_rfc3339();
+    serializer.serialize_str(&s)
+}
+
+fn deserialize_system_time<'de, D>(deserializer: D) -> std::result::Result<SystemTime, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let datetime = chrono::DateTime::parse_from_rfc3339(&s).map_err(serde::de::Error::custom)?;
+    Ok(datetime.with_timezone(&Utc).into())
+}
+
+fn serialize_option_system_time<S>(
+    time: &Option<SystemTime>,
+    serializer: S,
+) -> std::result::Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match time {
+        Some(time) => serialize_system_time(time, serializer),
+        None => serializer.serialize_none(),
+    }
+}
+
+fn deserialize_option_system_time<'de, D>(
+    deserializer: D,
+) -> std::result::Result<Option<SystemTime>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let opt = Option::<String>::deserialize(deserializer)?;
+    match opt {
+        Some(s) => {
+            let datetime = DateTime::parse_from_rfc3339(&s).map_err(serde::de::Error::custom)?;
+            Ok(Some(datetime.with_timezone(&Utc).into()))
+        }
+        None => Ok(None),
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VerifiableCredential {
     #[serde(rename = "@context")]
@@ -70,10 +120,18 @@ pub struct VerifiableCredential {
     #[serde(rename = "type")]
     pub r#type: Vec<String>,
     pub issuer: Issuer,
-    #[serde(rename = "issuanceDate")]
-    pub issuance_date: String,
-    #[serde(rename = "expirationDate")]
-    pub expiration_date: Option<String>,
+    #[serde(
+        rename = "issuanceDate",
+        serialize_with = "serialize_system_time",
+        deserialize_with = "deserialize_system_time"
+    )]
+    pub issuance_date: SystemTime,
+    #[serde(
+        rename = "expirationDate",
+        serialize_with = "serialize_option_system_time",
+        deserialize_with = "deserialize_option_system_time"
+    )]
+    pub expiration_date: Option<SystemTime>,
     pub credential_subject: CredentialSubject,
 }
 
@@ -90,8 +148,8 @@ impl VerifiableCredential {
         context: Vec<String>,
         r#type: Vec<String>,
         issuer: Issuer,
-        issuance_date: String,
-        expiration_date: Option<String>,
+        issuance_date: SystemTime,
+        expiration_date: Option<SystemTime>,
         credential_subject: CredentialSubject,
     ) -> Self {
         let context_with_base = std::iter::once(BASE_CONTEXT.to_string())
@@ -128,10 +186,10 @@ impl VerifiableCredential {
         payload.set_issuer(&self.issuer.to_string());
         payload.set_jwt_id(&self.id);
         payload.set_subject(&self.credential_subject.id);
-        payload.set_not_before(&rfc3339_to_system_time(&self.issuance_date)?);
+        payload.set_not_before(&self.issuance_date);
         payload.set_issued_at(&SystemTime::now());
         if let Some(exp) = &self.expiration_date {
-            payload.set_expires_at(&rfc3339_to_system_time(exp)?)
+            payload.set_expires_at(exp)
         }
 
         let jose_signer = JoseSigner {
@@ -220,7 +278,10 @@ impl VerifiableCredential {
             return Err(CredentialError::ClaimMismatch("subject".to_string()));
         }
 
-        if nbf != rfc3339_to_system_time(&vc.issuance_date)? {
+        // disregard nano-seconds which may be slightly different as a result of different time libraries
+        if nbf.duration_since(UNIX_EPOCH)?.as_secs()
+            != vc.issuance_date.duration_since(UNIX_EPOCH)?.as_secs()
+        {
             return Err(CredentialError::ClaimMismatch("issuance_date".to_string()));
         }
 
@@ -236,14 +297,6 @@ impl VerifiableCredential {
 
         Ok(vc)
     }
-}
-
-/// Convert an RFC 3339 formatted date-time string to an i64 timestamp
-fn rfc3339_to_system_time(rfc3339: &str) -> Result<SystemTime> {
-    let datetime: DateTime<Utc> = rfc3339
-        .parse()
-        .map_err(|_| CredentialError::InvalidTimestamp("Invalid timestamp".to_string()))?;
-    Ok(SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(datetime.timestamp() as u64))
 }
 
 fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<()> {
@@ -272,12 +325,6 @@ fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<()> {
         ));
     }
 
-    if vc.issuance_date.is_empty() {
-        return Err(CredentialError::VcDataModelValidationError(
-            "missing issuance date".to_string(),
-        ));
-    }
-
     if vc.credential_subject.id.is_empty() {
         return Err(CredentialError::VcDataModelValidationError(
             "missing credential subject".to_string(),
@@ -285,8 +332,7 @@ fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<()> {
     }
 
     let now = SystemTime::now();
-    let issuance_timestamp = rfc3339_to_system_time(&vc.issuance_date)?;
-    if issuance_timestamp > now {
+    if vc.issuance_date > now {
         return Err(CredentialError::VcDataModelValidationError(
             "issuance date in future".to_string(),
         ));
@@ -294,9 +340,7 @@ fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<()> {
 
     // Validate expiration date if it exists
     if let Some(expiration_date) = &vc.expiration_date {
-        let expiration_timestamp = rfc3339_to_system_time(expiration_date)?;
-
-        if expiration_timestamp < now {
+        if expiration_date < &now {
             return Err(CredentialError::VcDataModelValidationError(
                 "credential expired".to_string(),
             ));
@@ -402,6 +446,7 @@ mod tests {
         crypto::key_managers::in_memory_key_manager::InMemoryKeyManager,
         dids::methods::did_jwk::DidJwk, dsa::ed25519::Ed25519Generator,
     };
+    use std::time::Duration;
     use uuid::Uuid;
 
     #[test]
@@ -413,14 +458,14 @@ mod tests {
         let did_jwk = DidJwk::from_public_jwk(public_jwk).unwrap();
         let bearer_did = BearerDid::new(&did_jwk.did.uri, Arc::new(key_manager)).unwrap();
 
-        let now = Utc::now().timestamp();
+        let now = SystemTime::now();
         let vc = VerifiableCredential::new(
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
             vec![BASE_CONTEXT.to_string()],
             vec![BASE_TYPE.to_string()],
             Issuer::String(bearer_did.did.uri.clone()),
-            timestamp_to_rfc3339(now).unwrap(),
-            Some(timestamp_to_rfc3339(now + 631152000).unwrap()), // now + 20 years
+            now,
+            Some(now + Duration::from_secs(20 * 365 * 24 * 60 * 60)), // now + 20 years
             CredentialSubject {
                 id: bearer_did.did.uri.clone(),
                 ..Default::default()

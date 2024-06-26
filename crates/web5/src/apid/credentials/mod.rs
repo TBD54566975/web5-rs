@@ -1,3 +1,5 @@
+use std::time::SystemTimeError;
+
 use josekit::JoseError as JosekitError;
 use serde_json::Error as SerdeJsonError;
 
@@ -37,6 +39,8 @@ pub enum CredentialError {
     DidDataModel(#[from] DataModelError),
     #[error(transparent)]
     Did(#[from] DidError),
+    #[error(transparent)]
+    SystemTime(#[from] SystemTimeError),
 }
 
 impl From<SerdeJsonError> for CredentialError {

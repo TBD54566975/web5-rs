@@ -64,6 +64,7 @@ impl VerifiableCredential {
 
 pub mod data {
     use super::*;
+    use std::time::SystemTime;
 
     #[derive(Clone)]
     pub struct VerifiableCredential {
@@ -71,8 +72,8 @@ pub mod data {
         pub id: String,
         pub r#type: Vec<String>,
         pub issuer: String, // JSON serialized
-        pub issuance_date: String,
-        pub expiration_date: Option<String>,
+        pub issuance_date: SystemTime,
+        pub expiration_date: Option<SystemTime>,
         pub credential_subject: String, // JSON serialized
     }
 
@@ -84,8 +85,8 @@ pub mod data {
                 r#type: inner_verifiable_credential.r#type.clone(),
                 issuer: serde_json::to_string(&inner_verifiable_credential.issuer)
                     .map_err(|e| Arc::new(e.into()))?,
-                issuance_date: inner_verifiable_credential.issuance_date.clone(),
-                expiration_date: inner_verifiable_credential.expiration_date.clone(),
+                issuance_date: inner_verifiable_credential.issuance_date,
+                expiration_date: inner_verifiable_credential.expiration_date,
                 credential_subject: serde_json::to_string(
                     &inner_verifiable_credential.credential_subject,
                 )
@@ -99,8 +100,8 @@ pub mod data {
                 id: self.id.clone(),
                 r#type: self.r#type.clone(),
                 issuer: serde_json::from_str(&self.issuer).map_err(|e| Arc::new(e.into()))?,
-                issuance_date: self.issuance_date.clone(),
-                expiration_date: self.expiration_date.clone(),
+                issuance_date: self.issuance_date,
+                expiration_date: self.expiration_date,
                 credential_subject: serde_json::from_str(&self.credential_subject)
                     .map_err(|e| Arc::new(e.into()))?,
             })

@@ -213,8 +213,8 @@ dictionary VerifiableCredentialData {
   string id;
   sequence<string> type;
   string issuer;
-  string issuance_date;
-  string? expiration_date;
+  timestamp issuance_date;
+  timestamp? expiration_date;
   string credential_subject;
 };
 
