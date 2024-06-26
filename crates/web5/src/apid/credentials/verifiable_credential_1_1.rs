@@ -62,17 +62,14 @@ impl Display for Issuer {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VerifiableCredential {
     #[serde(rename = "@context")]
     pub context: Vec<String>,
     pub id: String,
     #[serde(rename = "type")]
     pub r#type: Vec<String>,
-
-    // 🚧 UDL support
-    // pub issuer: Issuer,
-    pub issuer: String,
+    pub issuer: Issuer,
     #[serde(rename = "issuanceDate")]
     pub issuance_date: String,
     #[serde(rename = "expirationDate")]
@@ -92,9 +89,7 @@ impl VerifiableCredential {
         id: String,
         context: Vec<String>,
         r#type: Vec<String>,
-        // 🚧 UDL
-        // issuer: Issuer,
-        issuer: String,
+        issuer: Issuer,
         issuance_date: String,
         expiration_date: Option<String>,
         credential_subject: CredentialSubject,
@@ -130,7 +125,7 @@ impl VerifiableCredential {
         let mut payload = JwtPayload::new();
         let vc_value = serde_json::to_value(self)?;
         payload.set_claim("vc", Some(vc_value))?;
-        payload.set_issuer(&self.issuer);
+        payload.set_issuer(&self.issuer.to_string());
         payload.set_jwt_id(&self.id);
         payload.set_subject(&self.credential_subject.id);
         payload.set_not_before(&rfc3339_to_system_time(&self.issuance_date)?);
@@ -217,7 +212,7 @@ impl VerifiableCredential {
             return Err(CredentialError::ClaimMismatch("id".to_string()));
         }
 
-        if iss != vc.issuer {
+        if iss != vc.issuer.to_string() {
             return Err(CredentialError::ClaimMismatch("issuer".to_string()));
         }
 
@@ -402,14 +397,12 @@ pub fn timestamp_to_rfc3339(timestamp: i64) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use uuid::Uuid;
-
+    use super::*;
     use crate::apid::{
         crypto::key_managers::in_memory_key_manager::InMemoryKeyManager,
         dids::methods::did_jwk::DidJwk, dsa::ed25519::Ed25519Generator,
     };
-
-    use super::*;
+    use uuid::Uuid;
 
     #[test]
     fn can_create_sign_and_verify() {
@@ -425,7 +418,7 @@ mod tests {
             format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
             vec![BASE_CONTEXT.to_string()],
             vec![BASE_TYPE.to_string()],
-            bearer_did.did.uri.clone(),
+            Issuer::String(bearer_did.did.uri.clone()),
             timestamp_to_rfc3339(now).unwrap(),
             Some(timestamp_to_rfc3339(now + 631152000).unwrap()), // now + 20 years
             CredentialSubject {

@@ -1,7 +1,9 @@
 use web5_uniffi_wrapper::{
     credentials::{
         presentation_definition::PresentationDefinition,
-        verifiable_credential_1_1::VerifiableCredential,
+        verifiable_credential_1_1::{
+            data::VerifiableCredential as VerifiableCredentialData, VerifiableCredential,
+        },
     },
     crypto::{in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager},
     dids::{
@@ -23,16 +25,10 @@ use web5_uniffi_wrapper::{
 };
 
 use web5::apid::{
-    credentials::{
-        presentation_definition::{
-            Constraints as ConstraintsData, Field as FieldData, Filter as FilterData,
-            InputDescriptor as InputDescriptorData, Optionality,
-            PresentationDefinition as PresentationDefinitionData,
-        },
-        verifiable_credential_1_1::{
-            CredentialSubject as CredentialSubjectData,
-            VerifiableCredential as VerifiableCredentialData,
-        },
+    credentials::presentation_definition::{
+        Constraints as ConstraintsData, Field as FieldData, Filter as FilterData,
+        InputDescriptor as InputDescriptorData, Optionality,
+        PresentationDefinition as PresentationDefinitionData,
     },
     crypto::jwk::Jwk as JwkData,
     dids::{

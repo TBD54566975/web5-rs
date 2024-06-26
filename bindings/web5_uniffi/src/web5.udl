@@ -208,11 +208,6 @@ interface BearerDid {
   Signer get_signer(string key_id);
 };
 
-dictionary CredentialSubjectData {
-  string id;
-  record<string, string>? params;
-};
-
 dictionary VerifiableCredentialData {
   sequence<string> context;
   string id;
@@ -220,10 +215,11 @@ dictionary VerifiableCredentialData {
   string issuer;
   string issuance_date;
   string? expiration_date;
-  CredentialSubjectData credential_subject;
+  string credential_subject;
 };
 
 interface VerifiableCredential {
+  [Throws=RustCoreError]
   constructor(VerifiableCredentialData data);
   [Name=verify, Throws=RustCoreError]
   constructor([ByRef] string vcjwt);
@@ -233,6 +229,7 @@ interface VerifiableCredential {
   string sign(BearerDid bearer_did);
   [Throws=RustCoreError]
   string sign_with_signer([ByRef] string key_id, Signer signer);
+  [Throws=RustCoreError]
   VerifiableCredentialData get_data();
 };
 
