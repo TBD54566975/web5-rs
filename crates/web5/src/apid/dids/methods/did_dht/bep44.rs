@@ -3,8 +3,7 @@ use std::{
     time::{SystemTime, SystemTimeError, UNIX_EPOCH},
 };
 
-use crate::crypto::CryptoError;
-use crate::keys::key::{KeyError, PublicKey};
+use crate::apid::dsa::{ed25519::Ed25519Verifier, DsaError, Verifier};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
 /// Minimum size of a bep44 encoded message
@@ -21,15 +20,13 @@ pub enum Bep44EncodingError {
     #[error(transparent)]
     SystemTimeError(#[from] SystemTimeError),
     #[error(transparent)]
-    CryptoError(#[from] CryptoError),
+    DsaError(#[from] DsaError),
     #[error("Failure creating DID: {0}")]
     BigEndianError(String),
     #[error(
         "Message must have size between {MIN_MESSAGE_LEN} and {MAX_MESSAGE_LEN} but got size {0}"
     )]
     SizeError(usize),
-    #[error(transparent)]
-    SignatureError(#[from] KeyError),
 }
 
 #[derive(Debug, PartialEq)]
@@ -79,7 +76,7 @@ fn decode_seq(seq_bytes: &[u8]) -> Result<u64, Bep44EncodingError> {
 impl Bep44Message {
     pub fn new<F>(message: &[u8], sign: F) -> Result<Self, Bep44EncodingError>
     where
-        F: Fn(Vec<u8>) -> Result<Vec<u8>, KeyError>,
+        F: Fn(Vec<u8>) -> Result<Vec<u8>, DsaError>,
     {
         let message_len = message.len();
         if message_len > MAX_V_LEN {
@@ -126,9 +123,9 @@ impl Bep44Message {
         })
     }
 
-    pub fn verify(&self, public_key: &dyn PublicKey) -> Result<(), Bep44EncodingError> {
+    pub fn verify(&self, verifier: &Ed25519Verifier) -> Result<(), Bep44EncodingError> {
         let signable = signable(self.seq, &self.v);
-        public_key.verify(&signable, &self.sig)?;
+        verifier.verify(&signable, &self.sig)?;
 
         Ok(())
     }
@@ -136,8 +133,10 @@ impl Bep44Message {
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto::{ed25519::Ed25519, CurveOperations};
-    use crate::keys::key::PrivateKey;
+    use crate::apid::dsa::{
+        ed25519::{Ed25519Generator, Ed25519Signer},
+        Signer,
+    };
 
     use super::*;
 
@@ -145,26 +144,26 @@ mod tests {
     fn test_new_verify() {
         let message = "Hello World".as_bytes();
 
-        let private_key = Ed25519::generate().expect("Failed to generate Ed25519 key");
+        let private_jwk = Ed25519Generator::generate();
+        let signer = Ed25519Signer::new(private_jwk.clone());
 
         let result_bep44_message =
-            Bep44Message::new(message, |payload| -> Result<Vec<u8>, KeyError> {
-                private_key.sign(&payload)
+            Bep44Message::new(message, |payload| -> Result<Vec<u8>, DsaError> {
+                signer.sign(&payload)
             });
         assert!(result_bep44_message.is_ok());
 
         let bep44_message = result_bep44_message.unwrap();
-        let public_key = private_key
-            .to_public()
-            .expect("Failed to convert private key to public key");
-        let verify_result = bep44_message.verify(public_key.as_ref());
+
+        let verifier = Ed25519Verifier::new(private_jwk);
+        let verify_result = bep44_message.verify(&verifier);
         assert!(verify_result.is_ok());
     }
 
     #[test]
     fn test_new_message_too_big() {
         let too_big = vec![0; 10_000];
-        let error = Bep44Message::new(&too_big, |_| -> Result<Vec<u8>, KeyError> { Ok(vec![]) })
+        let error = Bep44Message::new(&too_big, |_| -> Result<Vec<u8>, DsaError> { Ok(vec![]) })
             .expect_err("Should have returned error for malformed signature");
 
         match error {
@@ -177,13 +176,13 @@ mod tests {
     fn test_new_sign_fails() {
         let message = "Hello World".as_bytes();
 
-        let error = Bep44Message::new(message, |_| -> Result<Vec<u8>, KeyError> {
-            Err(KeyError::CurveNotFound)
+        let error = Bep44Message::new(message, |_| -> Result<Vec<u8>, DsaError> {
+            Err(DsaError::UnsupportedCurve)
         })
         .expect_err("Should have returned error for malformed signature");
 
         match error {
-            Bep44EncodingError::SignatureError(_) => {}
+            Bep44EncodingError::DsaError(_) => {}
             _ => panic!(),
         }
     }
@@ -192,20 +191,19 @@ mod tests {
     fn test_verify_malformed_sig() {
         let message = "Hello World".as_bytes();
 
-        let private_key = Ed25519::generate().expect("Failed to generate Ed25519 key");
+        let private_jwk = Ed25519Generator::generate();
+        let signer = Ed25519Signer::new(private_jwk.clone());
 
         let mut bep44_message =
-            Bep44Message::new(message, |payload| -> Result<Vec<u8>, KeyError> {
-                private_key.sign(&payload)
+            Bep44Message::new(message, |payload| -> Result<Vec<u8>, DsaError> {
+                signer.sign(&payload)
             })
             .unwrap();
 
         // Overwrite sig with malformed signature
         bep44_message.sig = vec![0, 1, 2, 3];
-        let public_key = private_key
-            .to_public()
-            .expect("Failed to convert private key to public key");
-        let verify_result = bep44_message.verify(public_key.as_ref());
+        let verifier = Ed25519Verifier::new(private_jwk);
+        let verify_result = bep44_message.verify(&verifier);
         assert!(verify_result.is_err());
     }
 
@@ -213,10 +211,11 @@ mod tests {
     fn test_encoded_decode() {
         let message = "Hello World".as_bytes();
 
-        let private_key = Ed25519::generate().expect("Failed to generate Ed25519 key");
+        let private_jwk = Ed25519Generator::generate();
+        let signer = Ed25519Signer::new(private_jwk);
 
-        let bep44_message = Bep44Message::new(message, |payload| -> Result<Vec<u8>, KeyError> {
-            private_key.sign(&payload)
+        let bep44_message = Bep44Message::new(message, |payload| -> Result<Vec<u8>, DsaError> {
+            signer.sign(&payload)
         })
         .unwrap();
 

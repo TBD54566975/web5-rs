@@ -5,20 +5,20 @@ use reqwest::blocking::Client;
 use simple_dns::Packet;
 
 use super::{MethodError, Result};
-use crate::{
-    apid::{
-        crypto::jwk::Jwk,
-        dids::{
-            data_model::{document::Document, verification_method::VerificationMethod},
-            did::Did,
-            resolution::{
-                resolution_metadata::{ResolutionMetadata, ResolutionMetadataError},
-                resolution_result::ResolutionResult,
-            },
+use crate::apid::{
+    crypto::jwk::Jwk,
+    dids::{
+        data_model::{document::Document, verification_method::VerificationMethod},
+        did::Did,
+        resolution::{
+            resolution_metadata::{ResolutionMetadata, ResolutionMetadataError},
+            resolution_result::ResolutionResult,
         },
-        dsa::Signer,
     },
-    crypto::ed25519::Ed25519,
+    dsa::{
+        ed25519::{self, Ed25519Verifier},
+        Signer,
+    },
 };
 use std::sync::Arc;
 
@@ -54,6 +54,12 @@ pub struct DidDht {
 impl DidDht {
     pub fn from_identity_key(identity_key: Jwk) -> Result<Self> {
         println!("DidDht::from_identity_key() called");
+
+        if identity_key.crv != "Ed25519" {
+            return Err(MethodError::DidCreationFailure(
+                "Identity key must use Ed25519".to_string(),
+            ));
+        }
         let did_uri = create_identifier(&identity_key)?;
         let identity_key_verification_method = VerificationMethod {
             id: format!("{}#0", &did_uri),
@@ -66,7 +72,6 @@ impl DidDht {
         let capability_invocation = vec![identity_key_verification_method.id.clone()];
         let authentication = vec![identity_key_verification_method.id.clone()];
         let assertion_method = vec![identity_key_verification_method.id.clone()];
-        let key_agreement = vec![];
         let verification_methods = vec![identity_key_verification_method];
 
         // TODO maybe add additional verification methods and verification purposes
@@ -102,7 +107,6 @@ impl DidDht {
                 capability_invocation: Some(capability_invocation),
                 authentication: Some(authentication),
                 assertion_method: Some(assertion_method),
-                key_agreement: Some(key_agreement),
                 ..Default::default()
             },
         })
@@ -138,7 +142,7 @@ impl DidDht {
         }
         let identity_key = zbase32::decode_full_bytes_str(&did.id)
             .map_err(|_| ResolutionMetadataError::InvalidDid)?;
-        let identity_key = Ed25519::from_public_key(&identity_key)
+        let identity_key = ed25519::from_public_key(&identity_key)
             .map_err(|_| ResolutionMetadataError::InvalidDid)?;
 
         // construct http endpoint from gateway url and last part of did_uri
@@ -179,7 +183,7 @@ impl DidDht {
         let bep44_message =
             Bep44Message::decode(&body).map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
         bep44_message
-            .verify(&identity_key)
+            .verify(&Ed25519Verifier::new(identity_key))
             .map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
 
         // convert bep44 decoded value from DNS packet to did doc
@@ -195,13 +199,114 @@ impl DidDht {
         })
     }
 
-    pub fn publish(&self, _signer: Arc<dyn Signer>) -> Result<()> {
+    pub fn publish(&self, signer: Arc<dyn Signer>) -> Result<()> {
         println!("DidDht.publish() called");
+        let packet = self
+            .document
+            .to_packet()
+            .map_err(|e| MethodError::DidPublishingFailure(e.to_string()))?;
+        let packet_bytes = packet.build_bytes_vec().map_err(|_| {
+            MethodError::DidPublishingFailure("Failed to serialize packet as bytes".to_string())
+        })?;
+
+        let bep44_message = Bep44Message::new(&packet_bytes, |payload| signer.sign(&payload))
+            .map_err(|_| {
+                MethodError::DidPublishingFailure(
+                    "Failed to create bep44 message from packet".to_string(),
+                )
+            })?;
+        let body = bep44_message.encode().map_err(|_| {
+            MethodError::DidPublishingFailure(
+                "Failed to serialize bep44 message as bytes".to_string(),
+            )
+        })?;
+
+        let url = format!(
+            "{}/{}",
+            DEFAULT_RELAY.trim_end_matches('/'),
+            self.did.id.trim_start_matches('/')
+        );
+        let client = Client::new();
+        let response = client
+            .put(url)
+            .header("Content-Type", "application/octet-stream")
+            .body(body)
+            .send()
+            .map_err(|_| {
+                MethodError::DidPublishingFailure("Failed to publish DID to mainline".to_string())
+            })?;
+
+        if response.status() != 200 {
+            return Err(MethodError::DidPublishingFailure(
+                "Failed to PUT DID to mainline".to_string(),
+            ));
+        }
+
         Ok(())
     }
 
     pub fn deactivate(&self, _signer: Arc<dyn Signer>) -> Result<()> {
         println!("DidDht.deactivate() called");
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::apid::dsa::ed25519::{self, Ed25519Generator, Ed25519Signer};
+
+    use super::*;
+
+    #[test]
+    fn test_from_identity_key() {
+        let private_jwk = Ed25519Generator::generate();
+        let identity_key = ed25519::to_public_jwk(&private_jwk);
+        let did_dht =
+            DidDht::from_identity_key(identity_key.clone()).expect("Should create did:dht");
+
+        assert_eq!(did_dht.did.method, "dht");
+        assert_eq!(
+            did_dht.document.verification_method[0].public_key_jwk,
+            identity_key
+        );
+        assert_eq!(
+            did_dht.document.verification_method[0].id,
+            format!("{}#0", did_dht.did.uri)
+        );
+    }
+
+    #[test]
+    fn test_publish() {
+        // Create did:dht
+        let private_jwk = Ed25519Generator::generate();
+        let identity_key = ed25519::to_public_jwk(&private_jwk);
+        let did_dht =
+            DidDht::from_identity_key(identity_key.clone()).expect("Should create did:dht");
+
+        // Publish
+        let signer = Ed25519Signer::new(private_jwk);
+        did_dht
+            .publish(Arc::new(signer))
+            .expect("Should publish did");
+    }
+
+    #[test]
+    fn test_resolve() {
+        // Create did:dht
+        let private_jwk = Ed25519Generator::generate();
+        let identity_key = ed25519::to_public_jwk(&private_jwk);
+        let did_dht =
+            DidDht::from_identity_key(identity_key.clone()).expect("Should create did:dht");
+
+        // Publish
+        let signer = Ed25519Signer::new(private_jwk);
+        did_dht
+            .publish(Arc::new(signer))
+            .expect("Should publish did");
+
+        // Resolve from uri
+        let resolved_did_dht = DidDht::resolve(&did_dht.did.uri).expect("Should resolve did:dht");
+        let resolved_document = resolved_did_dht.document.unwrap();
+        assert_eq!(resolved_document, did_dht.document)
     }
 }

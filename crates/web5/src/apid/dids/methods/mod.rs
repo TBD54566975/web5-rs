@@ -13,6 +13,8 @@ pub enum MethodError {
     DidError(#[from] DidError),
     #[error("Failure creating DID: {0}")]
     DidCreationFailure(String),
+    #[error("Failure publishing DID: {0}")]
+    DidPublishingFailure(String),
     #[error("serde json error {0}")]
     SerdeJsonError(String),
     #[error(transparent)]
