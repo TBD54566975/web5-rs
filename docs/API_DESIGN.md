@@ -587,14 +587,15 @@ CLASS VerifiableCredential
   PUBLIC DATA @context: []string
   PUBLIC DATA id: string
   PUBLIC DATA type: []string
-  PUBLIC DATA issuer: string | NamedIssuer
+  PUBLIC DATA issuer: string | NamedIssuer # 🚧 Multitype should be re-considered, perhaps should just be Object
   PUBLIC DATA issuanceDate: string
   PUBLIC DATA expirationDate: string?
   PUBLIC DATA credentialSubject: Object  # 🚧 `Object` not supported 🚧
   CONSTRUCTOR(context: []string, id: string, type: []string, issuer: string | NamedIssuer, issuanceDate: string, expirationDate: string?)
   CONSTRUCTOR(vcjwt: string)
   CONSTRUCTOR(vcjwt: string, verifier: Verifier)
-  METHOD sign(signer: Signer): string
+  METHOD sign(bearer_did: BearerDid): string
+  METHOD sign_with_signer(key_id: string, signer: Signer): string
 ```
 
 > [!NOTE]
