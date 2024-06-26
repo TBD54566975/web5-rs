@@ -9,7 +9,7 @@ use crate::apid::{
     },
     dsa::{ed25519::Ed25519Verifier, DsaError, Signer, Verifier},
 };
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{DateTime, Utc};
 use core::fmt;
 use josekit::{
     jws::{
@@ -429,14 +429,6 @@ impl core::fmt::Debug for JoseVerifier {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Verifier").field("kid", &self.kid).finish()
     }
-}
-
-pub fn timestamp_to_rfc3339(timestamp: i64) -> Result<String> {
-    let datetime = Utc
-        .timestamp_opt(timestamp, 0)
-        .single()
-        .ok_or_else(|| CredentialError::InvalidTimestamp("Invalid timestamp".to_string()))?;
-    Ok(datetime.to_rfc3339())
 }
 
 #[cfg(test)]
