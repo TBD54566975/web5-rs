@@ -99,7 +99,8 @@ pub mod data {
                 context: self.context.clone(),
                 id: self.id.clone(),
                 r#type: self.r#type.clone(),
-                issuer: serde_json::from_str(&self.json_serialized_issuer).map_err(|e| Arc::new(e.into()))?,
+                issuer: serde_json::from_str(&self.json_serialized_issuer)
+                    .map_err(|e| Arc::new(e.into()))?,
                 issuance_date: self.issuance_date,
                 expiration_date: self.expiration_date,
                 credential_subject: serde_json::from_str(&self.json_serialized_credential_subject)
