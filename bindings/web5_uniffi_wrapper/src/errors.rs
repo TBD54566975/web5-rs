@@ -1,4 +1,5 @@
-use std::sync::Arc;
+use serde_json::Error as SerdeJsonError;
+use std::sync::{Arc, PoisonError};
 use std::{any::type_name, fmt::Debug};
 use thiserror::Error;
 use web5::apid::credentials::presentation_definition::PexError;
@@ -21,6 +22,14 @@ pub enum RustCoreError {
 }
 
 impl RustCoreError {
+    pub fn from_poison_error<T>(error: PoisonError<T>, error_type: &str) -> Arc<Self> {
+        Arc::new(RustCoreError::Error {
+            r#type: error_type.to_string(),
+            variant: "PoisonError".to_string(),
+            message: error.to_string(),
+        })
+    }
+
     fn new<T>(error: T) -> Self
     where
         T: std::error::Error + 'static,
@@ -119,6 +128,12 @@ impl From<DidDataModelError> for RustCoreError {
 
 impl From<BearerDidError> for RustCoreError {
     fn from(error: BearerDidError) -> Self {
+        RustCoreError::new(error)
+    }
+}
+
+impl From<SerdeJsonError> for RustCoreError {
+    fn from(error: SerdeJsonError) -> Self {
         RustCoreError::new(error)
     }
 }

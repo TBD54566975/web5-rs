@@ -5,7 +5,7 @@ pub mod verification_method;
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum DataModelError {
     #[error("publicKeyJwk not found {0}")]
-    PublicKeyJwk(String),
+    MissingPublicKeyJwk(String),
 }
 
 type Result<T> = std::result::Result<T, DataModelError>;

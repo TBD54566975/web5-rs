@@ -7,5 +7,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
+serde_json = { workspace = true }
 thiserror = { workspace = true }
 web5 = { path = "../../crates/web5" }

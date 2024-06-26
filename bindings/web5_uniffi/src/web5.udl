@@ -208,29 +208,28 @@ interface BearerDid {
   Signer get_signer(string key_id);
 };
 
-dictionary CredentialSubjectData {
-  string id;
-  record<string, string>? params;
-};
-
 dictionary VerifiableCredentialData {
   sequence<string> context;
   string id;
   sequence<string> type;
-  string issuer;
-  string issuance_date;
-  string? expiration_date;
-  CredentialSubjectData credential_subject;
+  string json_serialized_issuer;
+  timestamp issuance_date;
+  timestamp? expiration_date;
+  string json_serialized_credential_subject;
 };
 
 interface VerifiableCredential {
+  [Throws=RustCoreError]
   constructor(VerifiableCredentialData data);
   [Name=verify, Throws=RustCoreError]
   constructor([ByRef] string vcjwt);
   [Name=verify_with_verifier, Throws=RustCoreError]
   constructor([ByRef] string vcjwt, Verifier verifier);
   [Throws=RustCoreError]
-  string sign(Signer signer);
+  string sign(BearerDid bearer_did);
+  [Throws=RustCoreError]
+  string sign_with_signer([ByRef] string key_id, Signer signer);
+  [Throws=RustCoreError]
   VerifiableCredentialData get_data();
 };
 
