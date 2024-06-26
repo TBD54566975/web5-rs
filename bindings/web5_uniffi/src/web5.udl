@@ -212,10 +212,10 @@ dictionary VerifiableCredentialData {
   sequence<string> context;
   string id;
   sequence<string> type;
-  string issuer;
+  string json_serialized_issuer;
   timestamp issuance_date;
   timestamp? expiration_date;
-  string credential_subject;
+  string json_serialized_credential_subject;
 };
 
 interface VerifiableCredential {

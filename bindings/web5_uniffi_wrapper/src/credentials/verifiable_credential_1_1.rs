@@ -71,10 +71,10 @@ pub mod data {
         pub context: Vec<String>,
         pub id: String,
         pub r#type: Vec<String>,
-        pub issuer: String, // JSON serialized
+        pub json_serialized_issuer: String, // JSON serialized
         pub issuance_date: SystemTime,
         pub expiration_date: Option<SystemTime>,
-        pub credential_subject: String, // JSON serialized
+        pub json_serialized_credential_subject: String, // JSON serialized
     }
 
     impl VerifiableCredential {
@@ -83,11 +83,11 @@ pub mod data {
                 context: inner_verifiable_credential.context.clone(),
                 id: inner_verifiable_credential.id.clone(),
                 r#type: inner_verifiable_credential.r#type.clone(),
-                issuer: serde_json::to_string(&inner_verifiable_credential.issuer)
+                json_serialized_issuer: serde_json::to_string(&inner_verifiable_credential.issuer)
                     .map_err(|e| Arc::new(e.into()))?,
                 issuance_date: inner_verifiable_credential.issuance_date,
                 expiration_date: inner_verifiable_credential.expiration_date,
-                credential_subject: serde_json::to_string(
+                json_serialized_credential_subject: serde_json::to_string(
                     &inner_verifiable_credential.credential_subject,
                 )
                 .map_err(|e| Arc::new(e.into()))?,
@@ -99,10 +99,10 @@ pub mod data {
                 context: self.context.clone(),
                 id: self.id.clone(),
                 r#type: self.r#type.clone(),
-                issuer: serde_json::from_str(&self.issuer).map_err(|e| Arc::new(e.into()))?,
+                issuer: serde_json::from_str(&self.json_serialized_issuer).map_err(|e| Arc::new(e.into()))?,
                 issuance_date: self.issuance_date,
                 expiration_date: self.expiration_date,
-                credential_subject: serde_json::from_str(&self.credential_subject)
+                credential_subject: serde_json::from_str(&self.json_serialized_credential_subject)
                     .map_err(|e| Arc::new(e.into()))?,
             })
         }
