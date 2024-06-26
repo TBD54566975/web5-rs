@@ -40,6 +40,6 @@ impl Document {
                 return Ok(vm.public_key_jwk.clone());
             }
         }
-        Err(super::DataModelError::PublicKeyJwk(key_id))
+        Err(super::DataModelError::MissingPublicKeyJwk(key_id))
     }
 }
