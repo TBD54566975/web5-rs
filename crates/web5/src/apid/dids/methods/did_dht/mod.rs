@@ -117,7 +117,7 @@ impl DidDht {
     pub fn resolve(uri: &str) -> ResolutionResult {
         let result: Result<ResolutionResult> = (|| {
             // check did method and decode id
-            let did = Did::new(uri)?;
+            let did = Did::new(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
             if did.method != "dht" {
                 return Ok(ResolutionResult {
                     resolution_metadata: ResolutionMetadata {
