@@ -171,11 +171,19 @@ impl InputDescriptor {
         for vc_jwt in vc_jwts {
             let mut selection_candidate: Map<String, Value> = Map::new();
 
-            let vc = VerifiableCredential::verify(vc_jwt)
-                .map_err(|e| PexError::JsonError(e.to_string()))?;
-            let payload_json = serde_json::to_string(&vc).map_err(|_| {
-                PexError::JsonError("Could not create json string from vc jwt payload".to_string())
-            })?;
+            let vc = match VerifiableCredential::verify(vc_jwt) {
+                Ok(vc) => vc,
+                Err(_) => {
+                    continue;
+                }
+            };
+
+            let payload_json = match serde_json::to_string(&vc) {
+                Ok(json) => json,
+                Err(_) => {
+                    continue;
+                }
+            };
 
             // Extract a value from the vc_jwt for each tokenized field
             for tokenized_field in &tokenized_fields {
