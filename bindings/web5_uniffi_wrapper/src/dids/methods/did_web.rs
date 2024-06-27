@@ -1,6 +1,6 @@
 use crate::{dids::resolution::resolution_result::ResolutionResult, errors::Result};
 use std::sync::Arc;
-use web5::apid::dids::methods::did_web::DidWeb as InnerDidWeb;
+use web5::dids::methods::did_web::DidWeb as InnerDidWeb;
 
 pub struct DidWeb(pub InnerDidWeb);
 

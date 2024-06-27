@@ -1,6 +1,6 @@
 use crate::errors::Result;
 use std::sync::Arc;
-use web5::apid::dids::did::Did as InnerDid;
+use web5::dids::did::Did as InnerDid;
 
 pub struct Did(pub InnerDid);
 

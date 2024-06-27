@@ -24,13 +24,13 @@ use web5_uniffi_wrapper::{
     errors::RustCoreError,
 };
 
-use web5::apid::{
+use web5::{
     credentials::presentation_definition::{
         Constraints as ConstraintsData, Field as FieldData, Filter as FilterData,
         InputDescriptor as InputDescriptorData, Optionality,
         PresentationDefinition as PresentationDefinitionData,
     },
-    crypto::jwk::Jwk as JwkData,
+    crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{
         data_model::{
             document::Document as DocumentData, service::Service as ServiceData,
@@ -49,7 +49,6 @@ use web5::apid::{
             resolution_result::ResolutionResult as ResolutionResultData,
         },
     },
-    dsa::Dsa,
 };
 
 uniffi::include_scaffolding!("web5");

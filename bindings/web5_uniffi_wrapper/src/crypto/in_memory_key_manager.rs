@@ -4,7 +4,7 @@ use crate::{
     errors::Result,
 };
 use std::sync::Arc;
-use web5::apid::crypto::{
+use web5::crypto::{
     jwk::Jwk,
     key_managers::{
         in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager,

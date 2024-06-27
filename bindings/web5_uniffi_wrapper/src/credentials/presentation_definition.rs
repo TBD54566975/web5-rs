@@ -1,6 +1,6 @@
 use crate::errors::Result;
 use std::sync::Arc;
-use web5::apid::credentials::presentation_definition::PresentationDefinition as InnerPresentationDefinition;
+use web5::credentials::presentation_definition::PresentationDefinition as InnerPresentationDefinition;
 
 pub struct PresentationDefinition(pub InnerPresentationDefinition);
 

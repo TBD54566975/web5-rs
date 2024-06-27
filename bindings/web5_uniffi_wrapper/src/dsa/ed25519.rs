@@ -1,8 +1,7 @@
 use super::{Signer, Verifier};
 use crate::errors::Result;
 use std::sync::Arc;
-use web5::apid::{
-    crypto::jwk::Jwk,
+use web5::crypto::{
     dsa::{
         ed25519::{
             Ed25519Generator as InnerEd25519Generator, Ed25519Signer as InnerEd25519Signer,
@@ -10,6 +9,7 @@ use web5::apid::{
         },
         Signer as InnerSigner, Verifier as InnerVerifier,
     },
+    jwk::Jwk,
 };
 
 pub fn ed25519_generator_generate() -> Jwk {
