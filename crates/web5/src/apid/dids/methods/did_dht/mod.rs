@@ -1,6 +1,4 @@
-use base64::{engine::general_purpose, Engine as _};
 use bep44::Bep44Message;
-use ed25519_dalek::PUBLIC_KEY_LENGTH;
 use reqwest::blocking::Client;
 use simple_dns::Packet;
 
@@ -187,7 +185,6 @@ impl DidDht {
     }
 
     pub fn publish(&self, signer: Arc<dyn Signer>) -> Result<()> {
-        println!("DidDht.publish() called");
         let packet = self
             .document
             .to_packet()
