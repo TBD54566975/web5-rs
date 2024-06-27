@@ -73,6 +73,9 @@ mod tests {
         let resolution_result = ResolutionResult::new(did_uri);
 
         // the did:web we host is currently invalid hehe https://www.tbd.website/.well-known/did.json
-        assert_eq!(Some(ResolutionMetadataError::RepresentationNotSupported), resolution_result.resolution_metadata.error);
+        assert_eq!(
+            Some(ResolutionMetadataError::RepresentationNotSupported),
+            resolution_result.resolution_metadata.error
+        );
     }
 }
