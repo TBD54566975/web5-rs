@@ -25,11 +25,6 @@ use web5_uniffi_wrapper::{
 };
 
 use web5::{
-    credentials::presentation_definition::{
-        Constraints as ConstraintsData, Field as FieldData, Filter as FilterData,
-        InputDescriptor as InputDescriptorData, Optionality,
-        PresentationDefinition as PresentationDefinitionData,
-    },
     crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{
         data_model::{
