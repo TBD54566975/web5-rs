@@ -98,7 +98,7 @@ impl DidDht {
     }
 
     pub fn from_uri(uri: &str) -> Result<Self> {
-        let resolution_result = DidDht::resolve(uri)?;
+        let resolution_result = DidDht::resolve(uri);
         match resolution_result.document {
             None => Err(match resolution_result.resolution_metadata.error {
                 None => MethodError::ResolutionError(ResolutionMetadataError::InternalError),
@@ -114,74 +114,89 @@ impl DidDht {
         }
     }
 
-    pub fn resolve(uri: &str) -> Result<ResolutionResult> {
-        // check did method and decode id
-        let did = Did::new(uri)?;
-        if did.method != "dht" {
-            return Ok(ResolutionResult {
+    pub fn resolve(uri: &str) -> ResolutionResult {
+        let result: Result<ResolutionResult> = (|| {
+            // check did method and decode id
+            let did = Did::new(uri)?;
+            if did.method != "dht" {
+                return Ok(ResolutionResult {
+                    resolution_metadata: ResolutionMetadata {
+                        error: Some(ResolutionMetadataError::MethodNotSupported),
+                    },
+                    ..Default::default()
+                });
+            }
+            let identity_key = zbase32::decode_full_bytes_str(&did.id)
+                .map_err(|_| ResolutionMetadataError::InvalidDid)?;
+            let identity_key = ed25519::from_public_key(&identity_key)
+                .map_err(|_| ResolutionMetadataError::InvalidDid)?;
+
+            // construct http endpoint from gateway url and last part of did_uri
+            let url = format!(
+                "{}/{}",
+                DEFAULT_RELAY.trim_end_matches('/'),
+                did.id.trim_start_matches('/')
+            );
+
+            let client = Client::new();
+
+            // Make the GET request
+            let response = client
+                .get(url)
+                .send()
+                .map_err(|_| ResolutionMetadataError::InternalError)?;
+
+            // Check if the status is not 200
+            let status = response.status();
+            if status == 404 {
+                return Err(ResolutionMetadataError::NotFound)?;
+            } else if status != 200 {
+                return Err(ResolutionMetadataError::InternalError)?;
+            }
+
+            // check http response status is 200 and body is nonempty
+            let body = response
+                .bytes()
+                .map_err(|_| ResolutionMetadataError::NotFound)?;
+
+            // Check if the body is empty
+            if body.is_empty() {
+                return Err(ResolutionMetadataError::NotFound)?;
+            }
+
+            // bep44 decode and verify response body bytes
+            let body: Vec<u8> = body.into();
+            let bep44_message = Bep44Message::decode(&body)
+                .map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
+            bep44_message
+                .verify(&Ed25519Verifier::new(identity_key))
+                .map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
+
+            // convert bep44 decoded value from DNS packet to did doc
+            let packet = Packet::parse(&bep44_message.v)
+                .map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
+            let document: Document = packet
+                .try_into()
+                .map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
+
+            Ok(ResolutionResult {
+                document: Some(document),
+                ..Default::default()
+            })
+        })();
+
+        match result {
+            Ok(resolution_result) => resolution_result,
+            Err(err) => ResolutionResult {
                 resolution_metadata: ResolutionMetadata {
-                    error: Some(ResolutionMetadataError::MethodNotSupported),
+                    error: Some(match err {
+                        MethodError::ResolutionError(e) => e,
+                        _ => ResolutionMetadataError::InternalError,
+                    }),
                 },
                 ..Default::default()
-            });
+            },
         }
-        let identity_key = zbase32::decode_full_bytes_str(&did.id)
-            .map_err(|_| ResolutionMetadataError::InvalidDid)?;
-        let identity_key = ed25519::from_public_key(&identity_key)
-            .map_err(|_| ResolutionMetadataError::InvalidDid)?;
-
-        // construct http endpoint from gateway url and last part of did_uri
-        let url = format!(
-            "{}/{}",
-            DEFAULT_RELAY.trim_end_matches('/'),
-            did.id.trim_start_matches('/')
-        );
-
-        let client = Client::new();
-
-        // Make the GET request
-        let response = client
-            .get(url)
-            .send()
-            .map_err(|_| ResolutionMetadataError::InternalError)?;
-
-        // Check if the status is not 200
-        let status = response.status();
-        if status == 404 {
-            return Err(ResolutionMetadataError::NotFound)?;
-        } else if status != 200 {
-            return Err(ResolutionMetadataError::InternalError)?;
-        }
-
-        // check http response status is 200 and body is nonempty
-        let body = response
-            .bytes()
-            .map_err(|_| ResolutionMetadataError::NotFound)?;
-
-        // Check if the body is empty
-        if body.is_empty() {
-            return Err(ResolutionMetadataError::NotFound)?;
-        }
-
-        // bep44 decode and verify response body bytes
-        let body: Vec<u8> = body.into();
-        let bep44_message =
-            Bep44Message::decode(&body).map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
-        bep44_message
-            .verify(&Ed25519Verifier::new(identity_key))
-            .map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
-
-        // convert bep44 decoded value from DNS packet to did doc
-        let packet = Packet::parse(&bep44_message.v)
-            .map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
-        let document: Document = packet
-            .try_into()
-            .map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
-
-        Ok(ResolutionResult {
-            document: Some(document),
-            ..Default::default()
-        })
     }
 
     pub fn publish(&self, signer: Arc<dyn Signer>) -> Result<()> {
@@ -289,7 +304,7 @@ mod tests {
             .expect("Should publish did");
 
         // Resolve from uri
-        let resolved_did_dht = DidDht::resolve(&did_dht.did.uri).expect("Should resolve did:dht");
+        let resolved_did_dht = DidDht::resolve(&did_dht.did.uri);
         let resolved_document = resolved_did_dht.document.unwrap();
         assert_eq!(resolved_document, did_dht.document)
     }

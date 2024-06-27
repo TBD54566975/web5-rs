@@ -5,7 +5,7 @@ use web5::apid::{crypto::jwk::Jwk, dids::methods::did_dht::DidDht as InnerDidDht
 pub struct DidDht(pub InnerDidDht);
 
 pub fn did_dht_resolve(uri: &str) -> Result<Arc<ResolutionResult>> {
-    let resolution_result = InnerDidDht::resolve(uri).map_err(|e| Arc::new(e.into()))?;
+    let resolution_result = InnerDidDht::resolve(uri);
     Ok(Arc::new(ResolutionResult(resolution_result)))
 }
 
