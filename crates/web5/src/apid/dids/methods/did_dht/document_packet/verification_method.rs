@@ -2,8 +2,8 @@ use std::{collections::HashMap, str::FromStr};
 
 use crate::{
     apid::{
-        dids::data_model::verification_method::VerificationMethod, dsa::ed25519,
-        dsa::secp256k1::Secp256k1,
+        dids::data_model::verification_method::VerificationMethod,
+        dsa::{ed25519, secp256k1},
     },
     crypto::Curve,
 };
@@ -88,7 +88,7 @@ impl VerificationMethod {
 
         let public_key_bytes = match curve {
             Curve::Ed25519 => ed25519::public_jwk_extract_bytes(&self.public_key_jwk)?,
-            Curve::Secp256k1 => Secp256k1::extract_public_key(&self.public_key_jwk)?,
+            Curve::Secp256k1 => secp256k1::public_jwk_extract_bytes(&self.public_key_jwk)?,
         };
         let k = general_purpose::URL_SAFE_NO_PAD.encode(public_key_bytes);
 
@@ -148,7 +148,7 @@ impl VerificationMethod {
             })?;
         let mut public_key_jwk = match curve {
             Curve::Ed25519 => ed25519::public_jwk_from_bytes(&public_key_bytes)?,
-            Curve::Secp256k1 => Secp256k1::from_public_key(&public_key_bytes)?,
+            Curve::Secp256k1 => secp256k1::public_jwk_from_bytes(&public_key_bytes)?,
         };
         public_key_jwk.alg = if let Some(alg) = vm_rdata.a {
             alg
@@ -231,7 +231,7 @@ mod tests {
     #[test]
     fn test_to_and_from_resource_record_secp256k1() {
         let did_uri = "did:dht:123";
-        let public_key_jwk = Secp256k1::to_public_jwk(&Secp256k1::generate());
+        let public_key_jwk = secp256k1::to_public_jwk(&secp256k1::Secp256k1Generator::generate());
         let id = format!(
             "{}#{}",
             did_uri,
