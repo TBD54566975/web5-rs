@@ -1,8 +1,8 @@
-use super::key_manager::KeyManager;
-use crate::{
+use super::{
     dsa::{OuterSigner, Signer},
-    errors::Result,
+    key_manager::KeyManager,
 };
+use crate::errors::Result;
 use std::sync::Arc;
 use web5::crypto::{
     jwk::Jwk,

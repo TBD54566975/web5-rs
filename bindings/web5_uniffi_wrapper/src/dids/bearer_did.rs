@@ -1,6 +1,8 @@
 use crate::{
-    crypto::key_manager::{KeyManager, OuterKeyManager},
-    dsa::{OuterSigner, Signer},
+    crypto::{
+        dsa::{OuterSigner, Signer},
+        key_manager::{KeyManager, OuterKeyManager},
+    },
     errors::Result,
 };
 use std::sync::Arc;

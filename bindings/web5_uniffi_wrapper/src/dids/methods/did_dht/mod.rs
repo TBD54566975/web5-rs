@@ -1,4 +1,6 @@
-use crate::{dids::resolution::resolution_result::ResolutionResult, dsa::Signer, errors::Result};
+use crate::{
+    crypto::dsa::Signer, dids::resolution::resolution_result::ResolutionResult, errors::Result,
+};
 use std::sync::Arc;
 use web5::{crypto::jwk::Jwk, dids::methods::did_dht::DidDht as InnerDidDht};
 

@@ -5,7 +5,14 @@ use web5_uniffi_wrapper::{
             data::VerifiableCredential as VerifiableCredentialData, VerifiableCredential,
         },
     },
-    crypto::{in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager},
+    crypto::{
+        dsa::{
+            ed25519::{ed25519_generator_generate, Ed25519Signer, Ed25519Verifier},
+            Signer, Verifier,
+        },
+        in_memory_key_manager::InMemoryKeyManager,
+        key_manager::KeyManager,
+    },
     dids::{
         bearer_did::{BearerDid, BearerDidData},
         data_model::document::Document,
@@ -16,10 +23,6 @@ use web5_uniffi_wrapper::{
             did_web::{did_web_resolve, DidWeb},
         },
         resolution::resolution_result::ResolutionResult,
-    },
-    dsa::{
-        ed25519::{ed25519_generator_generate, Ed25519Signer, Ed25519Verifier},
-        Signer, Verifier,
     },
     errors::RustCoreError,
 };

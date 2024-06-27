@@ -1,7 +1,5 @@
-use crate::{
-    dsa::{OuterSigner, Signer},
-    errors::Result,
-};
+use super::dsa::{OuterSigner, Signer};
+use crate::errors::Result;
 use std::sync::Arc;
 use web5::crypto::{jwk::Jwk, key_managers::key_manager::KeyManager as InnerKeyManager};
 

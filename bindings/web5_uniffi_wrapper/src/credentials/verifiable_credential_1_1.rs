@@ -1,6 +1,6 @@
 use crate::{
+    crypto::dsa::{Signer, Verifier},
     dids::bearer_did::BearerDid,
-    dsa::{Signer, Verifier},
     errors::{Result, RustCoreError},
 };
 use std::sync::{Arc, RwLock};
