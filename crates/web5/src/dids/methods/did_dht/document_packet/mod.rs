@@ -269,6 +269,7 @@ impl Document {
             &idx_to_vm_id,
             "capability delegation",
         )?;
+        
         // 3. Reconstitute services
         let mut services: Vec<Service> = vec![];
         for idx in root_record.srv {

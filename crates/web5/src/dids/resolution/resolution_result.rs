@@ -78,4 +78,13 @@ mod tests {
             resolution_result.resolution_metadata.error
         );
     }
+
+    #[test]
+    fn can_resolve_did_dht() {
+        let did_uri = "did:dht:swit41ctrddy1s38c5j46yfgbxmwo1emau71zo5hn1tws1g63hiy";
+        let resolution_result = ResolutionResult::new(did_uri);
+
+        assert_eq!(None, resolution_result.resolution_metadata.error);
+        assert_eq!(resolution_result.document.unwrap().id, did_uri.to_string());
+    }
 }

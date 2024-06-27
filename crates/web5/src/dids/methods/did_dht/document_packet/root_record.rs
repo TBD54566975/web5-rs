@@ -142,7 +142,7 @@ impl RootRecord {
         Ok(RootRecord {
             did_id,
             vm: parse_rdata_list(&rdata_map, "vm", "k")?,
-            srv: parse_rdata_list(&rdata_map, "srv", "s")?,
+            srv: parse_rdata_list(&rdata_map, "svc", "s")?,
             inv: parse_rdata_list(&rdata_map, "inv", "k")?,
             del: parse_rdata_list(&rdata_map, "del", "k")?,
             auth: parse_rdata_list(&rdata_map, "auth", "k")?,
