@@ -13,7 +13,7 @@ const NAME_PREFIX: &str = "_did";
 pub struct RootRecord {
     pub did_id: String,
     pub vm: Vec<u32>,
-    pub srv: Vec<u32>,
+    pub svc: Vec<u32>,
     pub inv: Vec<u32>,
     pub del: Vec<u32>,
     pub auth: Vec<u32>,
@@ -76,7 +76,7 @@ impl RootRecord {
         RootRecord {
             did_id: did_id.to_string(),
             vm: Vec::new(),
-            srv: Vec::new(),
+            svc: Vec::new(),
             inv: Vec::new(),
             del: Vec::new(),
             auth: Vec::new(),
@@ -93,7 +93,7 @@ impl RootRecord {
             ("del", "k", &self.del),
             ("auth", "k", &self.auth),
             ("agm", "k", &self.agm),
-            ("srv", "s", &self.srv),
+            ("svc", "s", &self.svc),
         ];
 
         let mut parts: Vec<String> = vec![];
@@ -142,7 +142,7 @@ impl RootRecord {
         Ok(RootRecord {
             did_id,
             vm: parse_rdata_list(&rdata_map, "vm", "k")?,
-            srv: parse_rdata_list(&rdata_map, "svc", "s")?,
+            svc: parse_rdata_list(&rdata_map, "svc", "s")?,
             inv: parse_rdata_list(&rdata_map, "inv", "k")?,
             del: parse_rdata_list(&rdata_map, "del", "k")?,
             auth: parse_rdata_list(&rdata_map, "auth", "k")?,
@@ -180,8 +180,8 @@ mod tests {
         root_record.del.push(0);
         root_record.del.push(2);
         root_record.inv.push(0);
-        root_record.srv.push(0);
-        root_record.srv.push(10);
+        root_record.svc.push(0);
+        root_record.svc.push(10);
 
         let resource_record = root_record
             .to_resource_record()

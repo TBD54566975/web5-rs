@@ -178,7 +178,7 @@ impl Document {
                     let idx = idx as u32;
                     let service_record = src.to_resource_record(idx)?;
                     answers.push(service_record);
-                    root_record.srv.push(idx);
+                    root_record.svc.push(idx);
 
                     Ok(())
                 },
@@ -269,10 +269,10 @@ impl Document {
             &idx_to_vm_id,
             "capability delegation",
         )?;
-        
+
         // 3. Reconstitute services
         let mut services: Vec<Service> = vec![];
-        for idx in root_record.srv {
+        for idx in root_record.svc {
             let record = answers
                 .iter()
                 .find(|record| Service::is_service_record_with_index(record, idx))
