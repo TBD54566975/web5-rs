@@ -2,7 +2,7 @@
 members = [ 
     "crates/web5", 
     "bindings/web5_uniffi", 
-    "bindings/web5_uniffi_wrapper",
+    "bindings/web5_uniffi_wrapper", "crates/cli",
 ]
 default-members = [
     "crates/web5",

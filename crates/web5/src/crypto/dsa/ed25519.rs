@@ -37,7 +37,7 @@ pub(crate) fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
     }
 
     Ok(Jwk {
-        alg: "EdDSA".to_string(),
+        alg: "Ed25519".to_string(),
         kty: "OKP".to_string(),
         crv: "Ed25519".to_string(),
         x: general_purpose::URL_SAFE_NO_PAD.encode(public_key),

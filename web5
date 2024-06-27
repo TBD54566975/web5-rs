@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cargo build -p cli
+cp ./target/debug/cli ./target/debug/web5
+./target/debug/web5 "$@"
