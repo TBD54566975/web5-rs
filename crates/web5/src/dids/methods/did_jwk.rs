@@ -66,20 +66,20 @@ impl DidJwk {
 
     pub fn resolve(uri: &str) -> ResolutionResult {
         let result: Result<ResolutionResult> = (|| {
-            let identifier = Did::new(uri)?;
+            let did = Did::new(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
             let decoded_jwk = general_purpose::URL_SAFE_NO_PAD
-                .decode(identifier.id)
+                .decode(did.id)
                 .map_err(|_| ResolutionMetadataError::InvalidDid)?;
             let public_jwk = serde_json::from_slice::<Jwk>(&decoded_jwk)
                 .map_err(|_| ResolutionMetadataError::InvalidDid)?;
 
-            let kid = format!("{}#0", identifier.uri);
+            let kid = format!("{}#0", did.uri);
             let document = Document {
-                id: identifier.uri.clone(),
+                id: did.uri.clone(),
                 verification_method: vec![VerificationMethod {
                     id: kid.clone(),
                     r#type: "JsonWebKey".to_string(),
-                    controller: identifier.uri.clone(),
+                    controller: did.uri.clone(),
                     public_key_jwk: public_jwk,
                 }],
                 assertion_method: Some(vec![kid.clone()]),

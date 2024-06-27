@@ -5,9 +5,7 @@ use web5::dids::methods::did_web::DidWeb as InnerDidWeb;
 pub struct DidWeb(pub InnerDidWeb);
 
 pub async fn did_web_resolve(uri: &str) -> Result<Arc<ResolutionResult>> {
-    let resolution_result = InnerDidWeb::resolve(uri)
-        .await
-        .map_err(|e| Arc::new(e.into()))?;
+    let resolution_result = InnerDidWeb::resolve(uri);
     Ok(Arc::new(ResolutionResult(resolution_result)))
 }
 

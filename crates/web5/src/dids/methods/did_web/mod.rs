@@ -19,7 +19,7 @@ pub struct DidWeb {
 
 impl DidWeb {
     pub async fn from_uri(uri: &str) -> Result<Self> {
-        let resolution_result = DidWeb::resolve(uri).await?;
+        let resolution_result = DidWeb::resolve(uri);
         match resolution_result.document {
             None => Err(match resolution_result.resolution_metadata.error {
                 None => MethodError::ResolutionError(ResolutionMetadataError::InternalError),
@@ -35,16 +35,45 @@ impl DidWeb {
         }
     }
 
-    pub async fn resolve(uri: &str) -> Result<ResolutionResult> {
-        let did = Did::new(uri)?;
-        let resolution_result = Resolver::new(did).await;
+    pub fn resolve(uri: &str) -> ResolutionResult {
+        let rt = match tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+        {
+            Ok(rt) => rt,
+            Err(_) => {
+                return ResolutionResult {
+                    resolution_metadata: ResolutionMetadata {
+                        error: Some(ResolutionMetadataError::InternalError),
+                    },
+                    ..Default::default()
+                }
+            }
+        };
 
-        Ok(match resolution_result {
-            Err(e) => ResolutionResult {
-                resolution_metadata: ResolutionMetadata { error: Some(e) },
+        let result: Result<ResolutionResult> = rt.block_on(async {
+            let did = Did::new(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
+            let resolution_result = Resolver::new(did).await;
+            Ok(match resolution_result {
+                Err(e) => ResolutionResult {
+                    resolution_metadata: ResolutionMetadata { error: Some(e) },
+                    ..Default::default()
+                },
+                Ok(r) => r,
+            })
+        });
+
+        match result {
+            Ok(resolution_result) => resolution_result,
+            Err(err) => ResolutionResult {
+                resolution_metadata: ResolutionMetadata {
+                    error: Some(match err {
+                        MethodError::ResolutionError(e) => e,
+                        _ => ResolutionMetadataError::InternalError,
+                    }),
+                },
                 ..Default::default()
             },
-            Ok(r) => r,
-        })
+        }
     }
 }

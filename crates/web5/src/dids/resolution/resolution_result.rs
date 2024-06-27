@@ -31,19 +31,7 @@ impl ResolutionResult {
         match did.method.as_str() {
             "jwk" => DidJwk::resolve(uri),
             "dht" => DidDht::resolve(uri),
-            "web" => {
-                let rt = tokio::runtime::Builder::new_current_thread()
-                    .enable_all()
-                    .build()
-                    .unwrap();
-                rt.block_on(DidWeb::resolve(uri))
-                    .unwrap_or_else(|_| ResolutionResult {
-                        resolution_metadata: ResolutionMetadata {
-                            error: Some(ResolutionMetadataError::InternalError),
-                        },
-                        ..Default::default()
-                    })
-            }
+            "web" => DidWeb::resolve(uri),
             _ => ResolutionResult {
                 resolution_metadata: ResolutionMetadata {
                     error: Some(ResolutionMetadataError::MethodNotSupported),
