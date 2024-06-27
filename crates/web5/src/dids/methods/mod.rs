@@ -1,53 +1,36 @@
-pub mod jwk;
-pub mod spruce_mappers;
-pub mod web;
+use crate::crypto::dsa::DsaError;
 
-use crate::dids::resolver::ResolutionResult;
-use crate::keys::{
-    key::KeyError,
-    key_manager::{KeyManager, KeyManagerError},
-};
-use std::{future::Future, sync::Arc};
+use super::{did::DidError, resolution::resolution_metadata::ResolutionMetadataError};
+use base64::DecodeError;
+use serde_json::Error as SerdeJsonError;
 
-/// Errors that can occur when working with DID methods.
+pub mod did_dht;
+pub mod did_web;
+
+pub mod did_jwk;
+
 #[derive(thiserror::Error, Debug)]
 pub enum MethodError {
     #[error(transparent)]
-    KeyManagerError(#[from] KeyManagerError),
-    #[error(transparent)]
-    KeyError(#[from] KeyError),
+    DidError(#[from] DidError),
     #[error("Failure creating DID: {0}")]
     DidCreationFailure(String),
+    #[error("Failure publishing DID: {0}")]
+    DidPublishingFailure(String),
+    #[error("serde json error {0}")]
+    SerdeJsonError(String),
+    #[error(transparent)]
+    DecodeError(#[from] DecodeError),
+    #[error(transparent)]
+    ResolutionError(#[from] ResolutionMetadataError),
+    #[error(transparent)]
+    DsaError(#[from] DsaError),
 }
 
-/// Resolve is a trait for DID methods, so that a DID Document can be resolved from a DID URI.
-pub trait Resolve {
-    /// Resolve a DID URI to a [`DidResolutionResult`], as specified in
-    /// [Resolving a DID](https://w3c-ccg.github.io/did-resolution/#resolving).
-    fn resolve(did_uri: &str) -> impl Future<Output = ResolutionResult>;
+impl From<SerdeJsonError> for MethodError {
+    fn from(err: SerdeJsonError) -> Self {
+        MethodError::SerdeJsonError(err.to_string())
+    }
 }
 
-/// Create is a trait for DID methods that can create DID methods. This is not enforced by the
-/// Method trait, but is a supported DID method that many methods.
-pub trait Create<O> {
-    /// Create a new DID document and return the identifier.
-    fn create(
-        key_manager: Arc<dyn KeyManager>,
-        opts: O,
-    ) -> Result<crate::dids::bearer::BearerDid, MethodError>;
-}
-
-/// Method is the trait for DID methods overall that can be resolved. Methods can also implement
-/// the Create trait to allow for DID creation, but it is not enforced by the Method trait.
-pub trait Method<T: Resolve = Self> {
-    /// The name of the implemented DID method (e.g. `jwk`).
-    ///
-    /// This is used to identify the [`DidMethod`] responsible for creating/resolving an arbitrary
-    /// DID URI.
-    ///
-    /// # Example
-    /// If a consumer wants to resolve a DID URI of `did:jwk:12345`, the method portion of the URI
-    /// (`jwk` in this example) is compared against each [`DidMethod`]'s `NAME` constant. If a match
-    /// is found, the corresponding [`DidMethod`] is used to resolve the DID URI.
-    const NAME: &'static str;
-}
+type Result<T> = std::result::Result<T, MethodError>;

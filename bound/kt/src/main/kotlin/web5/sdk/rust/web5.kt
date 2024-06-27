@@ -880,6 +880,8 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1002,9 +1004,9 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_presentationdefinition(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_presentationdefinition_new(`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_presentationdefinition_new(`jsonSerializedPresentationDefinition`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_presentationdefinition_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_presentationdefinition_get_json_serialized_presentation_definition(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_presentationdefinition_select_credentials(`ptr`: Pointer,`vcJwts`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -1044,7 +1046,9 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_verifiablecredential_sign(`ptr`: Pointer,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_verifiablecredential_sign(`ptr`: Pointer,`bearerDid`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_uniffi_fn_method_verifiablecredential_sign_with_signer(`ptr`: Pointer,`keyId`: RustBuffer.ByValue,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1212,7 +1216,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_keymanager_get_signer(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_presentationdefinition_get_data(
+    fun uniffi_web5_uniffi_checksum_method_presentationdefinition_get_json_serialized_presentation_definition(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials(
     ): Short
@@ -1229,6 +1233,8 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_verifiablecredential_sign(
+    ): Short
+    fun uniffi_web5_uniffi_checksum_method_verifiablecredential_sign_with_signer(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_verifier_verify(
     ): Short
@@ -1341,7 +1347,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_keymanager_get_signer() != 63327.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_get_data() != 37998.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_get_json_serialized_presentation_definition() != 4283.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials() != 8073.toShort()) {
@@ -1362,10 +1368,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_signer_sign() != 28944.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data() != 34047.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data() != 38023.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_sign() != 12797.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_sign() != 64250.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_sign_with_signer() != 49483.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_verifier_verify() != 38748.toShort()) {
@@ -1404,13 +1413,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new() != 16598.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 11443.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 2635.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_new() != 23836.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_new() != 10738.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_new() != 14384.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify() != 23441.toShort()) {
@@ -1606,6 +1615,46 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
     override fun write(value: ByteArray, buf: ByteBuffer) {
         buf.putInt(value.size)
         buf.put(value)
+    }
+}
+
+
+public object FfiConverterTimestamp: FfiConverterRustBuffer<java.time.Instant> {
+    override fun read(buf: ByteBuffer): java.time.Instant {
+        val seconds = buf.getLong()
+        // Type mismatch (should be u32) but we check for overflow/underflow below
+        val nanoseconds = buf.getInt().toLong()
+        if (nanoseconds < 0) {
+            throw java.time.DateTimeException("Instant nanoseconds exceed minimum or maximum supported by uniffi")
+        }
+        if (seconds >= 0) {
+            return java.time.Instant.EPOCH.plus(java.time.Duration.ofSeconds(seconds, nanoseconds))
+        } else {
+            return java.time.Instant.EPOCH.minus(java.time.Duration.ofSeconds(-seconds, nanoseconds))
+        }
+    }
+
+    // 8 bytes for seconds, 4 bytes for nanoseconds
+    override fun allocationSize(value: java.time.Instant) = 12UL
+
+    override fun write(value: java.time.Instant, buf: ByteBuffer) {
+        var epochOffset = java.time.Duration.between(java.time.Instant.EPOCH, value)
+
+        var sign = 1
+        if (epochOffset.isNegative()) {
+            sign = -1
+            epochOffset = epochOffset.negated()
+        }
+
+        if (epochOffset.nano < 0) {
+            // Java docs provide guarantee that nano will always be positive, so this should be impossible
+            // See: https://docs.oracle.com/javase/8/docs/api/java/time/Instant.html
+            throw IllegalArgumentException("Invalid timestamp, nano value must be non-negative")
+        }
+
+        buf.putLong(sign * epochOffset.seconds)
+        // Type mismatch (should be u32) but since values will always be between 0 and 999,999,999 it should be OK
+        buf.putInt(epochOffset.nano)
     }
 }
 
@@ -4285,7 +4334,7 @@ public object FfiConverterTypeKeyManager: FfiConverter<KeyManager, Pointer> {
 
 public interface PresentationDefinitionInterface {
     
-    fun `getData`(): PresentationDefinitionData
+    fun `getJsonSerializedPresentationDefinition`(): kotlin.String
     
     fun `selectCredentials`(`vcJwts`: List<kotlin.String>): List<kotlin.String>
     
@@ -4309,11 +4358,11 @@ open class PresentationDefinition: Disposable, AutoCloseable, PresentationDefini
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`data`: PresentationDefinitionData) :
+    constructor(`jsonSerializedPresentationDefinition`: kotlin.String) :
         this(
-    uniffiRustCall() { _status ->
+    uniffiRustCallWithError(RustCoreException) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_presentationdefinition_new(
-        FfiConverterTypePresentationDefinitionData.lower(`data`),_status)
+        FfiConverterString.lower(`jsonSerializedPresentationDefinition`),_status)
 }
     )
 
@@ -4380,11 +4429,12 @@ open class PresentationDefinition: Disposable, AutoCloseable, PresentationDefini
         }
     }
 
-    override fun `getData`(): PresentationDefinitionData {
-            return FfiConverterTypePresentationDefinitionData.lift(
+    
+    @Throws(RustCoreException::class)override fun `getJsonSerializedPresentationDefinition`(): kotlin.String {
+            return FfiConverterString.lift(
     callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_presentationdefinition_get_data(
+    uniffiRustCallWithError(RustCoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_presentationdefinition_get_json_serialized_presentation_definition(
         it, _status)
 }
     }
@@ -5284,7 +5334,9 @@ public interface VerifiableCredentialInterface {
     
     fun `getData`(): VerifiableCredentialData
     
-    fun `sign`(`signer`: Signer): kotlin.String
+    fun `sign`(`bearerDid`: BearerDid): kotlin.String
+    
+    fun `signWithSigner`(`keyId`: kotlin.String, `signer`: Signer): kotlin.String
     
     companion object
 }
@@ -5308,7 +5360,7 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
     }
     constructor(`data`: VerifiableCredentialData) :
         this(
-    uniffiRustCall() { _status ->
+    uniffiRustCallWithError(RustCoreException) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_new(
         FfiConverterTypeVerifiableCredentialData.lower(`data`),_status)
 }
@@ -5377,10 +5429,11 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
         }
     }
 
-    override fun `getData`(): VerifiableCredentialData {
+    
+    @Throws(RustCoreException::class)override fun `getData`(): VerifiableCredentialData {
             return FfiConverterTypeVerifiableCredentialData.lift(
     callWithPointer {
-    uniffiRustCall() { _status ->
+    uniffiRustCallWithError(RustCoreException) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(
         it, _status)
 }
@@ -5390,12 +5443,25 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
     
 
     
-    @Throws(RustCoreException::class)override fun `sign`(`signer`: Signer): kotlin.String {
+    @Throws(RustCoreException::class)override fun `sign`(`bearerDid`: BearerDid): kotlin.String {
             return FfiConverterString.lift(
     callWithPointer {
     uniffiRustCallWithError(RustCoreException) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_sign(
-        it, FfiConverterTypeSigner.lower(`signer`),_status)
+        it, FfiConverterTypeBearerDid.lower(`bearerDid`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    @Throws(RustCoreException::class)override fun `signWithSigner`(`keyId`: kotlin.String, `signer`: Signer): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(RustCoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_sign_with_signer(
+        it, FfiConverterString.lower(`keyId`),FfiConverterTypeSigner.lower(`signer`),_status)
 }
     }
     )
@@ -5735,60 +5801,6 @@ public object FfiConverterTypeBearerDidData: FfiConverterRustBuffer<BearerDidDat
 
 
 
-data class ConstraintsData (
-    var `fields`: List<FieldData>
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeConstraintsData: FfiConverterRustBuffer<ConstraintsData> {
-    override fun read(buf: ByteBuffer): ConstraintsData {
-        return ConstraintsData(
-            FfiConverterSequenceTypeFieldData.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: ConstraintsData) = (
-            FfiConverterSequenceTypeFieldData.allocationSize(value.`fields`)
-    )
-
-    override fun write(value: ConstraintsData, buf: ByteBuffer) {
-            FfiConverterSequenceTypeFieldData.write(value.`fields`, buf)
-    }
-}
-
-
-
-data class CredentialSubjectData (
-    var `id`: kotlin.String, 
-    var `params`: Map<kotlin.String, kotlin.String>?
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeCredentialSubjectData: FfiConverterRustBuffer<CredentialSubjectData> {
-    override fun read(buf: ByteBuffer): CredentialSubjectData {
-        return CredentialSubjectData(
-            FfiConverterString.read(buf),
-            FfiConverterOptionalMapStringString.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: CredentialSubjectData) = (
-            FfiConverterString.allocationSize(value.`id`) +
-            FfiConverterOptionalMapStringString.allocationSize(value.`params`)
-    )
-
-    override fun write(value: CredentialSubjectData, buf: ByteBuffer) {
-            FfiConverterString.write(value.`id`, buf)
-            FfiConverterOptionalMapStringString.write(value.`params`, buf)
-    }
-}
-
-
-
 data class DidData (
     var `uri`: kotlin.String, 
     var `url`: kotlin.String, 
@@ -6047,125 +6059,6 @@ public object FfiConverterTypeDocumentMetadataData: FfiConverterRustBuffer<Docum
 
 
 
-data class FieldData (
-    var `id`: kotlin.String?, 
-    var `name`: kotlin.String?, 
-    var `path`: List<kotlin.String>, 
-    var `purpose`: kotlin.String?, 
-    var `filter`: FilterData?, 
-    var `optional`: kotlin.Boolean?, 
-    var `predicate`: Optionality?
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeFieldData: FfiConverterRustBuffer<FieldData> {
-    override fun read(buf: ByteBuffer): FieldData {
-        return FieldData(
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterSequenceString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalTypeFilterData.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalTypeOptionality.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: FieldData) = (
-            FfiConverterOptionalString.allocationSize(value.`id`) +
-            FfiConverterOptionalString.allocationSize(value.`name`) +
-            FfiConverterSequenceString.allocationSize(value.`path`) +
-            FfiConverterOptionalString.allocationSize(value.`purpose`) +
-            FfiConverterOptionalTypeFilterData.allocationSize(value.`filter`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`optional`) +
-            FfiConverterOptionalTypeOptionality.allocationSize(value.`predicate`)
-    )
-
-    override fun write(value: FieldData, buf: ByteBuffer) {
-            FfiConverterOptionalString.write(value.`id`, buf)
-            FfiConverterOptionalString.write(value.`name`, buf)
-            FfiConverterSequenceString.write(value.`path`, buf)
-            FfiConverterOptionalString.write(value.`purpose`, buf)
-            FfiConverterOptionalTypeFilterData.write(value.`filter`, buf)
-            FfiConverterOptionalBoolean.write(value.`optional`, buf)
-            FfiConverterOptionalTypeOptionality.write(value.`predicate`, buf)
-    }
-}
-
-
-
-data class FilterData (
-    var `type`: kotlin.String?, 
-    var `pattern`: kotlin.String?, 
-    var `constValue`: kotlin.String?
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeFilterData: FfiConverterRustBuffer<FilterData> {
-    override fun read(buf: ByteBuffer): FilterData {
-        return FilterData(
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: FilterData) = (
-            FfiConverterOptionalString.allocationSize(value.`type`) +
-            FfiConverterOptionalString.allocationSize(value.`pattern`) +
-            FfiConverterOptionalString.allocationSize(value.`constValue`)
-    )
-
-    override fun write(value: FilterData, buf: ByteBuffer) {
-            FfiConverterOptionalString.write(value.`type`, buf)
-            FfiConverterOptionalString.write(value.`pattern`, buf)
-            FfiConverterOptionalString.write(value.`constValue`, buf)
-    }
-}
-
-
-
-data class InputDescriptorData (
-    var `id`: kotlin.String, 
-    var `name`: kotlin.String?, 
-    var `purpose`: kotlin.String?, 
-    var `constraints`: ConstraintsData
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeInputDescriptorData: FfiConverterRustBuffer<InputDescriptorData> {
-    override fun read(buf: ByteBuffer): InputDescriptorData {
-        return InputDescriptorData(
-            FfiConverterString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterTypeConstraintsData.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: InputDescriptorData) = (
-            FfiConverterString.allocationSize(value.`id`) +
-            FfiConverterOptionalString.allocationSize(value.`name`) +
-            FfiConverterOptionalString.allocationSize(value.`purpose`) +
-            FfiConverterTypeConstraintsData.allocationSize(value.`constraints`)
-    )
-
-    override fun write(value: InputDescriptorData, buf: ByteBuffer) {
-            FfiConverterString.write(value.`id`, buf)
-            FfiConverterOptionalString.write(value.`name`, buf)
-            FfiConverterOptionalString.write(value.`purpose`, buf)
-            FfiConverterTypeConstraintsData.write(value.`constraints`, buf)
-    }
-}
-
-
-
 data class JwkData (
     var `alg`: kotlin.String, 
     var `kty`: kotlin.String, 
@@ -6206,43 +6099,6 @@ public object FfiConverterTypeJwkData: FfiConverterRustBuffer<JwkData> {
             FfiConverterOptionalString.write(value.`d`, buf)
             FfiConverterString.write(value.`x`, buf)
             FfiConverterOptionalString.write(value.`y`, buf)
-    }
-}
-
-
-
-data class PresentationDefinitionData (
-    var `id`: kotlin.String, 
-    var `name`: kotlin.String?, 
-    var `purpose`: kotlin.String?, 
-    var `inputDescriptors`: List<InputDescriptorData>
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypePresentationDefinitionData: FfiConverterRustBuffer<PresentationDefinitionData> {
-    override fun read(buf: ByteBuffer): PresentationDefinitionData {
-        return PresentationDefinitionData(
-            FfiConverterString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterSequenceTypeInputDescriptorData.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: PresentationDefinitionData) = (
-            FfiConverterString.allocationSize(value.`id`) +
-            FfiConverterOptionalString.allocationSize(value.`name`) +
-            FfiConverterOptionalString.allocationSize(value.`purpose`) +
-            FfiConverterSequenceTypeInputDescriptorData.allocationSize(value.`inputDescriptors`)
-    )
-
-    override fun write(value: PresentationDefinitionData, buf: ByteBuffer) {
-            FfiConverterString.write(value.`id`, buf)
-            FfiConverterOptionalString.write(value.`name`, buf)
-            FfiConverterOptionalString.write(value.`purpose`, buf)
-            FfiConverterSequenceTypeInputDescriptorData.write(value.`inputDescriptors`, buf)
     }
 }
 
@@ -6343,10 +6199,10 @@ data class VerifiableCredentialData (
     var `context`: List<kotlin.String>, 
     var `id`: kotlin.String, 
     var `type`: List<kotlin.String>, 
-    var `issuer`: kotlin.String, 
-    var `issuanceDate`: kotlin.String, 
-    var `expirationDate`: kotlin.String?, 
-    var `credentialSubject`: CredentialSubjectData
+    var `jsonSerializedIssuer`: kotlin.String, 
+    var `issuanceDate`: java.time.Instant, 
+    var `expirationDate`: java.time.Instant?, 
+    var `jsonSerializedCredentialSubject`: kotlin.String
 ) {
     
     companion object
@@ -6359,9 +6215,9 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterString.read(buf),
             FfiConverterSequenceString.read(buf),
             FfiConverterString.read(buf),
+            FfiConverterTimestamp.read(buf),
+            FfiConverterOptionalTimestamp.read(buf),
             FfiConverterString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterTypeCredentialSubjectData.read(buf),
         )
     }
 
@@ -6369,20 +6225,20 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterSequenceString.allocationSize(value.`context`) +
             FfiConverterString.allocationSize(value.`id`) +
             FfiConverterSequenceString.allocationSize(value.`type`) +
-            FfiConverterString.allocationSize(value.`issuer`) +
-            FfiConverterString.allocationSize(value.`issuanceDate`) +
-            FfiConverterOptionalString.allocationSize(value.`expirationDate`) +
-            FfiConverterTypeCredentialSubjectData.allocationSize(value.`credentialSubject`)
+            FfiConverterString.allocationSize(value.`jsonSerializedIssuer`) +
+            FfiConverterTimestamp.allocationSize(value.`issuanceDate`) +
+            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`) +
+            FfiConverterString.allocationSize(value.`jsonSerializedCredentialSubject`)
     )
 
     override fun write(value: VerifiableCredentialData, buf: ByteBuffer) {
             FfiConverterSequenceString.write(value.`context`, buf)
             FfiConverterString.write(value.`id`, buf)
             FfiConverterSequenceString.write(value.`type`, buf)
-            FfiConverterString.write(value.`issuer`, buf)
-            FfiConverterString.write(value.`issuanceDate`, buf)
-            FfiConverterOptionalString.write(value.`expirationDate`, buf)
-            FfiConverterTypeCredentialSubjectData.write(value.`credentialSubject`, buf)
+            FfiConverterString.write(value.`jsonSerializedIssuer`, buf)
+            FfiConverterTimestamp.write(value.`issuanceDate`, buf)
+            FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
+            FfiConverterString.write(value.`jsonSerializedCredentialSubject`, buf)
     }
 }
 
@@ -6443,33 +6299,6 @@ public object FfiConverterTypeDsa: FfiConverterRustBuffer<Dsa> {
     override fun allocationSize(value: Dsa) = 4UL
 
     override fun write(value: Dsa, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-
-enum class Optionality {
-    
-    REQUIRED,
-    PREFERRED;
-    companion object
-}
-
-
-public object FfiConverterTypeOptionality: FfiConverterRustBuffer<Optionality> {
-    override fun read(buf: ByteBuffer) = try {
-        Optionality.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: Optionality) = 4UL
-
-    override fun write(value: Optionality, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
@@ -6569,6 +6398,35 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
 
 
 
+public object FfiConverterOptionalTimestamp: FfiConverterRustBuffer<java.time.Instant?> {
+    override fun read(buf: ByteBuffer): java.time.Instant? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTimestamp.read(buf)
+    }
+
+    override fun allocationSize(value: java.time.Instant?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTimestamp.allocationSize(value)
+        }
+    }
+
+    override fun write(value: java.time.Instant?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTimestamp.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeDocumentData: FfiConverterRustBuffer<DocumentData?> {
     override fun read(buf: ByteBuffer): DocumentData? {
         if (buf.get().toInt() == 0) {
@@ -6620,64 +6478,6 @@ public object FfiConverterOptionalTypeDocumentMetadataData: FfiConverterRustBuff
         } else {
             buf.put(1)
             FfiConverterTypeDocumentMetadataData.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalTypeFilterData: FfiConverterRustBuffer<FilterData?> {
-    override fun read(buf: ByteBuffer): FilterData? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeFilterData.read(buf)
-    }
-
-    override fun allocationSize(value: FilterData?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeFilterData.allocationSize(value)
-        }
-    }
-
-    override fun write(value: FilterData?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeFilterData.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalTypeOptionality: FfiConverterRustBuffer<Optionality?> {
-    override fun read(buf: ByteBuffer): Optionality? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeOptionality.read(buf)
-    }
-
-    override fun allocationSize(value: Optionality?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeOptionality.allocationSize(value)
-        }
-    }
-
-    override fun write(value: Optionality?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeOptionality.write(value, buf)
         }
     }
 }
@@ -6844,56 +6644,6 @@ public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.Str
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterString.write(it, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterSequenceTypeFieldData: FfiConverterRustBuffer<List<FieldData>> {
-    override fun read(buf: ByteBuffer): List<FieldData> {
-        val len = buf.getInt()
-        return List<FieldData>(len) {
-            FfiConverterTypeFieldData.read(buf)
-        }
-    }
-
-    override fun allocationSize(value: List<FieldData>): ULong {
-        val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeFieldData.allocationSize(it) }.sum()
-        return sizeForLength + sizeForItems
-    }
-
-    override fun write(value: List<FieldData>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        value.iterator().forEach {
-            FfiConverterTypeFieldData.write(it, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterSequenceTypeInputDescriptorData: FfiConverterRustBuffer<List<InputDescriptorData>> {
-    override fun read(buf: ByteBuffer): List<InputDescriptorData> {
-        val len = buf.getInt()
-        return List<InputDescriptorData>(len) {
-            FfiConverterTypeInputDescriptorData.read(buf)
-        }
-    }
-
-    override fun allocationSize(value: List<InputDescriptorData>): ULong {
-        val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeInputDescriptorData.allocationSize(it) }.sum()
-        return sizeForLength + sizeForItems
-    }
-
-    override fun write(value: List<InputDescriptorData>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        value.iterator().forEach {
-            FfiConverterTypeInputDescriptorData.write(it, buf)
         }
     }
 }

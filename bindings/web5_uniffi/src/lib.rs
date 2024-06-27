@@ -5,7 +5,14 @@ use web5_uniffi_wrapper::{
             data::VerifiableCredential as VerifiableCredentialData, VerifiableCredential,
         },
     },
-    crypto::{in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager},
+    crypto::{
+        dsa::{
+            ed25519::{ed25519_generator_generate, Ed25519Signer, Ed25519Verifier},
+            Signer, Verifier,
+        },
+        in_memory_key_manager::InMemoryKeyManager,
+        key_manager::KeyManager,
+    },
     dids::{
         bearer_did::{BearerDid, BearerDidData},
         data_model::document::Document,
@@ -17,20 +24,11 @@ use web5_uniffi_wrapper::{
         },
         resolution::resolution_result::ResolutionResult,
     },
-    dsa::{
-        ed25519::{ed25519_generator_generate, Ed25519Signer, Ed25519Verifier},
-        Signer, Verifier,
-    },
     errors::RustCoreError,
 };
 
-use web5::apid::{
-    credentials::presentation_definition::{
-        Constraints as ConstraintsData, Field as FieldData, Filter as FilterData,
-        InputDescriptor as InputDescriptorData, Optionality,
-        PresentationDefinition as PresentationDefinitionData,
-    },
-    crypto::jwk::Jwk as JwkData,
+use web5::{
+    crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{
         data_model::{
             document::Document as DocumentData, service::Service as ServiceData,
@@ -49,7 +47,6 @@ use web5::apid::{
             resolution_result::ResolutionResult as ResolutionResultData,
         },
     },
-    dsa::Dsa,
 };
 
 uniffi::include_scaffolding!("web5");

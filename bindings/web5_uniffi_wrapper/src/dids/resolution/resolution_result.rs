@@ -1,4 +1,4 @@
-use web5::apid::dids::resolution::resolution_result::ResolutionResult as InnerResolutionResult;
+use web5::dids::resolution::resolution_result::ResolutionResult as InnerResolutionResult;
 
 pub struct ResolutionResult(pub InnerResolutionResult);
 

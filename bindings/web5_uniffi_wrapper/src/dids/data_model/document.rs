@@ -1,6 +1,6 @@
 use crate::errors::Result;
 use std::sync::Arc;
-use web5::apid::{crypto::jwk::Jwk, dids::data_model::document::Document as InnerDocument};
+use web5::{crypto::jwk::Jwk, dids::data_model::document::Document as InnerDocument};
 
 pub struct Document(pub InnerDocument);
 

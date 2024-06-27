@@ -1,5 +1,6 @@
-pub mod bearer;
-pub mod document;
-pub mod identifier;
+pub mod data_model;
 pub mod methods;
-pub mod resolver;
+pub mod resolution;
+
+pub mod bearer_did;
+pub mod did;

@@ -1,10 +1,12 @@
 use crate::{
-    crypto::key_manager::{KeyManager, OuterKeyManager},
-    dsa::{OuterSigner, Signer},
+    crypto::{
+        dsa::{OuterSigner, Signer},
+        key_manager::{KeyManager, OuterKeyManager},
+    },
     errors::Result,
 };
 use std::sync::Arc;
-use web5::apid::dids::{
+use web5::dids::{
     bearer_did::BearerDid as InnerBearerDid, data_model::document::Document, did::Did,
 };
 

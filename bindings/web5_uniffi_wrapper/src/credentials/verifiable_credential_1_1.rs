@@ -1,10 +1,10 @@
 use crate::{
+    crypto::dsa::{Signer, Verifier},
     dids::bearer_did::BearerDid,
-    dsa::{Signer, Verifier},
     errors::{Result, RustCoreError},
 };
 use std::sync::{Arc, RwLock};
-use web5::apid::credentials::verifiable_credential_1_1::VerifiableCredential as InnerVerifiableCredential;
+use web5::credentials::verifiable_credential_1_1::VerifiableCredential as InnerVerifiableCredential;
 
 pub struct VerifiableCredential(pub Arc<RwLock<InnerVerifiableCredential>>);
 

@@ -1,49 +1,54 @@
 package web5.sdk.vc.pex
 
-import web5.sdk.rust.ConstraintsData as RustCoreConstraintsData
-import web5.sdk.rust.FieldData as RustCoreFieldData
-import web5.sdk.rust.FilterData as RustCoreFilterData
-import web5.sdk.rust.Optionality as RustCoreOptionality
-import web5.sdk.rust.InputDescriptorData as RustCoreInputDescriptorData
-
+import com.fasterxml.jackson.annotation.JsonProperty
+import web5.sdk.Json
 import web5.sdk.rust.PresentationDefinition as RustCorePresentationDefinition
-import web5.sdk.rust.PresentationDefinitionData as RustCorePresentationDefinitionData
 
-typealias ConstraintsData = RustCoreConstraintsData
-typealias FieldData = RustCoreFieldData
-typealias FilterData = RustCoreFilterData
-typealias Optionality = RustCoreOptionality
-typealias InputDescriptor = RustCoreInputDescriptorData
-
-class PresentationDefinition {
-    val id: String
-    val name: String?
-    val purpose: String?
+data class PresentationDefinition(
+    val id: String,
+    val name: String?,
+    val purpose: String?,
+    @JsonProperty("input_descriptors")
     val inputDescriptors: List<InputDescriptor>
-
-    internal val rustCorePresentationDefinition: RustCorePresentationDefinition
-
-    constructor(id: String, name: String? = null, purpose: String? = null, inputDescriptors: List<InputDescriptor>) {
-        this.id = id
-        this.name = name
-        this.purpose = purpose
-        this.inputDescriptors = inputDescriptors
-
-        this.rustCorePresentationDefinition = RustCorePresentationDefinition(
-            RustCorePresentationDefinitionData(id, name, purpose, inputDescriptors)
-        )
-    }
-
-    constructor(rustCorePresentationDefinitionData: RustCorePresentationDefinitionData) {
-        this.id = rustCorePresentationDefinitionData.id
-        this.name = rustCorePresentationDefinitionData.name
-        this.purpose = rustCorePresentationDefinitionData.purpose
-        this.inputDescriptors = rustCorePresentationDefinitionData.inputDescriptors
-
-        this.rustCorePresentationDefinition = RustCorePresentationDefinition(rustCorePresentationDefinitionData)
-    }
+) {
+    internal val rustCorePresentationDefinition = RustCorePresentationDefinition(
+        Json.stringify(this)
+    )
 
     fun selectCredentials(vcJwts: List<String>): List<String> {
         return this.rustCorePresentationDefinition.selectCredentials(vcJwts)
     }
 }
+
+data class InputDescriptor(
+    val id: String,
+    val name: String? = null,
+    val purpose: String? = null,
+    val constraints: Constraints,
+)
+
+data class Constraints(
+    val fields: List<Field>
+)
+
+data class Field(
+    val id: String? = null,
+    val name: String? = null,
+    val path: List<String>,
+    val purpose: String? = null,
+    val filter: Filter? = null,
+    val optional: Boolean? = false,
+    val predicate: Optionality? = null
+)
+
+enum class Optionality {
+    Required,
+    Preferred
+}
+
+data class Filter(
+    val type: String? = null,
+    val pattern: String? = null,
+    val const: String? = null,
+    val contains: Filter? = null
+)
