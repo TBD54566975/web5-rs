@@ -22,13 +22,28 @@ pub enum DsaError {
     #[error("sign failure {0}")]
     SignFailure(String),
     #[error("Unsupported curve")]
-    UnsupportedCurve,
+    UnsupportedDsa,
 }
 
 type Result<T> = std::result::Result<T, DsaError>;
 
 pub enum Dsa {
     Ed25519,
+    #[cfg(test)]
+    Secp256k1,
+}
+
+impl std::str::FromStr for Dsa {
+    type Err = DsaError;
+
+    fn from_str(input: &str) -> std::result::Result<Self, DsaError> {
+        match input.to_ascii_lowercase().as_str() {
+            "ed25519" => Ok(Dsa::Ed25519),
+            #[cfg(test)]
+            "secp256k1" => Ok(Dsa::Secp256k1),
+            _ => Err(DsaError::UnsupportedDsa),
+        }
+    }
 }
 
 pub trait Signer: Send + Sync {

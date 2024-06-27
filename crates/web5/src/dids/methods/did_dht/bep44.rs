@@ -177,7 +177,7 @@ mod tests {
         let message = "Hello World".as_bytes();
 
         let error = Bep44Message::new(message, |_| -> Result<Vec<u8>, DsaError> {
-            Err(DsaError::UnsupportedCurve)
+            Err(DsaError::UnsupportedDsa)
         })
         .expect_err("Should have returned error for malformed signature");
 

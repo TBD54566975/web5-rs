@@ -7,7 +7,7 @@ use crate::{
     crypto::{
         dsa::{
             ed25519::{self, Ed25519Verifier},
-            DsaError, Signer,
+            Signer,
         },
         jwk::Jwk,
     },
@@ -27,24 +27,6 @@ pub mod document_packet;
 
 const JSON_WEB_KEY: &str = "JsonWebKey";
 const DEFAULT_RELAY: &str = "https://diddht.tbddev.org";
-
-// https://did-dht.com/registry/index.html##key-type-index
-pub(crate) enum KeyType {
-    Ed25519,
-    Secp256k1,
-}
-
-impl std::str::FromStr for KeyType {
-    type Err = DsaError;
-
-    fn from_str(input: &str) -> std::result::Result<Self, DsaError> {
-        match input.to_ascii_lowercase().as_str() {
-            "ed25519" => Ok(KeyType::Ed25519),
-            "secp256k1" => Ok(KeyType::Secp256k1),
-            _ => Err(DsaError::UnsupportedCurve),
-        }
-    }
-}
 
 fn create_identifier(identity_key_jwk: &Jwk) -> Result<String> {
     let pubkey_bytes = ed25519::public_jwk_extract_bytes(identity_key_jwk)?;

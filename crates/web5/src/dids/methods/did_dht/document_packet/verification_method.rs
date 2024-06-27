@@ -1,8 +1,10 @@
 use std::{collections::HashMap, str::FromStr};
 
+#[cfg(test)]
+use crate::crypto::dsa::secp256k1;
 use crate::{
-    crypto::dsa::{ed25519, secp256k1},
-    dids::{data_model::verification_method::VerificationMethod, methods::did_dht::KeyType},
+    crypto::dsa::{ed25519, Dsa},
+    dids::data_model::verification_method::VerificationMethod,
 };
 use base64::{engine::general_purpose, Engine as _};
 use simple_dns::{
@@ -72,26 +74,29 @@ impl VerificationMethod {
             "X25519" => return Err(
                 DocumentPacketError::PublicKeyJwk("Could not extract public key because curve is not yet supported".to_string()
             )),
-            _ => KeyType::from_str(&self.public_key_jwk.crv)
+            _ => Dsa::from_str(&self.public_key_jwk.crv)
                     .map_err(|_| DocumentPacketError::PublicKeyJwk(
                         "Curve not allowed for did:dht because it does not appear in the key type registry".to_string()
                     ))?
         };
 
         let key_type_idx = match curve {
-            KeyType::Ed25519 => '0',
-            KeyType::Secp256k1 => '1',
+            Dsa::Ed25519 => '0',
+            #[cfg(test)]
+            Dsa::Secp256k1 => '1',
         };
 
         let public_key_bytes = match curve {
-            KeyType::Ed25519 => ed25519::public_jwk_extract_bytes(&self.public_key_jwk)?,
-            KeyType::Secp256k1 => secp256k1::public_jwk_extract_bytes(&self.public_key_jwk)?,
+            Dsa::Ed25519 => ed25519::public_jwk_extract_bytes(&self.public_key_jwk)?,
+            #[cfg(test)]
+            Dsa::Secp256k1 => secp256k1::public_jwk_extract_bytes(&self.public_key_jwk)?,
         };
         let k = general_purpose::URL_SAFE_NO_PAD.encode(public_key_bytes);
 
         let default_alg = match curve {
-            KeyType::Secp256k1 => "ES256K",
-            KeyType::Ed25519 => "Ed25519",
+            Dsa::Ed25519 => "Ed25519",
+            #[cfg(test)]
+            Dsa::Secp256k1 => "ES256K",
         };
 
         let mut parts = vec![format!("t={}", key_type_idx), format!("k={}", k)];
@@ -122,8 +127,9 @@ impl VerificationMethod {
         let vm_rdata: VerificationMethodRdata = record_rdata_to_hash_map(record)?.try_into()?;
 
         let curve = match vm_rdata.t.as_str() {
-            "0" => KeyType::Ed25519,
-            "1" => KeyType::Secp256k1,
+            "0" => Dsa::Ed25519,
+            #[cfg(test)]
+            "1" => Dsa::Secp256k1,
             // TODO: support remaining key types in key type index registry https://did-dht.com/registry/index.html#key-type-index
             "2" => return Err(DocumentPacketError::PublicKeyJwk(
                 "Could not reconstitute public jwk from DNS record because curve is not yet supported".to_string()
@@ -144,8 +150,9 @@ impl VerificationMethod {
                 )
             })?;
         let mut public_key_jwk = match curve {
-            KeyType::Ed25519 => ed25519::public_jwk_from_bytes(&public_key_bytes)?,
-            KeyType::Secp256k1 => secp256k1::public_jwk_from_bytes(&public_key_bytes)?,
+            Dsa::Ed25519 => ed25519::public_jwk_from_bytes(&public_key_bytes)?,
+            #[cfg(test)]
+            Dsa::Secp256k1 => secp256k1::public_jwk_from_bytes(&public_key_bytes)?,
         };
         public_key_jwk.alg = if let Some(alg) = vm_rdata.a {
             alg
