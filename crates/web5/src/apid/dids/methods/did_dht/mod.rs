@@ -28,19 +28,8 @@ pub mod document_packet;
 const JSON_WEB_KEY: &str = "JsonWebKey";
 const DEFAULT_RELAY: &str = "https://diddht.tbddev.org";
 
-fn extract_ed25519_public_key(jwk: &Jwk) -> Result<Vec<u8>> {
-    let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
-    if decoded_x.len() != PUBLIC_KEY_LENGTH {
-        return Err(MethodError::DidCreationFailure(format!(
-            "Identity key JWK public key must have length {}",
-            PUBLIC_KEY_LENGTH
-        )));
-    }
-    Ok(decoded_x)
-}
-
 fn create_identifier(identity_key_jwk: &Jwk) -> Result<String> {
-    let pubkey_bytes = extract_ed25519_public_key(identity_key_jwk)?;
+    let pubkey_bytes = ed25519::extract_public_key(identity_key_jwk)?;
     let suffix = zbase32::encode_full_bytes(&pubkey_bytes);
     Ok(format!("did:dht:{}", suffix))
 }
@@ -53,8 +42,6 @@ pub struct DidDht {
 
 impl DidDht {
     pub fn from_identity_key(identity_key: Jwk) -> Result<Self> {
-        println!("DidDht::from_identity_key() called");
-
         if identity_key.crv != "Ed25519" {
             return Err(MethodError::DidCreationFailure(
                 "Identity key must use Ed25519".to_string(),
