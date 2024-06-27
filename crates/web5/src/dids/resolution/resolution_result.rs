@@ -2,7 +2,7 @@ use super::{document_metadata::DocumentMetadata, resolution_metadata::Resolution
 use crate::dids::{
     data_model::document::Document,
     did::Did,
-    methods::{did_dht::DidDht, did_jwk::DidJwk},
+    methods::{did_dht::DidDht, did_jwk::DidJwk, did_web::DidWeb},
     resolution::resolution_metadata::ResolutionMetadataError,
 };
 use serde::{Deserialize, Serialize};
@@ -31,6 +31,19 @@ impl ResolutionResult {
         match did.method.as_str() {
             "jwk" => DidJwk::resolve(uri),
             "dht" => DidDht::resolve(uri),
+            "web" => {
+                let rt = tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .unwrap();
+                rt.block_on(DidWeb::resolve(uri))
+                    .unwrap_or_else(|_| ResolutionResult {
+                        resolution_metadata: ResolutionMetadata {
+                            error: Some(ResolutionMetadataError::InternalError),
+                        },
+                        ..Default::default()
+                    })
+            }
             _ => ResolutionResult {
                 resolution_metadata: ResolutionMetadata {
                     error: Some(ResolutionMetadataError::MethodNotSupported),
@@ -52,5 +65,14 @@ mod tests {
 
         assert_eq!(None, resolution_result.resolution_metadata.error);
         assert_eq!(resolution_result.document.unwrap().id, did_uri.to_string());
+    }
+
+    #[test]
+    fn can_resolve_did_web() {
+        let did_uri = "did:web:tbd.website";
+        let resolution_result = ResolutionResult::new(did_uri);
+
+        // the did:web we host is currently invalid hehe https://www.tbd.website/.well-known/did.json
+        assert_eq!(Some(ResolutionMetadataError::RepresentationNotSupported), resolution_result.resolution_metadata.error);
     }
 }
