@@ -7,7 +7,6 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
-thiserror = { workspace = true }
 web5 = { path = "../../crates/web5" }
 uniffi = { version = "0.27.1", features = ["cli"] }
 web5_uniffi_wrapper = { path = "../web5_uniffi_wrapper" }
