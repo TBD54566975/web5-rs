@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
-use crate::dids::document::Service;
-
 use simple_dns::{
     rdata::{RData, TXT},
     Name, ResourceRecord,
 };
 
 use url::Url;
+
+use crate::apid::dids::data_model::service::Service;
 
 use super::{
     rdata_encoder::{get_rdata_txt_value, record_rdata_to_hash_map},

@@ -1,3 +1,5 @@
+use crate::apid::dsa::DsaError;
+
 use super::{did::DidError, resolution::resolution_metadata::ResolutionMetadataError};
 use base64::DecodeError;
 use serde_json::Error as SerdeJsonError;
@@ -13,12 +15,16 @@ pub enum MethodError {
     DidError(#[from] DidError),
     #[error("Failure creating DID: {0}")]
     DidCreationFailure(String),
+    #[error("Failure publishing DID: {0}")]
+    DidPublishingFailure(String),
     #[error("serde json error {0}")]
     SerdeJsonError(String),
     #[error(transparent)]
     DecodeError(#[from] DecodeError),
     #[error(transparent)]
     ResolutionError(#[from] ResolutionMetadataError),
+    #[error(transparent)]
+    DsaError(#[from] DsaError),
 }
 
 impl From<SerdeJsonError> for MethodError {

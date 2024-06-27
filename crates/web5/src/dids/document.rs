@@ -32,6 +32,14 @@ pub struct Document {
     pub service: Option<Vec<Service>>,
 }
 
+pub enum VerificationPurposes {
+    Authentication,
+    AssertionMethod,
+    CapabilityInvocation,
+    CapabilityDelegation,
+    KeyAgreement,
+}
+
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct VerificationMethod {
     pub id: String,

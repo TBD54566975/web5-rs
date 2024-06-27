@@ -1,6 +1,8 @@
 use super::{document_metadata::DocumentMetadata, resolution_metadata::ResolutionMetadata};
 use crate::apid::dids::{
-    data_model::document::Document, did::Did, methods::did_jwk::DidJwk,
+    data_model::document::Document,
+    did::Did,
+    methods::{did_dht::DidDht, did_jwk::DidJwk},
     resolution::resolution_metadata::ResolutionMetadataError,
 };
 use serde::{Deserialize, Serialize};
@@ -28,6 +30,7 @@ impl ResolutionResult {
 
         match did.method.as_str() {
             "jwk" => DidJwk::resolve(uri),
+            "dht" => DidDht::resolve(uri),
             _ => ResolutionResult {
                 resolution_metadata: ResolutionMetadata {
                     error: Some(ResolutionMetadataError::MethodNotSupported),

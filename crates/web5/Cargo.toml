@@ -21,7 +21,7 @@ jsonschema = { version = "0.18.0", default-features = false }
 k256 = { version = "0.13.3", features = ["ecdsa", "jwk"] }
 rand = { workspace = true }
 regex = "1.10.4"
-reqwest = { version = "0.12.4", features = ["json"] }
+reqwest = { version = "0.12.4", features = ["json", "blocking"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_with = { workspace = true }
@@ -33,6 +33,7 @@ ssi-jwk = "0.1.2"
 thiserror = { workspace = true }
 url = "2.5.0"
 uuid = { version = "1.8.0", features = ["v4"] }
+zbase32 = "0.1.2"
 
 [dev-dependencies]
 chrono = { workspace = true }

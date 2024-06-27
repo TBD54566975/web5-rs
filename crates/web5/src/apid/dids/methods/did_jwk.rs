@@ -67,8 +67,11 @@ impl DidJwk {
     pub fn resolve(uri: &str) -> ResolutionResult {
         let result: Result<ResolutionResult> = (|| {
             let identifier = Did::new(uri)?;
-            let decoded_jwk = general_purpose::URL_SAFE_NO_PAD.decode(identifier.id)?;
-            let public_jwk = serde_json::from_slice::<Jwk>(&decoded_jwk)?;
+            let decoded_jwk = general_purpose::URL_SAFE_NO_PAD
+                .decode(identifier.id)
+                .map_err(|_| ResolutionMetadataError::InvalidDid)?;
+            let public_jwk = serde_json::from_slice::<Jwk>(&decoded_jwk)
+                .map_err(|_| ResolutionMetadataError::InvalidDid)?;
 
             let kid = format!("{}#0", identifier.uri);
             let document = Document {
@@ -95,9 +98,12 @@ impl DidJwk {
 
         match result {
             Ok(resolution_result) => resolution_result,
-            Err(_) => ResolutionResult {
+            Err(err) => ResolutionResult {
                 resolution_metadata: ResolutionMetadata {
-                    error: Some(ResolutionMetadataError::InternalError),
+                    error: Some(match err {
+                        MethodError::ResolutionError(e) => e,
+                        _ => ResolutionMetadataError::InternalError,
+                    }),
                 },
                 ..Default::default()
             },

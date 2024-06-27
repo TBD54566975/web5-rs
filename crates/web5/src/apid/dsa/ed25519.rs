@@ -28,6 +28,45 @@ impl Ed25519Generator {
     }
 }
 
+pub(crate) fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
+    if public_key.len() != PUBLIC_KEY_LENGTH {
+        return Err(DsaError::PublicKeyFailure(format!(
+            "Public key has incorrect length {}",
+            PUBLIC_KEY_LENGTH
+        )));
+    }
+
+    Ok(Jwk {
+        alg: "EdDSA".to_string(),
+        kty: "OKP".to_string(),
+        crv: "Ed25519".to_string(),
+        x: general_purpose::URL_SAFE_NO_PAD.encode(public_key),
+        ..Default::default()
+    })
+}
+
+#[cfg(test)]
+pub fn to_public_jwk(jwk: &Jwk) -> Jwk {
+    Jwk {
+        alg: jwk.alg.clone(),
+        kty: jwk.kty.clone(),
+        crv: jwk.crv.clone(),
+        x: jwk.x.clone(),
+        y: jwk.y.clone(),
+        ..Default::default()
+    }
+}
+
+pub(crate) fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
+    let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
+
+    if decoded_x.len() != PUBLIC_KEY_LENGTH {
+        return Err(DsaError::InvalidKeyLength(PUBLIC_KEY_LENGTH.to_string()));
+    }
+
+    Ok(decoded_x)
+}
+
 #[derive(Clone)]
 pub struct Ed25519Signer {
     private_jwk: Jwk,
