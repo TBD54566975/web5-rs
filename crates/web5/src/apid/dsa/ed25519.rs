@@ -28,7 +28,7 @@ impl Ed25519Generator {
     }
 }
 
-pub(crate) fn from_public_key(public_key: &[u8]) -> Result<Jwk> {
+pub(crate) fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
     if public_key.len() != PUBLIC_KEY_LENGTH {
         return Err(DsaError::PublicKeyFailure(format!(
             "Public key has incorrect length {}",
@@ -57,7 +57,7 @@ pub fn to_public_jwk(jwk: &Jwk) -> Jwk {
     }
 }
 
-pub(crate) fn extract_public_key(jwk: &Jwk) -> Result<Vec<u8>> {
+pub(crate) fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
 
     if decoded_x.len() != PUBLIC_KEY_LENGTH {

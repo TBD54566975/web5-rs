@@ -27,7 +27,7 @@ const JSON_WEB_KEY: &str = "JsonWebKey";
 const DEFAULT_RELAY: &str = "https://diddht.tbddev.org";
 
 fn create_identifier(identity_key_jwk: &Jwk) -> Result<String> {
-    let pubkey_bytes = ed25519::extract_public_key(identity_key_jwk)?;
+    let pubkey_bytes = ed25519::public_jwk_extract_bytes(identity_key_jwk)?;
     let suffix = zbase32::encode_full_bytes(&pubkey_bytes);
     Ok(format!("did:dht:{}", suffix))
 }
@@ -128,7 +128,7 @@ impl DidDht {
             }
             let identity_key = zbase32::decode_full_bytes_str(&did.id)
                 .map_err(|_| ResolutionMetadataError::InvalidDid)?;
-            let identity_key = ed25519::from_public_key(&identity_key)
+            let identity_key = ed25519::public_jwk_from_bytes(&identity_key)
                 .map_err(|_| ResolutionMetadataError::InvalidDid)?;
 
             // construct http endpoint from gateway url and last part of did_uri

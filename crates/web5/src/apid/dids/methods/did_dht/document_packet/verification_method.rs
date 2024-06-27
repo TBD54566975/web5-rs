@@ -87,7 +87,7 @@ impl VerificationMethod {
         };
 
         let public_key_bytes = match curve {
-            Curve::Ed25519 => ed25519::extract_public_key(&self.public_key_jwk)?,
+            Curve::Ed25519 => ed25519::public_jwk_extract_bytes(&self.public_key_jwk)?,
             Curve::Secp256k1 => Secp256k1::extract_public_key(&self.public_key_jwk)?,
         };
         let k = general_purpose::URL_SAFE_NO_PAD.encode(public_key_bytes);
@@ -147,7 +147,7 @@ impl VerificationMethod {
                 )
             })?;
         let mut public_key_jwk = match curve {
-            Curve::Ed25519 => ed25519::from_public_key(&public_key_bytes)?,
+            Curve::Ed25519 => ed25519::public_jwk_from_bytes(&public_key_bytes)?,
             Curve::Secp256k1 => Secp256k1::from_public_key(&public_key_bytes)?,
         };
         public_key_jwk.alg = if let Some(alg) = vm_rdata.a {
