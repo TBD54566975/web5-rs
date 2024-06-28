@@ -2,7 +2,7 @@
 
 **Last Updated** May 30, 2024
 
-**Version** 1.0.0
+**Version** 1.1.0
 
 **[Custom DSL](./CUSTOM_DSL.md) Version**: 0.1.0
 
@@ -59,6 +59,9 @@
       - [Example: Update a `did:dht`](#example-update-a-diddht)
       - [Example: Resolve a `did:dht`](#example-resolve-a-diddht)
   - [`BearerDid`](#bearerdid)
+    - [Example: Instantiate from a `PortableDid`](#example-instantiate-from-a-portabledid)
+  - [`PortableDid`](#portabledid)
+    - [Example: Create a `PortableDid` via the `web5` CLI](#example-create-a-portabledid-via-the-web5-cli)
 
 > [!NOTE]
 > Refer to the [Custom DSL](./CUSTOM_DSL.md) for below syntax definitions.
@@ -682,9 +685,40 @@ CLASS BearerDid
   PUBLIC DATA did: Did
   PUBLIC DATA document: Document
   CONSTRUCTOR(uri: string, key_manager: KeyManager)
+  CONSTRUCTOR(portable_did: PortableDid)
   METHOD get_signer(): Signer
 ```
 
 > [!WARNING]
 >
 > We'll need to add support for the developer to select a VM other than defaulting to the first in the `verification_method` array; add `METHOD get_signer_by_kid(key_id: string): Signer`.
+
+### Example: Instantiate from a [`PortableDid`](#portabledid)
+
+```pseudocode!
+portable_did = JSON.parse(env.get("PORTABLE_DID"))
+bearer_did = new BearerDid(portable_did)
+```
+
+## `PortableDid`
+
+The `PortableDid` is a JSON serialized representation of a `BearerDid`.
+
+> [!WARNING]
+>
+> The `PortableDid` contains **serialized private key material** and it is therefore **NOT SAFE** for production environments; the `PortableDid` is primarily intended for usage in development & testing environments.
+
+```pseudocode!
+CLASS PortableDid
+  DATA MEMBER uri: string
+  DATA MEMBER private_jwks: []Jwk
+  DATA MEMBER document: Document
+  CONSTRUCTOR(json: string)
+```
+
+### Example: Create a [`PortableDid`](#portabledid) via the `web5` CLI
+
+```shell
+$> web5 did create dht --publish
+🚧
+```
