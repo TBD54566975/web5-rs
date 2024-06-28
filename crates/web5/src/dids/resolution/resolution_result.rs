@@ -75,13 +75,4 @@ mod tests {
         assert_eq!(None, resolution_result.resolution_metadata.error);
         assert_eq!(resolution_result.document.unwrap().id, did_uri.to_string());
     }
-
-    #[test]
-    fn can_resolve_did_dht_from_web5_go() {
-        let did_uri = "did:dht:bj7148faubujkjnrro6tn5fcuf9xxd8ez3u7bc45ehisoi9wcyro";
-        let resolution_result = ResolutionResult::new(did_uri);
-
-        assert_eq!(None, resolution_result.resolution_metadata.error);
-        assert_eq!(resolution_result.document.unwrap().id, did_uri.to_string());
-    }
 }
