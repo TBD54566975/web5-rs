@@ -11,15 +11,35 @@ use web5::{
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     Jwk {
-        #[arg(short, long)]
+        #[arg(long)]
         no_indent: bool,
-        #[arg(short, long)]
+        #[arg(long)]
         json_escape: bool,
     },
     Web {
         domain: String,
     },
-    Dht,
+    Dht {
+        #[arg(long)]
+        no_publish: bool,
+        #[arg(long)]
+        no_indent: bool,
+        #[arg(long)]
+        json_escape: bool,
+    },
+}
+
+fn print_portable_did(portable_did: PortableDid, no_indent: &bool, json_escape: &bool) {
+    let mut output_str = match no_indent {
+        true => serde_json::to_string(&portable_did).unwrap(),
+        false => serde_json::to_string_pretty(&portable_did).unwrap(),
+    };
+
+    if *json_escape {
+        output_str = output_str.replace("\"", "\\\"");
+    }
+
+    println!("{}", output_str);
 }
 
 impl Commands {
@@ -41,33 +61,33 @@ impl Commands {
                     private_jwks: vec![private_jwk],
                 };
 
-                let mut output_str = match no_indent {
-                    true => serde_json::to_string(&portable_did).unwrap(),
-                    false => serde_json::to_string_pretty(&portable_did).unwrap(),
-                };
-
-                if *json_escape {
-                    output_str = output_str.replace("\"", "\\\"");
-                }
-
-                println!("{}", output_str);
+                print_portable_did(portable_did, no_indent, json_escape);
             }
             Commands::Web { domain: _ } => {
                 println!("🚧 not currently supported 🚧");
             }
-            Commands::Dht => {
+            Commands::Dht {
+                no_publish,
+                no_indent,
+                json_escape,
+            } => {
                 let private_jwk = Ed25519Generator::generate();
                 let signer = Ed25519Signer::new(private_jwk.clone());
                 let mut identity_key = private_jwk.clone();
                 identity_key.d = None;
 
                 let did_dht = DidDht::from_identity_key(identity_key).unwrap();
-                did_dht.publish(Arc::new(signer)).unwrap();
+                if !no_publish {
+                    did_dht.publish(Arc::new(signer)).unwrap();
+                }
 
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&did_dht.document).unwrap()
-                );
+                let portable_did = PortableDid {
+                    did_uri: did_dht.did.uri,
+                    document: did_dht.document,
+                    private_jwks: vec![private_jwk],
+                };
+
+                print_portable_did(portable_did, no_indent, json_escape);
             }
         }
     }

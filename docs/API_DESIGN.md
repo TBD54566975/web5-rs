@@ -718,7 +718,61 @@ CLASS PortableDid
 
 ### Example: Create a [`PortableDid`](#portabledid) via the `web5` CLI
 
+> [!NOTE]
+>
+> Notice the `--no-indent` and `--json-escape` options for ease of use copy & paste.
+
 ```shell
-$> web5 did create dht --publish
-🚧
+rs on  main [$!] via 🦀 1.78.0
+➜ web5 did create dht -h
+Usage: web5 did create dht [OPTIONS]
+
+Options:
+      --no-publish
+      --no-indent
+      --json-escape
+  -h, --help         Print help
+
+rs on  main [$!] via 🦀 1.78.0
+➜ web5 did create dht
+{
+  "uri": "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry",
+  "document": {
+    "id": "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry",
+    "verificationMethod": [
+      {
+        "id": "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry#0",
+        "type": "JsonWebKey",
+        "controller": "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry",
+        "publicKeyJwk": {
+          "alg": "Ed25519",
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "0JmDpHt23UJCgXyQUleKwzw8CT4rVcIQRODqWrpfeUg"
+        }
+      }
+    ],
+    "authentication": [
+      "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry#0"
+    ],
+    "assertionMethod": [
+      "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry#0"
+    ],
+    "capabilityInvocation": [
+      "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry#0"
+    ],
+    "capabilityDelegation": [
+      "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry#0"
+    ]
+  },
+  "privateKeys": [
+    {
+      "alg": "Ed25519",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "d": "Kxk8IvhpNgBl965xtCm7l0ZHpSc4f02IhrOOPdG1jBY",
+      "x": "0JmDpHt23UJCgXyQUleKwzw8CT4rVcIQRODqWrpfeUg"
+    }
+  ]
+}
 ```
