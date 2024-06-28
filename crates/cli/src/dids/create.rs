@@ -36,7 +36,7 @@ fn print_portable_did(portable_did: PortableDid, no_indent: &bool, json_escape: 
     };
 
     if *json_escape {
-        output_str = output_str.replace("\"", "\\\"");
+        output_str = output_str.replace('"', "\\\"");
     }
 
     println!("{}", output_str);

@@ -132,7 +132,7 @@ impl Bep44Message {
                 "bep44 verification failure".to_string(),
             )));
         }
-        
+
         Ok(())
     }
 }

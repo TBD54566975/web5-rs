@@ -44,10 +44,7 @@ impl Commands {
                 no_indent,
                 json_escape,
             } => {
-                let portable_did = match portable_did {
-                    None => None,
-                    Some(p) => Some(PortableDid::new(p).unwrap()),
-                };
+                let portable_did = portable_did.as_ref().map(|p| PortableDid::new(p).unwrap());
                 let issuer = Issuer::String(match issuer {
                     Some(i) => i.to_string(),
                     None => match &portable_did {
@@ -67,7 +64,7 @@ impl Commands {
 
                 let now = SystemTime::now();
                 let vc = VerifiableCredential::new(
-                    format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
+                    format!("urn:vc:uuid:{0}", Uuid::new_v4()),
                     vec![BASE_CONTEXT.to_string()],
                     vec![BASE_TYPE.to_string()],
                     issuer,
@@ -85,7 +82,7 @@ impl Commands {
                 };
 
                 if *json_escape {
-                    output_str = output_str.replace("\"", "\\\"");
+                    output_str = output_str.replace('"', "\\\"");
                 }
 
                 println!("{}", output_str);
@@ -115,7 +112,7 @@ impl Commands {
                     };
 
                     if *json_escape {
-                        output_str = output_str.replace("\"", "\\\"");
+                        output_str = output_str.replace('"', "\\\"");
                     }
 
                     println!("{}", output_str);
