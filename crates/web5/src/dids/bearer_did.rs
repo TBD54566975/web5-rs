@@ -1,13 +1,16 @@
 use super::{
     data_model::{document::Document, DataModelError as DidDataModelError},
     did::{Did, DidError},
+    portable_did::PortableDid,
     resolution::{
         resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
     },
 };
 use crate::crypto::{
     dsa::Signer,
-    key_managers::{key_manager::KeyManager, KeyManagerError},
+    key_managers::{
+        in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager, KeyManagerError,
+    },
 };
 use std::sync::Arc;
 
@@ -50,6 +53,21 @@ impl BearerDid {
                 })
             }
         }
+    }
+
+    pub fn from_portable_did(portable_did: PortableDid) -> Result<Self> {
+        let did = Did::new(&portable_did.did_uri)?;
+
+        let key_manager = Arc::new(InMemoryKeyManager::new());
+        for private_jwk in portable_did.private_jwks {
+            key_manager.import_private_jwk(private_jwk)?;
+        }
+
+        Ok(Self {
+            did,
+            document: portable_did.document,
+            key_manager,
+        })
     }
 
     pub fn get_signer(&self, key_id: String) -> Result<Arc<dyn Signer>> {
