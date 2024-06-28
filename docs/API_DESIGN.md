@@ -105,6 +105,8 @@ INTERFACE KeyManager
 
 ### `InMemoryKeyManager`
 
+The `InMemoryKeyManager` manages private keys in working memory, and so therefore any production utilization of the instance may be exposed to memory safety vulnerabilities; the `InMemoryKeyManager` is primarily intended for development & testing environments. For cases wherein this is unacceptable, [`KeyManager`](#keymanager) & [`Signer`](#signer) are both polymorphic bases classes which can be implemented and utilized in the dependent areas.
+
 ```pseudocode!
 /// An encapsulation of key material stored in-memory.
 CLASS InMemoryKeyManager IMPLEMENTS KeyManager
