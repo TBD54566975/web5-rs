@@ -723,18 +723,9 @@ CLASS PortableDid
 > Notice the `--no-indent` and `--json-escape` options for ease of use copy & paste.
 
 ```shell
-rs on  main [$!] via 🦀 1.78.0
-➜ web5 did create dht -h
-Usage: web5 did create dht [OPTIONS]
+#/bin/bash
 
-Options:
-      --no-publish
-      --no-indent
-      --json-escape
-  -h, --help         Print help
-
-rs on  main [$!] via 🦀 1.78.0
-➜ web5 did create dht
+web5 did create dht
 {
   "uri": "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry",
   "document": {
