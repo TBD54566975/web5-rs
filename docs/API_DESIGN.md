@@ -6,6 +6,20 @@
 
 **[Custom DSL](./CUSTOM_DSL.md) Version**: 0.1.0
 
+- [Credentials](#credentials)
+  - [Verifiable Credentials (VCs)](#verifiable-credentials-vcs)
+    - [Data Model 1.1](#data-model-11)
+      - [`NamedIssuer`](#namedissuer)
+      - [`VerifiableCredential`](#verifiablecredential)
+        - [Example: Create a VC \& sign](#example-create-a-vc--sign)
+        - [Example: Verify a VC-JWT](#example-verify-a-vc-jwt)
+  - [Presentation Exchange (PEX)](#presentation-exchange-pex)
+    - [`PresentationDefinition`](#presentationdefinition)
+    - [`InputDescriptor`](#inputdescriptor)
+    - [`Constraints`](#constraints)
+    - [`Field`](#field)
+    - [`Optionality`](#optionality)
+    - [`Filter`](#filter)
 - [Crypto](#crypto)
   - [`Jwk`](#jwk)
   - [Key Managers](#key-managers)
@@ -45,29 +59,146 @@
       - [Example: Update a `did:dht`](#example-update-a-diddht)
       - [Example: Resolve a `did:dht`](#example-resolve-a-diddht)
   - [`BearerDid`](#bearerdid)
-- [Verifiable Credentials (VCs)](#verifiable-credentials-vcs)
-  - [Data Model 1.1](#data-model-11)
-    - [`NamedIssuer`](#namedissuer)
-    - [`VerifiableCredential`](#verifiablecredential)
-      - [Example: Create a VC \& sign](#example-create-a-vc--sign)
-      - [Example: Verify a VC-JWT](#example-verify-a-vc-jwt)
-- [Presentation Exchange (PEX)](#presentation-exchange-pex)
-  - [`PresentationDefinition`](#presentationdefinition)
-  - [`InputDescriptor`](#inputdescriptor)
-  - [`Constraints`](#constraints)
-  - [`Field`](#field)
-  - [`Optionality`](#optionality)
-  - [`Filter`](#filter)
 
 > [!NOTE]
 > Refer to the [Custom DSL](./CUSTOM_DSL.md) for below syntax definitions.
+
+# Credentials
+
+## Verifiable Credentials (VCs)
+
+### Data Model 1.1
+
+#### `NamedIssuer`
+
+```pseudocode!
+CLASS NamedIssuer
+  PUBLIC DATA id: string
+  PUBLIC DATA name: string
+```
+
+#### `VerifiableCredential`
+
+> [!WARNING]
+> The following is incomplete in that an `Object` is not currently supported in the Custom DSL; the matter of the `Object` below is a placeholder and expected to be completed in a subsequent version.
+
+> [!WARNING]
+> We need to consider default behaviors such as always including the base `@context` and `type`
+
+```pseudocode!
+CLASS VerifiableCredential
+  PUBLIC DATA @context: []string
+  PUBLIC DATA id: string
+  PUBLIC DATA type: []string
+  PUBLIC DATA issuer: string | NamedIssuer # 🚧 Multitype should be re-considered, perhaps should just be Object
+  PUBLIC DATA issuanceDate: string
+  PUBLIC DATA expirationDate: string?
+  PUBLIC DATA credentialSubject: Object  # 🚧 `Object` not supported 🚧
+  CONSTRUCTOR(context: []string, id: string, type: []string, issuer: string | NamedIssuer, issuanceDate: string, expirationDate: string?)
+  CONSTRUCTOR(vcjwt: string)
+  CONSTRUCTOR(vcjwt: string, verifier: Verifier)
+  METHOD sign(bearer_did: BearerDid): string
+  METHOD sign_with_signer(key_id: string, signer: Signer): string
+```
+
+> [!NOTE]
+>
+> `CONSTRUCTOR(vcjwt: string)` and `CONSTRUCTOR(vcjwt: string, verifier: Verifier)` both execute cryprographic verification and assume `vcjwt` is a compact serialized JWS wherein the `kid` JOSE Header is equal to a DID URI which can be dereferenced to fetch the [`publicKeyJwk`](./did.md#data-models).
+
+##### Example: Create a VC & sign
+
+```pseudocode!
+key_manager = new InMemoryKeyManager()
+public_jwk = key_manager.import_private_jwk(Ed25519Generator::generate())
+
+did_jwk = new DidJwk(public_jwk)
+
+context = ["https://www.w3.org/2018/credentials/v1"]
+id = "urn:vc:uuid:123456"
+type = ["VerifiableCredential"]
+issuer = did_jwk.did.uri
+issuance_date = DateTime.now()
+vc = new VerifiableCredential(context, id, type, issuer, issuance_date, null)
+
+signer = key_manager.get_signer(public_jwk)
+vcjwt = vc.sign(signer)
+```
+
+##### Example: Verify a VC-JWT
+
+```pseudocode!
+vcjwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOmUzMDc0OWVhLTg4YjctNDkwMi05ZTRlLWYwYjk1MTRjZmU1OSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTlc5Q1pGaE1OM1JEV0MxaVdtd3dOblU1V1dSU1dqQmFhbEpMTFVweFZXWmhaa1YzWjAwdFRHSm1heUo5IiwiaXNzdWFuY2VEYXRlIjoxNzE2MzEyNDU3LCJleHBpcmF0aW9uRGF0ZSI6MjM0NzQ2NDQ1NywiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lOVzlDWkZoTU4zUkRXQzFpV213d05uVTVXV1JTV2pCYWFsSkxMVXB4VldaaFprVjNaMDB0VEdKbWF5SjkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsImV4cCI6MjM0NzQ2NDQ1NywibmJmIjoxNzE2MzEyNDU3LCJqdGkiOiJ1cm46dmM6dXVpZDplMzA3NDllYS04OGI3LTQ5MDItOWU0ZS1mMGI5NTE0Y2ZlNTkifQ.a8ciqXyNgqttWPKl76CFwDTRvEoJEq5nndfM1UMkClvzhPOUWSUtE0wNHOxQFwUBBSbwozScBNe-dc-mWQFqAQ"
+
+vc = VerifiableCredential.verify(vcjwt)
+```
+
+## Presentation Exchange (PEX)
+
+### `PresentationDefinition` 
+
+```pseudocode!
+CLASS PresentationDefinition
+  PUBLIC DATA id: string
+  PUBLIC DATA name: string?
+  PUBLIC DATA purpose: string?
+  PUBLIC DATA input_descriptors: []InputDescriptor
+  METHOD select_credentials(vc_jwts: []string): []string
+```
+
+### `InputDescriptor` 
+
+```pseudocode!
+CLASS InputDescriptor
+  PUBLIC DATA id: string
+  PUBLIC DATA name: string?
+  PUBLIC DATA purpose: string?
+  PUBLIC DATA constraints: Constraints
+```
+
+### `Constraints`
+
+```pseudocode!
+CLASS Constraints
+  PUBLIC DATA fields: []Field
+```
+
+### `Field`
+
+```pseudocode!
+CLASS Field
+  PUBLIC DATA id: string?
+  PUBLIC DATA name: string?
+  PUBLIC DATA path: []string
+  PUBLIC DATA purpose: string?
+  PUBLIC DATA filter: Filter?
+  PUBLIC DATA optional: bool?
+  PUBLIC DATA predicate: Optionality?
+```
+
+### `Optionality`
+
+```pseudocode!
+ENUM Optionality
+  Required
+  Preferred
+```
+
+### `Filter`
+
+```pseudocode!
+CLASS Filter
+  PUBLIC DATA type: string?
+  PUBLIC DATA pattern: string?
+  PUBLIC DATA const_value: string?
+  PUBLIC DATA contains: Filter?
+```
 
 # Crypto
 
 ## `Jwk`
 
 > [!NOTE]
-> Public & private *key material* are currently strictly represented as [Jwk](#jwk-object-oriented-class), but as the requirement for additional representations (ex: CBOR) present themselves, key material will need to be disintermediated via a polymorphic base class such as `PublicKeyMaterial` (which would expose an instance method for `get_verifier_bytes()`) and `PrivateKeyMaterial` (which would expose instance methods for `to_public_key_material()` and `get_signer_bytes()`), both of which would implement `as_jwk()`, `as_cbor()` and any other concrete representations as instance methods.
+> Public & private *key material* are currently strictly represented as [Jwk](#jwk-object-oriented-class), but as the requirement for additional representations (ex: CBOR) present themselves, key material will need to be disintermediated via a polymorphic base class such as `PublicKeyMaterial` (which would expose an instance method for `get_verifier_bytes()`) and `PrivateKeyMaterial` (which would expose instance methods for `to_public_jwk_material()` and `get_signer_bytes()`), both of which would implement `as_jwk()`, `as_cbor()` and any other concrete representations as instance methods.
 
 ```pseudocode!
 /// Partial representation of a [JSON Web Key as per RFC7517](https://tools.ietf.org/html/rfc7517).
@@ -163,7 +294,7 @@ CLASS Ed25519Generator
 ```pseudocode!
 /// Implementation of [`Signer`](#signer) for Ed25519.
 CLASS Ed25519Signer IMPLEMENTS Signer
-  CONSTRUCTOR(private_key: Jwk)
+  CONSTRUCTOR(private_jwk: Jwk)
 
   /// Implementation of Signer's sign instance method for Ed25519.
   METHOD sign(payload: []byte): []byte
@@ -174,7 +305,7 @@ CLASS Ed25519Signer IMPLEMENTS Signer
 ```pseudocode!
 /// Implementation of [`Verifier`](#verifier) for Ed25519.
 CLASS Ed25519Verifier IMPLEMENTS Verifier
-  CONSTRUCTOR(public_key: Jwk)
+  CONSTRUCTOR(public_jwk: Jwk)
 
   /// Implementation of Verifier's dsa_verify instance method for Ed25519.
   METHOD verify(payload: []byte): bool
@@ -302,7 +433,7 @@ CLASS Document
   PUBLIC DATA service: []Service?
 
   /// Return the Jwk from the Verification Method with the matching key ID.
-  METHOD find_public_key_jwk(key_id: string): Jwk
+  METHOD find_public_jwk_jwk(key_id: string): Jwk
 ```
 
 ### `VerificationMethod`
@@ -355,13 +486,7 @@ CLASS ResolutionResult
   PUBLIC DATA resolution_metadata: ResolutionMetadata
 
   /// Resolve via a DID URI.
-  CONSTRUCTOR resolve(uri: string)
-```
-
-**Examples**
-
-```pseudocode!
-🚧
+  CONSTRUCTOR(uri: string)
 ```
 
 ### `ResolutionMetadataError`
@@ -425,7 +550,7 @@ CLASS DocumentMetadata
 CLASS DidJwk
   PUBLIC DATA did: Did
   PUBLIC DATA document: Document
-  CONSTRUCTOR(public_key: Jwk)
+  CONSTRUCTOR(public_jwk: Jwk)
   CONSTRUCTOR(uri: string)
   STATIC METHOD resolve(uri: string): ResolutionResult
 ```
@@ -434,8 +559,8 @@ CLASS DidJwk
 
 ```pseudocode!
 key_manager = new InMemoryKeyManager()
-public_key = key_manager.generate_key_material()
-did_jwk = new DidJwk(public_key)
+public_jwk = key_manager.import_private_jwk(Ed25519Generator::generate())
+did_jwk = new DidJwk(public_jwk)
 ```
 
 #### Example: Instantiate an existing `did:jwk`
@@ -494,9 +619,9 @@ CLASS DidDht
 
 ```pseudocode!
 key_manager = new InMemoryKeyManager()
-public_key = key_manager.generate_key_material()
-did_dht = new DidDht(public_key)
-signer = key_manager.get_signer(public_key)
+identity_key = key_manager.import_private_jwk(Ed25519Generator::generate())
+did_dht = new DidDht(identity_key)
+signer = key_manager.get_signer(identity_key)
 did_dht.publish(signer)
 ```
 
@@ -508,14 +633,14 @@ did_dht.publish(signer)
 
 ```pseudocode!
 key_manager = new InMemoryKeyManager()
-public_key = key_manager.generate_key_material()
-did_dht = new DidDht(public_key)
+identity_key = key_manager.import_private_jwk(Ed25519Generator::generate())
+did_dht = new DidDht(identity_key)
 
 /// Set the alsoKnownAs
 did_dht.document.alsoKnownAs = "did:example:efgh"
 /// Note: you could also add a verification method, set the controller etc.
 
-signer = key_manager.get_signer(public_key)
+signer = key_manager.get_signer(identity_key)
 did_dht.publish(signer)
 ```
 
@@ -537,8 +662,8 @@ did_dht.document.alsoKnownAs = "did:example:efgh"
 /// Note: you could also add a verification method, set the controller etc.
 
 key_manager = new InMemoryKeyManager()
-public_key = key_manager.import_private_jwk(private_key) /// assume private_key pre-exists, eg. read from env var
-signer = key_manager.get_signer(public_key)
+public_jwk = key_manager.import_private_jwk(private_jwk) /// assume private_jwk pre-exists, eg. read from env var
+signer = key_manager.get_signer(public_jwk)
 
 did_dht.publish(signer)
 ```
@@ -563,131 +688,3 @@ CLASS BearerDid
 > [!WARNING]
 >
 > We'll need to add support for the developer to select a VM other than defaulting to the first in the `verification_method` array; add `METHOD get_signer_by_kid(key_id: string): Signer`.
-
-# Verifiable Credentials (VCs)
-
-## Data Model 1.1
-
-### `NamedIssuer`
-
-```pseudocode!
-CLASS NamedIssuer
-  PUBLIC DATA id: string
-  PUBLIC DATA name: string
-```
-
-### `VerifiableCredential`
-
-> [!WARNING]
-> The following is incomplete in that an `Object` is not currently supported in the Custom DSL; the matter of the `Object` below is a placeholder and expected to be completed in a subsequent version.
-
-> [!WARNING]
-> We need to consider default behaviors such as always including the base `@context` and `type`
-
-```pseudocode!
-CLASS VerifiableCredential
-  PUBLIC DATA @context: []string
-  PUBLIC DATA id: string
-  PUBLIC DATA type: []string
-  PUBLIC DATA issuer: string | NamedIssuer # 🚧 Multitype should be re-considered, perhaps should just be Object
-  PUBLIC DATA issuanceDate: string
-  PUBLIC DATA expirationDate: string?
-  PUBLIC DATA credentialSubject: Object  # 🚧 `Object` not supported 🚧
-  CONSTRUCTOR(context: []string, id: string, type: []string, issuer: string | NamedIssuer, issuanceDate: string, expirationDate: string?)
-  CONSTRUCTOR(vcjwt: string)
-  CONSTRUCTOR(vcjwt: string, verifier: Verifier)
-  METHOD sign(bearer_did: BearerDid): string
-  METHOD sign_with_signer(key_id: string, signer: Signer): string
-```
-
-> [!NOTE]
->
-> `CONSTRUCTOR(vcjwt: string)` and `CONSTRUCTOR(vcjwt: string, verifier: Verifier)` both execute cryprographic verification and assume `vcjwt` is a compact serialized JWS wherein the `kid` JOSE Header is equal to a DID URI which can be dereferenced to fetch the [`publicKeyJwk`](./did.md#data-models).
-
-#### Example: Create a VC & sign
-
-```pseudocode!
-key_manager = new InMemoryKeyManager()
-public_key = key_manager.generate_key_material()
-
-did_jwk = new DidJwk(public_key)
-
-context = ["https://www.w3.org/2018/credentials/v1"]
-id = "urn:vc:uuid:123456"
-type = ["VerifiableCredential"]
-issuer = did_jwk.did.uri
-issuance_date = DateTime.now()
-vc = new VerifiableCredential(context, id, type, issuer, issuance_date, null)
-
-signer = key_manager.get_signer(public_key)
-vcjwt = vc.sign(signer)
-```
-
-#### Example: Verify a VC-JWT
-
-```pseudocode!
-vcjwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOmUzMDc0OWVhLTg4YjctNDkwMi05ZTRlLWYwYjk1MTRjZmU1OSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTlc5Q1pGaE1OM1JEV0MxaVdtd3dOblU1V1dSU1dqQmFhbEpMTFVweFZXWmhaa1YzWjAwdFRHSm1heUo5IiwiaXNzdWFuY2VEYXRlIjoxNzE2MzEyNDU3LCJleHBpcmF0aW9uRGF0ZSI6MjM0NzQ2NDQ1NywiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lOVzlDWkZoTU4zUkRXQzFpV213d05uVTVXV1JTV2pCYWFsSkxMVXB4VldaaFprVjNaMDB0VEdKbWF5SjkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsImV4cCI6MjM0NzQ2NDQ1NywibmJmIjoxNzE2MzEyNDU3LCJqdGkiOiJ1cm46dmM6dXVpZDplMzA3NDllYS04OGI3LTQ5MDItOWU0ZS1mMGI5NTE0Y2ZlNTkifQ.a8ciqXyNgqttWPKl76CFwDTRvEoJEq5nndfM1UMkClvzhPOUWSUtE0wNHOxQFwUBBSbwozScBNe-dc-mWQFqAQ"
-
-vc = VerifiableCredential.verify(vcjwt)
-```
-
-# Presentation Exchange (PEX)
-
-## `PresentationDefinition` 
-
-```pseudocode!
-CLASS PresentationDefinition
-  PUBLIC DATA id: string
-  PUBLIC DATA name: string?
-  PUBLIC DATA purpose: string?
-  PUBLIC DATA input_descriptors: []InputDescriptor
-  METHOD select_credentials(vc_jwts: []string): []string
-```
-
-## `InputDescriptor` 
-
-```pseudocode!
-CLASS InputDescriptor
-  PUBLIC DATA id: string
-  PUBLIC DATA name: string?
-  PUBLIC DATA purpose: string?
-  PUBLIC DATA constraints: Constraints
-```
-
-## `Constraints`
-
-```pseudocode!
-CLASS Constraints
-  PUBLIC DATA fields: []Field
-```
-
-## `Field`
-
-```pseudocode!
-CLASS Field
-  PUBLIC DATA id: string?
-  PUBLIC DATA name: string?
-  PUBLIC DATA path: []string
-  PUBLIC DATA purpose: string?
-  PUBLIC DATA filter: Filter?
-  PUBLIC DATA optional: bool?
-  PUBLIC DATA predicate: Optionality?
-```
-
-## `Optionality`
-
-```pseudocode!
-ENUM Optionality
-  Required
-  Preferred
-```
-
-## `Filter`
-
-```pseudocode!
-CLASS Filter
-  PUBLIC DATA type: string?
-  PUBLIC DATA pattern: string?
-  PUBLIC DATA const_value: string?
-  PUBLIC DATA contains: Filter?
-```
