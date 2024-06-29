@@ -13,7 +13,7 @@ impl DidWeb {
     pub async fn from_uri(uri: &str) -> Result<Self> {
         let did_web = InnerDidWeb::from_uri(uri)
             .await
-            .map_err(|e| Arc::new(e.into()))?;
+            ?;
         Ok(Self(did_web))
     }
 

@@ -15,4 +15,4 @@ pub enum KeyManagerError {
     KeyNotFound(String),
 }
 
-type Result<T> = std::result::Result<T, KeyManagerError>;
+pub type Result<T> = std::result::Result<T, KeyManagerError>;

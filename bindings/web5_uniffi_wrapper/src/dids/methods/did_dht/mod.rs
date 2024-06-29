@@ -1,5 +1,7 @@
 use crate::{
-    crypto::dsa::Signer, dids::resolution::resolution_result::ResolutionResult, errors::Result,
+    crypto::dsa::{Signer, ToInnerSigner},
+    dids::resolution::resolution_result::ResolutionResult,
+    errors::Result,
 };
 use std::sync::Arc;
 use web5::{crypto::jwk::Jwk, dids::methods::did_dht::DidDht as InnerDidDht};
@@ -13,25 +15,23 @@ pub fn did_dht_resolve(uri: &str) -> Result<Arc<ResolutionResult>> {
 
 impl DidDht {
     pub fn from_identity_key(public_key: Jwk) -> Result<Self> {
-        let did_dht = InnerDidDht::from_identity_key(public_key).map_err(|e| Arc::new(e.into()))?;
+        let did_dht = InnerDidDht::from_identity_key(public_key)?;
         Ok(Self(did_dht))
     }
 
     pub fn from_uri(uri: &str) -> Result<Self> {
-        let did_dht = InnerDidDht::from_uri(uri).map_err(|e| Arc::new(e.into()))?;
+        let did_dht = InnerDidDht::from_uri(uri)?;
         Ok(Self(did_dht))
     }
 
     pub fn publish(&self, signer: Arc<dyn Signer>) -> Result<()> {
-        self.0
-            .publish(signer.to_inner())
-            .map_err(|e| Arc::new(e.into()))
+        let inner_signer = Arc::new(ToInnerSigner(signer));
+        Ok(self.0.publish(inner_signer)?)
     }
 
     pub fn deactivate(&self, signer: Arc<dyn Signer>) -> Result<()> {
-        self.0
-            .deactivate(signer.to_inner())
-            .map_err(|e| Arc::new(e.into()))
+        let inner_signer = Arc::new(ToInnerSigner(signer));
+        Ok(self.0.deactivate(inner_signer)?)
     }
 
     pub fn get_data(&self) -> InnerDidDht {

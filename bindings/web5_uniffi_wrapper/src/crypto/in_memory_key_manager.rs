@@ -1,5 +1,5 @@
 use super::{
-    dsa::{OuterSigner, Signer},
+    dsa::{Signer, ToOuterSigner},
     key_manager::KeyManager,
 };
 use crate::errors::Result;
@@ -21,9 +21,7 @@ impl InMemoryKeyManager {
     }
 
     pub fn import_private_jwk(&self, private_key: Jwk) -> Result<Jwk> {
-        self.0
-            .import_private_jwk(private_key)
-            .map_err(|e| Arc::new(e.into()))
+        Ok(self.0.import_private_jwk(private_key)?)
     }
 
     pub fn get_as_key_manager(&self) -> Arc<dyn KeyManager> {
@@ -33,16 +31,9 @@ impl InMemoryKeyManager {
 
 impl KeyManager for InMemoryKeyManager {
     fn get_signer(&self, public_jwk: Jwk) -> Result<Arc<dyn Signer>> {
-        let signer = self
-            .0
-            .get_signer(public_jwk)
-            .map_err(|e| Arc::new(e.into()))?;
-        let outer_signer = OuterSigner(signer);
+        let signer = self.0.get_signer(public_jwk)?;
+        let outer_signer = ToOuterSigner(signer);
         Ok(Arc::new(outer_signer))
-    }
-
-    fn to_inner(&self) -> Arc<dyn InnerKeyManager> {
-        Arc::new(self.0.clone())
     }
 }
 

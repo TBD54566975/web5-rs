@@ -25,7 +25,7 @@ pub enum DsaError {
     UnsupportedDsa,
 }
 
-type Result<T> = std::result::Result<T, DsaError>;
+pub type Result<T> = std::result::Result<T, DsaError>;
 
 pub enum Dsa {
     Ed25519,
