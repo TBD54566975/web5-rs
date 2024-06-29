@@ -13,25 +13,23 @@ pub fn did_dht_resolve(uri: &str) -> Result<Arc<ResolutionResult>> {
 
 impl DidDht {
     pub fn from_identity_key(public_key: Jwk) -> Result<Self> {
-        let did_dht = InnerDidDht::from_identity_key(public_key).map_err(|e| Arc::new(e.into()))?;
+        let did_dht = InnerDidDht::from_identity_key(public_key)?;
         Ok(Self(did_dht))
     }
 
     pub fn from_uri(uri: &str) -> Result<Self> {
-        let did_dht = InnerDidDht::from_uri(uri).map_err(|e| Arc::new(e.into()))?;
+        let did_dht = InnerDidDht::from_uri(uri)?;
         Ok(Self(did_dht))
     }
 
     pub fn publish(&self, signer: Arc<dyn Signer>) -> Result<()> {
-        self.0
-            .publish(signer.to_inner())
-            .map_err(|e| Arc::new(e.into()))
+        self.0.publish(signer.to_inner())?;
+        Ok(())
     }
 
     pub fn deactivate(&self, signer: Arc<dyn Signer>) -> Result<()> {
-        self.0
-            .deactivate(signer.to_inner())
-            .map_err(|e| Arc::new(e.into()))
+        self.0.deactivate(signer.to_inner())?;
+        Ok(())
     }
 
     pub fn get_data(&self) -> InnerDidDht {

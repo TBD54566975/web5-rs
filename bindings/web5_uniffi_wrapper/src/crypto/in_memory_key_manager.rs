@@ -21,9 +21,9 @@ impl InMemoryKeyManager {
     }
 
     pub fn import_private_jwk(&self, private_key: Jwk) -> Result<Jwk> {
-        self.0
-            .import_private_jwk(private_key)
-            .map_err(|e| Arc::new(e.into()))
+        let public_jwk = self.0
+            .import_private_jwk(private_key)?;
+        Ok(public_jwk)
     }
 
     pub fn get_as_key_manager(&self) -> Arc<dyn KeyManager> {
@@ -36,7 +36,7 @@ impl KeyManager for InMemoryKeyManager {
         let signer = self
             .0
             .get_signer(public_jwk)
-            .map_err(|e| Arc::new(e.into()))?;
+            ?;
         let outer_signer = OuterSigner(signer);
         Ok(Arc::new(outer_signer))
     }

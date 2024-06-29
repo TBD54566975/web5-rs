@@ -26,7 +26,8 @@ impl Ed25519Signer {
 
 impl Signer for Ed25519Signer {
     fn sign(&self, payload: &[u8]) -> Result<Vec<u8>> {
-        self.0.sign(payload).map_err(|e| Arc::new(e.into()))
+        let signature = self.0.sign(payload)?;
+        Ok(signature)
     }
 
     fn to_inner(&self) -> Arc<dyn InnerSigner> {
@@ -44,9 +45,8 @@ impl Ed25519Verifier {
 
 impl Verifier for Ed25519Verifier {
     fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<bool> {
-        self.0
-            .verify(payload, signature)
-            .map_err(|e| Arc::new(e.into()))
+        let verified = self.0.verify(payload, signature)?;
+        Ok(verified)
     }
 
     fn to_inner(&self) -> Arc<dyn InnerVerifier> {

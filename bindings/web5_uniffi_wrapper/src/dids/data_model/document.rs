@@ -14,8 +14,7 @@ impl Document {
     }
 
     pub fn find_public_key_jwk(&self, key_id: String) -> Result<Jwk> {
-        self.0
-            .find_public_key_jwk(key_id)
-            .map_err(|e| Arc::new(e.into()))
+        let public_jwk = self.0.find_public_key_jwk(key_id)?;
+        Ok(public_jwk)
     }
 }

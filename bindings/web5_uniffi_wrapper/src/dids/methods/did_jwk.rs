@@ -11,12 +11,12 @@ pub fn did_jwk_resolve(uri: &str) -> Arc<ResolutionResult> {
 
 impl DidJwk {
     pub fn from_public_jwk(public_key: Jwk) -> Result<Self> {
-        let did_jwk = InnerDidJwk::from_public_jwk(public_key).map_err(|e| Arc::new(e.into()))?;
+        let did_jwk = InnerDidJwk::from_public_jwk(public_key)?;
         Ok(Self(did_jwk))
     }
 
     pub fn from_uri(uri: &str) -> Result<Self> {
-        let did_jwk = InnerDidJwk::from_uri(uri).map_err(|e| Arc::new(e.into()))?;
+        let did_jwk = InnerDidJwk::from_uri(uri)?;
         Ok(Self(did_jwk))
     }
 

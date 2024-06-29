@@ -21,7 +21,7 @@ pub struct BearerDid(pub InnerBearerDid);
 impl BearerDid {
     pub fn new(uri: &str, key_manager: Arc<dyn KeyManager>) -> Result<Self> {
         let inner =
-            InnerBearerDid::new(uri, key_manager.to_inner()).map_err(|e| Arc::new(e.into()))?;
+            InnerBearerDid::new(uri, key_manager.to_inner())?;
         Ok(Self(inner))
     }
 
@@ -36,7 +36,7 @@ impl BearerDid {
     }
 
     pub fn get_signer(&self, key_id: String) -> Result<Arc<dyn Signer>> {
-        let signer = self.0.get_signer(key_id).map_err(|e| Arc::new(e.into()))?;
+        let signer = self.0.get_signer(key_id)?;
         let outer_signer = OuterSigner(signer);
         Ok(Arc::new(outer_signer))
     }

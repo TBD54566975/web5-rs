@@ -13,7 +13,8 @@ pub struct OuterSigner(pub Arc<dyn InnerSigner>);
 
 impl Signer for OuterSigner {
     fn sign(&self, payload: &[u8]) -> Result<Vec<u8>> {
-        self.0.sign(payload).map_err(|e| Arc::new(e.into()))
+        let signature = self.0.sign(payload)?;
+        Ok(signature)
     }
 
     fn to_inner(&self) -> Arc<dyn InnerSigner> {

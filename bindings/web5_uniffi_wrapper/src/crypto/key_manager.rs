@@ -15,7 +15,7 @@ impl KeyManager for OuterKeyManager {
         let signer = self
             .0
             .get_signer(public_jwk)
-            .map_err(|e| Arc::new(e.into()))?;
+            ?;
         let outer_signer = OuterSigner(signer);
         Ok(Arc::new(outer_signer))
     }
