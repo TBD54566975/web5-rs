@@ -20,12 +20,19 @@ interface ExampleError2 {
   CaseB(u64 a, u64 b);
 };
 
+[Error]
+interface RustCoreErrorV2 {
+  Error(string type, string variant, string msg);
+};
+
 [Trait, WithForeign]
 interface ExampleForeignTrait {
   [Throws=ExampleError]
   void hello_world();
   [Throws=ExampleError2]
   void hello_world_2();
+  [Throws=RustCoreErrorV2]
+  void hello_world_3();
 };
 
 interface RustCoreError {

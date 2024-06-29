@@ -15,6 +15,10 @@ class Example : ExampleForeignTrait {
     override fun helloWorld2() {
         println("hello v2 from kt but inside of rust")
     }
+
+    override fun helloWorld3() {
+        println("hello v3 from kt but inside of rust")
+    }
 }
 
 class UniFFIForeignTests {

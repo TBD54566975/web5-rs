@@ -63,14 +63,26 @@ pub enum ExampleError2 {
     CaseB { a: u64, b: u64 },
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum RustCoreErrorV2 {
+    #[error("{msg}")]
+    Error {
+        r#type: String,
+        variant: String,
+        msg: String,
+    },
+}
+
 pub trait ExampleForeignTrait: Send + Sync {
     fn hello_world(&self) -> Result<(), ExampleError>;
     fn hello_world_2(&self) -> Result<(), ExampleError2>;
+    fn hello_world_3(&self) -> Result<(), RustCoreErrorV2>;
 }
 
 pub fn example_foreign_trait(ex: Arc<dyn ExampleForeignTrait>) {
     ex.hello_world().unwrap();
     ex.hello_world_2().unwrap();
+    ex.hello_world_3().unwrap();
 }
 
 uniffi::include_scaffolding!("web5");
