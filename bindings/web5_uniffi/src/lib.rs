@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use web5_uniffi_wrapper::{
     credentials::{
         presentation_definition::PresentationDefinition,
@@ -48,5 +50,13 @@ use web5::{
         },
     },
 };
+
+pub trait ExampleForeignTrait: Send + Sync {
+    fn hello_world(&self);
+}
+
+pub fn example_foreign_trait(ex: Arc<dyn ExampleForeignTrait>) {
+    ex.hello_world()
+}
 
 uniffi::include_scaffolding!("web5");

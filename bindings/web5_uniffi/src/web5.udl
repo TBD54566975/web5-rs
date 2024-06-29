@@ -6,6 +6,13 @@ namespace web5 {
   ResolutionResult did_web_resolve([ByRef] string uri);
   [Throws=RustCoreError]
   ResolutionResult did_dht_resolve([ByRef] string uri);
+
+  void example_foreign_trait(ExampleForeignTrait ex);
+};
+
+[Trait, WithForeign]
+interface ExampleForeignTrait {
+  void hello_world();
 };
 
 interface RustCoreError {
