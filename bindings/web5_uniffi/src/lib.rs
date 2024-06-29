@@ -79,10 +79,16 @@ pub trait ExampleForeignTrait: Send + Sync {
     fn hello_world_3(&self) -> Result<(), RustCoreErrorV2>;
 }
 
-pub fn example_foreign_trait(ex: Arc<dyn ExampleForeignTrait>) {
+pub fn example_foreign_trait(ex: Arc<dyn ExampleForeignTrait>) -> Result<(), RustCoreError> {
     ex.hello_world().unwrap();
     ex.hello_world_2().unwrap();
     ex.hello_world_3().unwrap();
+
+    Err(RustCoreError::Error {
+        r#type: "test-type".to_string(),
+        variant: "test-varient".to_string(),
+        msg: "test-msg".to_string(),
+    })
 }
 
 uniffi::include_scaffolding!("web5");
