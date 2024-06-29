@@ -15,10 +15,17 @@ enum ExampleError {
   "CaseA",
 };
 
+[Error]
+interface ExampleError2 {
+  CaseB(u64 a, u64 b);
+};
+
 [Trait, WithForeign]
 interface ExampleForeignTrait {
   [Throws=ExampleError]
   void hello_world();
+  [Throws=ExampleError2]
+  void hello_world_2();
 };
 
 interface RustCoreError {

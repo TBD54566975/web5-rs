@@ -644,6 +644,9 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 internal interface UniffiCallbackInterfaceExampleForeignTraitMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceExampleForeignTraitMethod1 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceKeyManagerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`publicJwk`: RustBuffer.ByValue,`uniffiOutReturn`: PointerByReference,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -653,18 +656,21 @@ internal interface UniffiCallbackInterfaceSignerMethod0 : com.sun.jna.Callback {
 internal interface UniffiCallbackInterfaceVerifierMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,`uniffiOutReturn`: ByteByReference,uniffiCallStatus: UniffiRustCallStatus,)
 }
-@Structure.FieldOrder("helloWorld", "uniffiFree")
+@Structure.FieldOrder("helloWorld", "helloWorld2", "uniffiFree")
 internal open class UniffiVTableCallbackInterfaceExampleForeignTrait(
     @JvmField internal var `helloWorld`: UniffiCallbackInterfaceExampleForeignTraitMethod0? = null,
+    @JvmField internal var `helloWorld2`: UniffiCallbackInterfaceExampleForeignTraitMethod1? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
 ) : Structure() {
     class UniffiByValue(
         `helloWorld`: UniffiCallbackInterfaceExampleForeignTraitMethod0? = null,
+        `helloWorld2`: UniffiCallbackInterfaceExampleForeignTraitMethod1? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceExampleForeignTrait(`helloWorld`,`uniffiFree`,), Structure.ByValue
+    ): UniffiVTableCallbackInterfaceExampleForeignTrait(`helloWorld`,`helloWorld2`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceExampleForeignTrait) {
         `helloWorld` = other.`helloWorld`
+        `helloWorld2` = other.`helloWorld2`
         `uniffiFree` = other.`uniffiFree`
     }
 
@@ -717,6 +723,8 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
     }
 
 }
+
+
 
 
 
@@ -1017,6 +1025,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_uniffi_fn_method_exampleforeigntrait_hello_world(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_web5_uniffi_fn_method_exampleforeigntrait_hello_world_2(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_web5_uniffi_fn_clone_inmemorykeymanager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_inmemorykeymanager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1249,6 +1259,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_exampleforeigntrait_hello_world(
     ): Short
+    fun uniffi_web5_uniffi_checksum_method_exampleforeigntrait_hello_world_2(
+    ): Short
     fun uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_as_key_manager(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer(
@@ -1380,6 +1392,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_exampleforeigntrait_hello_world() != 37571.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_method_exampleforeigntrait_hello_world_2() != 45097.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_as_key_manager() != 27709.toShort()) {
@@ -1572,6 +1587,26 @@ public object FfiConverterUByte: FfiConverter<UByte, Byte> {
 
     override fun write(value: UByte, buf: ByteBuffer) {
         buf.put(value.toByte())
+    }
+}
+
+public object FfiConverterULong: FfiConverter<ULong, Long> {
+    override fun lift(value: Long): ULong {
+        return value.toULong()
+    }
+
+    override fun read(buf: ByteBuffer): ULong {
+        return lift(buf.getLong())
+    }
+
+    override fun lower(value: ULong): Long {
+        return value.toLong()
+    }
+
+    override fun allocationSize(value: ULong) = 8UL
+
+    override fun write(value: ULong, buf: ByteBuffer) {
+        buf.putLong(value.toLong())
     }
 }
 
@@ -3881,6 +3916,8 @@ public interface ExampleForeignTrait {
     
     fun `helloWorld`()
     
+    fun `helloWorld2`()
+    
     companion object
 }
 
@@ -3978,6 +4015,18 @@ open class ExampleForeignTraitImpl: Disposable, AutoCloseable, ExampleForeignTra
     
 
     
+    @Throws(ExampleError2::class)override fun `helloWorld2`()
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(ExampleError2) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_exampleforeigntrait_hello_world_2(
+        it, _status)
+}
+    }
+    
+    
+
+    
 
     
     
@@ -4032,6 +4081,22 @@ internal object uniffiCallbackInterfaceExampleForeignTrait {
             )
         }
     }
+    internal object `helloWorld2`: UniffiCallbackInterfaceExampleForeignTraitMethod1 {
+        override fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeExampleForeignTrait.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`helloWorld2`(
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCallWithError(
+                uniffiCallStatus,
+                makeCall,
+                writeReturn,
+                { e: ExampleError2 -> FfiConverterTypeExampleError2.lower(e) }
+            )
+        }
+    }
 
     internal object uniffiFree: UniffiCallbackInterfaceFree {
         override fun callback(handle: Long) {
@@ -4041,6 +4106,7 @@ internal object uniffiCallbackInterfaceExampleForeignTrait {
 
     internal var vtable = UniffiVTableCallbackInterfaceExampleForeignTrait.UniffiByValue(
         `helloWorld`,
+        `helloWorld2`,
         uniffiFree,
     )
 
@@ -6683,6 +6749,67 @@ public object FfiConverterTypeExampleError : FfiConverterRustBuffer<ExampleExcep
         when(value) {
             is ExampleException.CaseA -> {
                 buf.putInt(1)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
+
+
+sealed class ExampleError2: Exception() {
+    
+    class CaseB(
+        
+        val `a`: kotlin.ULong, 
+        
+        val `b`: kotlin.ULong
+        ) : ExampleError2() {
+        override val message
+            get() = "a=${ `a` }, b=${ `b` }"
+    }
+    
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<ExampleError2> {
+        override fun lift(error_buf: RustBuffer.ByValue): ExampleError2 = FfiConverterTypeExampleError2.lift(error_buf)
+    }
+
+    
+}
+
+public object FfiConverterTypeExampleError2 : FfiConverterRustBuffer<ExampleError2> {
+    override fun read(buf: ByteBuffer): ExampleError2 {
+        
+
+        return when(buf.getInt()) {
+            1 -> ExampleError2.CaseB(
+                FfiConverterULong.read(buf),
+                FfiConverterULong.read(buf),
+                )
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: ExampleError2): ULong {
+        return when(value) {
+            is ExampleError2.CaseB -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterULong.allocationSize(value.`a`)
+                + FfiConverterULong.allocationSize(value.`b`)
+            )
+        }
+    }
+
+    override fun write(value: ExampleError2, buf: ByteBuffer) {
+        when(value) {
+            is ExampleError2.CaseB -> {
+                buf.putInt(1)
+                FfiConverterULong.write(value.`a`, buf)
+                FfiConverterULong.write(value.`b`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
