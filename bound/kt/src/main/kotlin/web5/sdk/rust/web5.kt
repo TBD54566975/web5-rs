@@ -1379,7 +1379,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_ed25519verifier_verify() != 2607.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_exampleforeigntrait_hello_world() != 9475.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_exampleforeigntrait_hello_world() != 37571.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_as_key_manager() != 27709.toShort()) {
@@ -3965,10 +3965,11 @@ open class ExampleForeignTraitImpl: Disposable, AutoCloseable, ExampleForeignTra
         }
     }
 
-    override fun `helloWorld`()
+    
+    @Throws(ExampleException::class)override fun `helloWorld`()
         = 
     callWithPointer {
-    uniffiRustCall() { _status ->
+    uniffiRustCallWithError(ExampleException) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_exampleforeigntrait_hello_world(
         it, _status)
 }
@@ -4023,7 +4024,12 @@ internal object uniffiCallbackInterfaceExampleForeignTrait {
                 )
             }
             val writeReturn = { _: Unit -> Unit }
-            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+            uniffiTraitInterfaceCallWithError(
+                uniffiCallStatus,
+                makeCall,
+                writeReturn,
+                { e: ExampleException -> FfiConverterTypeExampleError.lower(e) }
+            )
         }
     }
 
@@ -6644,6 +6650,45 @@ public object FfiConverterTypeDsa: FfiConverterRustBuffer<Dsa> {
 }
 
 
+
+
+
+
+
+sealed class ExampleException(message: String): Exception(message) {
+        
+        class CaseA(message: String) : ExampleException(message)
+        
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<ExampleException> {
+        override fun lift(error_buf: RustBuffer.ByValue): ExampleException = FfiConverterTypeExampleError.lift(error_buf)
+    }
+}
+
+public object FfiConverterTypeExampleError : FfiConverterRustBuffer<ExampleException> {
+    override fun read(buf: ByteBuffer): ExampleException {
+        
+            return when(buf.getInt()) {
+            1 -> ExampleException.CaseA(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: ExampleException): ULong {
+        return 4UL
+    }
+
+    override fun write(value: ExampleException, buf: ByteBuffer) {
+        when(value) {
+            is ExampleException.CaseA -> {
+                buf.putInt(1)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
 
 
 

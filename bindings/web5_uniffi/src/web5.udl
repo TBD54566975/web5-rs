@@ -10,8 +10,14 @@ namespace web5 {
   void example_foreign_trait(ExampleForeignTrait ex);
 };
 
+[Error]
+enum ExampleError {
+  "CaseA",
+};
+
 [Trait, WithForeign]
 interface ExampleForeignTrait {
+  [Throws=ExampleError]
   void hello_world();
 };
 

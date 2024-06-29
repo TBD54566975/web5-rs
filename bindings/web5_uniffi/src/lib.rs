@@ -51,12 +51,18 @@ use web5::{
     },
 };
 
+#[derive(thiserror::Error, Debug)]
+pub enum ExampleError {
+    #[error("case a error")]
+    CaseA,
+}
+
 pub trait ExampleForeignTrait: Send + Sync {
-    fn hello_world(&self);
+    fn hello_world(&self) -> Result<(), ExampleError>;
 }
 
 pub fn example_foreign_trait(ex: Arc<dyn ExampleForeignTrait>) {
-    ex.hello_world()
+    ex.hello_world().unwrap()
 }
 
 uniffi::include_scaffolding!("web5");
