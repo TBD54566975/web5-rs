@@ -20,7 +20,7 @@ pub struct ToInnerSigner(pub Arc<dyn Signer>);
 
 impl InnerSigner for ToInnerSigner {
     fn sign(&self, payload: &[u8]) -> web5::crypto::dsa::Result<Vec<u8>> {
-        let signature = self.0.sign(Vec::from(payload)).unwrap(); // 🚧 unwrap, need a .into() I think
+        let signature = self.0.sign(Vec::from(payload))?;
         Ok(signature)
     }
 }
@@ -33,10 +33,7 @@ pub struct ToInnerVerifier(pub Arc<dyn Verifier>);
 
 impl InnerVerifier for ToInnerVerifier {
     fn verify(&self, payload: &[u8], signature: &[u8]) -> web5::crypto::dsa::Result<bool> {
-        let verified = self
-            .0
-            .verify(Vec::from(payload), Vec::from(signature))
-            .unwrap(); // 🚧 unwrap, need a .into() I think
+        let verified = self.0.verify(Vec::from(payload), Vec::from(signature))?;
         Ok(verified)
     }
 }

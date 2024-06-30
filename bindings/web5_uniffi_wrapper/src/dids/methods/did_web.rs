@@ -11,9 +11,7 @@ pub async fn did_web_resolve(uri: &str) -> Result<Arc<ResolutionResult>> {
 
 impl DidWeb {
     pub async fn from_uri(uri: &str) -> Result<Self> {
-        let did_web = InnerDidWeb::from_uri(uri)
-            .await
-            ?;
+        let did_web = InnerDidWeb::from_uri(uri).await?;
         Ok(Self(did_web))
     }
 

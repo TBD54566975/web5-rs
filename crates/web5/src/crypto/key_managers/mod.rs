@@ -13,6 +13,14 @@ pub enum KeyManagerError {
     InternalKeyStoreError(String),
     #[error("key not found {0}")]
     KeyNotFound(String),
+    #[error("unknown error")]
+    Unknown,
+}
+
+impl Default for KeyManagerError {
+    fn default() -> Self {
+        Self::Unknown
+    }
 }
 
 pub type Result<T> = std::result::Result<T, KeyManagerError>;

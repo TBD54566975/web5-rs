@@ -1,4 +1,4 @@
-use super::dsa::{ToOuterSigner, Signer, ToInnerSigner};
+use super::dsa::{Signer, ToInnerSigner, ToOuterSigner};
 use crate::errors::Result;
 use std::sync::Arc;
 use web5::crypto::{jwk::Jwk, key_managers::key_manager::KeyManager as InnerKeyManager};
@@ -24,7 +24,7 @@ impl InnerKeyManager for ToInnerKeyManager {
         &self,
         public_jwk: Jwk,
     ) -> web5::crypto::key_managers::Result<Arc<dyn web5::crypto::dsa::Signer>> {
-        let outer_signer = self.0.get_signer(public_jwk).unwrap(); // 🚧 unwrap, need a .into() I think
+        let outer_signer = self.0.get_signer(public_jwk)?;
         let inner_signer = Arc::new(ToInnerSigner(outer_signer));
         Ok(inner_signer)
     }

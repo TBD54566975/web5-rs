@@ -1,6 +1,6 @@
 use crate::{
     crypto::{
-        dsa::{ToOuterSigner, Signer},
+        dsa::{Signer, ToOuterSigner},
         key_manager::{KeyManager, ToInnerKeyManager, ToOuterKeyManager},
     },
     errors::Result,
