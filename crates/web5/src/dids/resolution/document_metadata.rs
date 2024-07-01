@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct DocumentMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created: Option<String>,
