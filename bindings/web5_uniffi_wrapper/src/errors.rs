@@ -1,4 +1,5 @@
 use serde_json::Error as SerdeJsonError;
+use web5::dids::portable_did::PortableDidError;
 use std::sync::PoisonError;
 use std::{any::type_name, fmt::Debug};
 use thiserror::Error;
@@ -98,6 +99,12 @@ impl From<DsaError> for RustCoreError {
 
 impl From<DidError> for RustCoreError {
     fn from(error: DidError) -> Self {
+        RustCoreError::new(error)
+    }
+}
+
+impl From<PortableDidError> for RustCoreError {
+    fn from(error: PortableDidError) -> Self {
         RustCoreError::new(error)
     }
 }

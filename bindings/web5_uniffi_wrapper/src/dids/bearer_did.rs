@@ -10,6 +10,8 @@ use web5::dids::{
     bearer_did::BearerDid as InnerBearerDid, data_model::document::Document, did::Did,
 };
 
+use super::portable_did::PortableDid;
+
 pub struct BearerDidData {
     pub did: Did,
     pub document: Document,
@@ -23,6 +25,11 @@ impl BearerDid {
         let inner_key_manager = Arc::new(ToInnerKeyManager(key_manager));
         let inner = InnerBearerDid::new(uri, inner_key_manager)?;
         Ok(Self(inner))
+    }
+
+    pub fn from_portable_did(portable_did: Arc<PortableDid>) -> Result<Self> {
+        let inner_bearer_did = InnerBearerDid::from_portable_did(portable_did.get_data())?;
+        Ok(Self(inner_bearer_did))
     }
 
     pub fn get_data(&self) -> BearerDidData {
