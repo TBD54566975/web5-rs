@@ -1,7 +1,7 @@
 [workspace]
 members = [ 
-    "crates/cli", 
     "crates/web5", 
+    "crates/web5_cli", 
     "bindings/web5_uniffi", 
     "bindings/web5_uniffi_wrapper", 
 ]

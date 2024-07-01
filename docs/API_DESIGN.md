@@ -696,7 +696,7 @@ CLASS BearerDid
 ### Example: Instantiate from a [`PortableDid`](#portabledid)
 
 ```pseudocode!
-portable_did = JSON.parse(env.get("PORTABLE_DID"))
+portable_did = new PortableDid(env.get("PORTABLE_DID_JSON"))
 bearer_did = new BearerDid(portable_did)
 ```
 
