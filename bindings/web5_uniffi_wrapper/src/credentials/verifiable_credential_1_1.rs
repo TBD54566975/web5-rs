@@ -1,5 +1,5 @@
 use crate::{
-    crypto::dsa::{Signer, Verifier},
+    crypto::dsa::{Signer, ToInnerSigner, ToInnerVerifier, Verifier},
     dids::bearer_did::BearerDid,
     errors::{Result, RustCoreError},
 };
@@ -16,16 +16,15 @@ impl VerifiableCredential {
     }
 
     pub fn verify(vcjwt: &str) -> Result<Self> {
-        let inner_verifiable_credential =
-            InnerVerifiableCredential::verify(vcjwt).map_err(|e| Arc::new(e.into()))?;
+        let inner_verifiable_credential = InnerVerifiableCredential::verify(vcjwt)?;
 
         Ok(Self(Arc::new(RwLock::new(inner_verifiable_credential))))
     }
 
     pub fn verify_with_verifier(vcjwt: &str, verifier: Arc<dyn Verifier>) -> Result<Self> {
+        let inner_verifier = Arc::new(ToInnerVerifier(verifier));
         let inner_verifiable_credential =
-            InnerVerifiableCredential::verify_with_verifier(vcjwt, verifier.to_inner())
-                .map_err(|e| Arc::new(e.into()))?;
+            InnerVerifiableCredential::verify_with_verifier(vcjwt, inner_verifier)?;
 
         Ok(Self(Arc::new(RwLock::new(inner_verifiable_credential))))
     }
@@ -36,9 +35,7 @@ impl VerifiableCredential {
             .read()
             .map_err(|e| RustCoreError::from_poison_error(e, "RwLockReadError"))?;
 
-        inner_verifiable_credential
-            .sign(&bearer_did.0)
-            .map_err(|e| Arc::new(e.into()))
+        Ok(inner_verifiable_credential.sign(&bearer_did.0)?)
     }
 
     pub fn sign_with_signer(&self, key_id: &str, signer: Arc<dyn Signer>) -> Result<String> {
@@ -47,9 +44,8 @@ impl VerifiableCredential {
             .read()
             .map_err(|e| RustCoreError::from_poison_error(e, "RwLockReadError"))?;
 
-        inner_verifiable_credential
-            .sign_with_signer(key_id, signer.to_inner())
-            .map_err(|e| Arc::new(e.into()))
+        let inner_signer = Arc::new(ToInnerSigner(signer));
+        Ok(inner_verifiable_credential.sign_with_signer(key_id, inner_signer)?)
     }
 
     pub fn get_data(&self) -> Result<data::VerifiableCredential> {
@@ -83,14 +79,12 @@ pub mod data {
                 context: inner_verifiable_credential.context.clone(),
                 id: inner_verifiable_credential.id.clone(),
                 r#type: inner_verifiable_credential.r#type.clone(),
-                json_serialized_issuer: serde_json::to_string(&inner_verifiable_credential.issuer)
-                    .map_err(|e| Arc::new(e.into()))?,
+                json_serialized_issuer: serde_json::to_string(&inner_verifiable_credential.issuer)?,
                 issuance_date: inner_verifiable_credential.issuance_date,
                 expiration_date: inner_verifiable_credential.expiration_date,
                 json_serialized_credential_subject: serde_json::to_string(
                     &inner_verifiable_credential.credential_subject,
-                )
-                .map_err(|e| Arc::new(e.into()))?,
+                )?,
             })
         }
 
@@ -99,12 +93,10 @@ pub mod data {
                 context: self.context.clone(),
                 id: self.id.clone(),
                 r#type: self.r#type.clone(),
-                issuer: serde_json::from_str(&self.json_serialized_issuer)
-                    .map_err(|e| Arc::new(e.into()))?,
+                issuer: serde_json::from_str(&self.json_serialized_issuer)?,
                 issuance_date: self.issuance_date,
                 expiration_date: self.expiration_date,
-                credential_subject: serde_json::from_str(&self.json_serialized_credential_subject)
-                    .map_err(|e| Arc::new(e.into()))?,
+                credential_subject: serde_json::from_str(&self.json_serialized_credential_subject)?,
             })
         }
     }

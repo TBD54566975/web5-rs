@@ -1,5 +1,5 @@
 use serde_json::Error as SerdeJsonError;
-use std::sync::{Arc, PoisonError};
+use std::sync::PoisonError;
 use std::{any::type_name, fmt::Debug};
 use thiserror::Error;
 use web5::credentials::presentation_definition::PexError;
@@ -10,24 +10,25 @@ use web5::dids::bearer_did::BearerDidError;
 use web5::dids::data_model::DataModelError as DidDataModelError;
 use web5::dids::did::DidError;
 use web5::dids::methods::MethodError;
+use web5::dids::portable_did::PortableDidError;
 
 #[derive(Debug, Error)]
 pub enum RustCoreError {
-    #[error("{message}")]
+    #[error("{msg}")]
     Error {
         r#type: String,
         variant: String,
-        message: String,
+        msg: String,
     },
 }
 
 impl RustCoreError {
-    pub fn from_poison_error<T>(error: PoisonError<T>, error_type: &str) -> Arc<Self> {
-        Arc::new(RustCoreError::Error {
+    pub fn from_poison_error<T>(error: PoisonError<T>, error_type: &str) -> Self {
+        RustCoreError::Error {
             r#type: error_type.to_string(),
             variant: "PoisonError".to_string(),
-            message: error.to_string(),
-        })
+            msg: error.to_string(),
+        }
     }
 
     fn new<T>(error: T) -> Self
@@ -37,11 +38,11 @@ impl RustCoreError {
         Self::Error {
             r#type: type_of(&error).to_string(),
             variant: variant_name(&error),
-            message: error.to_string(),
+            msg: error.to_string(),
         }
     }
 
-    pub fn error_type(&self) -> String {
+    pub fn r#type(&self) -> String {
         match self {
             RustCoreError::Error {
                 r#type: error_type, ..
@@ -58,9 +59,9 @@ impl RustCoreError {
         }
     }
 
-    pub fn message(&self) -> String {
+    pub fn msg(&self) -> String {
         match self {
-            RustCoreError::Error { message, .. } => message.clone(),
+            RustCoreError::Error { msg, .. } => msg.clone(),
         }
     }
 }
@@ -73,8 +74,8 @@ fn variant_name<T>(error: &T) -> String
 where
     T: Debug,
 {
-    let message = format!("{:?}", error);
-    let variant_name = message.split('(').next().unwrap_or("UnknownVariant");
+    let msg = format!("{:?}", error);
+    let variant_name = msg.split('(').next().unwrap_or("UnknownVariant");
     variant_name.to_string()
 }
 
@@ -98,6 +99,12 @@ impl From<DsaError> for RustCoreError {
 
 impl From<DidError> for RustCoreError {
     fn from(error: DidError) -> Self {
+        RustCoreError::new(error)
+    }
+}
+
+impl From<PortableDidError> for RustCoreError {
+    fn from(error: PortableDidError) -> Self {
         RustCoreError::new(error)
     }
 }
@@ -138,4 +145,58 @@ impl From<SerdeJsonError> for RustCoreError {
     }
 }
 
-pub type Result<T> = std::result::Result<T, Arc<RustCoreError>>;
+impl From<RustCoreError> for KeyManagerError {
+    fn from(error: RustCoreError) -> Self {
+        let variant = error.variant();
+        let msg = error.msg();
+
+        if variant
+            == variant_name(&KeyManagerError::JwkError(JwkError::ThumbprintFailed(
+                String::default(),
+            )))
+        {
+            return KeyManagerError::JwkError(JwkError::ThumbprintFailed(msg.to_string()));
+        } else if variant == variant_name(&KeyManagerError::KeyGenerationFailed) {
+            return KeyManagerError::KeyGenerationFailed;
+        } else if variant
+            == variant_name(&KeyManagerError::InternalKeyStoreError(String::default()))
+        {
+            return KeyManagerError::InternalKeyStoreError(msg.to_string());
+        } else if variant == variant_name(&KeyManagerError::KeyNotFound(String::default())) {
+            return KeyManagerError::KeyNotFound(msg.to_string());
+        }
+
+        KeyManagerError::Unknown
+    }
+}
+
+impl From<RustCoreError> for DsaError {
+    fn from(error: RustCoreError) -> Self {
+        let variant = error.variant();
+        let msg = error.msg();
+
+        if variant == variant_name(&DsaError::MissingPrivateKey) {
+            return DsaError::MissingPrivateKey;
+        } else if variant == variant_name(&DsaError::DecodeError(String::default())) {
+            return DsaError::DecodeError(msg);
+        } else if variant == variant_name(&DsaError::InvalidKeyLength(String::default())) {
+            return DsaError::InvalidKeyLength(msg);
+        } else if variant == variant_name(&DsaError::InvalidSignatureLength(String::default())) {
+            return DsaError::InvalidSignatureLength(msg);
+        } else if variant == variant_name(&DsaError::PublicKeyFailure(String::default())) {
+            return DsaError::PublicKeyFailure(msg);
+        } else if variant == variant_name(&DsaError::PrivateKeyFailure(String::default())) {
+            return DsaError::PrivateKeyFailure(msg);
+        } else if variant == variant_name(&DsaError::VerificationFailure(String::default())) {
+            return DsaError::VerificationFailure(msg);
+        } else if variant == variant_name(&DsaError::SignFailure(String::default())) {
+            return DsaError::SignFailure(msg);
+        } else if variant == variant_name(&DsaError::UnsupportedDsa) {
+            return DsaError::UnsupportedDsa;
+        }
+
+        DsaError::Unknown
+    }
+}
+
+pub type Result<T> = std::result::Result<T, RustCoreError>;

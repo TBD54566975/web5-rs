@@ -8,10 +8,9 @@ namespace web5 {
   ResolutionResult did_dht_resolve([ByRef] string uri);
 };
 
+[Error]
 interface RustCoreError {
-  string error_type();
-  string variant();
-  string message();
+  Error(string type, string variant, string msg);
 };
 
 dictionary JwkData {
@@ -23,7 +22,7 @@ dictionary JwkData {
   string? y;
 };
 
-[Trait]
+[Trait, WithForeign]
 interface KeyManager {
   [Throws=RustCoreError]
   Signer get_signer(JwkData public_jwk);
@@ -42,28 +41,28 @@ enum Dsa {
   "Ed25519"
 };
 
-[Trait]
+[Trait, WithForeign]
 interface Signer {
   [Throws=RustCoreError]
-  bytes sign([ByRef] sequence<u8> payload);
+  bytes sign(bytes payload);
 };
 
-[Trait]
+[Trait, WithForeign]
 interface Verifier {
   [Throws=RustCoreError]
-  boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
+  boolean verify(bytes message, bytes signature);
 };
 
 interface Ed25519Signer {
   constructor(JwkData private_key);
   [Throws=RustCoreError]
-  bytes sign([ByRef] sequence<u8> payload);
+  bytes sign(bytes payload);
 };
 
 interface Ed25519Verifier {
   constructor(JwkData public_jwk);
   [Throws=RustCoreError]
-  boolean verify([ByRef] sequence<u8> message, [ByRef] sequence<u8> signature);
+  boolean verify(bytes message, bytes signature);
 };
 
 dictionary DidData {
@@ -194,6 +193,18 @@ interface DidDht {
   DidDhtData get_data();
 };
 
+dictionary PortableDidData {
+  string did_uri;
+  DocumentData document;
+  sequence<JwkData> private_jwks;
+};
+
+interface PortableDid {
+  [Throws=RustCoreError]
+  constructor([ByRef] string json);
+  PortableDidData get_data();
+};
+
 dictionary BearerDidData {
   DidData did;
   DocumentData document;
@@ -203,6 +214,8 @@ dictionary BearerDidData {
 interface BearerDid {
   [Throws=RustCoreError]
   constructor([ByRef] string uri, KeyManager key_manager);
+  [Throws=RustCoreError, Name=from_portable_did]
+  constructor(PortableDid portable_did);
   BearerDidData get_data();
   [Throws=RustCoreError]
   Signer get_signer(string key_id);

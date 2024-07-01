@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Document {
     pub id: String,
-    #[serde(rename = "@context")]
+    #[serde(rename = "@context", skip_serializing_if = "Option::is_none")]
     pub context: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub controller: Option<Vec<String>>,

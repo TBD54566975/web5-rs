@@ -22,6 +22,7 @@ use web5_uniffi_wrapper::{
             did_jwk::{did_jwk_resolve, DidJwk},
             did_web::{did_web_resolve, DidWeb},
         },
+        portable_did::PortableDid,
         resolution::resolution_result::ResolutionResult,
     },
     errors::RustCoreError,
@@ -39,6 +40,7 @@ use web5::{
             did_dht::DidDht as DidDhtData, did_jwk::DidJwk as DidJwkData,
             did_web::DidWeb as DidWebData,
         },
+        portable_did::PortableDid as PortableDidData,
         resolution::{
             document_metadata::DocumentMetadata as DocumentMetadataData,
             resolution_metadata::{

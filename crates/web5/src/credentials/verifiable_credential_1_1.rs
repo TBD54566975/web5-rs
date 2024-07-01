@@ -28,8 +28,8 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
-const BASE_TYPE: &str = "VerifiableCredential";
+pub const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
+pub const BASE_TYPE: &str = "VerifiableCredential";
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct NamedIssuer {

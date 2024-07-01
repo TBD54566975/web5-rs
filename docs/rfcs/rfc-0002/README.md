@@ -1,4 +1,4 @@
-# RFC-0001 Standard Web5 API Design (APID) Document v0.1.0 <!-- omit in toc -->
+# RFC-0002 Add `BearerDid` and `KeyManager` to (APID) Document v1.0.0 <!-- omit in toc -->
 
 - [Summary](#summary)
 - [Motivation](#motivation)
@@ -10,17 +10,15 @@
 
 # Summary
 
-🚧
+Addition of the concept of a `BearerDid` and a polymorphic base class for `KeyManager`.
 
 # Motivation
 
-🚧
+The concept of making available an abstraction which encapsulates DIDs w/ their associated key material enables the metadata associated across both to be bundled and portable into a single variable. DIDs are fundamentally a composition of key material, but [the DID Core spec](https://www.w3.org/TR/did-core/) makes no prescriptions with relations to key management, and so therefore the motivating factor of a `BearerDid` is to encapsulate [the DID Core spec](https://www.w3.org/TR/did-core/) plus key management.
 
-We need Bearer DIDs for tbDEX API.
+Also, we need Bearer DIDs for the tbDEX APID.
 
 # Detailed Design
-
-🚧
 
 Semantic version (semver) breaking change induced by:
 
@@ -35,12 +33,12 @@ Semantic version (semver) breaking change induced by:
 
 # Drawbacks
 
-🚧
+None.
 
 # Alternatives
 
-🚧
+None.
 
 # Prior Art
 
-🚧
+We have implemented `BearerDid`'s in various pre-existing implementations.

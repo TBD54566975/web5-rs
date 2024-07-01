@@ -2,7 +2,7 @@
 
 **Last Updated** May 30, 2024
 
-**Version** 1.0.0
+**Version** 1.1.0
 
 **[Custom DSL](./CUSTOM_DSL.md) Version**: 0.1.0
 
@@ -59,6 +59,9 @@
       - [Example: Update a `did:dht`](#example-update-a-diddht)
       - [Example: Resolve a `did:dht`](#example-resolve-a-diddht)
   - [`BearerDid`](#bearerdid)
+    - [Example: Instantiate from a `PortableDid`](#example-instantiate-from-a-portabledid)
+  - [`PortableDid`](#portabledid)
+    - [Example: Create a `PortableDid` via the `web5` CLI](#example-create-a-portabledid-via-the-web5-cli)
 
 > [!NOTE]
 > Refer to the [Custom DSL](./CUSTOM_DSL.md) for below syntax definitions.
@@ -260,7 +263,7 @@ ENUM Dsa
   Ed25519
 ```
 
-> We must add support for `Xd25519`, `secp256k1`, and `secp256r1` for [full did:dht conformance](https://did-dht.com/registry/index.html#key-type-index).
+> We must add support for `X25519`, `secp256k1`, and `secp256r1` for [full did:dht conformance](https://did-dht.com/registry/index.html#key-type-index).
 
 ### `Signer`
 
@@ -682,9 +685,85 @@ CLASS BearerDid
   PUBLIC DATA did: Did
   PUBLIC DATA document: Document
   CONSTRUCTOR(uri: string, key_manager: KeyManager)
+  CONSTRUCTOR(portable_did: PortableDid)
   METHOD get_signer(): Signer
 ```
 
 > [!WARNING]
 >
 > We'll need to add support for the developer to select a VM other than defaulting to the first in the `verification_method` array; add `METHOD get_signer_by_kid(key_id: string): Signer`.
+
+### Example: Instantiate from a [`PortableDid`](#portabledid)
+
+```pseudocode!
+portable_did = new PortableDid(env.get("PORTABLE_DID_JSON"))
+bearer_did = new BearerDid(portable_did)
+```
+
+## `PortableDid`
+
+The `PortableDid` is a JSON serialized representation of a `BearerDid`.
+
+> [!WARNING]
+>
+> The `PortableDid` contains **serialized private key material** and it is therefore **NOT SAFE** for production environments; the `PortableDid` is primarily intended for usage in development & testing environments.
+
+```pseudocode!
+CLASS PortableDid
+  DATA MEMBER uri: string
+  DATA MEMBER private_jwks: []Jwk
+  DATA MEMBER document: Document
+  CONSTRUCTOR(json: string)
+```
+
+### Example: Create a [`PortableDid`](#portabledid) via the `web5` CLI
+
+> [!NOTE]
+>
+> Notice the `--no-indent` and `--json-escape` options for ease of use copy & paste.
+
+```shell
+#/bin/bash
+
+web5 did create dht
+{
+  "uri": "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry",
+  "document": {
+    "id": "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry",
+    "verificationMethod": [
+      {
+        "id": "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry#0",
+        "type": "JsonWebKey",
+        "controller": "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry",
+        "publicKeyJwk": {
+          "alg": "Ed25519",
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "0JmDpHt23UJCgXyQUleKwzw8CT4rVcIQRODqWrpfeUg"
+        }
+      }
+    ],
+    "authentication": [
+      "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry#0"
+    ],
+    "assertionMethod": [
+      "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry#0"
+    ],
+    "capabilityInvocation": [
+      "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry#0"
+    ],
+    "capabilityDelegation": [
+      "did:dht:4nca8jd5q5qwrowbx1efrihkac6danj6fpkhrrnrhdifiq19xfry#0"
+    ]
+  },
+  "privateKeys": [
+    {
+      "alg": "Ed25519",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "d": "Kxk8IvhpNgBl965xtCm7l0ZHpSc4f02IhrOOPdG1jBY",
+      "x": "0JmDpHt23UJCgXyQUleKwzw8CT4rVcIQRODqWrpfeUg"
+    }
+  ]
+}
+```

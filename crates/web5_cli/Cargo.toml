@@ -1,0 +1,14 @@
+[package]
+name = "web5_cli"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+clap = { version = "4.5.7", features = ["derive"] }
+serde_json = { workspace = true }
+web5 = { path = "../web5" }
+uuid = { workspace = true }

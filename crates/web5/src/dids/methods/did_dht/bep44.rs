@@ -125,7 +125,13 @@ impl Bep44Message {
 
     pub fn verify(&self, verifier: &Ed25519Verifier) -> Result<(), Bep44EncodingError> {
         let signable = signable(self.seq, &self.v);
-        verifier.verify(&signable, &self.sig)?;
+        let is_verified = verifier.verify(&signable, &self.sig)?;
+
+        if !is_verified {
+            return Err(Bep44EncodingError::DsaError(DsaError::VerificationFailure(
+                "bep44 verification failure".to_string(),
+            )));
+        }
 
         Ok(())
     }
