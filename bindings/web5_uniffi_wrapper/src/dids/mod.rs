@@ -4,3 +4,4 @@ pub mod resolution;
 
 pub mod bearer_did;
 pub mod did;
+pub mod portable_did;

@@ -3,7 +3,7 @@ use crate::crypto::jwk::Jwk;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeJsonError;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct PortableDid {
     #[serde(rename = "uri")]
     pub did_uri: String,

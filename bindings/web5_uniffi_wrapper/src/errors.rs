@@ -10,6 +10,7 @@ use web5::dids::bearer_did::BearerDidError;
 use web5::dids::data_model::DataModelError as DidDataModelError;
 use web5::dids::did::DidError;
 use web5::dids::methods::MethodError;
+use web5::dids::portable_did::PortableDidError;
 
 #[derive(Debug, Error)]
 pub enum RustCoreError {
@@ -98,6 +99,12 @@ impl From<DsaError> for RustCoreError {
 
 impl From<DidError> for RustCoreError {
     fn from(error: DidError) -> Self {
+        RustCoreError::new(error)
+    }
+}
+
+impl From<PortableDidError> for RustCoreError {
+    fn from(error: PortableDidError) -> Self {
         RustCoreError::new(error)
     }
 }

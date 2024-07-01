@@ -193,6 +193,18 @@ interface DidDht {
   DidDhtData get_data();
 };
 
+dictionary PortableDidData {
+  string did_uri;
+  DocumentData document;
+  sequence<JwkData> private_jwks;
+};
+
+interface PortableDid {
+  [Throws=RustCoreError]
+  constructor([ByRef] string json);
+  PortableDidData get_data();
+};
+
 dictionary BearerDidData {
   DidData did;
   DocumentData document;
@@ -202,6 +214,8 @@ dictionary BearerDidData {
 interface BearerDid {
   [Throws=RustCoreError]
   constructor([ByRef] string uri, KeyManager key_manager);
+  [Throws=RustCoreError, Name=from_portable_did]
+  constructor(PortableDid portable_did);
   BearerDidData get_data();
   [Throws=RustCoreError]
   Signer get_signer(string key_id);
