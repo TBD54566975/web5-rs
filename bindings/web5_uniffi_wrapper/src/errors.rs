@@ -1,5 +1,4 @@
 use serde_json::Error as SerdeJsonError;
-use web5::dids::portable_did::PortableDidError;
 use std::sync::PoisonError;
 use std::{any::type_name, fmt::Debug};
 use thiserror::Error;
@@ -11,6 +10,7 @@ use web5::dids::bearer_did::BearerDidError;
 use web5::dids::data_model::DataModelError as DidDataModelError;
 use web5::dids::did::DidError;
 use web5::dids::methods::MethodError;
+use web5::dids::portable_did::PortableDidError;
 
 #[derive(Debug, Error)]
 pub enum RustCoreError {
