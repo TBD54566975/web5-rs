@@ -92,7 +92,6 @@ impl DidJwk {
                 // is not included in the DID Document. If the `use` value is "enc" then only the `keyAgreement`
                 // property is included in the DID Document.
                 // key_agreement: if public_jwk.use_.as_deref() != Some("sig") { Some(vec![kid.clone()]) } else { None },
-
                 ..Default::default()
             };
 
@@ -119,7 +118,15 @@ impl DidJwk {
 
 #[cfg(test)]
 mod tests {
-    use crate::{dids::{data_model::document::Document, resolution::{document_metadata::DocumentMetadata, resolution_metadata::ResolutionMetadata}}, test_helpers::TestVectorFile};
+    use crate::{
+        dids::{
+            data_model::document::Document,
+            resolution::{
+                document_metadata::DocumentMetadata, resolution_metadata::ResolutionMetadata,
+            },
+        },
+        test_helpers::TestVectorFile,
+    };
 
     #[derive(Debug, PartialEq, serde::Deserialize)]
     struct VectorOutput {
@@ -136,14 +143,24 @@ mod tests {
     #[test]
     fn test_web5_spec_did_jwk_test_vectors() {
         let path = "did_jwk/resolve.json";
-        let vectors: TestVectorFile<String, VectorOutput> =
-            TestVectorFile::load_from_path(path);
+        let vectors: TestVectorFile<String, VectorOutput> = TestVectorFile::load_from_path(path);
 
         for vector in vectors.vectors {
             let did_uri = vector.input;
             let resolution_result = super::DidJwk::resolve(&did_uri);
 
-            let all_none = vector.output.did_document_metadata.created.is_none() && vector.output.did_document_metadata.updated.is_none() && vector.output.did_document_metadata.deactivated.is_none() && vector.output.did_document_metadata.next_update.is_none() && vector.output.did_document_metadata.version_id.is_none() && vector.output.did_document_metadata.next_version_id.is_none() && vector.output.did_document_metadata.equivalent_id.is_none() && vector.output.did_document_metadata.canonical_id.is_none();
+            let all_none = vector.output.did_document_metadata.created.is_none()
+                && vector.output.did_document_metadata.updated.is_none()
+                && vector.output.did_document_metadata.deactivated.is_none()
+                && vector.output.did_document_metadata.next_update.is_none()
+                && vector.output.did_document_metadata.version_id.is_none()
+                && vector
+                    .output
+                    .did_document_metadata
+                    .next_version_id
+                    .is_none()
+                && vector.output.did_document_metadata.equivalent_id.is_none()
+                && vector.output.did_document_metadata.canonical_id.is_none();
 
             let vector_document_metadata = if all_none {
                 None
@@ -151,9 +168,18 @@ mod tests {
                 Some(vector.output.did_document_metadata.clone())
             };
 
-            assert_eq!(resolution_result.resolution_metadata, vector.output.did_resolution_metadata, "Resolution metadata does not match.");
-            assert_eq!(resolution_result.document, vector.output.did_document, "DID Document does not match.");
-            assert_eq!(resolution_result.document_metadata, vector_document_metadata, "Document metadata does not match.");
+            assert_eq!(
+                resolution_result.resolution_metadata, vector.output.did_resolution_metadata,
+                "Resolution metadata does not match."
+            );
+            assert_eq!(
+                resolution_result.document, vector.output.did_document,
+                "DID Document does not match."
+            );
+            assert_eq!(
+                resolution_result.document_metadata, vector_document_metadata,
+                "Document metadata does not match."
+            );
         }
     }
 }
