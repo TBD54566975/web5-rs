@@ -7,8 +7,8 @@ use base64::DecodeError;
 pub enum DsaError {
     #[error("missing required private key")]
     MissingPrivateKey,
-    #[error(transparent)]
-    DecodeError(#[from] DecodeError),
+    #[error("base64 decode error {0}")]
+    DecodeError(String),
     #[error("invalid key length {0}")]
     InvalidKeyLength(String),
     #[error("invalid signature length {0}")]
@@ -21,11 +21,19 @@ pub enum DsaError {
     VerificationFailure(String),
     #[error("sign failure {0}")]
     SignFailure(String),
-    #[error("Unsupported curve")]
+    #[error("unsupported curve")]
     UnsupportedDsa,
+    #[error("unknown error")]
+    Unknown,
 }
 
-type Result<T> = std::result::Result<T, DsaError>;
+impl From<DecodeError> for DsaError {
+    fn from(error: DecodeError) -> Self {
+        Self::DecodeError(error.to_string())
+    }
+}
+
+pub type Result<T> = std::result::Result<T, DsaError>;
 
 pub enum Dsa {
     Ed25519,

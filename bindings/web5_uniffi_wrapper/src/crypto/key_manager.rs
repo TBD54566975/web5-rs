@@ -1,26 +1,31 @@
-use super::dsa::{OuterSigner, Signer};
+use super::dsa::{Signer, ToInnerSigner, ToOuterSigner};
 use crate::errors::Result;
 use std::sync::Arc;
 use web5::crypto::{jwk::Jwk, key_managers::key_manager::KeyManager as InnerKeyManager};
 
 pub trait KeyManager: Send + Sync {
     fn get_signer(&self, public_jwk: Jwk) -> Result<Arc<dyn Signer>>;
-    fn to_inner(&self) -> Arc<dyn InnerKeyManager>;
 }
 
-pub struct OuterKeyManager(pub Arc<dyn InnerKeyManager>);
+pub struct ToOuterKeyManager(pub Arc<dyn InnerKeyManager>);
 
-impl KeyManager for OuterKeyManager {
+impl KeyManager for ToOuterKeyManager {
     fn get_signer(&self, public_jwk: Jwk) -> Result<Arc<dyn Signer>> {
-        let signer = self
-            .0
-            .get_signer(public_jwk)
-            .map_err(|e| Arc::new(e.into()))?;
-        let outer_signer = OuterSigner(signer);
+        let signer = self.0.get_signer(public_jwk)?;
+        let outer_signer = ToOuterSigner(signer);
         Ok(Arc::new(outer_signer))
     }
+}
 
-    fn to_inner(&self) -> Arc<dyn InnerKeyManager> {
-        self.0.clone()
+pub struct ToInnerKeyManager(pub Arc<dyn KeyManager>);
+
+impl InnerKeyManager for ToInnerKeyManager {
+    fn get_signer(
+        &self,
+        public_jwk: Jwk,
+    ) -> web5::crypto::key_managers::Result<Arc<dyn web5::crypto::dsa::Signer>> {
+        let outer_signer = self.0.get_signer(public_jwk)?;
+        let inner_signer = Arc::new(ToInnerSigner(outer_signer));
+        Ok(inner_signer)
     }
 }
