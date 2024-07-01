@@ -75,6 +75,7 @@ impl DidJwk {
 
             let kid = format!("{}#0", did.uri);
             let document = Document {
+                context: Some(vec!["https://www.w3.org/ns/did/v1".to_string()]),
                 id: did.uri.clone(),
                 verification_method: vec![VerificationMethod {
                     id: kid.clone(),
@@ -86,7 +87,12 @@ impl DidJwk {
                 authentication: Some(vec![kid.clone()]),
                 capability_invocation: Some(vec![kid.clone()]),
                 capability_delegation: Some(vec![kid.clone()]),
-                key_agreement: Some(vec![kid.clone()]),
+
+                // TODO: https://github.com/TBD54566975/web5-rs/issues/257 - If the JWK contains a `use` property with the value "sig" then the `keyAgreement` property
+                // is not included in the DID Document. If the `use` value is "enc" then only the `keyAgreement`
+                // property is included in the DID Document.
+                // key_agreement: if public_jwk.use_.as_deref() != Some("sig") { Some(vec![kid.clone()]) } else { None },
+
                 ..Default::default()
             };
 
@@ -107,6 +113,47 @@ impl DidJwk {
                 },
                 ..Default::default()
             },
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{dids::{data_model::document::Document, resolution::{document_metadata::DocumentMetadata, resolution_metadata::ResolutionMetadata}}, test_helpers::TestVectorFile};
+
+    #[derive(Debug, PartialEq, serde::Deserialize)]
+    struct VectorOutput {
+        #[serde(rename = "@context")]
+        context: String,
+        #[serde(rename = "didDocument")]
+        did_document: Option<Document>,
+        #[serde(rename = "didDocumentMetadata")]
+        did_document_metadata: DocumentMetadata,
+        #[serde(rename = "didResolutionMetadata")]
+        did_resolution_metadata: ResolutionMetadata,
+    }
+
+    #[test]
+    fn test_web5_spec_did_jwk_test_vectors() {
+        let path = "did_jwk/resolve.json";
+        let vectors: TestVectorFile<String, VectorOutput> =
+            TestVectorFile::load_from_path(path);
+
+        for vector in vectors.vectors {
+            let did_uri = vector.input;
+            let resolution_result = super::DidJwk::resolve(&did_uri);
+
+            let all_none = vector.output.did_document_metadata.created.is_none() && vector.output.did_document_metadata.updated.is_none() && vector.output.did_document_metadata.deactivated.is_none() && vector.output.did_document_metadata.next_update.is_none() && vector.output.did_document_metadata.version_id.is_none() && vector.output.did_document_metadata.next_version_id.is_none() && vector.output.did_document_metadata.equivalent_id.is_none() && vector.output.did_document_metadata.canonical_id.is_none();
+
+            let vector_document_metadata = if all_none {
+                None
+            } else {
+                Some(vector.output.did_document_metadata.clone())
+            };
+
+            assert_eq!(resolution_result.resolution_metadata, vector.output.did_resolution_metadata, "Resolution metadata does not match.");
+            assert_eq!(resolution_result.document, vector.output.did_document, "DID Document does not match.");
+            assert_eq!(resolution_result.document_metadata, vector_document_metadata, "Document metadata does not match.");
         }
     }
 }

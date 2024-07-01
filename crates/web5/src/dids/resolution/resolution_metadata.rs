@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Default, Deserialize, Serialize)]
 pub struct ResolutionMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<ResolutionMetadataError>,
