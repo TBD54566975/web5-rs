@@ -20,7 +20,7 @@ impl Secp256k1Generator {
         let y_bytes = &bytes[33..65];
 
         Jwk {
-            alg: "ES256K".to_string(),
+            alg: Some("ES256K".to_string()),
             kty: "EC".to_string(),
             crv: "secp256k1".to_string(),
             x: general_purpose::URL_SAFE_NO_PAD.encode(x_bytes),
@@ -64,7 +64,7 @@ pub fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
     let x_bytes = &public_key[1..33];
     let y_bytes = &public_key[33..65];
     Ok(Jwk {
-        alg: "ES256K".to_string(),
+        alg: Some("ES256K".to_string()),
         kty: "EC".to_string(),
         crv: "secp256k1".to_string(),
         x: general_purpose::URL_SAFE_NO_PAD.encode(x_bytes),

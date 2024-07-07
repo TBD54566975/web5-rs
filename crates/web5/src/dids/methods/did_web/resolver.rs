@@ -34,7 +34,14 @@ impl Resolver {
         };
 
         Self {
-            did_url: format!("https://{}/did.json", did_url),
+            did_url: format!(
+                "{}://{}/did.json",
+                match did_url.contains("localhost") {
+                    true => "http",
+                    false => "https",
+                },
+                did_url
+            ),
         }
     }
 
