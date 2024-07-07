@@ -14,7 +14,7 @@ interface RustCoreError {
 };
 
 dictionary JwkData {
-  string alg;
+  string? alg;
   string kty;
   string crv;
   string? d;
