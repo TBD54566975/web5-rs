@@ -6,6 +6,7 @@ setup:
   git submodule update --init --recursive
   if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
     rustup default 1.78.0
+    rustup target add aarch64-apple-darwin
   fi
 
 build: setup
@@ -20,45 +21,20 @@ lint: setup
 
 bind: setup
   just bind-kotlin
-  # #234 temporarily commenting out swift because kotlin is the sole focus
-  # just bind-swift 
 
 bind-kotlin: setup
-  cargo build --release --package web5_uniffi
+  cargo build --release --package web5_uniffi --target aarch64-apple-darwin
+  cp target/aarch64-apple-darwin/release/libweb5_uniffi.dylib \
+    bound/kt/src/main/resources/libweb5_uniffi_aarch64_apple_darwin.dylib
   cargo run --package web5_uniffi \
     --bin uniffi-bindgen \
-    generate --library target/release/libweb5_uniffi.dylib \
+    generate --library bound/kt/src/main/resources/libweb5_uniffi_aarch64_apple_darwin.dylib \
     --language kotlin \
     --out-dir target/bindgen-kotlin
-  cp target/release/libweb5_uniffi.dylib bound/kt/src/main/resources/natives
-  cp target/bindgen-kotlin/web5/sdk/rust/web5.kt bound/kt/src/main/kotlin/web5/sdk/rust
-  cd bound/kt && ./fix-load.sh
-
-bind-swift: setup
-  cargo build --release --package web5_uniffi
-  cargo run --package web5_uniffi \
-    --bin uniffi-bindgen \
-    generate --library target/release/libweb5_uniffi.dylib \
-    --language swift \
-    --out-dir target/bindgen-swift
-  mkdir -p target/xcframework-staging
-  mv target/bindgen-swift/web5.swift bound/swift/Sources/UniFFI
-  mv target/bindgen-swift/web5FFI.modulemap target/xcframework-staging/module.modulemap
-  mv target/bindgen-swift/web5FFI.h target/xcframework-staging/
-  rm -rf bound/swift/libweb5-rs.xcframework
-  xcodebuild -create-xcframework \
-    -library target/release/libweb5_uniffi.dylib \
-    -headers target/xcframework-staging \
-    -output bound/swift/libweb5-rs.xcframework
+  cp target/bindgen-kotlin/web5/sdk/rust/web5.kt bound/kt/src/main/kotlin/web5/sdk/rust/UniFFI.kt
 
 test-bound: setup
   just test-kotlin
-  just test-swift
 
 test-kotlin: setup
   cd bound/kt && mvn clean test
-
-test-swift: setup
-  cd bound/swift && \
-    swift package clean && \
-    swift test

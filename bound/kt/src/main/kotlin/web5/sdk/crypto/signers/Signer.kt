@@ -1,5 +1,6 @@
 package web5.sdk.crypto.signers
 
+import web5.sdk.rust.SystemTarget
 import web5.sdk.rust.Signer as RustCoreSigner
 
 interface Signer {
@@ -7,6 +8,10 @@ interface Signer {
 }
 
 class OuterSigner: Signer {
+    init {
+        SystemTarget.set() // ensure the sys arch is set for first-time loading
+    }
+
     private val rustCoreSigner: RustCoreSigner
 
     constructor(rustCoreSigner: RustCoreSigner) {

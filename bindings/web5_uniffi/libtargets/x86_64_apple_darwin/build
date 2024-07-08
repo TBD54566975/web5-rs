@@ -1,0 +1,16 @@
+#!/bin/bash 
+
+set -e
+
+REPO_DIR=../../../../
+
+rustup target add x86_64-apple-darwin
+
+(
+  cd $REPO_DIR;
+  cargo build --target x86_64-apple-darwin --release \
+    --package web5_uniffi \
+    --features x86_64_apple_darwin;
+  cp target/x86_64-apple-darwin/release/libweb5_uniffi.dylib \
+    bound/kt/src/main/resources/libweb5_uniffi_x86_64_apple_darwin.dylib
+)
