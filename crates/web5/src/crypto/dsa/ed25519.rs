@@ -18,7 +18,7 @@ impl Ed25519Generator {
         let public_key_bytes = verifying_key.to_bytes();
 
         Jwk {
-            alg: "Ed25519".to_string(),
+            alg: Some("Ed25519".to_string()),
             kty: "OKP".to_string(),
             crv: "Ed25519".to_string(),
             x: general_purpose::URL_SAFE_NO_PAD.encode(public_key_bytes),
@@ -37,7 +37,7 @@ pub(crate) fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
     }
 
     Ok(Jwk {
-        alg: "Ed25519".to_string(),
+        alg: Some("Ed25519".to_string()),
         kty: "OKP".to_string(),
         crv: "Ed25519".to_string(),
         x: general_purpose::URL_SAFE_NO_PAD.encode(public_key),

@@ -103,8 +103,10 @@ impl VerificationMethod {
         if did_uri != self.controller {
             parts.push(format!("c={}", self.controller));
         }
-        if default_alg != self.public_key_jwk.alg {
-            parts.push(format!("a={}", self.public_key_jwk.alg));
+        if let Some(alg) = &self.public_key_jwk.alg {
+            if default_alg != alg {
+                parts.push(format!("a={}", alg));
+            }
         }
         let parts = parts.join(";");
 
@@ -155,11 +157,11 @@ impl VerificationMethod {
             Dsa::Secp256k1 => secp256k1::public_jwk_from_bytes(&public_key_bytes)?,
         };
         public_key_jwk.alg = if let Some(alg) = vm_rdata.a {
-            alg
+            Some(alg)
         } else {
             match public_key_jwk.crv.as_str() {
-                "secp256k1" => "ES256K".to_string(),
-                "Ed25519" => "Ed25519".to_string(),
+                "secp256k1" => Some("ES256K".to_string()),
+                "Ed25519" => Some("Ed25519".to_string()),
                 _ => public_key_jwk.alg,
             }
         };
@@ -298,7 +300,7 @@ mod tests {
     fn test_to_and_from_resource_record_non_default_alg() {
         let did_uri = "did:dht:123";
         let mut public_key_jwk = ed25519::to_public_jwk(&Ed25519Generator::generate());
-        public_key_jwk.alg = "nonstandard".to_string();
+        public_key_jwk.alg = Some("nonstandard".to_string());
         let id = format!(
             "{}#{}",
             did_uri,

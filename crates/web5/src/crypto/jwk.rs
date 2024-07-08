@@ -4,7 +4,8 @@ use sha2::{Digest, Sha256};
 
 #[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq)]
 pub struct Jwk {
-    pub alg: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub alg: Option<String>,
     pub kty: String,
     pub crv: String,
     #[serde(skip_serializing_if = "Option::is_none")]
