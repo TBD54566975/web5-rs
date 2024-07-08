@@ -1,0 +1,7 @@
+# jitpack.yml
+
+jdk:
+  - openjdk11
+
+install:
+  - cd bound/kt && mvn install -DskipTests=true
