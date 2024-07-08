@@ -2,7 +2,7 @@
 
 **Last Updated** May 30, 2024
 
-**Version** 1.1.0
+**Version** 2.0.0
 
 **[Custom DSL](./CUSTOM_DSL.md) Version**: 0.1.0
 
@@ -208,7 +208,7 @@ CLASS Filter
 /// Note that this is a subset of the spec.
 CLASS Jwk
   /// Identifies the algorithm intended for use with the key.
-  PUBLIC DATA alg: string
+  PUBLIC DATA alg: string?
 
   /// Represents the key type. e.g. EC for elliptic curve, OKP for Edwards curve
   PUBLIC DATA kty: string
