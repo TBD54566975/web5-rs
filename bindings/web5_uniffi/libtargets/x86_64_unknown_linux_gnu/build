@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+REPO_DIR=../../../../
+IMAGE_NAME=web5_uniffi_x86_64-unknown-linux-gnu_image
+CONTAINER_NAME=web5_uniffi_x86_64-unknown-linux-gnu_container
+
+docker build -f $(pwd)/Dockerfile -t $IMAGE_NAME $REPO_DIR
+
+docker run -d --name $CONTAINER_NAME $IMAGE_NAME
+
+docker cp $CONTAINER_NAME:/usr/src/myapp/target/release/libweb5_uniffi.so \
+  $REPO_DIR/bound/kt/src/main/resources/libweb5_uniffi_x86_64_unknown_linux_gnu.so
+
+docker stop $CONTAINER_NAME
+docker rm $CONTAINER_NAME

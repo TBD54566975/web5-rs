@@ -5,6 +5,7 @@ import web5.sdk.crypto.signers.Signer
 import web5.sdk.dids.Did
 import web5.sdk.dids.Document
 import web5.sdk.dids.ResolutionResult
+import web5.sdk.rust.SystemTarget
 
 import web5.sdk.rust.didDhtResolve as rustCoreDidDhtResolve
 import web5.sdk.rust.DidDht as RustCoreDidDht
@@ -17,6 +18,10 @@ import web5.sdk.rust.Signer as RustCoreSigner
  * @property document The DID document associated with this instance.
  */
 class DidDht {
+    init {
+        SystemTarget.set() // ensure the sys arch is set for first-time loading
+    }
+
     val did: Did
     val document: Document
 

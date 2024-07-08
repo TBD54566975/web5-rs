@@ -3,6 +3,7 @@ package web5.sdk.dids
 import web5.sdk.crypto.signers.Signer
 import web5.sdk.crypto.keys.KeyManager
 import web5.sdk.crypto.signers.OuterSigner
+import web5.sdk.rust.SystemTarget
 
 import web5.sdk.rust.BearerDid as RustCoreBearerDid
 
@@ -14,6 +15,10 @@ import web5.sdk.rust.BearerDid as RustCoreBearerDid
  * @property document The DID document associated with this instance.
  */
 class BearerDid {
+    init {
+        SystemTarget.set() // ensure the sys arch is set for first-time loading
+    }
+
     val did: Did
     val document: Document
 
