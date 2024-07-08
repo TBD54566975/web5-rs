@@ -21,9 +21,7 @@ class Ed25519Signer : Signer {
      * @param payload the data to be signed.
      * @return ByteArray the signature.
      */
-    @OptIn(ExperimentalUnsignedTypes::class)
     override fun sign(payload: ByteArray): ByteArray {
-        val uByteList = payload.toUByteArray().toList()
-        return rustCoreSigner.sign(uByteList)
+        return rustCoreSigner.sign(payload)
     }
 }

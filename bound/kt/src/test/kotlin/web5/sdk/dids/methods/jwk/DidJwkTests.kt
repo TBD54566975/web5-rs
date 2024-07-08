@@ -32,9 +32,7 @@ class DidJwkTests {
 
     @Test
     fun `throws exception if did method is not jwk`() {
-        // TODO: Should this behave differently - https://github.com/TBD54566975/web5-rs/issues/237
-        assertThrows(RustCoreException::class.java) {
-            DidJwk.resolve("did:example:123")
-        }
+        val resolutionResult = DidJwk.resolve("did:example:123")
+        assertEquals(resolutionResult.resolutionMetadata.error!!.name, "INVALID_DID");
     }
 }

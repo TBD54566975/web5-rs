@@ -13,8 +13,7 @@ class OuterSigner: Signer {
         this.rustCoreSigner = rustCoreSigner
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     override fun sign(payload: ByteArray): ByteArray {
-        return this.rustCoreSigner.sign(payload.toUByteArray().toList())
+        return this.rustCoreSigner.sign(payload)
     }
 }

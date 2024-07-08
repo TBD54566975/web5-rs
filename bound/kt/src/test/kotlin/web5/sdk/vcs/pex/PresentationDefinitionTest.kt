@@ -15,20 +15,19 @@ class PresentationDefinitionTest {
       id = "test_input",
       name = "Test Input",
       purpose = "For testing",
-      constraints = ConstraintsData(
+      constraints = Constraints(
         fields = listOf(
-          FieldData(
+          Field(
             id = "field1",
             name = "Field 1",
             path = listOf("$.field1"),
             purpose = "Test field",
-            filter = FilterData(
+            filter = Filter(
               type = "string",
               pattern = "^[a-zA-Z]+$",
-              constValue = null
             ),
             optional = false,
-            predicate = Optionality.REQUIRED
+            predicate = Optionality.Required
           )
         )
       )
@@ -57,12 +56,12 @@ class PresentationDefinitionTest {
     assertEquals(listOf("$.field1"), field.path)
     assertEquals("Test field", field.purpose)
     assertFalse(field.optional ?: true)
-    assertEquals(Optionality.REQUIRED, field.predicate)
+    assertEquals(Optionality.Required, field.predicate)
 
     val filter = field.filter
     assertNotNull(filter)
     assertEquals("string", filter?.type)
     assertEquals("^[a-zA-Z]+$", filter?.pattern)
-    assertNull(filter?.constValue)
+    assertNull(filter?.const)
   }
 }

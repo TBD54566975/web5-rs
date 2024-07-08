@@ -4,12 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.ObjectWriter
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 
 internal const val dateTimeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
 
 internal object Json {
-    val jsonMapper: ObjectMapper = ObjectMapper()
+    val jsonMapper: ObjectMapper = jacksonObjectMapper()
         .registerKotlinModule()
         .findAndRegisterModules()
         .setSerializationInclusion(JsonInclude.Include.NON_NULL)
