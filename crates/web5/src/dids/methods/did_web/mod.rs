@@ -1,14 +1,14 @@
 mod resolver;
 
 use super::{MethodError, Result};
-use crate::dids::{
-    data_model::document::Document,
+use crate::{crypto::jwk::Jwk, dids::{
+    data_model::{document::Document, verification_method::VerificationMethod},
     did::Did,
     resolution::{
         resolution_metadata::{ResolutionMetadata, ResolutionMetadataError},
         resolution_result::ResolutionResult,
     },
-};
+}};
 use resolver::Resolver;
 
 #[derive(Clone)]
@@ -18,6 +18,29 @@ pub struct DidWeb {
 }
 
 impl DidWeb {
+    pub fn new(domain: &str, public_jwk: Jwk) -> Result<Self> {
+        let did = format!("did:web:{}", domain);
+
+        let verification_method = VerificationMethod {
+            id: format!("{}#key-0", did),
+            r#type: "JsonWebKey2020".to_string(),
+            controller: did.clone(),
+            public_key_jwk: public_jwk,
+        };
+
+        let document = Document {
+            id: did.clone(),
+            context: Some(vec!["https://www.w3.org/ns/did/v1".to_string()]),
+            verification_method: vec![verification_method],
+            ..Default::default()
+        };
+
+        Ok(DidWeb {
+            did: Did::new(&did)?,
+            document
+        })
+    }
+
     pub async fn from_uri(uri: &str) -> Result<Self> {
         let resolution_result = DidWeb::resolve(uri);
         match resolution_result.document {

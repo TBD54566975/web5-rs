@@ -3,7 +3,7 @@ use std::sync::Arc;
 use web5::{
     crypto::dsa::ed25519::{Ed25519Generator, Ed25519Signer},
     dids::{
-        methods::{did_dht::DidDht, did_jwk::DidJwk},
+        methods::{did_dht::DidDht, did_jwk::DidJwk, did_web::DidWeb},
         portable_did::PortableDid,
     },
 };
@@ -17,7 +17,12 @@ pub enum Commands {
         json_escape: bool,
     },
     Web {
+        #[arg(long)]
         domain: String,
+        #[arg(long)]
+        no_indent: bool,
+        #[arg(long)]
+        json_escape: bool,
     },
     Dht {
         #[arg(long)]
@@ -63,8 +68,23 @@ impl Commands {
 
                 print_portable_did(portable_did, no_indent, json_escape);
             }
-            Commands::Web { domain: _ } => {
-                println!("🚧 not currently supported 🚧");
+            Commands::Web {
+                domain,
+                no_indent,
+                json_escape,
+            } => {
+                let private_jwk = Ed25519Generator::generate();
+                let mut public_jwk = private_jwk.clone();
+                public_jwk.d = None;
+
+                let did_web = DidWeb::new(domain, public_jwk).unwrap();
+                let portable_did = PortableDid {
+                    did_uri: did_web.did.uri,
+                    document: did_web.document,
+                    private_jwks: vec![private_jwk],
+                };
+
+                print_portable_did(portable_did, no_indent, json_escape)
             }
             Commands::Dht {
                 no_publish,
