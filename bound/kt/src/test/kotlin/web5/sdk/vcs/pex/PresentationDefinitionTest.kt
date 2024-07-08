@@ -25,7 +25,6 @@ class PresentationDefinitionTest {
             filter = Filter(
               type = "string",
               pattern = "^[a-zA-Z]+$",
-              const = null
             ),
             optional = false,
             predicate = Optionality.Required
