@@ -1,14 +1,17 @@
 mod resolver;
 
 use super::{MethodError, Result};
-use crate::{crypto::jwk::Jwk, dids::{
-    data_model::{document::Document, verification_method::VerificationMethod},
-    did::Did,
-    resolution::{
-        resolution_metadata::{ResolutionMetadata, ResolutionMetadataError},
-        resolution_result::ResolutionResult,
+use crate::{
+    crypto::jwk::Jwk,
+    dids::{
+        data_model::{document::Document, verification_method::VerificationMethod},
+        did::Did,
+        resolution::{
+            resolution_metadata::{ResolutionMetadata, ResolutionMetadataError},
+            resolution_result::ResolutionResult,
+        },
     },
-}};
+};
 use resolver::Resolver;
 
 #[derive(Clone)]
@@ -37,7 +40,7 @@ impl DidWeb {
 
         Ok(DidWeb {
             did: Did::new(&did)?,
-            document
+            document,
         })
     }
 
