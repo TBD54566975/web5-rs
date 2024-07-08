@@ -4,4 +4,4 @@ jdk:
   - openjdk11
 
 install:
-  - cd binded/kt && mvn install -DskipTests=true
+  - cd bound/kt && mvn install -DskipTests=true
