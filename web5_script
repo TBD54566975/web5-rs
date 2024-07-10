@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cargo build -p web5_cli > /dev/null 2>&1
+cp ./target/debug/web5_cli ./target/debug/web5
+./target/debug/web5 "$@"
