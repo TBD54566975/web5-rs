@@ -1,4 +1,5 @@
 use clap::Subcommand;
+use url::Url;
 use std::sync::Arc;
 use web5::{
     crypto::dsa::ed25519::{Ed25519Generator, Ed25519Signer},
@@ -17,7 +18,6 @@ pub enum Commands {
         json_escape: bool,
     },
     Web {
-        #[arg(long)]
         domain: String,
         #[arg(long)]
         no_indent: bool,
@@ -77,7 +77,44 @@ impl Commands {
                 let mut public_jwk = private_jwk.clone();
                 public_jwk.d = None;
 
-                let did_web = DidWeb::new(domain, public_jwk).unwrap();
+                let valid_url = if domain.starts_with("http://") || domain.starts_with("https://") {
+                    let url = Url::parse(domain).expect("Invalid URL");
+            
+                    // Ensure "http://" is only allowed for localhost or 127.0.0.1
+                    if url.scheme() == "http" && !(url.host_str() == Some("localhost") || url.host_str() == Some("127.0.0.1")) {
+                        panic!("Only https is allowed except for localhost or 127.0.0.1 with http");
+                    }
+            
+                    // Get the trimmed URL string without the scheme
+                    let trimmed_url = url[url::Position::BeforeHost..].to_string();
+            
+                    // Remove the scheme
+                    let normalized = if trimmed_url.starts_with("//") {
+                        &trimmed_url[2..]
+                    } else {
+                        &trimmed_url
+                    };
+            
+                    normalized.to_string()
+                } else {
+                    Url::parse(&format!("https://{}", domain)).expect("Invalid URL");
+                    domain.clone()
+                };
+                
+                let normalized =  if valid_url.ends_with("/did.json") {
+                    valid_url.trim_end_matches("/did.json").to_string()
+                } else if valid_url.ends_with("/.well-known") {
+                    valid_url.trim_end_matches("/.well-known").to_string()
+                } else if valid_url.ends_with("/") {
+                    valid_url.trim_end_matches("/").to_string()
+                } else {
+                    valid_url.clone()
+                };
+
+                let encoded_domain = normalized.replace(":", "%3A");
+                let encoded_domain = encoded_domain.replace("/", ":");
+
+                let did_web = DidWeb::new(&encoded_domain, public_jwk).unwrap();
                 let portable_did = PortableDid {
                     did_uri: did_web.did.uri,
                     document: did_web.document,
