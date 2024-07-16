@@ -2,7 +2,7 @@
 
 **Last Updated** May 30, 2024
 
-**Version** 2.0.0
+**Version** 2.1.0
 
 **[Custom DSL](./CUSTOM_DSL.md) Version**: 0.1.0
 
@@ -582,8 +582,13 @@ resolution_result = DidJwk.resolve(uri)
 
 ### `DidWeb`
 
+> [!NOTE]
+>
+> The `CONSTRUCTOR(domain: string, public_jwk: Jwk)` does not publish the DID Document to a host, but merely creates the instance of the `did:web` in the local scope. 
+
 ```pseudocode!
 CLASS DidWeb
+  CONSTRUCTOR(domain: string, public_jwk: Jwk)
   CONSTRUCTOR(uri: string)
   STATIC METHOD resolve(uri: string): ResolutionResult
 ```
