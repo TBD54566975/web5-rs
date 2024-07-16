@@ -13,6 +13,7 @@ use crate::{
     },
 };
 use resolver::Resolver;
+use url::Url;
 
 #[derive(Clone)]
 pub struct DidWeb {
@@ -22,11 +23,58 @@ pub struct DidWeb {
 
 impl DidWeb {
     pub fn new(domain: &str, public_jwk: Jwk) -> Result<Self> {
-        let did = format!("did:web:{}", domain);
+        let domain = &domain.to_string();
+        let valid_url = if domain.starts_with("http://") || domain.starts_with("https://") {
+            let url = Url::parse(domain).map_err(|e| {
+                MethodError::DidCreationFailure(format!("url parse failure {}", e.to_string()))
+            })?;
+
+            // Ensure "http://" is only allowed for localhost or 127.0.0.1
+            if url.scheme() == "http"
+                && !(url.host_str() == Some("localhost") || url.host_str() == Some("127.0.0.1"))
+            {
+                return Err(MethodError::DidCreationFailure(
+                    "only https is allowed except for localhost or 127.0.0.1 with http".to_string(),
+                ));
+            }
+
+            // Get the trimmed URL string without the scheme
+            let trimmed_url = url[url::Position::BeforeHost..].to_string();
+
+            // Remove the scheme
+            let normalized = if let Some(trimmed) = trimmed_url.strip_prefix("//") {
+                trimmed
+            } else {
+                &trimmed_url
+            };
+
+            normalized.to_string()
+        } else {
+            Url::parse(&format!("https://{}", domain)).map_err(|e| {
+                MethodError::DidCreationFailure(format!("url parse failure {}", e.to_string()))
+            })?;
+            domain.clone()
+        };
+
+        let mut normalized = valid_url.clone();
+        if normalized.ends_with('/') {
+            normalized = normalized.trim_end_matches('/').to_string()
+        }
+        if normalized.ends_with("/did.json") {
+            normalized = normalized.trim_end_matches("/did.json").to_string()
+        }
+        if normalized.ends_with("/.well-known") {
+            normalized = normalized.trim_end_matches("/.well-known").to_string()
+        }
+
+        let encoded_domain = normalized.replace(':', "%3A");
+        let encoded_domain = encoded_domain.replace('/', ":");
+
+        let did = format!("did:web:{}", encoded_domain);
 
         let verification_method = VerificationMethod {
             id: format!("{}#key-0", did),
-            r#type: "JsonWebKey2020".to_string(),
+            r#type: "JsonWebKey".to_string(),
             controller: did.clone(),
             public_key_jwk: public_jwk,
         };

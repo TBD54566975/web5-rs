@@ -1,6 +1,5 @@
 use clap::Subcommand;
 use std::sync::Arc;
-use url::Url;
 use web5::{
     crypto::dsa::ed25519::{Ed25519Generator, Ed25519Signer},
     dids::{
@@ -77,48 +76,7 @@ impl Commands {
                 let mut public_jwk = private_jwk.clone();
                 public_jwk.d = None;
 
-                let valid_url = if domain.starts_with("http://") || domain.starts_with("https://") {
-                    let url = Url::parse(domain).expect("Invalid URL");
-
-                    // Ensure "http://" is only allowed for localhost or 127.0.0.1
-                    if url.scheme() == "http"
-                        && !(url.host_str() == Some("localhost")
-                            || url.host_str() == Some("127.0.0.1"))
-                    {
-                        panic!("Only https is allowed except for localhost or 127.0.0.1 with http");
-                    }
-
-                    // Get the trimmed URL string without the scheme
-                    let trimmed_url = url[url::Position::BeforeHost..].to_string();
-
-                    // Remove the scheme
-                    let normalized = if trimmed_url.starts_with("//") {
-                        &trimmed_url[2..]
-                    } else {
-                        &trimmed_url
-                    };
-
-                    normalized.to_string()
-                } else {
-                    Url::parse(&format!("https://{}", domain)).expect("Invalid URL");
-                    domain.clone()
-                };
-
-                let mut normalized = valid_url.clone();
-                if normalized.ends_with("/") {
-                    normalized = normalized.trim_end_matches("/").to_string()
-                }
-                if normalized.ends_with("/did.json") {
-                    normalized = normalized.trim_end_matches("/did.json").to_string()
-                }
-                if normalized.ends_with("/.well-known") {
-                    normalized = normalized.trim_end_matches("/.well-known").to_string()
-                }
-
-                let encoded_domain = normalized.replace(":", "%3A");
-                let encoded_domain = encoded_domain.replace("/", ":");
-
-                let did_web = DidWeb::new(&encoded_domain, public_jwk).unwrap();
+                let did_web = DidWeb::new(domain, public_jwk).unwrap();
                 let portable_did = PortableDid {
                     did_uri: did_web.did.uri,
                     document: did_web.document,
