@@ -25,9 +25,8 @@ impl DidWeb {
     pub fn new(domain: &str, public_jwk: Jwk) -> Result<Self> {
         let domain = &domain.to_string();
         let valid_url = if domain.starts_with("http://") || domain.starts_with("https://") {
-            let url = Url::parse(domain).map_err(|e| {
-                MethodError::DidCreationFailure(format!("url parse failure {}", e.to_string()))
-            })?;
+            let url = Url::parse(domain)
+                .map_err(|e| MethodError::DidCreationFailure(format!("url parse failure {}", e)))?;
 
             // Ensure "http://" is only allowed for localhost or 127.0.0.1
             if url.scheme() == "http"
@@ -50,9 +49,8 @@ impl DidWeb {
 
             normalized.to_string()
         } else {
-            Url::parse(&format!("https://{}", domain)).map_err(|e| {
-                MethodError::DidCreationFailure(format!("url parse failure {}", e.to_string()))
-            })?;
+            Url::parse(&format!("https://{}", domain))
+                .map_err(|e| MethodError::DidCreationFailure(format!("url parse failure {}", e)))?;
             domain.clone()
         };
 
