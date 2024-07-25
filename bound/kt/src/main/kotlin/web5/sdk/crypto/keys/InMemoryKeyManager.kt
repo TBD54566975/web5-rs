@@ -1,15 +1,14 @@
 package web5.sdk.crypto.keys
 
-import web5.sdk.crypto.signers.OuterSigner
-import web5.sdk.crypto.signers.Signer
 import web5.sdk.rust.SystemTarget
 import web5.sdk.rust.InMemoryKeyManager as RustCoreInMemoryKeyManager
 import web5.sdk.rust.KeyManager as RustCoreKeyManager
+import web5.sdk.rust.Signer as RustCoreSigner
 
 /**
  * A class for managing cryptographic keys in-memory.
  */
-class InMemoryKeyManager : KeyManager {
+class InMemoryKeyManager : RustCoreKeyManager {
     init {
         SystemTarget.set() // ensure the sys arch is set for first-time loading
     }
@@ -33,18 +32,8 @@ class InMemoryKeyManager : KeyManager {
      * @param publicJwk The public key represented as a JWK.
      * @return Signer The signer for the given public key.
      */
-    override fun getSigner(publicJwk: Jwk): Signer {
-        val innerSigner = this.rustCoreInMemoryKeyManager.getSigner(publicJwk)
-        return OuterSigner(innerSigner)
-    }
-
-    /**
-     * Returns the RustCoreKeyManager.
-     *
-     * @return RustCoreKeyManager The rust core key manager.
-     */
-    override fun getRustCoreKeyManager(): RustCoreKeyManager {
-        return this.rustCoreInMemoryKeyManager.getAsKeyManager()
+    override fun getSigner(publicJwk: Jwk): RustCoreSigner {
+        return this.rustCoreInMemoryKeyManager.getSigner(publicJwk)
     }
 
     /**

@@ -27,7 +27,7 @@ impl From<SerdeJsonError> for PortableDidError {
 type Result<T> = std::result::Result<T, PortableDidError>;
 
 impl PortableDid {
-    pub fn new(json: &str) -> Result<Self> {
+    pub fn from_json_string(json: &str) -> Result<Self> {
         let portable_did = serde_json::from_str::<Self>(json)?;
         Ok(portable_did)
     }

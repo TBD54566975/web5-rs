@@ -200,7 +200,7 @@ dictionary PortableDidData {
 };
 
 interface PortableDid {
-  [Throws=RustCoreError]
+  [Name=from_json_string, Throws=RustCoreError]
   constructor([ByRef] string json);
   PortableDidData get_data();
 };

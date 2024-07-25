@@ -2,10 +2,10 @@ package web5.sdk.crypto.signers
 
 import web5.sdk.crypto.keys.Jwk
 import web5.sdk.rust.SystemTarget
-
 import web5.sdk.rust.Ed25519Signer as RustCoreEd25519Signer
+import web5.sdk.rust.Signer as RustCoreSigner
 
-class Ed25519Signer : Signer {
+class Ed25519Signer : RustCoreSigner {
     init {
         SystemTarget.set() // ensure the sys arch is set for first-time loading
     }
@@ -14,10 +14,6 @@ class Ed25519Signer : Signer {
 
     constructor(privateKey: Jwk) {
         this.rustCoreSigner = RustCoreEd25519Signer(privateKey)
-    }
-
-    private constructor(rustCoreSigner: RustCoreEd25519Signer) {
-        this.rustCoreSigner = rustCoreSigner
     }
 
     /**

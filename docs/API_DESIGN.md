@@ -691,7 +691,7 @@ CLASS BearerDid
   PUBLIC DATA document: Document
   PUBLIC DATA key_manager: KeyManager
   CONSTRUCTOR(uri: string, key_manager: KeyManager)
-  CONSTRUCTOR(portable_did: PortableDid)
+  CONSTRUCTOR from_portable_did(portable_did: PortableDid)
   METHOD get_signer(): Signer
 ```
 
@@ -719,7 +719,7 @@ CLASS PortableDid
   DATA MEMBER uri: string
   DATA MEMBER private_jwks: []Jwk
   DATA MEMBER document: Document
-  CONSTRUCTOR(json: string)
+  CONSTRUCTOR from_json_string(json: string)
 ```
 
 ### Example: Create a [`PortableDid`](#portabledid) via the `web5` CLI

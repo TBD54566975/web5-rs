@@ -1008,7 +1008,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_portabledid(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_portabledid_new(`json`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_portabledid_from_json_string(`json`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_portabledid_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -1264,7 +1264,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_portabledid_new(
+    fun uniffi_web5_uniffi_checksum_constructor_portabledid_from_json_string(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new(
     ): Short
@@ -1416,7 +1416,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new() != 16598.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_portabledid_new() != 53732.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_portabledid_from_json_string() != 10352.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 37876.toShort()) {
@@ -4422,13 +4422,6 @@ open class PortableDid: Disposable, AutoCloseable, PortableDidInterface {
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`json`: kotlin.String) :
-        this(
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_portabledid_new(
-        FfiConverterString.lower(`json`),_status)
-}
-    )
 
     protected val pointer: Pointer?
     protected val cleanable: UniffiCleaner.Cleanable
@@ -4508,8 +4501,20 @@ open class PortableDid: Disposable, AutoCloseable, PortableDidInterface {
     
 
     
+    companion object {
+        
+    @Throws(RustCoreException::class) fun `fromJsonString`(`json`: kotlin.String): PortableDid {
+            return FfiConverterTypePortableDid.lift(
+    uniffiRustCallWithError(RustCoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_portabledid_from_json_string(
+        FfiConverterString.lower(`json`),_status)
+}
+    )
+    }
     
-    companion object
+
+        
+    }
     
 }
 
