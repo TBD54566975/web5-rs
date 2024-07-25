@@ -689,6 +689,7 @@ resolution_result = DidDht.resolve(uri)
 CLASS BearerDid
   PUBLIC DATA did: Did
   PUBLIC DATA document: Document
+  PUBLIC DATA key_manager: KeyManager
   CONSTRUCTOR(uri: string, key_manager: KeyManager)
   CONSTRUCTOR(portable_did: PortableDid)
   METHOD get_signer(): Signer

@@ -21,8 +21,8 @@ class BearerDid {
 
     val did: Did
     val document: Document
+    val keyManager: KeyManager
 
-    private val keyManager: KeyManager
     private val rustCoreBearerDid: RustCoreBearerDid
 
     /**
