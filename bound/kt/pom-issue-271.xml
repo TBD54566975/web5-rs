@@ -1,0 +1,565 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <!-- Model Information -->
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- Artifact Information  -->
+  <groupId>xyz.block</groupId>
+  <artifactId>web5</artifactId>
+  <version>0.0.0-main-SNAPSHOT</version>
+  <name>Web5 SDK for the JVM</name>
+  <url>https://developer.tbd.website</url>
+  <description>Web5 SDK for the JVM</description>
+  <inceptionYear>2023</inceptionYear>
+
+  <!-- SCM -->
+  <scm>
+    <connection>scm:git:git://github.com/TBD54566975/web5-rs.git</connection>
+    <!-- This has to be HTTPS, not git://, for maven-release-plugin to do AUTH correctly -->
+    <developerConnection>scm:git:https://github.com/TBD54566975/web5-rs.git</developerConnection>
+    <url>https://github.com/TBD54566975/web5-rs</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <!-- Developers -->
+  <developers>
+    <developer>
+      <id>TBD54566975</id>
+      <name>Block, Inc.</name>
+      <email>releases@tbd.email</email>
+    </developer>
+  </developers>
+
+  <!-- Issues -->
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/TBD54566975/web5-rs/issues</url>
+  </issueManagement>
+
+  <!-- Licenses -->
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <!-- Properties -->
+  <properties>
+    <!-- Project properties -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <kotlin.jvm.target>11</kotlin.jvm.target>
+    <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+    <!-- Defines the server config in .maven_settings.xml to use in maven-release-plugin -->
+    <project.scm.id>github</project.scm.id>
+
+    <!--
+    This section is where we declare the versioning and scope for dependencies of
+    the Web5 platform and projects building atop the Web5 platform.
+
+    Submodules of Web5 should not define their own dependency versions
+    because these must all co-exist in the same ClassLoading environment, and
+    therefore have to be aligned across submodules. Thus we declare the versioning
+    requirements here at the platform level.
+
+    The <dependencyManagement> section of this POM enforces the versions declared
+    here as properties. Because this POM is a BOM POM, these versions may be imported
+    by projects building atop the Web5 Platform (ie. tbDEX, consumers, etc).
+
+    If a submodule needs to introduce a new dependency or upgrade, define that
+    dependency and version here such that other submodules in the build may pick
+    up the same version. This will guarantee that submodule test suites are running
+    in the correct ClassLoading environment aligned with the Web5 platform.
+
+    More on BOM POMs:
+    https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#bill-of-materials-bom-poms
+    -->
+
+    <!-- Versioning for Platform -->
+    <version.kotlin>1.9.22</version.kotlin>
+    <version.io.github.martinvisser>0.0.6</version.io.github.martinvisser>
+
+    <!-- Versioning for Compile/Runtime Dependencies -->
+    <version.com.fasterxml.jackson>2.17.0</version.com.fasterxml.jackson>
+    <version.net.java.dev.jna>5.12.0</version.net.java.dev.jna>
+    <version.org.jetbrains.kotlinx.kotlinx.coroutines.core>1.8.1</version.org.jetbrains.kotlinx.kotlinx.coroutines.core>
+
+    <!-- Versioning for Test Dependencies -->
+    <version.org.junit.jupiter>5.10.1</version.org.junit.jupiter>
+
+  </properties>
+
+  <!-- Dependency Management -->
+  <dependencyManagement>
+
+    <dependencies>
+
+      <!--
+      Transitive Dependency Management
+
+      In this section we address build issues including security vulnerabilities
+      in transitive dependencies we don't explicitly declare above or in the submodules
+      Versioning and scope declared here will override anything inherited through
+      transitivity, so use with care. Also note: these are in place for a
+      point in time. As we maintain this software, the manual forced resolution we do
+      here may:
+
+      1) No longer be necessary (if we have removed a dependency path leading to dep)
+      2) Break an upgrade (if we upgrade a dependency and this forces a lower version
+         of a transitive dependency it brings in)
+
+      So we need to exercise care here, and, when upgrading our deps, check to see if
+      these overrides of transitive dependency versions and scope aren't breaking things.
+
+      When adding an entry here, please reference the issue which explains why we
+      needed to do this; it will help future maintainers understand if the force
+      is still valid, should be removed, or handled in another way.
+
+      When in doubt, ask! :)
+      -->
+      <!--
+
+      FasterXML Jackson -
+
+      Needed for libraries to play nicely together and avoid NoClassDefFoundError
+      -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${version.com.fasterxml.jackson}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${version.com.fasterxml.jackson}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${version.com.fasterxml.jackson}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-cbor</artifactId>
+        <version>${version.com.fasterxml.jackson}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${version.com.fasterxml.jackson}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.module</groupId>
+        <artifactId>jackson-module-kotlin</artifactId>
+        <version>${version.com.fasterxml.jackson}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna</artifactId>
+        <version>${version.net.java.dev.jna}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jetbrains.kotlin</groupId>
+        <artifactId>kotlin-stdlib-jdk8</artifactId>
+        <version>${version.kotlin}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jetbrains.kotlinx</groupId>
+        <artifactId>kotlinx-coroutines-core</artifactId>
+        <version>${version.org.jetbrains.kotlinx.kotlinx.coroutines.core}</version>
+      </dependency>
+
+      <!-- Test Dependency Management -->
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>${version.org.junit.jupiter}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${version.org.junit.jupiter}</version>
+        <scope>test</scope>
+      </dependency>
+
+
+    </dependencies>
+  </dependencyManagement>
+
+  <!-- Dependency declarations -->
+  <dependencies>
+
+    <!-- Compile and Runtime dependencies -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-kotlin</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlinx</groupId>
+      <artifactId>kotlinx-coroutines-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib-jdk8</artifactId>
+    </dependency>
+
+    <!-- Test Dependencies -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <sourceDirectory>src/main/kotlin</sourceDirectory>
+    <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+
+    <extensions>
+      <extension>
+        <groupId>io.github.martinvisser</groupId>
+        <artifactId>kover-maven-plugin</artifactId>
+        <version>${version.io.github.martinvisser}</version>
+      </extension>
+    </extensions>
+
+    <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
+      <plugins>
+        <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
+        <plugin>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
+        <plugin>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.0.2</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.22.1</version>
+          <configuration>
+            <includes>
+              <include>*Test</include>
+              <include>*Tests</include>
+            </includes>
+            <trimStackTrace>false</trimStackTrace>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.0.2</version>
+          <configuration>
+            <archive>
+              <manifest>
+                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              </manifest>
+            </archive>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>2.5.2</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>2.8.2</version>
+          <configuration>
+            <deployAtEnd>true</deployAtEnd>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.simplify4u.plugins</groupId>
+          <artifactId>sign-maven-plugin</artifactId>
+          <version>1.1.0</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>sign</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.3.0</version>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>3.0.1</version>
+          <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <pushChanges>true</pushChanges>
+            <tagNameFormat>v@{project.version}</tagNameFormat>
+            <scmCommentPrefix>[TBD Release Manager &#x1f680;]</scmCommentPrefix>
+            <scmReleaseCommitComment>@{prefix} Setting version to: @{releaseLabel}</scmReleaseCommitComment>
+            <scmDevelopmentCommitComment>@{prefix} Setting next development version after: @{releaseLabel}</scmDevelopmentCommitComment>
+          </configuration>
+        </plugin>
+        <!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
+        <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.7.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-project-info-reports-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
+          <groupId>com.github.ozsie</groupId>
+          <artifactId>detekt-maven-plugin</artifactId>
+          <version>1.23.5</version>
+          <executions>
+            <execution>
+              <phase>verify</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <configuration>
+                <config>config/detekt.yml</config>
+              </configuration>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>io.gitlab.arturbosch.detekt</groupId>
+              <artifactId>detekt-formatting</artifactId>
+              <version>1.23.5</version>
+            </dependency>
+            <dependency>
+              <groupId>com.github.TBD54566975</groupId>
+              <artifactId>tbd-detekt-rules</artifactId>
+              <version>0.0.2</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>io.github.martinvisser</groupId>
+          <artifactId>kover-maven-plugin</artifactId>
+          <version>${version.io.github.martinvisser}</version>
+          <configuration>
+            <!-- Rules are optional, but if none are configured the plugin cannot verify the coverage -->
+            <!-- So we set them to something very low as to not fail builds -->
+            <rules>
+              <rule>
+                <minValue>10</minValue>
+                <metric>LINE</metric>
+                <aggregation>COVERED_PERCENTAGE</aggregation>
+              </rule>
+              <rule>
+                <minValue>10</minValue>
+                <metric>BRANCH</metric>
+                <aggregation>COVERED_PERCENTAGE</aggregation>
+              </rule>
+            </rules>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>3.2.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.jetbrains.kotlin</groupId>
+          <artifactId>kotlin-maven-plugin</artifactId>
+          <version>${version.kotlin}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>io.github.martinvisser</groupId>
+        <artifactId>kover-maven-plugin</artifactId>
+      </plugin>
+      <!--
+
+      Removing for now, failures on Detekt
+
+      <plugin>
+        <groupId>com.github.ozsie</groupId>
+        <artifactId>detekt-maven-plugin</artifactId>
+      </plugin>
+
+      -->
+      <plugin>
+        <groupId>org.jetbrains.dokka</groupId>
+        <artifactId>dokka-maven-plugin</artifactId>
+        <version>1.9.20</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>javadocJar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jetbrains.kotlin</groupId>
+        <artifactId>kotlin-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>test-compile</id>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>test-compile</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <jvmTarget>${kotlin.jvm.target}</jvmTarget>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>sign-artifacts</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.simplify4u.plugins</groupId>
+            <artifactId>sign-maven-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <!-- https://central.sonatype.org/publish/publish-maven/#deployment -->
+      <id>ossrh</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.13</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh-releases</serverId>
+              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <distributionManagement>
+        <snapshotRepository>
+          <id>ossrh-snapshots</id>
+          <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <!-- Sonatype's OSSRH - replicates to Maven Central within 30min of publish -->
+        <repository>
+          <id>ossrh-releases</id>
+          <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+  </profiles>
+
+  <distributionManagement>
+    <repository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>tbd-oss-releases</id>
+      <name>TBD OSS Releases Repository</name>
+      <url>https://blockxyz.jfrog.io/artifactory/tbd-oss-releases-maven2</url>
+      <layout>default</layout>
+    </repository>
+    <snapshotRepository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>tbd-oss-snapshots</id>
+      <name>TBD OSS Snapshots Repository</name>
+      <url>https://blockxyz.jfrog.io/artifactory/tbd-oss-snapshots-maven2</url>
+      <layout>default</layout>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <repositories>
+    <repository>
+      <id>tbd-oss-thirdparty</id>
+      <name>tbd-oss-thirdparty</name>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <url>https://blockxyz.jfrog.io/artifactory/tbd-oss-thirdparty-maven2/</url>
+    </repository>
+    <repository>
+      <id>tbd-oss-snapshots</id>
+      <name>tbd-oss-snapshots</name>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <url>https://blockxyz.jfrog.io/artifactory/tbd-oss-snapshots-maven2/</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>tbd-oss-thirdparty</id>
+      <name>tbd-oss-thirdparty</name>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <url>https://blockxyz.jfrog.io/artifactory/tbd-oss-thirdparty-maven2/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+</project>

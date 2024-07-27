@@ -39,3 +39,6 @@ test-bound: setup
 
 test-kotlin: setup
   cd bound/kt && mvn clean test
+
+test-kotlin-issue-271: setup
+  cd bound/kt && mvn -f pom-issue-271.xml clean verify

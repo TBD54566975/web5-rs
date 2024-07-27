@@ -1,0 +1,176 @@
+config:
+  # is automatically ignored when custom-checks.jar is on the classpath
+  # however other CI checks use the argsfile where our plugin is not applied
+  # we need to care take of this by explicitly allowing this properties
+  excludes: 'custom-checks.*'
+
+custom-checks:
+  active: true
+  SpekTestDiscovery:
+    active: true
+    includes: [ '**/test/**/*Spec.kt' ]
+
+comments:
+  active: true
+  DeprecatedBlockTag:
+    active: true
+  EndOfSentenceFormat:
+    active: true
+    endOfSentenceFormat: '([.?!][ \t\n\r\f<])|([.?!:]$)'
+  UndocumentedPublicClass:
+    active: true
+    excludes: [ '**/test/**' ]
+    searchInNestedClass: true
+    searchInInnerClass: true
+    searchInInnerObject: true
+    searchInInnerInterface: true
+    searchInProtectedClass: false
+  UndocumentedPublicFunction:
+    active: true
+    excludes: [ '**/test/**' ]
+  UndocumentedPublicProperty:
+    active: false
+    excludes: [ '**/test/**' ]
+
+complexity:
+  StringLiteralDuplication:
+    active: true
+    excludes: [ '**/test/**', '**/*.Test.kt', '**/*.Spec.kt' ]
+    threshold: 5
+    ignoreAnnotation: true
+    excludeStringsWithLessThan5Characters: true
+    ignoreStringsRegex: '$^'
+  ComplexInterface:
+    active: true
+    threshold: 10
+    includeStaticDeclarations: false
+    includePrivateDeclarations: false
+  CyclomaticComplexMethod:
+    active: true
+    ignoreSingleWhenExpression: true
+    threshold: 25
+  LongParameterList:
+    constructorThreshold: 10
+  MethodOverloading:
+    active: true
+
+exceptions:
+  NotImplementedDeclaration:
+    active: false
+  InstanceOfCheckForException:
+    active: true
+  RethrowCaughtException:
+    active: true
+  ReturnFromFinally:
+    active: true
+  SwallowedException:
+    active: true
+  ThrowingExceptionFromFinally:
+    active: true
+  ThrowingExceptionsWithoutMessageOrCause:
+    active: true
+  ThrowingNewInstanceOfSameException:
+    active: true
+
+formatting:
+  active: true
+  android: false
+  autoCorrect: true
+  Indentation:
+    indentSize: 2
+  ParameterListWrapping:
+    indentSize: 2
+  MaximumLineLength:
+    active: true
+  ImportOrdering:
+    active: false
+
+naming:
+  MemberNameEqualsClassName:
+    active: true
+  VariableNaming:
+    active: true
+    variablePattern: '[a-z][A-Za-z0-9]*'
+    privateVariablePattern: '(_)?[a-z][A-Za-z0-9]*'
+    excludeClassPattern: '$^'
+  PackageNaming:
+    active: false
+
+performance:
+  ArrayPrimitive:
+    active: true
+
+potential-bugs:
+  EqualsAlwaysReturnsTrueOrFalse:
+    active: true
+  InvalidRange:
+    active: true
+  IteratorHasNextCallsNextMethod:
+    active: true
+  IteratorNotThrowingNoSuchElementException:
+    active: true
+  UnsafeCallOnNullableType:
+    active: true
+  UnsafeCast:
+    active: true
+    excludes: [ '**/test/**', '**/*.Test.kt', '**/*.Spec.kt' ]
+  UselessPostfixExpression:
+    active: true
+  WrongEqualsTypeParameter:
+    active: true
+
+style:
+  ClassOrdering:
+    active: true
+  CollapsibleIfStatements:
+    active: true
+  EqualsNullCall:
+    active: true
+  ForbiddenComment:
+    active: false
+  FunctionOnlyReturningConstant:
+    active: true
+  LoopWithTooManyJumpStatements:
+    active: true
+  MaxLineLength:
+    excludes: [ '**/test/**', '**/*.Test.kt', '**/*.Spec.kt' ]
+    excludeCommentStatements: true
+  MagicNumber:
+    ignoreHashCodeFunction: true
+    ignorePropertyDeclaration: true
+    ignoreAnnotation: true
+    ignoreEnums: true
+    ignoreNumbers: [ '-1', '0', '1', '2', '100', '1000' ]
+  MayBeConst:
+    active: true
+  NestedClassesVisibility:
+    active: true
+  ProtectedMemberInFinalClass:
+    active: true
+  RedundantVisibilityModifierRule:
+    active: false
+  ReturnCount:
+    excludeGuardClauses: true
+  SpacingBetweenPackageAndImports:
+    active: true
+  ThrowsCount:
+    active: false
+  UnnecessaryAbstractClass:
+    active: true
+  UnnecessaryInheritance:
+    active: true
+  UnusedPrivateClass:
+    active: true
+  UnusedPrivateMember:
+    active: true
+    allowedNames: '(_|ignored|expected)'
+  UseCheckOrError:
+    active: true
+  UselessCallOnNotNull:
+    active: true
+  UtilityClassWithPublicConstructor:
+    active: false
+
+TbdRuleset:
+  JvmOverloadsAnnotationRule:
+    active: true
