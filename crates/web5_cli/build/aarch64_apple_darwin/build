@@ -1,0 +1,13 @@
+#!/bin/bash 
+
+set -e
+
+REPO_DIR=../../../../
+
+rustup target add aarch64-apple-darwin
+
+(
+  cd $REPO_DIR;
+  cargo build --target aarch64-apple-darwin --release --package web5_cli;
+  # located at: target/aarch64-apple-darwin/release/web5_cli
+)

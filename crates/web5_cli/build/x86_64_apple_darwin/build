@@ -1,0 +1,15 @@
+#!/bin/bash 
+
+set -e
+
+REPO_DIR=../../../../
+
+rustup target add x86_64-apple-darwin
+
+(
+  cd $REPO_DIR;
+  cargo build --target x86_64-apple-darwin --release \
+    --package web5_cli \
+    --features x86_64_apple_darwin;
+  # located at target/x86_64-apple-darwin/release/web5_cli
+)

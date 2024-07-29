@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+REPO_DIR=../../../../
+IMAGE_NAME=web5_cli_x86_64-unknown-linux-gnu_image
+CONTAINER_NAME=web5_cli_x86_64-unknown-linux-gnu_container
+
+docker build -f $(pwd)/Dockerfile -t $IMAGE_NAME $REPO_DIR
+
+docker run -d --name $CONTAINER_NAME $IMAGE_NAME
+
+TARGET_DIR=$REPO_DIR/target/x86_64-unknown-linux-gnu/release
+mkdir -p $TARGET_DIR
+
+docker cp $CONTAINER_NAME:/usr/src/myapp/target/release/web5_cli $TARGET_DIR/web5_cli
+
+docker stop $CONTAINER_NAME
+docker rm $CONTAINER_NAME

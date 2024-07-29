@@ -1,0 +1,73 @@
+name: Build CLI
+
+on:
+  push:
+    branches:
+      - main
+      - kendall/cli-build
+  pull_request:
+
+jobs:
+  build_aarch64_apple_darwin:
+    runs-on: macos-latest
+    name: Build aarch64-apple-darwin target
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        run: rustup toolchain install stable
+      - name: Run Build Script
+        run: |
+          cd crates/web5_cli/build/aarch64_apple_darwin
+          ./build
+      - name: Upload executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: aarch64-apple-darwin-exe
+          path: target/aarch64-apple-darwin/release/web5_cli
+
+  build_x86_64_apple_darwin:
+    runs-on: macos-12
+    name: Build x86_64-apple-darwin target
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        run: rustup toolchain install stable
+      - name: Run Build Script
+        run: |
+          cd crates/web5_cli/build/x86_64_apple_darwin
+          ./build
+      - name: Upload executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: x86_64-apple-darwin-exe
+          path: target/x86_64-apple-darwin/release/web5_cli
+
+  build_x86_64_unknown_linux_gnu:
+    runs-on: ubuntu-latest
+    name: Build x86_64-unknown-linux-gnu target
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Build Script
+        run: |
+          cd crates/web5_cli/build/x86_64_unknown_linux_gnu
+          ./build
+      - name: Upload executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: x86_64-unknown-linux-gnu-exe
+          path: target/x86_64-unknown-linux-gnu/release/web5_cli
+
+  build_x86_64_unknown_linux_musl:
+    runs-on: ubuntu-latest
+    name: Build x86_64-unknown-linux-musl target
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Build Script
+        run: |
+          cd crates/web5_cli/build/x86_64_unknown_linux_musl
+          ./build
+      - name: Upload executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: x86_64-unknown-linux-musl-exe
+          path: target/x86_64-unknown-linux-musl/release/web5_cli
