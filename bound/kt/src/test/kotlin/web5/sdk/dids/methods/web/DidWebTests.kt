@@ -1,56 +1,37 @@
 package web5.sdk.dids.methods.web
 
-import io.mockk.coEvery
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkStatic
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
-import web5.sdk.dids.Document
-import web5.sdk.rust.DidJwk
-import web5.sdk.rust.RustCoreException
 
 class DidWebTests {
-
-    // TODO: Did web resolution errors - https://github.com/TBD54566975/web5-rs/issues/272
-//    @Test
-//    fun `can create did web from uri`() = runBlocking {
-//        val didUri = "did:web:localhost:1234"
-//        val resolvedDid = DidWeb(didUri)
+    
+    @Test
+    fun `can resolve did web uri`() {
+//        Works if you host a local did web document You must host this json at http://localhost:1234/.well-known/did.json
+//        val didDocumentJson = """
+//            {
+//               "id":"did:web.tbd.website",
+//               "@context":[
+//                  "https://www.w3.org/ns/did/v1"
+//               ],
+//               "verificationMethod":[
+//                  {
+//                     "id":"did:web:www.tbd.website#key-0",
+//                     "type":"JsonWebKey",
+//                     "controller":"did:web:www.tbd.website",
+//                     "publicKeyJwk":{
+//                        "alg":"Ed25519",
+//                        "kty":"OKP",
+//                        "crv":"Ed25519",
+//                        "x":"gNFtgCZhOYv00p48FHQYt4edkoBPOyw0oGAB20LrT0c"
+//                     }
+//                  }
+//               ]
+//            }
+//        """.trimIndent()
 //
-//        assertEquals("did:web:localhost:1234", resolvedDid.document!!.id)
-//    }
-
-//    @Test
-//    fun `can create did web from url`() {
-//        val didDocument = Document(
-//            id = "did:web:localhost:1234",
-//            context = listOf("https://www.w3.org/ns/did/v1"),
-//            verificationMethod = listOf(
-//                VerificationMethod(
-//                    id = "did:web:www.tbd.website#key-0",
-//                    type = "JsonWebKey",
-//                    controller = "did:web:www.tbd.website",
-//                    publicKeyJwk = PublicKeyJwk(
-//                        alg = "Ed25519",
-//                        kty = "OKP",
-//                        crv = "Ed25519",
-//                        x = "gNFtgCZhOYv00p48FHQYt4edkoBPOyw0oGAB20LrT0c"
-//                    )
-//                )
-//            )
-//        )
+//        val didUri = "did:web:localhost%3A1234"
+//        val resolvedDid = DidWeb.resolve(didUri)
 //
-//        // TODO: Construct a resolution result the correct way
-//        val resolutionResult = web5.sdk.dids.methods.jwk.DidJwk.resolve("did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsImQiOiJwR0tScHBWczlqYkhWYkZjNm5MTmZQZEN0RG9lOHV1VVNaNVMzX3VOWXpvIiwieCI6IjV5V0FBMkZBM25pMnJaSjh3NVVKMkxMdFZHN2lsYU0wRkc1ZVYwXzZ4U3cifQ")
-//
-//        mockkStatic("web5.sdk.dids.methods.web.DidWeb")
-//        coEvery { DidWeb.resolve("did:web:localhost:1234") } returns resolutionResult
-//
-//        val didWebResolutionResult = DidWeb.resolve("did:web:localhost:1234")
-//        assertEquals("did:web:localhost:1234", didWebResolutionResult.document!!.id)
-//    }
+//        assertEquals(resolvedDid.document!!.id, "did:web:www.tbd.website")
+    }
 }
