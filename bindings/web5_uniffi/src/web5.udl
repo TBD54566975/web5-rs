@@ -171,6 +171,8 @@ dictionary DidWebData {
 };
 
 interface DidWeb {
+  [Name=from_public_jwk, Throws=RustCoreError]
+  constructor([ByRef] string domain, JwkData public_jwk);
   [Async, Name=from_uri, Throws=RustCoreError]
   constructor([ByRef] string uri);
   DidWebData get_data();

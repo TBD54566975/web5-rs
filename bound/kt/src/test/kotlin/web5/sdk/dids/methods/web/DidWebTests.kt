@@ -1,8 +1,20 @@
 package web5.sdk.dids.methods.web
 
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import web5.sdk.rust.ed25519GeneratorGenerate
 
 class DidWebTests {
+
+    @Test
+    fun `can create did web`() {
+        val domain = "example.com"
+        val jwk = ed25519GeneratorGenerate();
+
+        val didWeb = DidWeb(domain, jwk)
+        assertEquals(didWeb.did.uri, "did:web:example.com")
+        assertEquals(didWeb.document.verificationMethod.get(0).publicKeyJwk, jwk)
+    }
 
     @Test
     fun `can resolve did web uri`() {

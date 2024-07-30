@@ -1,6 +1,7 @@
 package web5.sdk.dids.methods.web
 
 import kotlinx.coroutines.runBlocking
+import web5.sdk.crypto.keys.Jwk
 import web5.sdk.dids.Did
 import web5.sdk.dids.Document
 import web5.sdk.dids.ResolutionResult
@@ -31,6 +32,20 @@ class DidWeb {
     constructor(uri: String) {
         val rustCoreDidWeb = runBlocking {
             RustCoreDidWeb.fromUri(uri)
+        }
+
+        this.did = rustCoreDidWeb.getData().did
+        this.document = rustCoreDidWeb.getData().document
+    }
+
+    /**
+     * Constructs a DidWeb instance using a domain and public key jwk
+     *
+     * @param domain The DID domain name.
+     */
+    constructor(domain: String, publicKey: Jwk) {
+        val rustCoreDidWeb = runBlocking {
+            RustCoreDidWeb.fromPublicJwk(domain, publicKey);
         }
 
         this.did = rustCoreDidWeb.getData().did
