@@ -2,7 +2,6 @@ package web5.sdk.dids
 
 import web5.sdk.crypto.signers.Signer
 import web5.sdk.crypto.keys.KeyManager
-import web5.sdk.crypto.signers.OuterSigner
 import web5.sdk.rust.SystemTarget
 
 import web5.sdk.rust.BearerDid as RustCoreBearerDid
@@ -32,11 +31,25 @@ class BearerDid {
      * @param keyManager The key manager to handle keys.
      */
     constructor(uri: String, keyManager: KeyManager) {
-        this.rustCoreBearerDid = RustCoreBearerDid(uri, keyManager.getRustCoreKeyManager())
+        this.rustCoreBearerDid = RustCoreBearerDid(uri, keyManager)
 
         this.did = this.rustCoreBearerDid.getData().did
         this.document = this.rustCoreBearerDid.getData().document
         this.keyManager = keyManager
+    }
+
+    /**
+     * Constructs a BearerDid instance from a PortableDid.
+     *
+     * @param portableDid The PortableDid.
+     */
+    constructor(portableDid: PortableDid) {
+        this.rustCoreBearerDid = RustCoreBearerDid.fromPortableDid(portableDid.rustCorePortableDid)
+
+        val data = this.rustCoreBearerDid.getData()
+        this.did = data.did
+        this.document = data.document
+        this.keyManager = data.keyManager
     }
 
     /**
@@ -46,7 +59,6 @@ class BearerDid {
      */
     fun getSigner(): Signer {
         val keyId = this.document.verificationMethod.first().id
-        val innerSigner = this.rustCoreBearerDid.getSigner(keyId)
-        return OuterSigner(innerSigner)
+        return this.rustCoreBearerDid.getSigner(keyId)
     }
 }
