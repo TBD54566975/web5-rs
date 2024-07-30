@@ -3,7 +3,7 @@ package web5.sdk.dids.methods.web
 import org.junit.jupiter.api.Test
 
 class DidWebTests {
-    
+
     @Test
     fun `can resolve did web uri`() {
 //        Works if you host a local did web document You must host this json at http://localhost:1234/.well-known/did.json
