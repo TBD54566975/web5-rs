@@ -86,12 +86,21 @@ impl Signer for Ed25519Signer {
             .as_ref()
             .ok_or(DsaError::MissingPrivateKey)?;
         let decoded_d = general_purpose::URL_SAFE_NO_PAD.decode(d)?;
-        if decoded_d.len() != SECRET_KEY_LENGTH {
+
+        // some implementations of ed25519 couple the public key alongside the private key
+        // in which case, we need to splice out only the private key bytes
+        let signing_key = if decoded_d.len() == 64 {
+            let mut key_array = [0u8; 32];
+            key_array.copy_from_slice(&decoded_d[..32]);
+            SigningKey::from_bytes(&key_array)
+        } else if decoded_d.len() == 32 {
+            let mut key_array = [0u8; 32];
+            key_array.copy_from_slice(&decoded_d);
+            SigningKey::from_bytes(&key_array)
+        } else {
             return Err(DsaError::InvalidKeyLength(SECRET_KEY_LENGTH.to_string()));
-        }
-        let mut key_array = [0u8; 32];
-        key_array.copy_from_slice(&decoded_d);
-        let signing_key = SigningKey::from_bytes(&key_array);
+        };
+
         let signature = signing_key.sign(payload);
         Ok(signature.to_vec())
     }
