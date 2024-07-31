@@ -884,6 +884,8 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -954,6 +956,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_didweb(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_web5_uniffi_fn_constructor_didweb_from_public_jwk(`domain`: RustBuffer.ByValue,`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_uniffi_fn_constructor_didweb_from_uri(`uri`: RustBuffer.ByValue,
     ): Long
     fun uniffi_web5_uniffi_fn_method_didweb_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1254,6 +1258,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_didjwk_from_uri(
     ): Short
+    fun uniffi_web5_uniffi_checksum_constructor_didweb_from_public_jwk(
+    ): Short
     fun uniffi_web5_uniffi_checksum_constructor_didweb_from_uri(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_document_new(
@@ -1399,6 +1405,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_didjwk_from_uri() != 10422.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_constructor_didweb_from_public_jwk() != 58059.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_didweb_from_uri() != 44078.toShort()) {
@@ -2949,6 +2958,17 @@ open class DidWeb: Disposable, AutoCloseable, DidWebInterface {
 
     
     companion object {
+        
+    @Throws(RustCoreException::class) fun `fromPublicJwk`(`domain`: kotlin.String, `publicJwk`: JwkData): DidWeb {
+            return FfiConverterTypeDidWeb.lift(
+    uniffiRustCallWithError(RustCoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didweb_from_public_jwk(
+        FfiConverterString.lower(`domain`),FfiConverterTypeJwkData.lower(`publicJwk`),_status)
+}
+    )
+    }
+    
+
         
     @Throws(RustCoreException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")

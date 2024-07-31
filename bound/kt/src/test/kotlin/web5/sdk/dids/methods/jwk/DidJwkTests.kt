@@ -15,8 +15,6 @@ class DidJwkTests {
 
         val didJwk = DidJwk(jwk)
 
-        println(didJwk.document.id)
-
         val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(jwk);
         assertEquals(rustCoreDidJwk.getData().did.uri, didJwk.did.uri)
         assertEquals(rustCoreDidJwk.getData().document.id, didJwk.document.id)

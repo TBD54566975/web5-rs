@@ -56,7 +56,7 @@ mod tests {
     }
 
     #[test]
-    fn can_resolve_did_web() {
+    fn can_resolve_invalid_did_web() {
         let did_uri = "did:web:tbd.website";
         let resolution_result = ResolutionResult::new(did_uri);
 
@@ -66,6 +66,16 @@ mod tests {
             resolution_result.resolution_metadata.error
         );
     }
+
+    // This works if you host a did web document json at http://localhost:1234/.well-known/did.json
+    // #[test]
+    // fn can_resolve_valid_did_web() {
+    //     let did_uri = "did:web:localhost%3A1234";
+    //     let resolution_result = ResolutionResult::new(did_uri);
+    //
+    //     assert_eq!(None, resolution_result.resolution_metadata.error);
+    //     assert_eq!(resolution_result.document.unwrap().id, "did:web:tbd.website");
+    // }
 
     #[test]
     fn can_resolve_did_dht() {
