@@ -15,6 +15,11 @@ class PortableDid {
 
     internal val rustCorePortableDid: RustCorePortableDid
 
+    /**
+     * Constructs a PortableDid from a JSON string.
+     *
+     * @param json The JSON string.
+     */
     constructor(json: String) {
         this.rustCorePortableDid = RustCorePortableDid(json)
 
