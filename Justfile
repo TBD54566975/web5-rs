@@ -8,14 +8,14 @@ setup:
   if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
     rustup default 1.78.0
     case $(uname -sm) in
-      "Darwin arm64")
-        rustup target add aarch64-apple-darwin ;;
-      "Darwin x86_64")
-        rustup target add x86_64-apple-darwin ;;
-      "Linux aarch64")
-        rustup target add aarch64-unknown-linux-gnu ;;
-      "Linux x86_64")
-        rustup target add x86_64-unknown-linux-gnu ;;
+    "Darwin arm64")
+      rustup target add aarch64-apple-darwin ;;
+    "Darwin x86_64")
+      rustup target add x86_64-apple-darwin ;;
+    "Linux aarch64")
+      rustup target add aarch64-unknown-linux-gnu ;;
+    "Linux x86_64")
+      rustup target add x86_64-unknown-linux-gnu ;;
     esac
   fi
 
@@ -34,14 +34,14 @@ bind: setup
 
 bind-kotlin: setup
   case $(uname -sm) in
-    "Darwin arm64")
-      TARGET_ARCH="aarch64-apple-darwin" ;;
-    "Darwin x86_64")
-      TARGET_ARCH="x86_64-apple-darwin" ;;
-    "Linux aarch64")
-      TARGET_ARCH="aarch64-unknown-linux-gnu" ;;
-    "Linux x86_64")
-      TARGET_ARCH="x86_64-unknown-linux-gnu" ;;
+  "Darwin arm64")
+    TARGET_ARCH="aarch64-apple-darwin" ;;
+  "Darwin x86_64")
+    TARGET_ARCH="x86_64-apple-darwin" ;;
+  "Linux aarch64")
+    TARGET_ARCH="aarch64-unknown-linux-gnu" ;;
+  "Linux x86_64")
+    TARGET_ARCH="x86_64-unknown-linux-gnu" ;;
   esac
   cargo build --release --package web5_uniffi --target $TARGET_ARCH
   cp target/$TARGET_ARCH/release/libweb5_uniffi.* \
