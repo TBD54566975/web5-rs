@@ -7,7 +7,7 @@ setup:
   git submodule update --init --recursive
   if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
     rustup default 1.78.0
-    ./scripts/setup_case.sh
+    rustup target add $(./scripts/get_target_arch.sh)
   fi
 
 build: setup
@@ -24,7 +24,7 @@ bind: setup
   just bind-kotlin
 
 bind-kotlin: setup
-  ./scripts/bind_kotlin_case.sh
+  TARGET_ARCH=$(./scripts/get_target_arch.sh)
   cargo build --release --package web5_uniffi --target $TARGET_ARCH
   cp target/$TARGET_ARCH/release/libweb5_uniffi.* \
     bound/kt/src/main/resources/
