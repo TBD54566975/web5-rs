@@ -4,44 +4,16 @@ on:
   push:
     branches:
       - main
+      - kendall/ci-minus-maven
   pull_request:
 
 env:
   CARGO_TERM_COLOR: always
   # Make sure CI fails on all warnings, including Clippy lints
   RUSTFLAGS: "-Dwarnings"
+  TBDEX_SDK_LOG_LEVEL: debug
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Init Hermit
-        uses: cashapp/activate-hermit@v1
-        with:
-          cache: true
-      - name: Setup
-        run: just setup
-      - name: Build
-        run: just build
-  test:
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, macos-latest ] # TODO add back windows-latest https://github.com/TBD54566975/web5-rs/issues/189
-        rust: [ stable, nightly ]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-            submodules: true
-      - name: Init Hermit
-        uses: cashapp/activate-hermit@v1
-        with:
-          cache: true
-      - name: Setup
-        run: just setup
-      - name: Test
-        run: just test
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -50,9 +22,147 @@ jobs:
         uses: cashapp/activate-hermit@v1
         with:
           cache: true
-      - name: Setup
-        run: just setup
-      - name: Formatting
-        run: cargo fmt --check
       - name: Lint
         run: just lint
+
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        rust: [stable, nightly]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: Test
+        run: just test
+
+  build_aarch64_apple_darwin:
+    runs-on: macos-latest
+    name: Build aarch64-apple-darwin target
+    steps:
+      - uses: actions/checkout@v2
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: Setup
+        run: just setup
+      - name: Run Build Script
+        run: |
+          cd bindings/web5_uniffi/libtargets/aarch64_apple_darwin
+          ./build
+      - name: Upload .dylib
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: aarch64-apple-darwin-dylib
+          path: bound/kt/src/main/resources/libweb5_uniffi_aarch64_apple_darwin.dylib
+
+  build_x86_64_apple_darwin:
+    runs-on: macos-12
+    name: Build x86_64-apple-darwin target
+    steps:
+      - uses: actions/checkout@v2
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: Setup
+        run: just setup
+      - name: Run Build Script
+        run: |
+          cd bindings/web5_uniffi/libtargets/x86_64_apple_darwin
+          ./build
+      - name: Upload .dylib
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: x86_64-apple-darwin-dylib
+          path: bound/kt/src/main/resources/libweb5_uniffi_x86_64_apple_darwin.dylib
+
+  build_x86_64_unknown_linux_gnu:
+    runs-on: ubuntu-latest
+    name: Build x86_64-unknown-linux-gnu target
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Build Script
+        run: |
+          cd bindings/web5_uniffi/libtargets/x86_64_unknown_linux_gnu
+          ./build
+      - name: Upload .so
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: x86_64-unknown-linux-gnu-so
+          path: bound/kt/src/main/resources/libweb5_uniffi_x86_64_unknown_linux_gnu.so
+
+  build_x86_64_unknown_linux_musl:
+    runs-on: ubuntu-latest
+    name: Build x86_64-unknown-linux-musl target
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Build Script
+        run: |
+          cd bindings/web5_uniffi/libtargets/x86_64_unknown_linux_musl
+          ./build
+      - name: Upload .so
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: x86_64-unknown-linux-musl-so
+          path: bound/kt/src/main/resources/libweb5_uniffi_x86_64_unknown_linux_musl.so
+
+  kotlin-build-test:
+    needs:
+      - build_aarch64_apple_darwin
+      - build_x86_64_apple_darwin
+      - build_x86_64_unknown_linux_gnu
+      - build_x86_64_unknown_linux_musl
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: "adopt"
+          java-version: "11"
+
+      # Cache Maven repo
+      - uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Package up the native binaries
+      #TODO Centralize this block as we re-use it via copy/paste right now
+      - name: Download MacOS aarch64 Native Library
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: aarch64-apple-darwin-dylib
+          path: bound/kt/src/main/resources/
+      - name: Download MacOS x86_64 Native Library
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: x86_64-apple-darwin-dylib
+          path: bound/kt/src/main/resources/
+      - name: Download Linux x86_64 GNU Native Library
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: x86_64-unknown-linux-gnu-so
+          path: bound/kt/src/main/resources/
+      - name: Download Linux x86_64 MUSL Native Library
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: x86_64-unknown-linux-musl-so
+          path: bound/kt/src/main/resources/
+
+      - name: Test Kotlin Project
+        run: |
+          cd bound/kt/
+          mvn test
