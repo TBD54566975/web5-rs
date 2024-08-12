@@ -7,6 +7,6 @@ class SystemTargetTest {
     fun `can load shared library`() {
         System.setProperty("WEB5_SDK_LOG_LEVEL", "debug")
         UniffiLib.INSTANCE
-        println("Successfully loaded shared library for ${System.getProperty("uniffi.component.web5.libraryOverride")}")
+        println("Successfully loaded shared library for ${detectSystemTarget()}")
     }
 }
