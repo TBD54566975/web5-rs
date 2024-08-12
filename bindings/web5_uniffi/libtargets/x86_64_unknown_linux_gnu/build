@@ -10,6 +10,8 @@ docker build -f $(pwd)/Dockerfile -t $IMAGE_NAME $REPO_DIR
 
 docker run -d --name $CONTAINER_NAME $IMAGE_NAME
 
+mkdir -p $REPO_DIR/bound/kt/src/main/resources;
+
 docker cp $CONTAINER_NAME:/usr/src/myapp/target/release/libweb5_uniffi.so \
   $REPO_DIR/bound/kt/src/main/resources/libweb5_uniffi_x86_64_unknown_linux_gnu.so
 
