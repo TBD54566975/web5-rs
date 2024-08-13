@@ -2,7 +2,7 @@
 
 **Last Updated:** May 30, 2024
 
-**Version:** 0.1.0
+**Version:** 0.2.0
 
 The design definitions within the Custom DSL are intended to span any programming language, so long as the given programming language supports the [High-Level Concepts](#high-level-concepts) and [Primitive Concepts](#primitive-concepts) in one form or another. The instantiations of these concepts will be unique to the given idioms of the target programming language.
 
@@ -12,6 +12,7 @@ The design definitions within the Custom DSL are intended to span any programmin
   - [Polymorphic Base Class](#polymorphic-base-class)
   - [Class](#class)
   - [Enumeration](#enumeration)
+  - [Function](#function)
 
 # Limitations
 
@@ -19,13 +20,9 @@ In order to achieve the goal of defining concrete design definitions which span 
 
 The Custom DSL does not assert requirements as to the artifact makeup (i.e. npm packages, rust crates, go modules, etc.) of the API. It is recommended to implement the entirety of an API design in a single artifact, but each implementation may choose to create multiple artifacts. However, the APID makes no regards for the matter of circular dependencies, and so it may become unviable to implement the APID in it's completeness across multiple artifacts.
 
-The Custom DSL does not offer a primitive type conceptually equivalent to a JSON Object wherein the concept is a hash map with N-number of distinct value types, where N > 1. In other words, the Custom DSL offers a hash map primitive 
-concept, but the key and value types are considered to uniform over the entirety of the hash map. 
-
 > [!WARNING]
 > Concepts required but missing: 
 > - Errors.
-> - JSON Object (see above paragraph).
 > - JSON serialization naming.
 > - Namespacing.
 
@@ -42,6 +39,7 @@ concept, but the key and value types are considered to uniform over the entirety
 | hash map          | `Map<T1, T2>`                           |
 | function          | `func_name(param1: T1, param2: T2): T3` |
 | mixed type        | `T1 \| T2`                              |
+| object            | `Object`                                |
 
 # High-Level Concepts
 
@@ -52,7 +50,7 @@ concept, but the key and value types are considered to uniform over the entirety
 
 **Example**
 
-```psuedocode
+```psuedocode!
 INTERFACE Shape
   METHOD area(): int
   METHOD perimeter(): int
@@ -72,7 +70,7 @@ INTERFACE Shape
 
 **Example**
 
-```psuedocode
+```psuedocode!
 CLASS Circle IMPLEMENTS Shape
   PUBLIC DATA radius: int
   CONSTRUCTOR(radius: int)
@@ -90,9 +88,19 @@ CLASS Circle IMPLEMENTS Shape
 
 **Example:**
 
-```psuedocode
+```psuedocode!
 ENUM Color
   RED
   GREEN
   BLUE
+```
+
+## Function
+
+- `FUNCTION functionName(param: T1): T2`: Defines a function
+
+**Example:**
+
+```pseudocode!
+FUNCTION someFunction(p1: string, p2: Object): bool
 ```
