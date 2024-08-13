@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version of Kotlin binary to publish to TBD Artifactory. For example "1.0.0-SNAPSHOT". If not supplied, will default to "commit-$shortSHA-SNAPSHOT" where $shortSHA is the shortform commit SHA. Must end in "-SNAPSHOT".'
+        description: 'Version of Kotlin binary to publish to TBD Artifactory. For example "1.0.0" will result in "1.0.0-SNAPSHOT". If not supplied, will default to "commit-$shortSHA-SNAPSHOT" where $shortSHA is the shortform commit SHA.'
         required: false
         default: "0.0.0-SNAPSHOT"
   workflow_call:
     inputs:
       version:
-        description: 'Version of Kotlin binary to publish to TBD Artifactory. For example "1.0.0-SNAPSHOT". If not supplied, will default to "commit-$shortSHA-SNAPSHOT" where $shortSHA is the shortform commit SHA. Must end in "-SNAPSHOT".'
+        description: 'Version of Kotlin binary to publish to TBD Artifactory. For example "1.0.0" will result in "1.0.0-SNAPSHOT". If not supplied, will default to "commit-$shortSHA-SNAPSHOT" where $shortSHA is the shortform commit SHA.'
         required: true
         type: string
   push:
@@ -147,7 +147,11 @@ jobs:
         run: |
           # Version resolution: use provided
           if [ -n "${{ github.event.inputs.version }}" ]; then
-            resolvedVersion=${{ github.event.inputs.version }}
+            if [[ "${{ github.event.inputs.version }}" != *-SNAPSHOT ]]; then
+              resolvedVersion="${{ github.event.inputs.version }}-SNAPSHOT"
+            else
+              resolvedVersion="${{ github.event.inputs.version }}"
+            fi
           # Otherwise, construct a version for deployment in form X.Y.Z-commit-$shortSHA-SNAPSHOT
           else
             longSHA=$(git rev-parse --verify HEAD)
