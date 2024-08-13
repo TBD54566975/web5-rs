@@ -73,10 +73,10 @@
 
 ### Data Model 1.1
 
-#### `VerifiableCredential`
-
 > [!WARNING]
 > We are currently missing `credentialStatus`, `credentialSchema` and `evidence`
+
+#### `VerifiableCredential`
 
 ```pseudocode!
 CLASS VerifiableCredential
@@ -88,7 +88,7 @@ CLASS VerifiableCredential
   PUBLIC DATA expirationDate: string?
   PUBLIC DATA credentialSubject: CredentialSubject
 
-  CONSTRUCTOR create(context: []string, id: string, type: []string, issuer: Issuer, issuanceDate: string, expirationDate: string?, credentialSubject: CredentialSubject)
+  CONSTRUCTOR create(context: []string?, id: string?, type: []string?, issuer: Issuer, issuanceDate: string, expirationDate: string?, credentialSubject: CredentialSubject)
   CONSTRUCTOR from_vc_jwt(vc_jwt: string)
   CONSTRUCTOR from_json_string(json: string)
 
