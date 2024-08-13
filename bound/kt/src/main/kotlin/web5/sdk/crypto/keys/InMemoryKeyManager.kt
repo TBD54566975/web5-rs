@@ -1,17 +1,12 @@
 package web5.sdk.crypto.keys
 
 import web5.sdk.crypto.signers.Signer
-import web5.sdk.rust.SystemTarget
 import web5.sdk.rust.InMemoryKeyManager as RustCoreInMemoryKeyManager
 
 /**
  * A class for managing cryptographic keys in-memory.
  */
 class InMemoryKeyManager : KeyManager {
-    init {
-        SystemTarget.set() // ensure the sys arch is set for first-time loading
-    }
-
     private val rustCoreInMemoryKeyManager = RustCoreInMemoryKeyManager()
 
     /**

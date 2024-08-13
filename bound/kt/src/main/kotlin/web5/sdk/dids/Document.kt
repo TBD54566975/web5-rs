@@ -1,6 +1,5 @@
 package web5.sdk.dids
 
-
 import web5.sdk.rust.DocumentData as RustCoreDocumentData
 
 /**

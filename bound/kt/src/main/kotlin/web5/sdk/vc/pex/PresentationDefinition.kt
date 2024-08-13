@@ -2,7 +2,6 @@ package web5.sdk.vc.pex
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import web5.sdk.Json
-import web5.sdk.rust.SystemTarget
 import web5.sdk.rust.PresentationDefinition as RustCorePresentationDefinition
 
 data class PresentationDefinition(
@@ -12,10 +11,6 @@ data class PresentationDefinition(
     @JsonProperty("input_descriptors")
     val inputDescriptors: List<InputDescriptor>
 ) {
-    init {
-        SystemTarget.set() // ensure the sys arch is set for first-time loading
-    }
-
     internal val rustCorePresentationDefinition = RustCorePresentationDefinition(
         Json.stringify(this)
     )
