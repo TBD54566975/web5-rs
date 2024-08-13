@@ -24,6 +24,7 @@ bind: setup
   just bind-kotlin
 
 bind-kotlin: setup
+  mkdir -p bound/kt/src/main/resources
   cargo build --release --package web5_uniffi --target aarch64-apple-darwin
   cp target/aarch64-apple-darwin/release/libweb5_uniffi.dylib \
     bound/kt/src/main/resources/libweb5_uniffi_aarch64_apple_darwin.dylib
