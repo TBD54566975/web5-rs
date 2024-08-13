@@ -32,6 +32,7 @@ bind-kotlin: setup
     generate --library bound/kt/src/main/resources/libweb5_uniffi_aarch64_apple_darwin.dylib \
     --language kotlin \
     --out-dir target/bindgen-kotlin
+  sed -i '' 's/findLibraryName(componentName)/detectSystemTarget()/' target/bindgen-kotlin/web5/sdk/rust/web5.kt
   cp target/bindgen-kotlin/web5/sdk/rust/web5.kt bound/kt/src/main/kotlin/web5/sdk/rust/UniFFI.kt
 
 test-bound: setup

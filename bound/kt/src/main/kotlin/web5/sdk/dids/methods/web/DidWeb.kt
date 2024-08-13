@@ -5,8 +5,6 @@ import web5.sdk.crypto.keys.Jwk
 import web5.sdk.dids.Did
 import web5.sdk.dids.Document
 import web5.sdk.dids.ResolutionResult
-import web5.sdk.rust.SystemTarget
-
 import web5.sdk.rust.didWebResolve as rustCoreDidWebResolve
 import web5.sdk.rust.DidWeb as RustCoreDidWeb
 
@@ -17,10 +15,6 @@ import web5.sdk.rust.DidWeb as RustCoreDidWeb
  * @property document The DID document associated with this instance.
  */
 class DidWeb {
-    init {
-        SystemTarget.set() // ensure the sys arch is set for first-time loading
-    }
-
     val did: Did
     val document: Document
 

@@ -17,3 +17,7 @@ Cargo.lock
 
 .hermit/
 .idea/
+
+# Do not put native binaries in source control
+bound/kt/src/main/resources/*.dylib
+bound/kt/src/main/resources/*.so
