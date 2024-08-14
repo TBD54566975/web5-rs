@@ -63,7 +63,7 @@ impl Commands {
                 };
 
                 let now = SystemTime::now();
-                let vc = VerifiableCredential::new(
+                let vc = VerifiableCredential::create(
                     format!("urn:vc:uuid:{0}", Uuid::new_v4()),
                     vec![BASE_CONTEXT.to_string()],
                     vec![BASE_TYPE.to_string()],

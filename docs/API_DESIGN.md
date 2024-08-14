@@ -10,10 +10,9 @@
   - [Verifiable Credentials (VCs)](#verifiable-credentials-vcs)
     - [Data Model 1.1](#data-model-11)
       - [`VerifiableCredential`](#verifiablecredential)
-      - [`CredentialSubject`](#credentialsubject)
-      - [`SimpleSubject`](#simplesubject)
-      - [`Issuer`](#issuer)
-      - [`NamedIssuer`](#namedissuer)
+        - [`CredentialSubject`](#credentialsubject)
+        - [`Issuer`](#issuer)
+        - [`CreateOptions`](#createoptions)
   - [Presentation Exchange (PEX)](#presentation-exchange-pex)
     - [`PresentationDefinition`](#presentationdefinition)
     - [`InputDescriptor`](#inputdescriptor)
@@ -84,11 +83,11 @@ CLASS VerifiableCredential
   PUBLIC DATA id: string
   PUBLIC DATA type: []string
   PUBLIC DATA issuer: Issuer
-  PUBLIC DATA issuanceDate: string
-  PUBLIC DATA expirationDate: string?
+  PUBLIC DATA issuanceDate: datetime
+  PUBLIC DATA expirationDate: datetime?
   PUBLIC DATA credentialSubject: CredentialSubject
 
-  CONSTRUCTOR create(context: []string?, id: string?, type: []string?, issuer: Issuer, issuanceDate: string, expirationDate: string?, credentialSubject: CredentialSubject)
+  CONSTRUCTOR create(issuer: Issuer, credentialSubject: CredentialSubject, options: CreateOptions)
   CONSTRUCTOR from_vc_jwt(vc_jwt: string)
   CONSTRUCTOR from_json_string(json: string)
 
@@ -97,37 +96,23 @@ CLASS VerifiableCredential
   METHOD to_json_string(): string
 ```
 
-#### `CredentialSubject`
+##### `CredentialSubject`
 
-```pseudocode!
-INTERFACE CredentialSubject
-  METHOD get_id(): string
-```
+`Object` with at least a non-empty `id: string` data member.
 
-#### `SimpleSubject`
+##### `Issuer`
 
-```pseudocode!
-CLASS SimpleSubject IMPLEMENTS CredentialSubject
-  PUBLIC DATA id: string
+`Object` or `string`, and if `Object` then at least non-empty `id: string` and `name: string` data members.
 
-  METHOD get_id(): string
-```
+##### `CreateOptions`
 
-#### `Issuer`
-
-```pseudocode!
-INTERFACE Issuer
-  METHOD get_id(): string
-```
-
-#### `NamedIssuer`
-
-```pseudocode!
-CLASS NamedIssuer IMPLEMENTS Issuer
-  PUBLIC DATA id: string
-  PUBLIC DATA name: string
-
-  METHOD get_id(): string
+```psuedocode!
+CLASS CreateOptions
+  PUBLIC DATA id: string?
+  PUBLIC DATA context: []string?
+  PUBLIC DATA type: []string?
+  PUBLIC DATA issuance_date: datetime?
+  PUBLIC DATA expiration_date: datetime?
 ```
 
 ## Presentation Exchange (PEX)

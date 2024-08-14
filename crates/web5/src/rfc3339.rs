@@ -14,7 +14,9 @@ where
     serializer.serialize_str(&s)
 }
 
-pub(crate) fn deserialize_system_time<'de, D>(deserializer: D) -> std::result::Result<SystemTime, D::Error>
+pub(crate) fn deserialize_system_time<'de, D>(
+    deserializer: D,
+) -> std::result::Result<SystemTime, D::Error>
 where
     D: Deserializer<'de>,
 {

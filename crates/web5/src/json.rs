@@ -4,13 +4,13 @@ use std::collections::HashMap;
 
 type Result<T> = std::result::Result<T, Web5Error>;
 
-pub(crate) trait FromJson: Sized + DeserializeOwned {
+pub trait FromJson: Sized + DeserializeOwned {
     fn from_json_string(json: &str) -> Result<Self> {
         serde_json::from_str(json).map_err(Web5Error::from)
     }
 }
 
-pub(crate) trait ToJson: Serialize {
+pub trait ToJson: Serialize {
     fn to_json_string(&self) -> Result<String> {
         serde_json::to_string(self).map_err(Web5Error::from)
     }
@@ -35,7 +35,7 @@ pub struct JsonObject {
 
 impl JsonObject {
     pub fn new() -> Self {
-        JsonObject {
+        Self {
             properties: HashMap::new(),
         }
     }
@@ -46,5 +46,11 @@ impl JsonObject {
 
     pub fn get(&self, key: &str) -> Option<&JsonValue> {
         self.properties.get(key)
+    }
+}
+
+impl Default for JsonObject {
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -42,6 +42,8 @@ concept, but the key and value types are considered to uniform over the entirety
 | hash map          | `Map<T1, T2>`                           |
 | function          | `func_name(param1: T1, param2: T2): T3` |
 | mixed type        | `T1 \| T2`                              |
+| object            | `Object`                                |
+| datetime          | `datetime`                              |
 
 # High-Level Concepts
 
