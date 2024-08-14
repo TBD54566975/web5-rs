@@ -117,7 +117,7 @@ impl DidJwk {
 }
 
 #[cfg(test)]
-mod tests {
+mod web5_test_vectors {
     use crate::{
         dids::{
             data_model::document::Document,
@@ -141,7 +141,7 @@ mod tests {
     }
 
     #[test]
-    fn test_web5_spec_did_jwk_test_vectors() {
+    fn resolve() {
         let path = "did_jwk/resolve.json";
         let vectors: TestVectorFile<String, VectorOutput> = TestVectorFile::load_from_path(path);
 
