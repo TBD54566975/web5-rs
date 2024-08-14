@@ -1,4 +1,9 @@
 use super::{CredentialError, Result};
+use crate::json::{FromJson, JsonObject, ToJson};
+use crate::rfc3339::{
+    deserialize_option_system_time, deserialize_system_time, serialize_option_system_time,
+    serialize_system_time,
+};
 use crate::{
     crypto::dsa::{ed25519::Ed25519Verifier, DsaError, Signer, Verifier},
     dids::{
@@ -9,7 +14,6 @@ use crate::{
         },
     },
 };
-use chrono::{DateTime, Utc};
 use core::fmt;
 use josekit::{
     jws::{
@@ -20,9 +24,8 @@ use josekit::{
     jwt::JwtPayload,
     JoseError as JosekitError,
 };
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
     fmt::{Display, Formatter},
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
@@ -32,16 +35,18 @@ pub const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 pub const BASE_TYPE: &str = "VerifiableCredential";
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
-pub struct NamedIssuer {
+pub struct ObjectIssuer {
     pub id: String,
     pub name: String,
+    #[serde(flatten)]
+    pub additional_properties: Option<JsonObject>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum Issuer {
     String(String),
-    Object(NamedIssuer),
+    Object(ObjectIssuer),
 }
 
 impl<I> From<I> for Issuer
@@ -59,56 +64,6 @@ impl Display for Issuer {
             Issuer::String(s) => write!(f, "{}", s),
             Issuer::Object(ni) => write!(f, "{}", ni.id),
         }
-    }
-}
-
-fn serialize_system_time<S>(
-    time: &SystemTime,
-    serializer: S,
-) -> std::result::Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let datetime: chrono::DateTime<Utc> = (*time).into();
-    let s = datetime.to_rfc3339();
-    serializer.serialize_str(&s)
-}
-
-fn deserialize_system_time<'de, D>(deserializer: D) -> std::result::Result<SystemTime, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    let datetime = chrono::DateTime::parse_from_rfc3339(&s).map_err(serde::de::Error::custom)?;
-    Ok(datetime.with_timezone(&Utc).into())
-}
-
-fn serialize_option_system_time<S>(
-    time: &Option<SystemTime>,
-    serializer: S,
-) -> std::result::Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    match time {
-        Some(time) => serialize_system_time(time, serializer),
-        None => serializer.serialize_none(),
-    }
-}
-
-fn deserialize_option_system_time<'de, D>(
-    deserializer: D,
-) -> std::result::Result<Option<SystemTime>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let opt = Option::<String>::deserialize(deserializer)?;
-    match opt {
-        Some(s) => {
-            let datetime = DateTime::parse_from_rfc3339(&s).map_err(serde::de::Error::custom)?;
-            Ok(Some(datetime.with_timezone(&Utc).into()))
-        }
-        None => Ok(None),
     }
 }
 
@@ -136,11 +91,14 @@ pub struct VerifiableCredential {
     pub credential_subject: CredentialSubject,
 }
 
+impl FromJson for VerifiableCredential {}
+impl ToJson for VerifiableCredential {}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CredentialSubject {
     pub id: String,
     #[serde(flatten)]
-    pub params: Option<HashMap<String, String>>,
+    pub additional_properties: Option<JsonObject>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -358,7 +316,7 @@ impl VerifiableCredential {
 
         let vc_credential_subject = vc_payload.credential_subject.unwrap_or(CredentialSubject {
             id: sub.to_string(),
-            params: None,
+            additional_properties: None,
         });
 
         let vc = VerifiableCredential {

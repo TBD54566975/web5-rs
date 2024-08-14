@@ -9,10 +9,11 @@
 - [Credentials](#credentials)
   - [Verifiable Credentials (VCs)](#verifiable-credentials-vcs)
     - [Data Model 1.1](#data-model-11)
-      - [`NamedIssuer`](#namedissuer)
       - [`VerifiableCredential`](#verifiablecredential)
-        - [Example: Create a VC \& sign](#example-create-a-vc--sign)
-        - [Example: Verify a VC-JWT](#example-verify-a-vc-jwt)
+      - [`CredentialSubject`](#credentialsubject)
+      - [`SimpleSubject`](#simplesubject)
+      - [`Issuer`](#issuer)
+      - [`NamedIssuer`](#namedissuer)
   - [Presentation Exchange (PEX)](#presentation-exchange-pex)
     - [`PresentationDefinition`](#presentationdefinition)
     - [`InputDescriptor`](#inputdescriptor)
@@ -72,67 +73,61 @@
 
 ### Data Model 1.1
 
-#### `NamedIssuer`
-
-```pseudocode!
-CLASS NamedIssuer
-  PUBLIC DATA id: string
-  PUBLIC DATA name: string
-```
+> [!WARNING]
+> We are currently missing `credentialStatus`, `credentialSchema` and `evidence`
 
 #### `VerifiableCredential`
-
-> [!WARNING]
-> The following is incomplete in that an `Object` is not currently supported in the Custom DSL; the matter of the `Object` below is a placeholder and expected to be completed in a subsequent version.
-
-> [!WARNING]
-> We need to consider default behaviors such as always including the base `@context` and `type`
 
 ```pseudocode!
 CLASS VerifiableCredential
   PUBLIC DATA @context: []string
   PUBLIC DATA id: string
   PUBLIC DATA type: []string
-  PUBLIC DATA issuer: string | NamedIssuer # 🚧 Multitype should be re-considered, perhaps should just be Object
+  PUBLIC DATA issuer: Issuer
   PUBLIC DATA issuanceDate: string
   PUBLIC DATA expirationDate: string?
-  PUBLIC DATA credentialSubject: Object  # 🚧 `Object` not supported 🚧
-  CONSTRUCTOR(context: []string, id: string, type: []string, issuer: string | NamedIssuer, issuanceDate: string, expirationDate: string?)
-  CONSTRUCTOR(vcjwt: string)
-  CONSTRUCTOR(vcjwt: string, verifier: Verifier)
+  PUBLIC DATA credentialSubject: CredentialSubject
+
+  CONSTRUCTOR create(context: []string?, id: string?, type: []string?, issuer: Issuer, issuanceDate: string, expirationDate: string?, credentialSubject: CredentialSubject)
+  CONSTRUCTOR from_vc_jwt(vc_jwt: string)
+  CONSTRUCTOR from_json_string(json: string)
+
+  METHOD verify()
   METHOD sign(bearer_did: BearerDid): string
-  METHOD sign_with_signer(key_id: string, signer: Signer): string
+  METHOD to_json_string(): string
 ```
 
-> [!NOTE]
->
-> `CONSTRUCTOR(vcjwt: string)` and `CONSTRUCTOR(vcjwt: string, verifier: Verifier)` both execute cryprographic verification and assume `vcjwt` is a compact serialized JWS wherein the `kid` JOSE Header is equal to a DID URI which can be dereferenced to fetch the [`publicKeyJwk`](./did.md#data-models).
-
-##### Example: Create a VC & sign
+#### `CredentialSubject`
 
 ```pseudocode!
-key_manager = new InMemoryKeyManager()
-public_jwk = key_manager.import_private_jwk(Ed25519Generator::generate())
-
-did_jwk = new DidJwk(public_jwk)
-
-context = ["https://www.w3.org/2018/credentials/v1"]
-id = "urn:vc:uuid:123456"
-type = ["VerifiableCredential"]
-issuer = did_jwk.did.uri
-issuance_date = DateTime.now()
-vc = new VerifiableCredential(context, id, type, issuer, issuance_date, null)
-
-signer = key_manager.get_signer(public_jwk)
-vcjwt = vc.sign(signer)
+INTERFACE CredentialSubject
+  METHOD get_id(): string
 ```
 
-##### Example: Verify a VC-JWT
+#### `SimpleSubject`
 
 ```pseudocode!
-vcjwt = "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSMwIiwidHlwIjoiSldUIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOmUzMDc0OWVhLTg4YjctNDkwMi05ZTRlLWYwYjk1MTRjZmU1OSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaRVJUUVNJc0ltTnlkaUk2SWtWa01qVTFNVGtpTENKcmRIa2lPaUpQUzFBaUxDSjRJam9pTlc5Q1pGaE1OM1JEV0MxaVdtd3dOblU1V1dSU1dqQmFhbEpMTFVweFZXWmhaa1YzWjAwdFRHSm1heUo5IiwiaXNzdWFuY2VEYXRlIjoxNzE2MzEyNDU3LCJleHBpcmF0aW9uRGF0ZSI6MjM0NzQ2NDQ1NywiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpFUlRRU0lzSW1OeWRpSTZJa1ZrTWpVMU1Ua2lMQ0pyZEhraU9pSlBTMUFpTENKNElqb2lOVzlDWkZoTU4zUkRXQzFpV213d05uVTVXV1JTV2pCYWFsSkxMVXB4VldaaFprVjNaMDB0VEdKbWF5SjkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsInN1YiI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkVSVFFTSXNJbU55ZGlJNklrVmtNalUxTVRraUxDSnJkSGtpT2lKUFMxQWlMQ0o0SWpvaU5XOUNaRmhNTjNSRFdDMWlXbXd3Tm5VNVdXUlNXakJhYWxKTExVcHhWV1poWmtWM1owMHRUR0ptYXlKOSIsImV4cCI6MjM0NzQ2NDQ1NywibmJmIjoxNzE2MzEyNDU3LCJqdGkiOiJ1cm46dmM6dXVpZDplMzA3NDllYS04OGI3LTQ5MDItOWU0ZS1mMGI5NTE0Y2ZlNTkifQ.a8ciqXyNgqttWPKl76CFwDTRvEoJEq5nndfM1UMkClvzhPOUWSUtE0wNHOxQFwUBBSbwozScBNe-dc-mWQFqAQ"
+CLASS SimpleSubject IMPLEMENTS CredentialSubject
+  PUBLIC DATA id: string
 
-vc = VerifiableCredential.verify(vcjwt)
+  METHOD get_id(): string
+```
+
+#### `Issuer`
+
+```pseudocode!
+INTERFACE Issuer
+  METHOD get_id(): string
+```
+
+#### `NamedIssuer`
+
+```pseudocode!
+CLASS NamedIssuer IMPLEMENTS Issuer
+  PUBLIC DATA id: string
+  PUBLIC DATA name: string
+
+  METHOD get_id(): string
 ```
 
 ## Presentation Exchange (PEX)
