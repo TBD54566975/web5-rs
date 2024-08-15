@@ -12,8 +12,8 @@ lazy_static::lazy_static! {
 }
 
 pub(crate) mod logging {
-  #[macro_export]
-  macro_rules! log_dbg {
+    #[macro_export]
+    macro_rules! log_dbg {
       ($msg:expr, $($arg:tt)*) => {
           if let Some(ref level) = *$crate::LOG_LEVEL {
               if level == "DEBUG" {
