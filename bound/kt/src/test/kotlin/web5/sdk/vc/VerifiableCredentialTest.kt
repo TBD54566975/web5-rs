@@ -20,7 +20,16 @@ class VerifiableCredentialTest {
         val CREDENTIAL_SUBJECT = CredentialSubject(SUBJECT_DID_URI)
     }
 
-    val testSuite = UnitTestSuite("verifiable_credential_1_1_create")
+    private val testSuite = UnitTestSuite("verifiable_credential_1_1_create")
+
+    @AfterAll
+    fun verifyAllTestsIncluded() {
+        if (testSuite.tests.isNotEmpty()) {
+            println("The following tests were not included or executed:")
+            testSuite.tests.forEach { println(it) }
+            fail("Not all tests were executed! ${this.testSuite.tests}")
+        }
+    }
 
     @Test
     fun test_default_context_added_if_not_supplied() {
@@ -273,14 +282,5 @@ class VerifiableCredentialTest {
 
         val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
         assertEquals(expirationDate, vc.expirationDate)
-    }
-
-    @AfterAll
-    fun verifyAllTestsIncluded() {
-        if (testSuite.tests.isNotEmpty()) {
-            println("The following tests were not included or executed:")
-            testSuite.tests.forEach { println(it) }
-            fail("Not all tests were executed! ${this.testSuite.tests}")
-        }
     }
 }

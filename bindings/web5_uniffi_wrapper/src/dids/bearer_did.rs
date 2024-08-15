@@ -3,7 +3,7 @@ use crate::{
         dsa::{Signer, ToOuterSigner},
         key_manager::{KeyManager, ToInnerKeyManager, ToOuterKeyManager},
     },
-    errors::ResultOld,
+    errors::Result,
 };
 use std::sync::Arc;
 use web5::dids::{
@@ -21,13 +21,13 @@ pub struct BearerDidData {
 pub struct BearerDid(pub InnerBearerDid);
 
 impl BearerDid {
-    pub fn new(uri: &str, key_manager: Arc<dyn KeyManager>) -> ResultOld<Self> {
+    pub fn new(uri: &str, key_manager: Arc<dyn KeyManager>) -> Result<Self> {
         let inner_key_manager = Arc::new(ToInnerKeyManager(key_manager));
         let inner = InnerBearerDid::new(uri, inner_key_manager)?;
         Ok(Self(inner))
     }
 
-    pub fn from_portable_did(portable_did: Arc<PortableDid>) -> ResultOld<Self> {
+    pub fn from_portable_did(portable_did: Arc<PortableDid>) -> Result<Self> {
         let inner_bearer_did = InnerBearerDid::from_portable_did(portable_did.get_data())?;
         Ok(Self(inner_bearer_did))
     }
@@ -42,7 +42,7 @@ impl BearerDid {
         }
     }
 
-    pub fn get_signer(&self, key_id: String) -> ResultOld<Arc<dyn Signer>> {
+    pub fn get_signer(&self, key_id: String) -> Result<Arc<dyn Signer>> {
         let signer = self.0.get_signer(key_id)?;
         let outer_signer = ToOuterSigner(signer);
         Ok(Arc::new(outer_signer))

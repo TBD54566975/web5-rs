@@ -1,10 +1,10 @@
-use crate::errors::ResultOld;
+use crate::errors::Result;
 use web5::dids::did::Did as InnerDid;
 
 pub struct Did(pub InnerDid);
 
 impl Did {
-    pub fn new(uri: &str) -> ResultOld<Self> {
+    pub fn new(uri: &str) -> Result<Self> {
         let did = InnerDid::new(uri)?;
         Ok(Self(did))
     }
