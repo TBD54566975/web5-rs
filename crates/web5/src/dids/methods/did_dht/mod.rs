@@ -129,9 +129,9 @@ impl DidDht {
                 });
             }
             let identity_key = zbase32::decode_full_bytes_str(&did.id)
-                .map_err(|_| ResolutionMetadataError::InvalidDid)?;
+                .map_err(|_| ResolutionMetadataError::InvalidPublicKey)?;
             let identity_key = ed25519::public_jwk_from_bytes(&identity_key)
-                .map_err(|_| ResolutionMetadataError::InvalidDid)?;
+                .map_err(|_| ResolutionMetadataError::InvalidPublicKey)?;
 
             // construct http endpoint from gateway url and last part of did_uri
             let url = format!(
@@ -309,5 +309,72 @@ mod tests {
         let resolved_did_dht = DidDht::resolve(&did_dht.did.uri);
         let resolved_document = resolved_did_dht.document.unwrap();
         assert_eq!(resolved_document, did_dht.document)
+    }
+}
+
+#[cfg(test)]
+mod web5_test_vectors_did_dht {
+    use crate::{
+        dids::{
+            resolution::{
+                 resolution_metadata::ResolutionMetadata,
+            },
+        },
+        test_helpers::TestVectorFile,
+    };
+    use crate::dids::resolution::resolution_metadata::ResolutionMetadataError;
+
+    #[derive(Debug, PartialEq, serde::Deserialize)]
+    struct VectorInput {
+        #[serde(rename = "didUri")]
+        did_uri: String
+    }
+
+    #[derive(Debug, PartialEq, serde::Deserialize)]
+    struct VectorOutput {
+        #[serde(rename = "didResolutionMetadata")]
+        did_resolution_metadata: ResolutionMetadata,
+    }
+
+    #[test]
+    fn resolve() {
+        let path = "did_dht/resolve.json";
+        let vectors: TestVectorFile<VectorInput, VectorOutput> = TestVectorFile::load_from_path(path);
+
+        for vector in vectors.vectors {
+            let mut vector_input = vector.input;
+            let vector_output = &vector.output;
+
+            // As a replay attack protection protocol, if the same DID is doing a GET request within 5 minutes of each other, instead of a 404 it will start returning a 429.
+            // to get around this for our test we just create a new DID that is not published to get a fresh 404 for this error code
+            // if(vector_output.did_resolution_metadata.error == "notFound") {
+            if let Some(ResolutionMetadataError::NotFound) = vector_output.did_resolution_metadata.error {
+                // TODO: According to the did dht spec a 404 should be returned when trying to resolve a DID that does not exists. Currently it incorrectly returns a 429 even on the first call.
+                // Uncomment this code block when resolved - https://github.com/TBD54566975/web5-rs/issues/286
+                continue
+
+                // let private_jwk = Ed25519Generator::generate();
+                // let identity_key = ed25519::to_public_jwk(&private_jwk);
+                // let did_dht =
+                //     DidDht::from_identity_key(identity_key.clone()).expect("Should create did:dht");
+                //
+                // vector_input = VectorInput{
+                //     did_uri: did_dht.did.uri,
+                // };
+            }
+
+            let resolution_result = super::DidDht::resolve(&vector_input.did_uri);
+
+            let metadata_error = resolution_result.resolution_metadata.error.as_ref();
+            let expected_error = vector_output.did_resolution_metadata.error.as_ref();
+
+            assert_eq!(
+                metadata_error,
+                expected_error,
+                "Document resolution metadata does not match. Expected '{:?}' but got '{:?}'.",
+                expected_error,
+                metadata_error
+            );
+        }
     }
 }

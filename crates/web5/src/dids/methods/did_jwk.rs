@@ -117,7 +117,7 @@ impl DidJwk {
 }
 
 #[cfg(test)]
-mod web5_test_vectors {
+mod web5_test_vectors_did_jwk {
     use crate::{
         dids::{
             data_model::document::Document,
