@@ -4,7 +4,7 @@ set shell := ["bash", "-uc"]
 setup:
   #!/bin/bash
   source bin/activate-hermit
-   if [ ! -d ".git/modules/web5-spec" ]; then
+  if [ ! -d ".git/modules/web5-spec" ]; then
     git submodule update --init --recursive
   fi
   if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
