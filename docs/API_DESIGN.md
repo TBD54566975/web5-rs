@@ -88,11 +88,11 @@ CLASS VerifiableCredential
   PUBLIC DATA credentialSubject: CredentialSubject
 
   CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: CreateOptions)
-  CONSTRUCTOR from_vc_jwt(vc_jwt: string)
-  CONSTRUCTOR from_json_string(json: string)
 
+  CONSTRUCTOR(vcjwt: string)
+  CONSTRUCTOR(vcjwt: string, verifier: Verifier)
   METHOD sign(bearer_did: BearerDid): string
-  METHOD to_json_string(): string
+  METHOD sign_with_signer(key_id: string, signer: Signer): string
 ```
 
 ##### `CredentialSubject`
