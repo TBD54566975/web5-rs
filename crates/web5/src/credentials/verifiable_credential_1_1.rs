@@ -131,7 +131,7 @@ pub struct CreateOptions {
 }
 
 impl VerifiableCredential {
-    // TODO use crate::errors once fully off old Result
+    // TODO `use crate::errors` once fully off old Result
     pub fn create(
         issuer: Issuer,
         credential_subject: CredentialSubject,
@@ -552,9 +552,26 @@ mod tests {
 
     mod create {
         use super::*;
+        use crate::{test_helpers::UnitTestSuite, test_name};
+
+        static TEST_SUITE: LazyLock<UnitTestSuite> =
+            LazyLock::new(|| UnitTestSuite::new("verifiable_credential_1_1_create"));
+
+        #[test]
+        fn z_assert_all_suite_cases_covered() {
+            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
+            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
+
+            // wait 100ms to be last-in-queue of mutex lock
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            TEST_SUITE.assert_coverage()
+        }
 
         #[test]
         fn test_default_context_added_if_not_supplied() {
+            TEST_SUITE.include(test_name!());
+
             let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
                 .unwrap();
 
@@ -563,6 +580,8 @@ mod tests {
 
         #[test]
         fn test_default_context_not_duplicated_if_supplied() {
+            TEST_SUITE.include(test_name!());
+
             let options = Some(CreateOptions {
                 context: Some(vec![BASE_CONTEXT.to_string()]),
                 ..Default::default()
@@ -577,6 +596,8 @@ mod tests {
 
         #[test]
         fn test_developer_provided_context_appended_to_default() {
+            TEST_SUITE.include(test_name!());
+
             let custom_context = "https://example.com/custom-context";
             let options = Some(CreateOptions {
                 context: Some(vec![custom_context.to_string()]),
@@ -592,6 +613,8 @@ mod tests {
 
         #[test]
         fn test_default_type_added_if_not_supplied() {
+            TEST_SUITE.include(test_name!());
+
             let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
                 .unwrap();
 
@@ -600,6 +623,8 @@ mod tests {
 
         #[test]
         fn test_default_type_not_duplicated_if_supplied() {
+            TEST_SUITE.include(test_name!());
+
             let options = Some(CreateOptions {
                 r#type: Some(vec![BASE_TYPE.to_string()]),
                 ..Default::default()
@@ -614,6 +639,8 @@ mod tests {
 
         #[test]
         fn test_developer_provided_type_appended_to_default() {
+            TEST_SUITE.include(test_name!());
+
             let custom_type = "CustomType";
             let options = Some(CreateOptions {
                 r#type: Some(vec![custom_type.to_string()]),
@@ -629,6 +656,8 @@ mod tests {
 
         #[test]
         fn test_id_generated_if_not_supplied() {
+            TEST_SUITE.include(test_name!());
+
             let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
                 .unwrap();
 
@@ -638,6 +667,8 @@ mod tests {
 
         #[test]
         fn test_id_must_be_set_if_supplied() {
+            TEST_SUITE.include(test_name!());
+
             let custom_id = "custom-id";
             let options = Some(CreateOptions {
                 id: Some(custom_id.to_string()),
@@ -653,6 +684,8 @@ mod tests {
 
         #[test]
         fn test_issuer_string_must_not_be_empty() {
+            TEST_SUITE.include(test_name!());
+
             let empty_issuer = Issuer::from("");
             let result =
                 VerifiableCredential::create(empty_issuer, CREDENTIAL_SUBJECT.clone(), None);
@@ -662,11 +695,13 @@ mod tests {
                     assert_eq!(err_msg, "issuer id must not be empty");
                 }
                 _ => panic!("Expected Web5Error::Parameter with specific error message"),
-            }
+            };
         }
 
         #[test]
         fn test_issuer_string_must_be_set() {
+            TEST_SUITE.include(test_name!());
+
             let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
                 .unwrap();
 
@@ -675,6 +710,8 @@ mod tests {
 
         #[test]
         fn test_issuer_object_id_must_not_be_empty() {
+            TEST_SUITE.include(test_name!());
+
             let issuer = Issuer::Object(ObjectIssuer {
                 id: "".to_string(),
                 name: "Example Name".to_string(),
@@ -688,11 +725,13 @@ mod tests {
                     assert_eq!(err_msg, "issuer id must not be empty");
                 }
                 _ => panic!("Expected Web5Error::Parameter with specific error message"),
-            }
+            };
         }
 
         #[test]
         fn test_issuer_object_name_must_not_be_empty() {
+            TEST_SUITE.include(test_name!());
+
             let issuer = Issuer::Object(ObjectIssuer {
                 id: ISSUER_DID_URI.to_string(),
                 name: "".to_string(),
@@ -706,11 +745,13 @@ mod tests {
                     assert_eq!(err_msg, "named issuer name must not be empty");
                 }
                 _ => panic!("Expected Web5Error::Parameter with specific error message"),
-            }
+            };
         }
 
         #[test]
         fn test_issuer_object_must_be_set() {
+            TEST_SUITE.include(test_name!());
+
             let issuer = Issuer::Object(ObjectIssuer {
                 id: ISSUER_DID_URI.to_string(),
                 name: "Example Name".to_string(),
@@ -725,6 +766,8 @@ mod tests {
 
         #[test]
         fn test_issuer_object_supports_additional_properties() {
+            TEST_SUITE.include(test_name!());
+
             let additional_properties = JsonObject {
                 properties: HashMap::from([(
                     "extra_key".to_string(),
@@ -746,11 +789,13 @@ mod tests {
                     assert_eq!(obj.additional_properties, Some(additional_properties));
                 }
                 _ => panic!("Issuer is not an ObjectIssuer"),
-            }
+            };
         }
 
         #[test]
         fn test_credential_subject_id_must_not_be_empty() {
+            TEST_SUITE.include(test_name!());
+
             let credential_subject = CredentialSubject::from("");
 
             let result = VerifiableCredential::create(ISSUER.clone(), credential_subject, None);
@@ -760,11 +805,13 @@ mod tests {
                     assert_eq!(err_msg, "subject id must not be empty");
                 }
                 _ => panic!("Expected Web5Error::Parameter with specific error message"),
-            }
+            };
         }
 
         #[test]
         fn test_credential_subject_must_be_set() {
+            TEST_SUITE.include(test_name!());
+
             let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
                 .unwrap();
 
@@ -773,6 +820,8 @@ mod tests {
 
         #[test]
         fn test_credential_subject_supports_additional_properties() {
+            TEST_SUITE.include(test_name!());
+
             let additional_properties = JsonObject {
                 properties: HashMap::from([(
                     "extra_key".to_string(),
@@ -796,6 +845,8 @@ mod tests {
 
         #[test]
         fn test_issuance_date_must_be_set() {
+            TEST_SUITE.include(test_name!());
+
             let issuance_date = SystemTime::now();
 
             let options = Some(CreateOptions {
@@ -812,6 +863,8 @@ mod tests {
 
         #[test]
         fn test_issuance_date_must_be_now_if_not_supplied() {
+            TEST_SUITE.include(test_name!());
+
             let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
                 .unwrap();
 
@@ -823,6 +876,8 @@ mod tests {
 
         #[test]
         fn test_expiration_date_must_be_set_if_supplied() {
+            TEST_SUITE.include(test_name!());
+
             let expiration_date = SystemTime::now();
             let options = Some(CreateOptions {
                 expiration_date: Some(expiration_date),

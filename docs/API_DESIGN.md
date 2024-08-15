@@ -4,7 +4,7 @@
 
 **Version** 2.1.0
 
-**[Custom DSL](./CUSTOM_DSL.md) Version**: 0.1.0
+**[Custom DSL](./CUSTOM_DSL.md) Version**: 0.2.0
 
 - [Credentials](#credentials)
   - [Verifiable Credentials (VCs)](#verifiable-credentials-vcs)
@@ -83,15 +83,14 @@ CLASS VerifiableCredential
   PUBLIC DATA id: string
   PUBLIC DATA type: []string
   PUBLIC DATA issuer: Issuer
-  PUBLIC DATA issuanceDate: datetime
-  PUBLIC DATA expirationDate: datetime?
+  PUBLIC DATA issuance_date: datetime
+  PUBLIC DATA expiration_date: datetime?
   PUBLIC DATA credentialSubject: CredentialSubject
 
-  CONSTRUCTOR create(issuer: Issuer, credentialSubject: CredentialSubject, options: CreateOptions)
+  CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: CreateOptions)
   CONSTRUCTOR from_vc_jwt(vc_jwt: string)
   CONSTRUCTOR from_json_string(json: string)
 
-  METHOD verify()
   METHOD sign(bearer_did: BearerDid): string
   METHOD to_json_string(): string
 ```
