@@ -17,7 +17,7 @@ pub(crate) mod logging {
       ($msg:expr, $($arg:tt)*) => {
           if let Some(ref level) = *$crate::LOG_LEVEL {
               if level == "DEBUG" {
-                  println!("[DEBUG] {}", format!($msg, $($arg)*));
+                  println!("[DEBUG] {}:{}", env!("GIT_COMMIT_HASH"), format!($msg, $($arg)*));
               }
           }
       };
@@ -25,7 +25,7 @@ pub(crate) mod logging {
           if let Some(ref level) = *$crate::LOG_LEVEL {
               if level == "DEBUG" {
                   let msg = $closure();
-                  println!("[DEBUG] {}", msg);
+                  println!("[DEBUG] {}:{}", env!("GIT_COMMIT_HASH"), msg);
               }
           }
       };
