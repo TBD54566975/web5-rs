@@ -343,7 +343,6 @@ mod web5_test_vectors_did_dht {
 
             // As a replay attack protection protocol, if the same DID is doing a GET request within 5 minutes of each other, instead of a 404 it will start returning a 429.
             // to get around this for our test we just create a new DID that is not published to get a fresh 404 for this error code
-            // if(vector_output.did_resolution_metadata.error == "notFound") {
             if let Some(ResolutionMetadataError::NotFound) =
                 vector_output.did_resolution_metadata.error
             {
