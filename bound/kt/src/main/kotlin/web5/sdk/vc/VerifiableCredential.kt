@@ -21,8 +21,8 @@ class VerifiableCredential private constructor(
     val id: String,
     val issuer: Issuer,
     val credentialSubject: CredentialSubject,
-    val issuanceDate: Instant,
-    val expirationDate: Instant? = null,
+    val issuanceDate: Date,
+    val expirationDate: Date? = null,
     internal val rustCoreVerifiableCredential: RustCoreVerifiableCredential,
 ) {
     companion object {
@@ -54,8 +54,8 @@ class VerifiableCredential private constructor(
                 data.id,
                 issuer,
                 credentialSubject,
-                data.issuanceDate,
-                data.expirationDate,
+                Date.from(data.issuanceDate),
+                data.expirationDate?.let { Date.from(it) },
                 rustCoreVerifiableCredential,
             )
         }
