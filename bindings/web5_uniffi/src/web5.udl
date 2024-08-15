@@ -224,31 +224,6 @@ interface BearerDid {
   Signer get_signer(string key_id);
 };
 
-dictionary VerifiableCredentialData {
-  sequence<string> context;
-  string id;
-  sequence<string> type;
-  string json_serialized_issuer;
-  timestamp issuance_date;
-  timestamp? expiration_date;
-  string json_serialized_credential_subject;
-};
-
-interface VerifiableCredential {
-  [Throws=RustCoreError]
-  constructor(VerifiableCredentialData data);
-  [Name=verify, Throws=RustCoreError]
-  constructor([ByRef] string vcjwt);
-  [Name=verify_with_verifier, Throws=RustCoreError]
-  constructor([ByRef] string vcjwt, Verifier verifier);
-  [Throws=RustCoreError]
-  string sign(BearerDid bearer_did);
-  [Throws=RustCoreError]
-  string sign_with_signer([ByRef] string key_id, Signer signer);
-  [Throws=RustCoreError]
-  VerifiableCredentialData get_data();
-};
-
 interface PresentationDefinition {
   [Throws=RustCoreError]
   constructor(string json_serialized_presentation_definition);
@@ -256,4 +231,41 @@ interface PresentationDefinition {
   string get_json_serialized_presentation_definition();
   [Throws=RustCoreError]
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
+};
+
+
+
+
+
+[Error]
+interface Web5Error {
+  Error(string type, string variant, string msg);
+};
+
+dictionary VerifiableCredentialCreateOptionsData {
+  string? id;
+  sequence<string>? context;
+  sequence<string>? type;
+  timestamp? issuance_date;
+  timestamp? expiration_date;
+};
+
+interface VerifiableCredential {
+  [Throws=Web5Error, Name=create]
+  constructor(
+    string json_serialized_issuer,
+    string json_serialized_credential_subject,
+    VerifiableCredentialCreateOptionsData? options
+  );
+  VerifiableCredentialData get_data();
+};
+
+dictionary VerifiableCredentialData {
+  sequence<string> context;
+  sequence<string> type;
+  string id;
+  string json_serialized_issuer;
+  string json_serialized_credential_subject;
+  timestamp issuance_date;
+  timestamp? expiration_date;
 };

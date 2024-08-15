@@ -1,8 +1,6 @@
-use crate::errors::Web5Error;
+use crate::errors::{Result, Web5Error};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::collections::HashMap;
-
-type Result<T> = std::result::Result<T, Web5Error>;
 
 pub trait FromJson: Sized + DeserializeOwned {
     fn from_json_string(json: &str) -> Result<Self> {

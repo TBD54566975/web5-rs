@@ -1,4 +1,4 @@
-use crate::{dids::resolution::resolution_result::ResolutionResult, errors::Result};
+use crate::{dids::resolution::resolution_result::ResolutionResult, errors::ResultOld};
 use std::sync::Arc;
 use web5::{crypto::jwk::Jwk, dids::methods::did_jwk::DidJwk as InnerDidJwk};
 
@@ -10,12 +10,12 @@ pub fn did_jwk_resolve(uri: &str) -> Arc<ResolutionResult> {
 }
 
 impl DidJwk {
-    pub fn from_public_jwk(public_key: Jwk) -> Result<Self> {
+    pub fn from_public_jwk(public_key: Jwk) -> ResultOld<Self> {
         let did_jwk = InnerDidJwk::from_public_jwk(public_key)?;
         Ok(Self(did_jwk))
     }
 
-    pub fn from_uri(uri: &str) -> Result<Self> {
+    pub fn from_uri(uri: &str) -> ResultOld<Self> {
         let did_jwk = InnerDidJwk::from_uri(uri)?;
         Ok(Self(did_jwk))
     }

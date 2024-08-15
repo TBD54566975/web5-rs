@@ -11,6 +11,7 @@ use web5::dids::data_model::DataModelError as DidDataModelError;
 use web5::dids::did::DidError;
 use web5::dids::methods::MethodError;
 use web5::dids::portable_did::PortableDidError;
+use web5::errors::Web5Error as InnerWeb5Error;
 
 #[derive(Debug, Error)]
 pub enum RustCoreError {
@@ -199,4 +200,68 @@ impl From<RustCoreError> for DsaError {
     }
 }
 
-pub type Result<T> = std::result::Result<T, RustCoreError>;
+pub type ResultOld<T> = std::result::Result<T, RustCoreError>;
+
+// --- new version
+
+#[derive(Debug, Error)]
+pub enum Web5Error {
+    #[error("{msg}")]
+    Error {
+        r#type: String,
+        variant: String,
+        msg: String,
+    },
+}
+
+impl Web5Error {
+    pub fn from_poison_error<T>(error: PoisonError<T>, error_type: &str) -> Self {
+        Web5Error::Error {
+            r#type: error_type.to_string(),
+            variant: "PoisonError".to_string(),
+            msg: error.to_string(),
+        }
+    }
+
+    fn new<T>(error: T) -> Self
+    where
+        T: std::error::Error + 'static,
+    {
+        Self::Error {
+            r#type: type_of(&error).to_string(),
+            variant: variant_name(&error),
+            msg: error.to_string(),
+        }
+    }
+
+    pub fn r#type(&self) -> String {
+        match self {
+            Web5Error::Error {
+                r#type: error_type, ..
+            } => error_type.clone(),
+        }
+    }
+
+    pub fn variant(&self) -> String {
+        match self {
+            Web5Error::Error {
+                variant: error_variant,
+                ..
+            } => error_variant.clone(),
+        }
+    }
+
+    pub fn msg(&self) -> String {
+        match self {
+            Web5Error::Error { msg, .. } => msg.clone(),
+        }
+    }
+}
+
+impl From<InnerWeb5Error> for Web5Error {
+    fn from(error: InnerWeb5Error) -> Self {
+        Web5Error::new(error)
+    }
+}
+
+pub type Result<T> = std::result::Result<T, Web5Error>;

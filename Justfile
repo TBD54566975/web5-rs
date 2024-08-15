@@ -4,7 +4,9 @@ set shell := ["bash", "-uc"]
 setup:
   #!/bin/bash
   source bin/activate-hermit
-  git submodule update --init --recursive
+   if [ ! -d ".git/modules/web5-spec" ]; then
+    git submodule update --init --recursive
+  fi
   if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
     rustup default 1.80.0
     rustup target add aarch64-apple-darwin

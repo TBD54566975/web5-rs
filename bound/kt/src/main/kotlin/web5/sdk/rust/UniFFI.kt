@@ -878,14 +878,6 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
-
-
-
-
-
-
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1046,17 +1038,9 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_verifiablecredential(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_new(`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify(`vcjwt`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify_with_verifier(`vcjwt`: RustBuffer.ByValue,`verifier`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_create(`jsonSerializedIssuer`: RustBuffer.ByValue,`jsonSerializedCredentialSubject`: RustBuffer.ByValue,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_verifiablecredential_sign(`ptr`: Pointer,`bearerDid`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_verifiablecredential_sign_with_signer(`ptr`: Pointer,`keyId`: RustBuffer.ByValue,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1238,10 +1222,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_verifiablecredential_sign(
-    ): Short
-    fun uniffi_web5_uniffi_checksum_method_verifiablecredential_sign_with_signer(
-    ): Short
     fun uniffi_web5_uniffi_checksum_method_verifier_verify(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_bearerdid_from_portable_did(
@@ -1276,11 +1256,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_resolutionresult_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_new(
-    ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify(
-    ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify_with_verifier(
+    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_create(
     ): Short
     fun ffi_web5_uniffi_uniffi_contract_version(
     ): Int
@@ -1374,13 +1350,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_signer_sign() != 6486.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data() != 36872.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_sign() != 6102.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_sign_with_signer() != 64852.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data() != 34047.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_verifier_verify() != 15654.toShort()) {
@@ -1434,13 +1404,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_new() != 23836.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_new() != 49878.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify() != 34478.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify_with_verifier() != 49273.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_create() != 31236.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -5428,10 +5392,6 @@ public interface VerifiableCredentialInterface {
     
     fun `getData`(): VerifiableCredentialData
     
-    fun `sign`(`bearerDid`: BearerDid): kotlin.String
-    
-    fun `signWithSigner`(`keyId`: kotlin.String, `signer`: Signer): kotlin.String
-    
     companion object
 }
 
@@ -5452,13 +5412,6 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`data`: VerifiableCredentialData) :
-        this(
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_new(
-        FfiConverterTypeVerifiableCredentialData.lower(`data`),_status)
-}
-    )
 
     protected val pointer: Pointer?
     protected val cleanable: UniffiCleaner.Cleanable
@@ -5523,39 +5476,12 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
         }
     }
 
-    
-    @Throws(RustCoreException::class)override fun `getData`(): VerifiableCredentialData {
+    override fun `getData`(): VerifiableCredentialData {
             return FfiConverterTypeVerifiableCredentialData.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(
         it, _status)
-}
-    }
-    )
-    }
-    
-
-    
-    @Throws(RustCoreException::class)override fun `sign`(`bearerDid`: BearerDid): kotlin.String {
-            return FfiConverterString.lift(
-    callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_sign(
-        it, FfiConverterTypeBearerDid.lower(`bearerDid`),_status)
-}
-    }
-    )
-    }
-    
-
-    
-    @Throws(RustCoreException::class)override fun `signWithSigner`(`keyId`: kotlin.String, `signer`: Signer): kotlin.String {
-            return FfiConverterString.lift(
-    callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_sign_with_signer(
-        it, FfiConverterString.lower(`keyId`),FfiConverterTypeSigner.lower(`signer`),_status)
 }
     }
     )
@@ -5567,22 +5493,11 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
     
     companion object {
         
-    @Throws(RustCoreException::class) fun `verify`(`vcjwt`: kotlin.String): VerifiableCredential {
+    @Throws(Web5Exception::class) fun `create`(`jsonSerializedIssuer`: kotlin.String, `jsonSerializedCredentialSubject`: kotlin.String, `options`: VerifiableCredentialCreateOptionsData?): VerifiableCredential {
             return FfiConverterTypeVerifiableCredential.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify(
-        FfiConverterString.lower(`vcjwt`),_status)
-}
-    )
-    }
-    
-
-        
-    @Throws(RustCoreException::class) fun `verifyWithVerifier`(`vcjwt`: kotlin.String, `verifier`: Verifier): VerifiableCredential {
-            return FfiConverterTypeVerifiableCredential.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify_with_verifier(
-        FfiConverterString.lower(`vcjwt`),FfiConverterTypeVerifier.lower(`verifier`),_status)
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_create(
+        FfiConverterString.lower(`jsonSerializedIssuer`),FfiConverterString.lower(`jsonSerializedCredentialSubject`),FfiConverterOptionalTypeVerifiableCredentialCreateOptionsData.lower(`options`),_status)
 }
     )
     }
@@ -6363,14 +6278,55 @@ public object FfiConverterTypeServiceData: FfiConverterRustBuffer<ServiceData> {
 
 
 
+data class VerifiableCredentialCreateOptionsData (
+    var `id`: kotlin.String?, 
+    var `context`: List<kotlin.String>?, 
+    var `type`: List<kotlin.String>?, 
+    var `issuanceDate`: java.time.Instant?, 
+    var `expirationDate`: java.time.Instant?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeVerifiableCredentialCreateOptionsData: FfiConverterRustBuffer<VerifiableCredentialCreateOptionsData> {
+    override fun read(buf: ByteBuffer): VerifiableCredentialCreateOptionsData {
+        return VerifiableCredentialCreateOptionsData(
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalTimestamp.read(buf),
+            FfiConverterOptionalTimestamp.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: VerifiableCredentialCreateOptionsData) = (
+            FfiConverterOptionalString.allocationSize(value.`id`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`context`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`type`) +
+            FfiConverterOptionalTimestamp.allocationSize(value.`issuanceDate`) +
+            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`)
+    )
+
+    override fun write(value: VerifiableCredentialCreateOptionsData, buf: ByteBuffer) {
+            FfiConverterOptionalString.write(value.`id`, buf)
+            FfiConverterOptionalSequenceString.write(value.`context`, buf)
+            FfiConverterOptionalSequenceString.write(value.`type`, buf)
+            FfiConverterOptionalTimestamp.write(value.`issuanceDate`, buf)
+            FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
+    }
+}
+
+
+
 data class VerifiableCredentialData (
     var `context`: List<kotlin.String>, 
-    var `id`: kotlin.String, 
     var `type`: List<kotlin.String>, 
+    var `id`: kotlin.String, 
     var `jsonSerializedIssuer`: kotlin.String, 
+    var `jsonSerializedCredentialSubject`: kotlin.String, 
     var `issuanceDate`: java.time.Instant, 
-    var `expirationDate`: java.time.Instant?, 
-    var `jsonSerializedCredentialSubject`: kotlin.String
+    var `expirationDate`: java.time.Instant?
 ) {
     
     companion object
@@ -6380,33 +6336,33 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
     override fun read(buf: ByteBuffer): VerifiableCredentialData {
         return VerifiableCredentialData(
             FfiConverterSequenceString.read(buf),
-            FfiConverterString.read(buf),
             FfiConverterSequenceString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterTimestamp.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
-            FfiConverterString.read(buf),
         )
     }
 
     override fun allocationSize(value: VerifiableCredentialData) = (
             FfiConverterSequenceString.allocationSize(value.`context`) +
-            FfiConverterString.allocationSize(value.`id`) +
             FfiConverterSequenceString.allocationSize(value.`type`) +
+            FfiConverterString.allocationSize(value.`id`) +
             FfiConverterString.allocationSize(value.`jsonSerializedIssuer`) +
+            FfiConverterString.allocationSize(value.`jsonSerializedCredentialSubject`) +
             FfiConverterTimestamp.allocationSize(value.`issuanceDate`) +
-            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`) +
-            FfiConverterString.allocationSize(value.`jsonSerializedCredentialSubject`)
+            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`)
     )
 
     override fun write(value: VerifiableCredentialData, buf: ByteBuffer) {
             FfiConverterSequenceString.write(value.`context`, buf)
-            FfiConverterString.write(value.`id`, buf)
             FfiConverterSequenceString.write(value.`type`, buf)
+            FfiConverterString.write(value.`id`, buf)
             FfiConverterString.write(value.`jsonSerializedIssuer`, buf)
+            FfiConverterString.write(value.`jsonSerializedCredentialSubject`, buf)
             FfiConverterTimestamp.write(value.`issuanceDate`, buf)
             FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
-            FfiConverterString.write(value.`jsonSerializedCredentialSubject`, buf)
     }
 }
 
@@ -6575,6 +6531,72 @@ public object FfiConverterTypeRustCoreError : FfiConverterRustBuffer<RustCoreExc
 
 
 
+
+sealed class Web5Exception: Exception() {
+    
+    class Exception(
+        
+        val `type`: kotlin.String, 
+        
+        val `variant`: kotlin.String, 
+        
+        val `msg`: kotlin.String
+        ) : Web5Exception() {
+        override val message
+            get() = "type=${ `type` }, variant=${ `variant` }, msg=${ `msg` }"
+    }
+    
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<Web5Exception> {
+        override fun lift(error_buf: RustBuffer.ByValue): Web5Exception = FfiConverterTypeWeb5Error.lift(error_buf)
+    }
+
+    
+}
+
+public object FfiConverterTypeWeb5Error : FfiConverterRustBuffer<Web5Exception> {
+    override fun read(buf: ByteBuffer): Web5Exception {
+        
+
+        return when(buf.getInt()) {
+            1 -> Web5Exception.Exception(
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: Web5Exception): ULong {
+        return when(value) {
+            is Web5Exception.Exception -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`type`)
+                + FfiConverterString.allocationSize(value.`variant`)
+                + FfiConverterString.allocationSize(value.`msg`)
+            )
+        }
+    }
+
+    override fun write(value: Web5Exception, buf: ByteBuffer) {
+        when(value) {
+            is Web5Exception.Exception -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`type`, buf)
+                FfiConverterString.write(value.`variant`, buf)
+                FfiConverterString.write(value.`msg`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
+
 public object FfiConverterOptionalBoolean: FfiConverterRustBuffer<kotlin.Boolean?> {
     override fun read(buf: ByteBuffer): kotlin.Boolean? {
         if (buf.get().toInt() == 0) {
@@ -6713,6 +6735,35 @@ public object FfiConverterOptionalTypeDocumentMetadataData: FfiConverterRustBuff
         } else {
             buf.put(1)
             FfiConverterTypeDocumentMetadataData.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeVerifiableCredentialCreateOptionsData: FfiConverterRustBuffer<VerifiableCredentialCreateOptionsData?> {
+    override fun read(buf: ByteBuffer): VerifiableCredentialCreateOptionsData? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeVerifiableCredentialCreateOptionsData.read(buf)
+    }
+
+    override fun allocationSize(value: VerifiableCredentialCreateOptionsData?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeVerifiableCredentialCreateOptionsData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: VerifiableCredentialCreateOptionsData?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeVerifiableCredentialCreateOptionsData.write(value, buf)
         }
     }
 }

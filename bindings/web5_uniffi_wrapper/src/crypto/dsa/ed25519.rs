@@ -1,5 +1,5 @@
 use super::{Signer, Verifier};
-use crate::errors::Result;
+use crate::errors::ResultOld;
 use web5::crypto::{
     dsa::{
         ed25519::{
@@ -24,7 +24,7 @@ impl Ed25519Signer {
 }
 
 impl Signer for Ed25519Signer {
-    fn sign(&self, payload: Vec<u8>) -> Result<Vec<u8>> {
+    fn sign(&self, payload: Vec<u8>) -> ResultOld<Vec<u8>> {
         Ok(self.0.sign(&payload)?)
     }
 }
@@ -38,7 +38,7 @@ impl Ed25519Verifier {
 }
 
 impl Verifier for Ed25519Verifier {
-    fn verify(&self, payload: Vec<u8>, signature: Vec<u8>) -> Result<bool> {
+    fn verify(&self, payload: Vec<u8>, signature: Vec<u8>) -> ResultOld<bool> {
         Ok(self.0.verify(&payload, &signature)?)
     }
 }

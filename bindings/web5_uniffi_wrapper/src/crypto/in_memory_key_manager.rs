@@ -2,7 +2,7 @@ use super::{
     dsa::{Signer, ToOuterSigner},
     key_manager::KeyManager,
 };
-use crate::errors::Result;
+use crate::errors::ResultOld;
 use std::sync::Arc;
 use web5::crypto::{
     jwk::Jwk,
@@ -20,7 +20,7 @@ impl InMemoryKeyManager {
         Self(InnerInMemoryKeyManager::new())
     }
 
-    pub fn import_private_jwk(&self, private_key: Jwk) -> Result<Jwk> {
+    pub fn import_private_jwk(&self, private_key: Jwk) -> ResultOld<Jwk> {
         Ok(self.0.import_private_jwk(private_key)?)
     }
 
@@ -30,7 +30,7 @@ impl InMemoryKeyManager {
 }
 
 impl KeyManager for InMemoryKeyManager {
-    fn get_signer(&self, public_jwk: Jwk) -> Result<Arc<dyn Signer>> {
+    fn get_signer(&self, public_jwk: Jwk) -> ResultOld<Arc<dyn Signer>> {
         let signer = self.0.get_signer(public_jwk)?;
         let outer_signer = ToOuterSigner(signer);
         Ok(Arc::new(outer_signer))

@@ -1,5 +1,5 @@
-use super::{CredentialError, Result};
-use crate::errors::Web5Error;
+use super::{CredentialError, Result as ResultOld};
+use crate::errors::{Result, Web5Error};
 use crate::json::{FromJson, JsonObject, ToJson};
 use crate::rfc3339::{
     deserialize_option_system_time, deserialize_system_time, serialize_option_system_time,
@@ -51,6 +51,9 @@ pub enum Issuer {
     Object(ObjectIssuer),
 }
 
+impl FromJson for Issuer {}
+impl ToJson for Issuer {}
+
 impl<I> From<I> for Issuer
 where
     I: Into<String>,
@@ -75,6 +78,9 @@ pub struct CredentialSubject {
     #[serde(flatten)]
     pub additional_properties: Option<JsonObject>,
 }
+
+impl FromJson for CredentialSubject {}
+impl ToJson for CredentialSubject {}
 
 impl<I> From<I> for CredentialSubject
 where
@@ -102,6 +108,8 @@ pub struct VerifiableCredential {
     #[serde(rename = "type")]
     pub r#type: Vec<String>,
     pub issuer: Issuer,
+    #[serde(rename = "credentialSubject")]
+    pub credential_subject: CredentialSubject,
     #[serde(
         rename = "issuanceDate",
         serialize_with = "serialize_system_time",
@@ -114,15 +122,13 @@ pub struct VerifiableCredential {
         deserialize_with = "deserialize_option_system_time"
     )]
     pub expiration_date: Option<SystemTime>,
-    #[serde(rename = "credentialSubject")]
-    pub credential_subject: CredentialSubject,
 }
 
 impl FromJson for VerifiableCredential {}
 impl ToJson for VerifiableCredential {}
 
 #[derive(Default)]
-pub struct CreateOptions {
+pub struct VerifiableCredentialCreateOptions {
     pub id: Option<String>,
     pub context: Option<Vec<String>>,
     pub r#type: Option<Vec<String>>,
@@ -131,12 +137,11 @@ pub struct CreateOptions {
 }
 
 impl VerifiableCredential {
-    // TODO `use crate::errors` once fully off old Result
     pub fn create(
         issuer: Issuer,
         credential_subject: CredentialSubject,
-        options: Option<CreateOptions>,
-    ) -> crate::errors::Result<Self> {
+        options: Option<VerifiableCredentialCreateOptions>,
+    ) -> Result<Self> {
         if issuer.to_string().is_empty() {
             return Err(Web5Error::Parameter(String::from(
                 "issuer id must not be empty",
@@ -198,7 +203,7 @@ impl VerifiableCredential {
         })
     }
 
-    pub fn sign(&self, bearer_did: &BearerDid) -> Result<String> {
+    pub fn sign(&self, bearer_did: &BearerDid) -> ResultOld<String> {
         // default to first VM
         let key_id = bearer_did.document.verification_method[0].id.clone();
         let signer = bearer_did.get_signer(key_id.clone())?;
@@ -206,7 +211,7 @@ impl VerifiableCredential {
         self.sign_with_signer(&key_id, signer)
     }
 
-    pub fn sign_with_signer(&self, key_id: &str, signer: Arc<dyn Signer>) -> Result<String> {
+    pub fn sign_with_signer(&self, key_id: &str, signer: Arc<dyn Signer>) -> ResultOld<String> {
         let mut payload = JwtPayload::new();
         let vc_claim = JwtPayloadVerifiableCredential {
             context: self.context.clone(),
@@ -239,7 +244,7 @@ impl VerifiableCredential {
         Ok(vc_jwt)
     }
 
-    pub fn verify(vc_jwt: &str) -> Result<Self> {
+    pub fn verify(vc_jwt: &str) -> ResultOld<Self> {
         // this function currently only supports Ed25519
         let header = josekit::jwt::decode_header(vc_jwt)?;
 
@@ -268,7 +273,7 @@ impl VerifiableCredential {
         Self::verify_with_verifier(vc_jwt, Arc::new(verifier))
     }
 
-    pub fn verify_with_verifier(vc_jwt: &str, verifier: Arc<dyn Verifier>) -> Result<Self> {
+    pub fn verify_with_verifier(vc_jwt: &str, verifier: Arc<dyn Verifier>) -> ResultOld<Self> {
         let header = josekit::jwt::decode_header(vc_jwt)?;
 
         let kid = header
@@ -377,7 +382,7 @@ impl VerifiableCredential {
     }
 }
 
-fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<()> {
+fn validate_vc_data_model(vc: &VerifiableCredential) -> ResultOld<()> {
     // Required fields ["@context", "id", "type", "issuer", "issuanceDate", "credentialSubject"]
     if vc.id.is_empty() {
         return Err(CredentialError::VcDataModelValidationError(
@@ -561,6 +566,7 @@ mod tests {
         fn z_assert_all_suite_cases_covered() {
             // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
             // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
+            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
 
             // wait 100ms to be last-in-queue of mutex lock
             std::thread::sleep(std::time::Duration::from_millis(100));
@@ -582,7 +588,7 @@ mod tests {
         fn test_default_context_not_duplicated_if_supplied() {
             TEST_SUITE.include(test_name!());
 
-            let options = Some(CreateOptions {
+            let options = Some(VerifiableCredentialCreateOptions {
                 context: Some(vec![BASE_CONTEXT.to_string()]),
                 ..Default::default()
             });
@@ -599,7 +605,7 @@ mod tests {
             TEST_SUITE.include(test_name!());
 
             let custom_context = "https://example.com/custom-context";
-            let options = Some(CreateOptions {
+            let options = Some(VerifiableCredentialCreateOptions {
                 context: Some(vec![custom_context.to_string()]),
                 ..Default::default()
             });
@@ -625,7 +631,7 @@ mod tests {
         fn test_default_type_not_duplicated_if_supplied() {
             TEST_SUITE.include(test_name!());
 
-            let options = Some(CreateOptions {
+            let options = Some(VerifiableCredentialCreateOptions {
                 r#type: Some(vec![BASE_TYPE.to_string()]),
                 ..Default::default()
             });
@@ -642,7 +648,7 @@ mod tests {
             TEST_SUITE.include(test_name!());
 
             let custom_type = "CustomType";
-            let options = Some(CreateOptions {
+            let options = Some(VerifiableCredentialCreateOptions {
                 r#type: Some(vec![custom_type.to_string()]),
                 ..Default::default()
             });
@@ -670,7 +676,7 @@ mod tests {
             TEST_SUITE.include(test_name!());
 
             let custom_id = "custom-id";
-            let options = Some(CreateOptions {
+            let options = Some(VerifiableCredentialCreateOptions {
                 id: Some(custom_id.to_string()),
                 ..Default::default()
             });
@@ -849,7 +855,7 @@ mod tests {
 
             let issuance_date = SystemTime::now();
 
-            let options = Some(CreateOptions {
+            let options = Some(VerifiableCredentialCreateOptions {
                 issuance_date: Some(issuance_date),
                 ..Default::default()
             });
@@ -879,7 +885,7 @@ mod tests {
             TEST_SUITE.include(test_name!());
 
             let expiration_date = SystemTime::now();
-            let options = Some(CreateOptions {
+            let options = Some(VerifiableCredentialCreateOptions {
                 expiration_date: Some(expiration_date),
                 ..Default::default()
             });

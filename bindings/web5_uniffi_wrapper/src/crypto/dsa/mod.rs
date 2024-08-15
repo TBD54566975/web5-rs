@@ -1,17 +1,17 @@
 pub mod ed25519;
 
-use crate::errors::Result;
+use crate::errors::ResultOld;
 use std::sync::Arc;
 use web5::crypto::dsa::{Signer as InnerSigner, Verifier as InnerVerifier};
 
 pub trait Signer: Send + Sync {
-    fn sign(&self, payload: Vec<u8>) -> Result<Vec<u8>>;
+    fn sign(&self, payload: Vec<u8>) -> ResultOld<Vec<u8>>;
 }
 
 pub struct ToOuterSigner(pub Arc<dyn InnerSigner>);
 
 impl Signer for ToOuterSigner {
-    fn sign(&self, payload: Vec<u8>) -> Result<Vec<u8>> {
+    fn sign(&self, payload: Vec<u8>) -> ResultOld<Vec<u8>> {
         Ok(self.0.sign(&payload)?)
     }
 }
@@ -26,7 +26,7 @@ impl InnerSigner for ToInnerSigner {
 }
 
 pub trait Verifier: Send + Sync {
-    fn verify(&self, payload: Vec<u8>, signature: Vec<u8>) -> Result<bool>;
+    fn verify(&self, payload: Vec<u8>, signature: Vec<u8>) -> ResultOld<bool>;
 }
 
 pub struct ToInnerVerifier(pub Arc<dyn Verifier>);
