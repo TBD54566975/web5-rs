@@ -10,6 +10,7 @@ pub struct TestVector<I, O> {
 
 #[derive(Debug, serde::Deserialize)]
 pub struct TestVectorFile<I, O> {
+    #[allow(dead_code)]
     pub description: String,
     pub vectors: Vec<TestVector<I, O>>,
 }
