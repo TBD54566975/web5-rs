@@ -25,7 +25,7 @@ where
     Ok(datetime.with_timezone(&Utc).into())
 }
 
-pub(crate) fn serialize_option_system_time<S>(
+pub(crate) fn serialize_optional_system_time<S>(
     time: &Option<SystemTime>,
     serializer: S,
 ) -> std::result::Result<S::Ok, S::Error>
@@ -38,7 +38,7 @@ where
     }
 }
 
-pub(crate) fn deserialize_option_system_time<'de, D>(
+pub(crate) fn deserialize_optional_system_time<'de, D>(
     deserializer: D,
 ) -> std::result::Result<Option<SystemTime>, D::Error>
 where

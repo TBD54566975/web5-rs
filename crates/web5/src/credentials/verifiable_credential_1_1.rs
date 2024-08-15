@@ -2,7 +2,7 @@ use super::{CredentialError, Result as ResultOld};
 use crate::errors::{Result, Web5Error};
 use crate::json::{FromJson, JsonObject, ToJson};
 use crate::rfc3339::{
-    deserialize_option_system_time, deserialize_system_time, serialize_option_system_time,
+    deserialize_optional_system_time, deserialize_system_time, serialize_optional_system_time,
     serialize_system_time,
 };
 use crate::{
@@ -118,8 +118,8 @@ pub struct VerifiableCredential {
     pub issuance_date: SystemTime,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_option_system_time",
-        deserialize_with = "deserialize_option_system_time"
+        serialize_with = "serialize_optional_system_time",
+        deserialize_with = "deserialize_optional_system_time"
     )]
     pub expiration_date: Option<SystemTime>,
 }
@@ -448,14 +448,14 @@ struct JwtPayloadVerifiableCredential {
     issuer: Option<Issuer>,
     #[serde(
         rename = "issuanceDate",
-        serialize_with = "serialize_option_system_time",
-        deserialize_with = "deserialize_option_system_time"
+        serialize_with = "serialize_optional_system_time",
+        deserialize_with = "deserialize_optional_system_time"
     )]
     issuance_date: Option<SystemTime>,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_option_system_time",
-        deserialize_with = "deserialize_option_system_time"
+        serialize_with = "serialize_optional_system_time",
+        deserialize_with = "deserialize_optional_system_time"
     )]
     expiration_date: Option<SystemTime>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "credentialSubject")]
