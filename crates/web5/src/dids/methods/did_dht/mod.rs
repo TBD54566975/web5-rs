@@ -338,7 +338,7 @@ mod web5_test_vectors_did_dht {
             TestVectorFile::load_from_path(path);
 
         for vector in vectors.vectors {
-            let mut vector_input = vector.input;
+            let vector_input = vector.input;
             let vector_output = &vector.output;
 
             // As a replay attack protection protocol, if the same DID is doing a GET request within 5 minutes of each other, instead of a 404 it will start returning a 429.
