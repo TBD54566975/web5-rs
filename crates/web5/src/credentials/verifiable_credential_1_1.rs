@@ -197,7 +197,7 @@ impl VerifiableCredential {
             id,
             r#type,
             issuer,
-            issuance_date: options.issuance_date.unwrap_or_else(|| SystemTime::now()),
+            issuance_date: options.issuance_date.unwrap_or_else(SystemTime::now),
             expiration_date: options.expiration_date,
             credential_subject,
         })
@@ -223,7 +223,7 @@ impl VerifiableCredential {
             credential_subject: Some(self.credential_subject.clone()),
         };
         payload.set_claim("vc", Some(serde_json::to_value(vc_claim)?))?;
-        payload.set_issuer(&self.issuer.to_string());
+        payload.set_issuer(self.issuer.to_string());
         payload.set_jwt_id(&self.id);
         payload.set_subject(&self.credential_subject.id);
         payload.set_not_before(&self.issuance_date);

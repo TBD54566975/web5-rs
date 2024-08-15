@@ -1,9 +1,5 @@
 use serde::de::DeserializeOwned;
-use std::{
-    fs,
-    path::PathBuf,
-    sync::{LazyLock, Mutex},
-};
+use std::{fs, path::PathBuf, sync::Mutex};
 
 #[derive(Debug, serde::Deserialize)]
 pub struct TestVector<I, O> {
