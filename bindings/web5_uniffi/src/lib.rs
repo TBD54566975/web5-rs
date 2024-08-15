@@ -23,7 +23,7 @@ use web5_uniffi_wrapper::{
         portable_did::PortableDid,
         resolution::resolution_result::ResolutionResult,
     },
-    errors::{RustCoreError, Web5Error},
+    errors::Web5Error,
 };
 
 use web5::{

@@ -1,4 +1,4 @@
-use crate::errors::ResultNew;
+use crate::errors::Result;
 use std::time::SystemTime;
 use web5::{
     credentials::verifiable_credential_1_1::{
@@ -19,7 +19,7 @@ impl VerifiableCredential {
         json_serialized_issuer: String,
         json_serialized_credential_subject: String,
         options: Option<VerifiableCredentialCreateOptions>,
-    ) -> ResultNew<Self> {
+    ) -> Result<Self> {
         let issuer = Issuer::from_json_string(&json_serialized_issuer)?;
         let credential_subject =
             CredentialSubject::from_json_string(&json_serialized_credential_subject)?;
