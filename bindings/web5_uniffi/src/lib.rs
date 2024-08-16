@@ -1,9 +1,7 @@
 use web5_uniffi_wrapper::{
     credentials::{
         presentation_definition::PresentationDefinition,
-        verifiable_credential_1_1::{
-            data::VerifiableCredential as VerifiableCredentialData, VerifiableCredential,
-        },
+        verifiable_credential_1_1::{VerifiableCredential, VerifiableCredentialData},
     },
     crypto::{
         dsa::{
@@ -25,10 +23,11 @@ use web5_uniffi_wrapper::{
         portable_did::PortableDid,
         resolution::resolution_result::ResolutionResult,
     },
-    errors::RustCoreError,
+    errors::Web5Error,
 };
 
 use web5::{
+    credentials::verifiable_credential_1_1::VerifiableCredentialCreateOptions as VerifiableCredentialCreateOptionsData,
     crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{
         data_model::{

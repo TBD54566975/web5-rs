@@ -1,4 +1,10 @@
-use super::{CredentialError, Result};
+use super::{CredentialError, Result as ResultOld};
+use crate::errors::{Result, Web5Error};
+use crate::json::{FromJson, JsonObject, ToJson};
+use crate::rfc3339::{
+    deserialize_optional_system_time, deserialize_system_time, serialize_optional_system_time,
+    serialize_system_time,
+};
 use crate::{
     crypto::dsa::{ed25519::Ed25519Verifier, DsaError, Signer, Verifier},
     dids::{
@@ -9,7 +15,6 @@ use crate::{
         },
     },
 };
-use chrono::{DateTime, Utc};
 use core::fmt;
 use josekit::{
     jws::{
@@ -20,29 +25,34 @@ use josekit::{
     jwt::JwtPayload,
     JoseError as JosekitError,
 };
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
     fmt::{Display, Formatter},
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
+use uuid::Uuid;
 
 pub const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 pub const BASE_TYPE: &str = "VerifiableCredential";
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
-pub struct NamedIssuer {
+pub struct ObjectIssuer {
     pub id: String,
     pub name: String,
+    #[serde(flatten)]
+    pub additional_properties: Option<JsonObject>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum Issuer {
     String(String),
-    Object(NamedIssuer),
+    Object(ObjectIssuer),
 }
+
+impl FromJson for Issuer {}
+impl ToJson for Issuer {}
 
 impl<I> From<I> for Issuer
 where
@@ -62,53 +72,31 @@ impl Display for Issuer {
     }
 }
 
-fn serialize_system_time<S>(
-    time: &SystemTime,
-    serializer: S,
-) -> std::result::Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let datetime: chrono::DateTime<Utc> = (*time).into();
-    let s = datetime.to_rfc3339();
-    serializer.serialize_str(&s)
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+pub struct CredentialSubject {
+    pub id: String,
+    #[serde(flatten)]
+    pub additional_properties: Option<JsonObject>,
 }
 
-fn deserialize_system_time<'de, D>(deserializer: D) -> std::result::Result<SystemTime, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    let datetime = chrono::DateTime::parse_from_rfc3339(&s).map_err(serde::de::Error::custom)?;
-    Ok(datetime.with_timezone(&Utc).into())
-}
+impl FromJson for CredentialSubject {}
+impl ToJson for CredentialSubject {}
 
-fn serialize_option_system_time<S>(
-    time: &Option<SystemTime>,
-    serializer: S,
-) -> std::result::Result<S::Ok, S::Error>
+impl<I> From<I> for CredentialSubject
 where
-    S: Serializer,
+    I: Into<String>,
 {
-    match time {
-        Some(time) => serialize_system_time(time, serializer),
-        None => serializer.serialize_none(),
+    fn from(s: I) -> Self {
+        CredentialSubject {
+            id: s.into(),
+            ..Default::default()
+        }
     }
 }
 
-fn deserialize_option_system_time<'de, D>(
-    deserializer: D,
-) -> std::result::Result<Option<SystemTime>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let opt = Option::<String>::deserialize(deserializer)?;
-    match opt {
-        Some(s) => {
-            let datetime = DateTime::parse_from_rfc3339(&s).map_err(serde::de::Error::custom)?;
-            Ok(Some(datetime.with_timezone(&Utc).into()))
-        }
-        None => Ok(None),
+impl Display for CredentialSubject {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}", self.id)
     }
 }
 
@@ -120,6 +108,8 @@ pub struct VerifiableCredential {
     #[serde(rename = "type")]
     pub r#type: Vec<String>,
     pub issuer: Issuer,
+    #[serde(rename = "credentialSubject")]
+    pub credential_subject: CredentialSubject,
     #[serde(
         rename = "issuanceDate",
         serialize_with = "serialize_system_time",
@@ -128,77 +118,92 @@ pub struct VerifiableCredential {
     pub issuance_date: SystemTime,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_option_system_time",
-        deserialize_with = "deserialize_option_system_time"
+        serialize_with = "serialize_optional_system_time",
+        deserialize_with = "deserialize_optional_system_time"
     )]
     pub expiration_date: Option<SystemTime>,
-    #[serde(rename = "credentialSubject")]
-    pub credential_subject: CredentialSubject,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct CredentialSubject {
-    pub id: String,
-    #[serde(flatten)]
-    pub params: Option<HashMap<String, String>>,
-}
+impl FromJson for VerifiableCredential {}
+impl ToJson for VerifiableCredential {}
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct JwtPayloadVerifiableCredential {
-    #[serde(rename = "@context")]
-    context: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    id: Option<String>,
-    #[serde(rename = "type")]
-    r#type: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    issuer: Option<Issuer>,
-    #[serde(
-        rename = "issuanceDate",
-        serialize_with = "serialize_option_system_time",
-        deserialize_with = "deserialize_option_system_time"
-    )]
-    issuance_date: Option<SystemTime>,
-    #[serde(
-        rename = "expirationDate",
-        serialize_with = "serialize_option_system_time",
-        deserialize_with = "deserialize_option_system_time"
-    )]
-    expiration_date: Option<SystemTime>,
-    #[serde(skip_serializing_if = "Option::is_none", rename = "credentialSubject")]
-    credential_subject: Option<CredentialSubject>,
+#[derive(Default)]
+pub struct VerifiableCredentialCreateOptions {
+    pub id: Option<String>,
+    pub context: Option<Vec<String>>,
+    pub r#type: Option<Vec<String>>,
+    pub issuance_date: Option<SystemTime>,
+    pub expiration_date: Option<SystemTime>,
 }
 
 impl VerifiableCredential {
-    pub fn new(
-        id: String,
-        context: Vec<String>,
-        r#type: Vec<String>,
+    pub fn create(
         issuer: Issuer,
-        issuance_date: SystemTime,
-        expiration_date: Option<SystemTime>,
         credential_subject: CredentialSubject,
-    ) -> Self {
-        let context_with_base = std::iter::once(BASE_CONTEXT.to_string())
-            .chain(context.into_iter().filter(|c| c != BASE_CONTEXT))
-            .collect::<Vec<_>>();
-
-        let type_with_base = std::iter::once(BASE_TYPE.to_string())
-            .chain(r#type.into_iter().filter(|t| t != BASE_TYPE))
-            .collect::<Vec<_>>();
-
-        Self {
-            context: context_with_base,
-            id,
-            r#type: type_with_base,
-            issuer,
-            issuance_date,
-            expiration_date,
-            credential_subject,
+        options: Option<VerifiableCredentialCreateOptions>,
+    ) -> Result<Self> {
+        if issuer.to_string().is_empty() {
+            return Err(Web5Error::Parameter(String::from(
+                "issuer id must not be empty",
+            )));
         }
+
+        if let Issuer::Object(ref named_issuer) = issuer {
+            if named_issuer.name.is_empty() {
+                return Err(Web5Error::Parameter(String::from(
+                    "named issuer name must not be empty",
+                )));
+            }
+        }
+
+        if credential_subject.to_string().is_empty() {
+            return Err(Web5Error::Parameter(String::from(
+                "subject id must not be empty",
+            )));
+        }
+
+        let options = options.unwrap_or_default();
+
+        let context = {
+            let mut contexts = options
+                .context
+                .unwrap_or_else(|| vec![BASE_CONTEXT.to_string()]);
+
+            if !contexts.contains(&BASE_CONTEXT.to_string()) {
+                contexts.insert(0, BASE_CONTEXT.to_string());
+            }
+
+            contexts
+        };
+
+        let r#type = {
+            let mut types = options
+                .r#type
+                .unwrap_or_else(|| vec![BASE_TYPE.to_string()]);
+
+            if !types.contains(&BASE_TYPE.to_string()) {
+                types.insert(0, BASE_TYPE.to_string());
+            }
+
+            types
+        };
+
+        let id = options
+            .id
+            .unwrap_or_else(|| format!("urn:uuid:{}", Uuid::new_v4()));
+
+        Ok(Self {
+            context,
+            id,
+            r#type,
+            issuer,
+            issuance_date: options.issuance_date.unwrap_or_else(SystemTime::now),
+            expiration_date: options.expiration_date,
+            credential_subject,
+        })
     }
 
-    pub fn sign(&self, bearer_did: &BearerDid) -> Result<String> {
+    pub fn sign(&self, bearer_did: &BearerDid) -> ResultOld<String> {
         // default to first VM
         let key_id = bearer_did.document.verification_method[0].id.clone();
         let signer = bearer_did.get_signer(key_id.clone())?;
@@ -206,7 +211,7 @@ impl VerifiableCredential {
         self.sign_with_signer(&key_id, signer)
     }
 
-    pub fn sign_with_signer(&self, key_id: &str, signer: Arc<dyn Signer>) -> Result<String> {
+    pub fn sign_with_signer(&self, key_id: &str, signer: Arc<dyn Signer>) -> ResultOld<String> {
         let mut payload = JwtPayload::new();
         let vc_claim = JwtPayloadVerifiableCredential {
             context: self.context.clone(),
@@ -218,7 +223,7 @@ impl VerifiableCredential {
             credential_subject: Some(self.credential_subject.clone()),
         };
         payload.set_claim("vc", Some(serde_json::to_value(vc_claim)?))?;
-        payload.set_issuer(&self.issuer.to_string());
+        payload.set_issuer(self.issuer.to_string());
         payload.set_jwt_id(&self.id);
         payload.set_subject(&self.credential_subject.id);
         payload.set_not_before(&self.issuance_date);
@@ -239,7 +244,7 @@ impl VerifiableCredential {
         Ok(vc_jwt)
     }
 
-    pub fn verify(vc_jwt: &str) -> Result<Self> {
+    pub fn verify(vc_jwt: &str) -> ResultOld<Self> {
         // this function currently only supports Ed25519
         let header = josekit::jwt::decode_header(vc_jwt)?;
 
@@ -268,7 +273,7 @@ impl VerifiableCredential {
         Self::verify_with_verifier(vc_jwt, Arc::new(verifier))
     }
 
-    pub fn verify_with_verifier(vc_jwt: &str, verifier: Arc<dyn Verifier>) -> Result<Self> {
+    pub fn verify_with_verifier(vc_jwt: &str, verifier: Arc<dyn Verifier>) -> ResultOld<Self> {
         let header = josekit::jwt::decode_header(vc_jwt)?;
 
         let kid = header
@@ -358,7 +363,7 @@ impl VerifiableCredential {
 
         let vc_credential_subject = vc_payload.credential_subject.unwrap_or(CredentialSubject {
             id: sub.to_string(),
-            params: None,
+            additional_properties: None,
         });
 
         let vc = VerifiableCredential {
@@ -377,7 +382,7 @@ impl VerifiableCredential {
     }
 }
 
-fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<()> {
+fn validate_vc_data_model(vc: &VerifiableCredential) -> ResultOld<()> {
     // Required fields ["@context", "id", "type", "issuer", "issuanceDate", "credentialSubject"]
     if vc.id.is_empty() {
         return Err(CredentialError::VcDataModelValidationError(
@@ -431,8 +436,34 @@ fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<()> {
     Ok(())
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct JwtPayloadVerifiableCredential {
+    #[serde(rename = "@context")]
+    context: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<String>,
+    #[serde(rename = "type")]
+    r#type: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    issuer: Option<Issuer>,
+    #[serde(
+        rename = "issuanceDate",
+        serialize_with = "serialize_optional_system_time",
+        deserialize_with = "deserialize_optional_system_time"
+    )]
+    issuance_date: Option<SystemTime>,
+    #[serde(
+        rename = "expirationDate",
+        serialize_with = "serialize_optional_system_time",
+        deserialize_with = "deserialize_optional_system_time"
+    )]
+    expiration_date: Option<SystemTime>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "credentialSubject")]
+    credential_subject: Option<CredentialSubject>,
+}
+
 #[derive(Clone)]
-pub struct JoseSigner {
+struct JoseSigner {
     pub kid: String,
     pub signer: Arc<dyn Signer>,
 }
@@ -512,41 +543,358 @@ impl core::fmt::Debug for JoseVerifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        crypto::{
-            dsa::ed25519::Ed25519Generator, key_managers::in_memory_key_manager::InMemoryKeyManager,
-        },
-        dids::methods::did_jwk::DidJwk,
-    };
-    use std::time::Duration;
-    use uuid::Uuid;
+    use crate::json::JsonValue;
+    use regex::Regex;
+    use std::collections::HashMap;
+    use std::sync::LazyLock;
 
-    #[test]
-    fn can_create_sign_and_verify() {
-        let key_manager = InMemoryKeyManager::new();
-        let public_jwk = key_manager
-            .import_private_jwk(Ed25519Generator::generate())
-            .unwrap();
-        let did_jwk = DidJwk::from_public_jwk(public_jwk).unwrap();
-        let bearer_did = BearerDid::new(&did_jwk.did.uri, Arc::new(key_manager)).unwrap();
+    const ISSUER_DID_URI: &str = "did:web:tbd.website";
+    const SUBJECT_DID_URI: &str = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y";
 
-        let now = SystemTime::now();
-        let vc = VerifiableCredential::new(
-            format!("urn:vc:uuid:{0}", Uuid::new_v4().to_string()),
-            vec![BASE_CONTEXT.to_string()],
-            vec![BASE_TYPE.to_string()],
-            Issuer::String(bearer_did.did.uri.clone()),
-            now,
-            Some(now + Duration::from_secs(20 * 365 * 24 * 60 * 60)), // now + 20 years
-            CredentialSubject {
-                id: bearer_did.did.uri.clone(),
+    static ISSUER: LazyLock<Issuer> = LazyLock::new(|| Issuer::from(ISSUER_DID_URI));
+    static CREDENTIAL_SUBJECT: LazyLock<CredentialSubject> =
+        LazyLock::new(|| CredentialSubject::from(SUBJECT_DID_URI));
+
+    mod create {
+        use super::*;
+        use crate::{test_helpers::UnitTestSuite, test_name};
+
+        static TEST_SUITE: LazyLock<UnitTestSuite> =
+            LazyLock::new(|| UnitTestSuite::new("verifiable_credential_1_1_create"));
+
+        #[test]
+        fn z_assert_all_suite_cases_covered() {
+            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
+            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
+            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
+
+            // wait 100ms to be last-in-queue of mutex lock
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            TEST_SUITE.assert_coverage()
+        }
+
+        #[test]
+        fn test_default_context_added_if_not_supplied() {
+            TEST_SUITE.include(test_name!());
+
+            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
+                .unwrap();
+
+            assert_eq!(vc.context, vec![BASE_CONTEXT]);
+        }
+
+        #[test]
+        fn test_default_context_not_duplicated_if_supplied() {
+            TEST_SUITE.include(test_name!());
+
+            let options = Some(VerifiableCredentialCreateOptions {
+                context: Some(vec![BASE_CONTEXT.to_string()]),
                 ..Default::default()
-            },
-        );
+            });
 
-        let vc_jwt = vc.sign(&bearer_did).unwrap();
-        assert_ne!(String::default(), vc_jwt);
+            let vc =
+                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
+                    .unwrap();
 
-        VerifiableCredential::verify(&vc_jwt).unwrap();
+            assert_eq!(vc.context, vec![BASE_CONTEXT]);
+        }
+
+        #[test]
+        fn test_developer_provided_context_appended_to_default() {
+            TEST_SUITE.include(test_name!());
+
+            let custom_context = "https://example.com/custom-context";
+            let options = Some(VerifiableCredentialCreateOptions {
+                context: Some(vec![custom_context.to_string()]),
+                ..Default::default()
+            });
+
+            let vc =
+                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
+                    .unwrap();
+
+            assert_eq!(vc.context, vec![BASE_CONTEXT, custom_context]);
+        }
+
+        #[test]
+        fn test_default_type_added_if_not_supplied() {
+            TEST_SUITE.include(test_name!());
+
+            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
+                .unwrap();
+
+            assert_eq!(vc.r#type, vec![BASE_TYPE]);
+        }
+
+        #[test]
+        fn test_default_type_not_duplicated_if_supplied() {
+            TEST_SUITE.include(test_name!());
+
+            let options = Some(VerifiableCredentialCreateOptions {
+                r#type: Some(vec![BASE_TYPE.to_string()]),
+                ..Default::default()
+            });
+
+            let vc =
+                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
+                    .unwrap();
+
+            assert_eq!(vc.r#type, vec![BASE_TYPE]);
+        }
+
+        #[test]
+        fn test_developer_provided_type_appended_to_default() {
+            TEST_SUITE.include(test_name!());
+
+            let custom_type = "CustomType";
+            let options = Some(VerifiableCredentialCreateOptions {
+                r#type: Some(vec![custom_type.to_string()]),
+                ..Default::default()
+            });
+
+            let vc =
+                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
+                    .unwrap();
+
+            assert_eq!(vc.r#type, vec![BASE_TYPE, custom_type]);
+        }
+
+        #[test]
+        fn test_id_generated_if_not_supplied() {
+            TEST_SUITE.include(test_name!());
+
+            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
+                .unwrap();
+
+            let uuid_regex = Regex::new(r"^urn:uuid:[0-9a-fA-F-]{36}$").unwrap();
+            assert!(uuid_regex.is_match(&vc.id));
+        }
+
+        #[test]
+        fn test_id_must_be_set_if_supplied() {
+            TEST_SUITE.include(test_name!());
+
+            let custom_id = "custom-id";
+            let options = Some(VerifiableCredentialCreateOptions {
+                id: Some(custom_id.to_string()),
+                ..Default::default()
+            });
+
+            let vc =
+                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
+                    .unwrap();
+
+            assert_eq!(vc.id, custom_id);
+        }
+
+        #[test]
+        fn test_issuer_string_must_not_be_empty() {
+            TEST_SUITE.include(test_name!());
+
+            let empty_issuer = Issuer::from("");
+            let result =
+                VerifiableCredential::create(empty_issuer, CREDENTIAL_SUBJECT.clone(), None);
+
+            match result {
+                Err(Web5Error::Parameter(err_msg)) => {
+                    assert_eq!(err_msg, "issuer id must not be empty");
+                }
+                _ => panic!("Expected Web5Error::Parameter with specific error message"),
+            };
+        }
+
+        #[test]
+        fn test_issuer_string_must_be_set() {
+            TEST_SUITE.include(test_name!());
+
+            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
+                .unwrap();
+
+            assert_eq!(vc.issuer, ISSUER.clone());
+        }
+
+        #[test]
+        fn test_issuer_object_id_must_not_be_empty() {
+            TEST_SUITE.include(test_name!());
+
+            let issuer = Issuer::Object(ObjectIssuer {
+                id: "".to_string(),
+                name: "Example Name".to_string(),
+                additional_properties: None,
+            });
+
+            let result = VerifiableCredential::create(issuer, CREDENTIAL_SUBJECT.clone(), None);
+
+            match result {
+                Err(Web5Error::Parameter(err_msg)) => {
+                    assert_eq!(err_msg, "issuer id must not be empty");
+                }
+                _ => panic!("Expected Web5Error::Parameter with specific error message"),
+            };
+        }
+
+        #[test]
+        fn test_issuer_object_name_must_not_be_empty() {
+            TEST_SUITE.include(test_name!());
+
+            let issuer = Issuer::Object(ObjectIssuer {
+                id: ISSUER_DID_URI.to_string(),
+                name: "".to_string(),
+                additional_properties: None,
+            });
+
+            let result = VerifiableCredential::create(issuer, CREDENTIAL_SUBJECT.clone(), None);
+
+            match result {
+                Err(Web5Error::Parameter(err_msg)) => {
+                    assert_eq!(err_msg, "named issuer name must not be empty");
+                }
+                _ => panic!("Expected Web5Error::Parameter with specific error message"),
+            };
+        }
+
+        #[test]
+        fn test_issuer_object_must_be_set() {
+            TEST_SUITE.include(test_name!());
+
+            let issuer = Issuer::Object(ObjectIssuer {
+                id: ISSUER_DID_URI.to_string(),
+                name: "Example Name".to_string(),
+                additional_properties: None,
+            });
+
+            let vc = VerifiableCredential::create(issuer.clone(), CREDENTIAL_SUBJECT.clone(), None)
+                .unwrap();
+
+            assert_eq!(vc.issuer, issuer);
+        }
+
+        #[test]
+        fn test_issuer_object_supports_additional_properties() {
+            TEST_SUITE.include(test_name!());
+
+            let additional_properties = JsonObject {
+                properties: HashMap::from([(
+                    "extra_key".to_string(),
+                    JsonValue::String("extra_value".to_string()),
+                )]),
+            };
+
+            let issuer = Issuer::Object(ObjectIssuer {
+                id: ISSUER_DID_URI.to_string(),
+                name: "Example Name".to_string(),
+                additional_properties: Some(additional_properties.clone()),
+            });
+
+            let vc = VerifiableCredential::create(issuer.clone(), CREDENTIAL_SUBJECT.clone(), None)
+                .unwrap();
+
+            match vc.issuer {
+                Issuer::Object(ref obj) => {
+                    assert_eq!(obj.additional_properties, Some(additional_properties));
+                }
+                _ => panic!("Issuer is not an ObjectIssuer"),
+            };
+        }
+
+        #[test]
+        fn test_credential_subject_id_must_not_be_empty() {
+            TEST_SUITE.include(test_name!());
+
+            let credential_subject = CredentialSubject::from("");
+
+            let result = VerifiableCredential::create(ISSUER.clone(), credential_subject, None);
+
+            match result {
+                Err(Web5Error::Parameter(err_msg)) => {
+                    assert_eq!(err_msg, "subject id must not be empty");
+                }
+                _ => panic!("Expected Web5Error::Parameter with specific error message"),
+            };
+        }
+
+        #[test]
+        fn test_credential_subject_must_be_set() {
+            TEST_SUITE.include(test_name!());
+
+            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
+                .unwrap();
+
+            assert_eq!(vc.credential_subject, CREDENTIAL_SUBJECT.clone());
+        }
+
+        #[test]
+        fn test_credential_subject_supports_additional_properties() {
+            TEST_SUITE.include(test_name!());
+
+            let additional_properties = JsonObject {
+                properties: HashMap::from([(
+                    "extra_key".to_string(),
+                    JsonValue::String("extra_value".to_string()),
+                )]),
+            };
+
+            let credential_subject = CredentialSubject {
+                id: SUBJECT_DID_URI.to_string(),
+                additional_properties: Some(additional_properties.clone()),
+            };
+
+            let vc = VerifiableCredential::create(ISSUER.clone(), credential_subject.clone(), None)
+                .unwrap();
+
+            assert_eq!(
+                vc.credential_subject.additional_properties,
+                Some(additional_properties)
+            );
+        }
+
+        #[test]
+        fn test_issuance_date_must_be_set() {
+            TEST_SUITE.include(test_name!());
+
+            let issuance_date = SystemTime::now();
+
+            let options = Some(VerifiableCredentialCreateOptions {
+                issuance_date: Some(issuance_date),
+                ..Default::default()
+            });
+
+            let vc =
+                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
+                    .unwrap();
+
+            assert_eq!(vc.issuance_date, issuance_date);
+        }
+
+        #[test]
+        fn test_issuance_date_must_be_now_if_not_supplied() {
+            TEST_SUITE.include(test_name!());
+
+            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
+                .unwrap();
+
+            let now = SystemTime::now();
+            let hundred_millis_ago = now - std::time::Duration::from_millis(100);
+
+            assert!(vc.issuance_date >= hundred_millis_ago && vc.issuance_date <= now);
+        }
+
+        #[test]
+        fn test_expiration_date_must_be_set_if_supplied() {
+            TEST_SUITE.include(test_name!());
+
+            let expiration_date = SystemTime::now();
+            let options = Some(VerifiableCredentialCreateOptions {
+                expiration_date: Some(expiration_date),
+                ..Default::default()
+            });
+
+            let vc =
+                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
+                    .unwrap();
+
+            assert_eq!(vc.expiration_date, Some(expiration_date));
+        }
     }
 }

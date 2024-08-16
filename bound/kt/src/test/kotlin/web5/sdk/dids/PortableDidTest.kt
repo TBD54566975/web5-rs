@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertEquals
-import web5.sdk.rust.RustCoreException
+import web5.sdk.rust.Web5Exception
 
 class PortableDidTest {
     @Test
@@ -22,7 +22,7 @@ class PortableDidTest {
     @Test
     fun `instantiation from json string throws with invalid json string`() {
         val invalidJsonString = "something not valid"
-        assertThrows(RustCoreException::class.java) {
+        assertThrows(Web5Exception::class.java) {
             PortableDid(invalidJsonString)
         }
     }

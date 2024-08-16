@@ -878,14 +878,6 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
-
-
-
-
-
-
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1046,17 +1038,9 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_verifiablecredential(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_new(`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify(`vcjwt`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify_with_verifier(`vcjwt`: RustBuffer.ByValue,`verifier`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_create(`jsonSerializedIssuer`: RustBuffer.ByValue,`jsonSerializedCredentialSubject`: RustBuffer.ByValue,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_verifiablecredential_sign(`ptr`: Pointer,`bearerDid`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_verifiablecredential_sign_with_signer(`ptr`: Pointer,`keyId`: RustBuffer.ByValue,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1238,10 +1222,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_verifiablecredential_sign(
-    ): Short
-    fun uniffi_web5_uniffi_checksum_method_verifiablecredential_sign_with_signer(
-    ): Short
     fun uniffi_web5_uniffi_checksum_method_verifier_verify(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_bearerdid_from_portable_did(
@@ -1276,11 +1256,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_resolutionresult_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_new(
-    ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify(
-    ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify_with_verifier(
+    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_create(
     ): Short
     fun ffi_web5_uniffi_uniffi_contract_version(
     ): Int
@@ -1299,13 +1275,13 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_resolve() != 52564.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_resolve() != 54117.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_func_did_jwk_resolve() != 47278.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_did_web_resolve() != 2260.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_web_resolve() != 32907.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_func_ed25519_generator_generate() != 57849.toShort()) {
@@ -1314,19 +1290,19 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_bearerdid_get_data() != 23985.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_bearerdid_get_signer() != 62154.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_bearerdid_get_signer() != 49175.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_did_get_data() != 55630.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_diddht_deactivate() != 44735.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_diddht_deactivate() != 8415.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_diddht_get_data() != 2858.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_diddht_publish() != 61119.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_diddht_publish() != 3488.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_didjwk_get_data() != 58319.toShort()) {
@@ -1335,82 +1311,76 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_didweb_get_data() != 40916.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_document_find_public_key_jwk() != 5237.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_document_find_public_key_jwk() != 16969.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_document_get_data() != 16490.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_ed25519signer_sign() != 50886.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_ed25519signer_sign() != 7079.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_ed25519verifier_verify() != 14184.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_ed25519verifier_verify() != 48256.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_as_key_manager() != 57819.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 37812.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 64632.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_private_jwk() != 25100.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_private_jwk() != 54213.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_keymanager_get_signer() != 28362.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_keymanager_get_signer() != 27148.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_portabledid_get_data() != 27045.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_get_json_serialized_presentation_definition() != 49729.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_get_json_serialized_presentation_definition() != 52261.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials() != 48916.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials() != 27039.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_resolutionresult_get_data() != 57220.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_signer_sign() != 6486.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_signer_sign() != 5738.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data() != 36872.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data() != 34047.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_sign() != 6102.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_verifier_verify() != 49443.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_sign_with_signer() != 64852.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_bearerdid_from_portable_did() != 49122.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_verifier_verify() != 15654.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_bearerdid_new() != 7404.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_bearerdid_from_portable_did() != 22241.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_did_new() != 60730.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_bearerdid_new() != 65090.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_diddht_from_identity_key() != 7094.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_did_new() != 36469.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_diddht_from_uri() != 63936.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_diddht_from_identity_key() != 8336.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_didjwk_from_public_jwk() != 39843.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_diddht_from_uri() != 36592.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_didjwk_from_uri() != 21472.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_didjwk_from_public_jwk() != 14130.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_didweb_from_public_jwk() != 22173.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_didjwk_from_uri() != 10422.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_didweb_from_public_jwk() != 58059.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_didweb_from_uri() != 44078.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_didweb_from_uri() != 39137.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_document_new() != 10173.toShort()) {
@@ -1425,22 +1395,16 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_inmemorykeymanager_new() != 16598.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_portabledid_new() != 53732.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_portabledid_new() != 37852.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 37876.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 13282.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_new() != 23836.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_new() != 49878.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify() != 34478.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_verify_with_verifier() != 49273.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_create() != 31236.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1839,7 +1803,7 @@ open class BearerDid: Disposable, AutoCloseable, BearerDidInterface {
     }
     constructor(`uri`: kotlin.String, `keyManager`: KeyManager) :
         this(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_bearerdid_new(
         FfiConverterString.lower(`uri`),FfiConverterTypeKeyManager.lower(`keyManager`),_status)
 }
@@ -1921,10 +1885,10 @@ open class BearerDid: Disposable, AutoCloseable, BearerDidInterface {
     
 
     
-    @Throws(RustCoreException::class)override fun `getSigner`(`keyId`: kotlin.String): Signer {
+    @Throws(Web5Exception::class)override fun `getSigner`(`keyId`: kotlin.String): Signer {
             return FfiConverterTypeSigner.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_bearerdid_get_signer(
         it, FfiConverterString.lower(`keyId`),_status)
 }
@@ -1938,9 +1902,9 @@ open class BearerDid: Disposable, AutoCloseable, BearerDidInterface {
     
     companion object {
         
-    @Throws(RustCoreException::class) fun `fromPortableDid`(`portableDid`: PortableDid): BearerDid {
+    @Throws(Web5Exception::class) fun `fromPortableDid`(`portableDid`: PortableDid): BearerDid {
             return FfiConverterTypeBearerDid.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_bearerdid_from_portable_did(
         FfiConverterTypePortableDid.lower(`portableDid`),_status)
 }
@@ -2103,7 +2067,7 @@ open class Did: Disposable, AutoCloseable, DidInterface {
     }
     constructor(`uri`: kotlin.String) :
         this(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_did_new(
         FfiConverterString.lower(`uri`),_status)
 }
@@ -2409,10 +2373,10 @@ open class DidDht: Disposable, AutoCloseable, DidDhtInterface {
     }
 
     
-    @Throws(RustCoreException::class)override fun `deactivate`(`signer`: Signer)
+    @Throws(Web5Exception::class)override fun `deactivate`(`signer`: Signer)
         = 
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_diddht_deactivate(
         it, FfiConverterTypeSigner.lower(`signer`),_status)
 }
@@ -2433,10 +2397,10 @@ open class DidDht: Disposable, AutoCloseable, DidDhtInterface {
     
 
     
-    @Throws(RustCoreException::class)override fun `publish`(`signer`: Signer)
+    @Throws(Web5Exception::class)override fun `publish`(`signer`: Signer)
         = 
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_diddht_publish(
         it, FfiConverterTypeSigner.lower(`signer`),_status)
 }
@@ -2449,9 +2413,9 @@ open class DidDht: Disposable, AutoCloseable, DidDhtInterface {
     
     companion object {
         
-    @Throws(RustCoreException::class) fun `fromIdentityKey`(`identityKey`: JwkData): DidDht {
+    @Throws(Web5Exception::class) fun `fromIdentityKey`(`identityKey`: JwkData): DidDht {
             return FfiConverterTypeDidDht.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_diddht_from_identity_key(
         FfiConverterTypeJwkData.lower(`identityKey`),_status)
 }
@@ -2460,9 +2424,9 @@ open class DidDht: Disposable, AutoCloseable, DidDhtInterface {
     
 
         
-    @Throws(RustCoreException::class) fun `fromUri`(`uri`: kotlin.String): DidDht {
+    @Throws(Web5Exception::class) fun `fromUri`(`uri`: kotlin.String): DidDht {
             return FfiConverterTypeDidDht.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_diddht_from_uri(
         FfiConverterString.lower(`uri`),_status)
 }
@@ -2704,9 +2668,9 @@ open class DidJwk: Disposable, AutoCloseable, DidJwkInterface {
     
     companion object {
         
-    @Throws(RustCoreException::class) fun `fromPublicJwk`(`publicJwk`: JwkData): DidJwk {
+    @Throws(Web5Exception::class) fun `fromPublicJwk`(`publicJwk`: JwkData): DidJwk {
             return FfiConverterTypeDidJwk.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didjwk_from_public_jwk(
         FfiConverterTypeJwkData.lower(`publicJwk`),_status)
 }
@@ -2715,9 +2679,9 @@ open class DidJwk: Disposable, AutoCloseable, DidJwkInterface {
     
 
         
-    @Throws(RustCoreException::class) fun `fromUri`(`uri`: kotlin.String): DidJwk {
+    @Throws(Web5Exception::class) fun `fromUri`(`uri`: kotlin.String): DidJwk {
             return FfiConverterTypeDidJwk.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didjwk_from_uri(
         FfiConverterString.lower(`uri`),_status)
 }
@@ -2959,9 +2923,9 @@ open class DidWeb: Disposable, AutoCloseable, DidWebInterface {
     
     companion object {
         
-    @Throws(RustCoreException::class) fun `fromPublicJwk`(`domain`: kotlin.String, `publicJwk`: JwkData): DidWeb {
+    @Throws(Web5Exception::class) fun `fromPublicJwk`(`domain`: kotlin.String, `publicJwk`: JwkData): DidWeb {
             return FfiConverterTypeDidWeb.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didweb_from_public_jwk(
         FfiConverterString.lower(`domain`),FfiConverterTypeJwkData.lower(`publicJwk`),_status)
 }
@@ -2970,7 +2934,7 @@ open class DidWeb: Disposable, AutoCloseable, DidWebInterface {
     
 
         
-    @Throws(RustCoreException::class)
+    @Throws(Web5Exception::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
      suspend fun `fromUri`(`uri`: kotlin.String) : DidWeb {
         return uniffiRustCallAsync(
@@ -2981,7 +2945,7 @@ open class DidWeb: Disposable, AutoCloseable, DidWebInterface {
         // lift function
         { FfiConverterTypeDidWeb.lift(it) },
         // Error FFI converter
-        RustCoreException.ErrorHandler,
+        Web5Exception.ErrorHandler,
     )
     }
 
@@ -3212,10 +3176,10 @@ open class Document: Disposable, AutoCloseable, DocumentInterface {
     }
 
     
-    @Throws(RustCoreException::class)override fun `findPublicKeyJwk`(`keyId`: kotlin.String): JwkData {
+    @Throws(Web5Exception::class)override fun `findPublicKeyJwk`(`keyId`: kotlin.String): JwkData {
             return FfiConverterTypeJwkData.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_document_find_public_key_jwk(
         it, FfiConverterString.lower(`keyId`),_status)
 }
@@ -3464,10 +3428,10 @@ open class Ed25519Signer: Disposable, AutoCloseable, Ed25519SignerInterface {
     }
 
     
-    @Throws(RustCoreException::class)override fun `sign`(`payload`: kotlin.ByteArray): kotlin.ByteArray {
+    @Throws(Web5Exception::class)override fun `sign`(`payload`: kotlin.ByteArray): kotlin.ByteArray {
             return FfiConverterByteArray.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_ed25519signer_sign(
         it, FfiConverterByteArray.lower(`payload`),_status)
 }
@@ -3704,10 +3668,10 @@ open class Ed25519Verifier: Disposable, AutoCloseable, Ed25519VerifierInterface 
     }
 
     
-    @Throws(RustCoreException::class)override fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray): kotlin.Boolean {
+    @Throws(Web5Exception::class)override fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray): kotlin.Boolean {
             return FfiConverterBoolean.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_ed25519verifier_verify(
         it, FfiConverterByteArray.lower(`message`),FfiConverterByteArray.lower(`signature`),_status)
 }
@@ -3960,10 +3924,10 @@ open class InMemoryKeyManager: Disposable, AutoCloseable, InMemoryKeyManagerInte
     
 
     
-    @Throws(RustCoreException::class)override fun `getSigner`(`publicJwk`: JwkData): Signer {
+    @Throws(Web5Exception::class)override fun `getSigner`(`publicJwk`: JwkData): Signer {
             return FfiConverterTypeSigner.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(
         it, FfiConverterTypeJwkData.lower(`publicJwk`),_status)
 }
@@ -3973,10 +3937,10 @@ open class InMemoryKeyManager: Disposable, AutoCloseable, InMemoryKeyManagerInte
     
 
     
-    @Throws(RustCoreException::class)override fun `importPrivateJwk`(`privateKey`: JwkData): JwkData {
+    @Throws(Web5Exception::class)override fun `importPrivateJwk`(`privateKey`: JwkData): JwkData {
             return FfiConverterTypeJwkData.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_inmemorykeymanager_import_private_jwk(
         it, FfiConverterTypeJwkData.lower(`privateKey`),_status)
 }
@@ -4206,10 +4170,10 @@ open class KeyManagerImpl: Disposable, AutoCloseable, KeyManager {
     }
 
     
-    @Throws(RustCoreException::class)override fun `getSigner`(`publicJwk`: JwkData): Signer {
+    @Throws(Web5Exception::class)override fun `getSigner`(`publicJwk`: JwkData): Signer {
             return FfiConverterTypeSigner.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_keymanager_get_signer(
         it, FfiConverterTypeJwkData.lower(`publicJwk`),_status)
 }
@@ -4270,7 +4234,7 @@ internal object uniffiCallbackInterfaceKeyManager {
                 uniffiCallStatus,
                 makeCall,
                 writeReturn,
-                { e: RustCoreException -> FfiConverterTypeRustCoreError.lower(e) }
+                { e: Web5Exception -> FfiConverterTypeWeb5Error.lower(e) }
             )
         }
     }
@@ -4444,7 +4408,7 @@ open class PortableDid: Disposable, AutoCloseable, PortableDidInterface {
     }
     constructor(`json`: kotlin.String) :
         this(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_portabledid_new(
         FfiConverterString.lower(`json`),_status)
 }
@@ -4685,7 +4649,7 @@ open class PresentationDefinition: Disposable, AutoCloseable, PresentationDefini
     }
     constructor(`jsonSerializedPresentationDefinition`: kotlin.String) :
         this(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_presentationdefinition_new(
         FfiConverterString.lower(`jsonSerializedPresentationDefinition`),_status)
 }
@@ -4755,10 +4719,10 @@ open class PresentationDefinition: Disposable, AutoCloseable, PresentationDefini
     }
 
     
-    @Throws(RustCoreException::class)override fun `getJsonSerializedPresentationDefinition`(): kotlin.String {
+    @Throws(Web5Exception::class)override fun `getJsonSerializedPresentationDefinition`(): kotlin.String {
             return FfiConverterString.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_presentationdefinition_get_json_serialized_presentation_definition(
         it, _status)
 }
@@ -4768,10 +4732,10 @@ open class PresentationDefinition: Disposable, AutoCloseable, PresentationDefini
     
 
     
-    @Throws(RustCoreException::class)override fun `selectCredentials`(`vcJwts`: List<kotlin.String>): List<kotlin.String> {
+    @Throws(Web5Exception::class)override fun `selectCredentials`(`vcJwts`: List<kotlin.String>): List<kotlin.String> {
             return FfiConverterSequenceString.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_presentationdefinition_select_credentials(
         it, FfiConverterSequenceString.lower(`vcJwts`),_status)
 }
@@ -5240,10 +5204,10 @@ open class SignerImpl: Disposable, AutoCloseable, Signer {
     }
 
     
-    @Throws(RustCoreException::class)override fun `sign`(`payload`: kotlin.ByteArray): kotlin.ByteArray {
+    @Throws(Web5Exception::class)override fun `sign`(`payload`: kotlin.ByteArray): kotlin.ByteArray {
             return FfiConverterByteArray.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_signer_sign(
         it, FfiConverterByteArray.lower(`payload`),_status)
 }
@@ -5276,7 +5240,7 @@ internal object uniffiCallbackInterfaceSigner {
                 uniffiCallStatus,
                 makeCall,
                 writeReturn,
-                { e: RustCoreException -> FfiConverterTypeRustCoreError.lower(e) }
+                { e: Web5Exception -> FfiConverterTypeWeb5Error.lower(e) }
             )
         }
     }
@@ -5428,10 +5392,6 @@ public interface VerifiableCredentialInterface {
     
     fun `getData`(): VerifiableCredentialData
     
-    fun `sign`(`bearerDid`: BearerDid): kotlin.String
-    
-    fun `signWithSigner`(`keyId`: kotlin.String, `signer`: Signer): kotlin.String
-    
     companion object
 }
 
@@ -5452,13 +5412,6 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`data`: VerifiableCredentialData) :
-        this(
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_new(
-        FfiConverterTypeVerifiableCredentialData.lower(`data`),_status)
-}
-    )
 
     protected val pointer: Pointer?
     protected val cleanable: UniffiCleaner.Cleanable
@@ -5523,39 +5476,12 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
         }
     }
 
-    
-    @Throws(RustCoreException::class)override fun `getData`(): VerifiableCredentialData {
+    override fun `getData`(): VerifiableCredentialData {
             return FfiConverterTypeVerifiableCredentialData.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(
         it, _status)
-}
-    }
-    )
-    }
-    
-
-    
-    @Throws(RustCoreException::class)override fun `sign`(`bearerDid`: BearerDid): kotlin.String {
-            return FfiConverterString.lift(
-    callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_sign(
-        it, FfiConverterTypeBearerDid.lower(`bearerDid`),_status)
-}
-    }
-    )
-    }
-    
-
-    
-    @Throws(RustCoreException::class)override fun `signWithSigner`(`keyId`: kotlin.String, `signer`: Signer): kotlin.String {
-            return FfiConverterString.lift(
-    callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_sign_with_signer(
-        it, FfiConverterString.lower(`keyId`),FfiConverterTypeSigner.lower(`signer`),_status)
 }
     }
     )
@@ -5567,22 +5493,11 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
     
     companion object {
         
-    @Throws(RustCoreException::class) fun `verify`(`vcjwt`: kotlin.String): VerifiableCredential {
+    @Throws(Web5Exception::class) fun `create`(`jsonSerializedIssuer`: kotlin.String, `jsonSerializedCredentialSubject`: kotlin.String, `options`: VerifiableCredentialCreateOptionsData?): VerifiableCredential {
             return FfiConverterTypeVerifiableCredential.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify(
-        FfiConverterString.lower(`vcjwt`),_status)
-}
-    )
-    }
-    
-
-        
-    @Throws(RustCoreException::class) fun `verifyWithVerifier`(`vcjwt`: kotlin.String, `verifier`: Verifier): VerifiableCredential {
-            return FfiConverterTypeVerifiableCredential.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_verify_with_verifier(
-        FfiConverterString.lower(`vcjwt`),FfiConverterTypeVerifier.lower(`verifier`),_status)
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_create(
+        FfiConverterString.lower(`jsonSerializedIssuer`),FfiConverterString.lower(`jsonSerializedCredentialSubject`),FfiConverterOptionalTypeVerifiableCredentialCreateOptionsData.lower(`options`),_status)
 }
     )
     }
@@ -5806,10 +5721,10 @@ open class VerifierImpl: Disposable, AutoCloseable, Verifier {
     }
 
     
-    @Throws(RustCoreException::class)override fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray): kotlin.Boolean {
+    @Throws(Web5Exception::class)override fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray): kotlin.Boolean {
             return FfiConverterBoolean.lift(
     callWithPointer {
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifier_verify(
         it, FfiConverterByteArray.lower(`message`),FfiConverterByteArray.lower(`signature`),_status)
 }
@@ -5843,7 +5758,7 @@ internal object uniffiCallbackInterfaceVerifier {
                 uniffiCallStatus,
                 makeCall,
                 writeReturn,
-                { e: RustCoreException -> FfiConverterTypeRustCoreError.lower(e) }
+                { e: Web5Exception -> FfiConverterTypeWeb5Error.lower(e) }
             )
         }
     }
@@ -6363,14 +6278,55 @@ public object FfiConverterTypeServiceData: FfiConverterRustBuffer<ServiceData> {
 
 
 
+data class VerifiableCredentialCreateOptionsData (
+    var `id`: kotlin.String?, 
+    var `context`: List<kotlin.String>?, 
+    var `type`: List<kotlin.String>?, 
+    var `issuanceDate`: java.time.Instant?, 
+    var `expirationDate`: java.time.Instant?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeVerifiableCredentialCreateOptionsData: FfiConverterRustBuffer<VerifiableCredentialCreateOptionsData> {
+    override fun read(buf: ByteBuffer): VerifiableCredentialCreateOptionsData {
+        return VerifiableCredentialCreateOptionsData(
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalTimestamp.read(buf),
+            FfiConverterOptionalTimestamp.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: VerifiableCredentialCreateOptionsData) = (
+            FfiConverterOptionalString.allocationSize(value.`id`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`context`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`type`) +
+            FfiConverterOptionalTimestamp.allocationSize(value.`issuanceDate`) +
+            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`)
+    )
+
+    override fun write(value: VerifiableCredentialCreateOptionsData, buf: ByteBuffer) {
+            FfiConverterOptionalString.write(value.`id`, buf)
+            FfiConverterOptionalSequenceString.write(value.`context`, buf)
+            FfiConverterOptionalSequenceString.write(value.`type`, buf)
+            FfiConverterOptionalTimestamp.write(value.`issuanceDate`, buf)
+            FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
+    }
+}
+
+
+
 data class VerifiableCredentialData (
     var `context`: List<kotlin.String>, 
-    var `id`: kotlin.String, 
     var `type`: List<kotlin.String>, 
+    var `id`: kotlin.String, 
     var `jsonSerializedIssuer`: kotlin.String, 
+    var `jsonSerializedCredentialSubject`: kotlin.String, 
     var `issuanceDate`: java.time.Instant, 
-    var `expirationDate`: java.time.Instant?, 
-    var `jsonSerializedCredentialSubject`: kotlin.String
+    var `expirationDate`: java.time.Instant?
 ) {
     
     companion object
@@ -6380,33 +6336,33 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
     override fun read(buf: ByteBuffer): VerifiableCredentialData {
         return VerifiableCredentialData(
             FfiConverterSequenceString.read(buf),
-            FfiConverterString.read(buf),
             FfiConverterSequenceString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterTimestamp.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
-            FfiConverterString.read(buf),
         )
     }
 
     override fun allocationSize(value: VerifiableCredentialData) = (
             FfiConverterSequenceString.allocationSize(value.`context`) +
-            FfiConverterString.allocationSize(value.`id`) +
             FfiConverterSequenceString.allocationSize(value.`type`) +
+            FfiConverterString.allocationSize(value.`id`) +
             FfiConverterString.allocationSize(value.`jsonSerializedIssuer`) +
+            FfiConverterString.allocationSize(value.`jsonSerializedCredentialSubject`) +
             FfiConverterTimestamp.allocationSize(value.`issuanceDate`) +
-            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`) +
-            FfiConverterString.allocationSize(value.`jsonSerializedCredentialSubject`)
+            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`)
     )
 
     override fun write(value: VerifiableCredentialData, buf: ByteBuffer) {
             FfiConverterSequenceString.write(value.`context`, buf)
-            FfiConverterString.write(value.`id`, buf)
             FfiConverterSequenceString.write(value.`type`, buf)
+            FfiConverterString.write(value.`id`, buf)
             FfiConverterString.write(value.`jsonSerializedIssuer`, buf)
+            FfiConverterString.write(value.`jsonSerializedCredentialSubject`, buf)
             FfiConverterTimestamp.write(value.`issuanceDate`, buf)
             FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
-            FfiConverterString.write(value.`jsonSerializedCredentialSubject`, buf)
     }
 }
 
@@ -6510,7 +6466,7 @@ public object FfiConverterTypeResolutionMetadataError: FfiConverterRustBuffer<Re
 
 
 
-sealed class RustCoreException: Exception() {
+sealed class Web5Exception: Exception() {
     
     class Exception(
         
@@ -6519,25 +6475,25 @@ sealed class RustCoreException: Exception() {
         val `variant`: kotlin.String, 
         
         val `msg`: kotlin.String
-        ) : RustCoreException() {
+        ) : Web5Exception() {
         override val message
             get() = "type=${ `type` }, variant=${ `variant` }, msg=${ `msg` }"
     }
     
 
-    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<RustCoreException> {
-        override fun lift(error_buf: RustBuffer.ByValue): RustCoreException = FfiConverterTypeRustCoreError.lift(error_buf)
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<Web5Exception> {
+        override fun lift(error_buf: RustBuffer.ByValue): Web5Exception = FfiConverterTypeWeb5Error.lift(error_buf)
     }
 
     
 }
 
-public object FfiConverterTypeRustCoreError : FfiConverterRustBuffer<RustCoreException> {
-    override fun read(buf: ByteBuffer): RustCoreException {
+public object FfiConverterTypeWeb5Error : FfiConverterRustBuffer<Web5Exception> {
+    override fun read(buf: ByteBuffer): Web5Exception {
         
 
         return when(buf.getInt()) {
-            1 -> RustCoreException.Exception(
+            1 -> Web5Exception.Exception(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
@@ -6546,9 +6502,9 @@ public object FfiConverterTypeRustCoreError : FfiConverterRustBuffer<RustCoreExc
         }
     }
 
-    override fun allocationSize(value: RustCoreException): ULong {
+    override fun allocationSize(value: Web5Exception): ULong {
         return when(value) {
-            is RustCoreException.Exception -> (
+            is Web5Exception.Exception -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
                 + FfiConverterString.allocationSize(value.`type`)
@@ -6558,9 +6514,9 @@ public object FfiConverterTypeRustCoreError : FfiConverterRustBuffer<RustCoreExc
         }
     }
 
-    override fun write(value: RustCoreException, buf: ByteBuffer) {
+    override fun write(value: Web5Exception, buf: ByteBuffer) {
         when(value) {
-            is RustCoreException.Exception -> {
+            is Web5Exception.Exception -> {
                 buf.putInt(1)
                 FfiConverterString.write(value.`type`, buf)
                 FfiConverterString.write(value.`variant`, buf)
@@ -6713,6 +6669,35 @@ public object FfiConverterOptionalTypeDocumentMetadataData: FfiConverterRustBuff
         } else {
             buf.put(1)
             FfiConverterTypeDocumentMetadataData.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeVerifiableCredentialCreateOptionsData: FfiConverterRustBuffer<VerifiableCredentialCreateOptionsData?> {
+    override fun read(buf: ByteBuffer): VerifiableCredentialCreateOptionsData? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeVerifiableCredentialCreateOptionsData.read(buf)
+    }
+
+    override fun allocationSize(value: VerifiableCredentialCreateOptionsData?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeVerifiableCredentialCreateOptionsData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: VerifiableCredentialCreateOptionsData?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeVerifiableCredentialCreateOptionsData.write(value, buf)
         }
     }
 }
@@ -6975,9 +6960,9 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
 
 
 
-    @Throws(RustCoreException::class) fun `didDhtResolve`(`uri`: kotlin.String): ResolutionResult {
+    @Throws(Web5Exception::class) fun `didDhtResolve`(`uri`: kotlin.String): ResolutionResult {
             return FfiConverterTypeResolutionResult.lift(
-    uniffiRustCallWithError(RustCoreException) { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_resolve(
         FfiConverterString.lower(`uri`),_status)
 }
@@ -6994,7 +6979,7 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
     }
     
 
-    @Throws(RustCoreException::class)
+    @Throws(Web5Exception::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
      suspend fun `didWebResolve`(`uri`: kotlin.String) : ResolutionResult {
         return uniffiRustCallAsync(
@@ -7005,7 +6990,7 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
         // lift function
         { FfiConverterTypeResolutionResult.lift(it) },
         // Error FFI converter
-        RustCoreException.ErrorHandler,
+        Web5Exception.ErrorHandler,
     )
     }
  fun `ed25519GeneratorGenerate`(): JwkData {

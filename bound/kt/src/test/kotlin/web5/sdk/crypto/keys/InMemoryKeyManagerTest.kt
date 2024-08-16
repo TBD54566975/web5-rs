@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertNotNull
 
 import org.junit.jupiter.api.Test
-import web5.sdk.rust.RustCoreException
+import web5.sdk.rust.Web5Exception
 
 import web5.sdk.rust.ed25519GeneratorGenerate as rustCoreEd25519GeneratorGenerate
 
@@ -26,7 +26,7 @@ class InMemoryKeyManagerTest {
   fun `test wrong jwk for key manager`() {
     val publicJwk = Jwk(alg="Ed25519", kty="OKP", crv="Ed25519", d=null, x="yxTpaqbGhLNMfOCu31znPNNei0OtDiQ_AS9DxC7Bstg", y=null)
 
-    assertThrows(RustCoreException::class.java) {
+    assertThrows(Web5Exception::class.java) {
       InMemoryKeyManager(listOf(publicJwk))
     }
   }
