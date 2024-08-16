@@ -2,8 +2,6 @@ namespace web5 {
   JwkData ed25519_generator_generate();
 
   ResolutionResult did_jwk_resolve([ByRef] string uri);
-  [Async, Throws=Web5Error]
-  ResolutionResult did_web_resolve([ByRef] string uri);
   [Throws=Web5Error]
   ResolutionResult did_dht_resolve([ByRef] string uri);
 };
@@ -22,7 +20,7 @@ dictionary JwkData {
   string? y;
 };
 
-[Trait, WithForeign]
+[Trait]
 interface KeyManager {
   [Throws=Web5Error]
   Signer get_signer(JwkData public_jwk);
@@ -41,13 +39,13 @@ enum Dsa {
   "Ed25519"
 };
 
-[Trait, WithForeign]
+[Trait]
 interface Signer {
   [Throws=Web5Error]
   bytes sign(bytes payload);
 };
 
-[Trait, WithForeign]
+[Trait]
 interface Verifier {
   [Throws=Web5Error]
   boolean verify(bytes message, bytes signature);
@@ -171,13 +169,7 @@ dictionary DidWebData {
   DocumentData document;
 };
 
-interface DidWeb {
-  [Name=from_public_jwk, Throws=Web5Error]
-  constructor([ByRef] string domain, JwkData public_jwk);
-  [Async, Name=from_uri, Throws=Web5Error]
-  constructor([ByRef] string uri);
-  DidWebData get_data();
-};
+
 
 dictionary DidDhtData {
   DidData did;
