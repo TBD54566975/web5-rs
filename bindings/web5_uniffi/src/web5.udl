@@ -122,6 +122,7 @@ enum ResolutionMetadataError {
   "RepresentationNotSupported",
   "MethodNotSupported",
   "InvalidDidDocument",
+  "InvalidPublicKey",
   "InvalidDidDocumentLength",
   "InternalError",
 };

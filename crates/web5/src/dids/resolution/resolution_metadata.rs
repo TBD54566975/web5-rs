@@ -23,6 +23,9 @@ pub enum ResolutionMetadataError {
     #[error("The DID Document was found but did not represent a conformant document.")]
     #[serde(rename = "invalidDidDocument")]
     InvalidDidDocument,
+    #[error("The DID Document does not have a valid public key.")]
+    #[serde(rename = "invalidPublicKey")]
+    InvalidPublicKey,
     #[error("The size of the DID Document was not within the method's acceptable limit.")]
     #[serde(rename = "invalidDidDocumentLength")]
     InvalidDidDocumentLength,
