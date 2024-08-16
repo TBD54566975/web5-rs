@@ -1,9 +1,7 @@
 package web5.sdk.vc
 
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
 import web5.sdk.rust.Web5Exception
@@ -115,19 +113,12 @@ class VerifiableCredentialTest {
     fun test_issuer_string_must_not_be_empty() {
         this.testSuite.include()
         val emptyIssuer = Issuer.StringIssuer("")
-        try {
+
+        val exception = assertThrows<Web5Exception.Exception> {
             VerifiableCredential.create(emptyIssuer, CREDENTIAL_SUBJECT, VerifiableCredentialCreateOptions())
-            fail("Expected an exception to be thrown")
-        } catch (e: Web5Exception) {
-            when (e) {
-                is Web5Exception.Exception -> {
-                    assertEquals(e.msg, "parameter error issuer id must not be empty")
-                }
-                else -> {
-                    fail("Caught an unexpected exception type")
-                }
-            }
         }
+
+        assertEquals("parameter error issuer id must not be empty", exception.msg)
     }
 
     @Test
@@ -142,19 +133,11 @@ class VerifiableCredentialTest {
         this.testSuite.include()
         val issuer = Issuer.ObjectIssuer("", "Example Name")
 
-        try {
+        val exception = assertThrows<Web5Exception.Exception> {
             VerifiableCredential.create(issuer, CREDENTIAL_SUBJECT, VerifiableCredentialCreateOptions())
-            fail("Expected an exception to be thrown")
-        } catch (e: Web5Exception) {
-            when (e) {
-                is Web5Exception.Exception -> {
-                    assertEquals(e.msg, "parameter error issuer id must not be empty")
-                }
-                else -> {
-                    fail("Caught an unexpected exception type")
-                }
-            }
         }
+
+        assertEquals("parameter error issuer id must not be empty", exception.msg)
     }
 
     @Test
@@ -162,19 +145,11 @@ class VerifiableCredentialTest {
         this.testSuite.include()
         val issuer = Issuer.ObjectIssuer(ISSUER_DID_URI, "")
 
-        try {
+        val exception = assertThrows<Web5Exception.Exception> {
             VerifiableCredential.create(issuer, CREDENTIAL_SUBJECT, VerifiableCredentialCreateOptions())
-            fail("Expected an exception to be thrown")
-        } catch (e: Web5Exception) {
-            when (e) {
-                is Web5Exception.Exception -> {
-                    assertEquals(e.msg, "parameter error named issuer name must not be empty")
-                }
-                else -> {
-                    fail("Caught an unexpected exception type")
-                }
-            }
         }
+
+        assertEquals("parameter error named issuer name must not be empty", exception.msg)
     }
 
     @Test
@@ -211,19 +186,11 @@ class VerifiableCredentialTest {
         this.testSuite.include()
         val credentialSubject = CredentialSubject("")
 
-        try {
+        val exception = assertThrows<Web5Exception.Exception> {
             VerifiableCredential.create(ISSUER, credentialSubject, VerifiableCredentialCreateOptions())
-            fail("Expected an exception to be thrown")
-        } catch (e: Web5Exception) {
-            when (e) {
-                is Web5Exception.Exception -> {
-                    assertEquals(e.msg, "parameter error subject id must not be empty")
-                }
-                else -> {
-                    fail("Caught an unexpected exception type")
-                }
-            }
         }
+
+        assertEquals("parameter error subject id must not be empty", exception.msg)
     }
 
     @Test
