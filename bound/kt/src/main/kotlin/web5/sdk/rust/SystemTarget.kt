@@ -5,13 +5,21 @@ import java.io.File
 object SystemTarget {
     @Volatile
     private var isSet = false
+    private var gitCommitHash = ""
 
     fun set() {
         val logLevel = System.getenv("WEB5_SDK_LOG_LEVEL")?.lowercase()
 
+        val commitFile = File("target/git-commit-id.txt")
+        if (commitFile.exists()) {
+            gitCommitHash = commitFile.readText().trim()
+        } else {
+            println("Git commit hash not found.")
+        }
+
         fun log(message: String) {
             if (logLevel == "debug") {
-                println("web5 sdk SystemArchitecture $message")
+                println("web5 sdk SystemArchitecture $gitCommitHash: $message")
             }
         }
 

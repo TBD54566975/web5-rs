@@ -106,6 +106,31 @@
           </includes>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>get-git-commit-id</id>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+
+            <phase>initialize</phase>
+
+            <configuration>
+              <executable>git</executable>
+              <arguments>
+                <argument>rev-parse</argument>
+                <argument>--short</argument>
+                <argument>HEAD</argument>
+              </arguments>
+              <outputFile>${project.build.directory}/git-commit-id.txt</outputFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>
