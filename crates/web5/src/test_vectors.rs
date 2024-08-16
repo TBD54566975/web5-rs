@@ -53,7 +53,7 @@ mod test_vectors {
         }
 
         #[test]
-        fn test_did_jwk_resolve() {
+        fn resolve() {
             let path = "did_jwk/resolve.json";
             let vectors: TestVectorFile<String, VectorOutput> =
                 TestVectorFile::load_from_path(path);
@@ -97,6 +97,68 @@ mod test_vectors {
         }
     }
 
+    mod did_dht {
+        use super::*;
+        use crate::dids::{
+            methods::did_dht::DidDht,
+            resolution::resolution_metadata::{ResolutionMetadata, ResolutionMetadataError},
+        };
+
+        #[derive(Debug, PartialEq, serde::Deserialize)]
+        struct VectorInput {
+            #[serde(rename = "didUri")]
+            did_uri: String,
+        }
+
+        #[derive(Debug, PartialEq, serde::Deserialize)]
+        struct VectorOutput {
+            #[serde(rename = "didResolutionMetadata")]
+            did_resolution_metadata: ResolutionMetadata,
+        }
+
+        #[test]
+        fn resolve() {
+            let path = "did_dht/resolve.json";
+            let vectors: TestVectorFile<VectorInput, VectorOutput> =
+                TestVectorFile::load_from_path(path);
+
+            for vector in vectors.vectors {
+                let vector_input = vector.input;
+                let vector_output = &vector.output;
+
+                // As a replay attack protection protocol, if the same DID is doing a GET request within 5 minutes of each other, instead of a 404 it will start returning a 429.
+                // to get around this for our test we just create a new DID that is not published to get a fresh 404 for this error code
+                if let Some(ResolutionMetadataError::NotFound) =
+                    vector_output.did_resolution_metadata.error
+                {
+                    // TODO: According to the did dht spec a 404 should be returned when trying to resolve a DID that does not exists. Currently it incorrectly returns a 429 even on the first call.
+                    // Uncomment this code block when resolved - https://github.com/TBD54566975/web5-rs/issues/286
+                    continue;
+
+                    // let private_jwk = Ed25519Generator::generate();
+                    // let identity_key = ed25519::to_public_jwk(&private_jwk);
+                    // let did_dht =
+                    //     DidDht::from_identity_key(identity_key.clone()).expect("Should create did:dht");
+                    //
+                    // vector_input = VectorInput{
+                    //     did_uri: did_dht.did.uri,
+                    // };
+                }
+
+                let resolution_result = DidDht::resolve(&vector_input.did_uri);
+
+                let metadata_error = resolution_result.resolution_metadata.error.as_ref();
+                let expected_error = vector_output.did_resolution_metadata.error.as_ref();
+
+                assert_eq!(
+                    metadata_error, expected_error,
+                    "Document resolution metadata does not match. Expected '{:?}' but got '{:?}'.",
+                    expected_error, metadata_error
+                );
+            }
+        }
+    }
+
     mod presentation_definition {
         use super::*;
         use crate::credentials::presentation_definition::PresentationDefinition;
@@ -118,7 +180,7 @@ mod test_vectors {
 
         #[test]
         #[ignore] // TODO temporarily ignoring, because web5-spec test vectors use did:key which isn't supported
-        fn test_presentation_exchange_select_credentials() {
+        fn select_credentials() {
             let path = "presentation_exchange/select_credentials.json";
             let vectors: TestVectorFile<VectorInput, VectorOutput> =
                 TestVectorFile::load_from_path(path);
