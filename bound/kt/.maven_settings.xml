@@ -1,0 +1,29 @@
+<settings>
+  <servers>
+    <server>
+      <id>github</id>
+      <username>tbd-releases</username>
+      <password>${env.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN}</password>
+    </server>
+    <server>
+      <id>tbd-oss-releases</id>
+      <username>${env.ARTIFACTORY_USERNAME}</username>
+      <password>${env.ARTIFACTORY_PASSWORD}</password>
+    </server>
+    <server>
+      <id>tbd-oss-snapshots</id>
+      <username>${env.ARTIFACTORY_USERNAME}</username>
+      <password>${env.ARTIFACTORY_PASSWORD}</password>
+    </server>
+    <server>
+      <id>ossrh-snapshots</id>
+      <username>${env.SONATYPE_USERNAME}</username>
+      <password>${env.SONATYPE_PASSWORD}</password>
+    </server>
+    <server>
+      <id>ossrh-releases</id>
+      <username>${env.SONATYPE_USERNAME}</username>
+      <password>${env.SONATYPE_PASSWORD}</password>
+    </server>
+  </servers>
+</settings>

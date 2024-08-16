@@ -11,6 +11,7 @@ rustup target add x86_64-apple-darwin
   cargo build --target x86_64-apple-darwin --release \
     --package web5_uniffi \
     --features x86_64_apple_darwin;
+  mkdir -p bound/kt/src/main/resources;
   cp target/x86_64-apple-darwin/release/libweb5_uniffi.dylib \
     bound/kt/src/main/resources/libweb5_uniffi_x86_64_apple_darwin.dylib
 )
