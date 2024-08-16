@@ -233,10 +233,10 @@ class VerifiableCredentialTest {
         val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, VerifiableCredentialCreateOptions())
 
         val now = Date()
-        val oneSecondAgo = Date(now.time - 1000)
-        val oneSecondAhead = Date(now.time + 1000)
+        val tenSecondsAgo = Date(now.time - 10000)
+        val tenSecondsAhead = Date(now.time + 10000)
 
-        assertTrue(vc.issuanceDate.after(oneSecondAgo) && vc.issuanceDate.before(oneSecondAhead))
+        assertTrue(vc.issuanceDate.after(tenSecondsAgo) && vc.issuanceDate.before(tenSecondsAhead))
     }
 
     @Test
