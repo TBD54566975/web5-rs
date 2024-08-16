@@ -159,7 +159,7 @@ mod test_vectors {
         }
     }
 
-    mod presentation_definition {
+    mod presentation_exchange {
         use super::*;
         use crate::credentials::presentation_definition::PresentationDefinition;
         use std::collections::HashSet;
