@@ -10,6 +10,8 @@ pub mod rfc3339;
 
 #[cfg(test)]
 mod test_vectors;
+#[cfg(test)]
+mod test_helpers;
 
 pub const GIT_COMMIT_HASH: &str = env!("WEB5_GIT_COMMIT_HASH");
 
