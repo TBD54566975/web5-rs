@@ -4,8 +4,12 @@ pub mod credentials;
 pub mod crypto;
 pub mod dids;
 
+pub mod errors;
+pub mod json;
+pub mod rfc3339;
+
 #[cfg(test)]
-mod test_helpers;
+mod test_vectors;
 
 pub const GIT_COMMIT_HASH: &str = env!("WEB5_GIT_COMMIT_HASH");
 

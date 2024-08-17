@@ -11,9 +11,10 @@ use web5::dids::data_model::DataModelError as DidDataModelError;
 use web5::dids::did::DidError;
 use web5::dids::methods::MethodError;
 use web5::dids::portable_did::PortableDidError;
+use web5::errors::Web5Error as InnerWeb5Error;
 
 #[derive(Debug, Error)]
-pub enum RustCoreError {
+pub enum Web5Error {
     #[error("{msg}")]
     Error {
         r#type: String,
@@ -22,9 +23,9 @@ pub enum RustCoreError {
     },
 }
 
-impl RustCoreError {
+impl Web5Error {
     pub fn from_poison_error<T>(error: PoisonError<T>, error_type: &str) -> Self {
-        RustCoreError::Error {
+        Web5Error::Error {
             r#type: error_type.to_string(),
             variant: "PoisonError".to_string(),
             msg: error.to_string(),
@@ -44,7 +45,7 @@ impl RustCoreError {
 
     pub fn r#type(&self) -> String {
         match self {
-            RustCoreError::Error {
+            Web5Error::Error {
                 r#type: error_type, ..
             } => error_type.clone(),
         }
@@ -52,7 +53,7 @@ impl RustCoreError {
 
     pub fn variant(&self) -> String {
         match self {
-            RustCoreError::Error {
+            Web5Error::Error {
                 variant: error_variant,
                 ..
             } => error_variant.clone(),
@@ -61,7 +62,7 @@ impl RustCoreError {
 
     pub fn msg(&self) -> String {
         match self {
-            RustCoreError::Error { msg, .. } => msg.clone(),
+            Web5Error::Error { msg, .. } => msg.clone(),
         }
     }
 }
@@ -79,74 +80,74 @@ where
     variant_name.to_string()
 }
 
-impl From<JwkError> for RustCoreError {
+impl From<JwkError> for Web5Error {
     fn from(error: JwkError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<KeyManagerError> for RustCoreError {
+impl From<KeyManagerError> for Web5Error {
     fn from(error: KeyManagerError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<DsaError> for RustCoreError {
+impl From<DsaError> for Web5Error {
     fn from(error: DsaError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<DidError> for RustCoreError {
+impl From<DidError> for Web5Error {
     fn from(error: DidError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<PortableDidError> for RustCoreError {
+impl From<PortableDidError> for Web5Error {
     fn from(error: PortableDidError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<MethodError> for RustCoreError {
+impl From<MethodError> for Web5Error {
     fn from(error: MethodError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<CredentialError> for RustCoreError {
+impl From<CredentialError> for Web5Error {
     fn from(error: CredentialError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<PexError> for RustCoreError {
+impl From<PexError> for Web5Error {
     fn from(error: PexError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<DidDataModelError> for RustCoreError {
+impl From<DidDataModelError> for Web5Error {
     fn from(error: DidDataModelError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<BearerDidError> for RustCoreError {
+impl From<BearerDidError> for Web5Error {
     fn from(error: BearerDidError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<SerdeJsonError> for RustCoreError {
+impl From<SerdeJsonError> for Web5Error {
     fn from(error: SerdeJsonError) -> Self {
-        RustCoreError::new(error)
+        Web5Error::new(error)
     }
 }
 
-impl From<RustCoreError> for KeyManagerError {
-    fn from(error: RustCoreError) -> Self {
+impl From<Web5Error> for KeyManagerError {
+    fn from(error: Web5Error) -> Self {
         let variant = error.variant();
         let msg = error.msg();
 
@@ -170,8 +171,8 @@ impl From<RustCoreError> for KeyManagerError {
     }
 }
 
-impl From<RustCoreError> for DsaError {
-    fn from(error: RustCoreError) -> Self {
+impl From<Web5Error> for DsaError {
+    fn from(error: Web5Error) -> Self {
         let variant = error.variant();
         let msg = error.msg();
 
@@ -199,4 +200,11 @@ impl From<RustCoreError> for DsaError {
     }
 }
 
-pub type Result<T> = std::result::Result<T, RustCoreError>;
+impl From<InnerWeb5Error> for Web5Error {
+    fn from(error: InnerWeb5Error) -> Self {
+        Web5Error::new(error)
+    }
+}
+
+pub type Result<T> = std::result::Result<T, Web5Error>;
+

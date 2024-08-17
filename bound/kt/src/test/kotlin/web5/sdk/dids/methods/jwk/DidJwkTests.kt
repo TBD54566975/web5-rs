@@ -2,7 +2,6 @@ package web5.sdk.dids.methods.jwk
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import web5.sdk.rust.RustCoreException
 
 import web5.sdk.rust.DidJwk as RustCoreDidJwk
 

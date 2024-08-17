@@ -129,9 +129,9 @@ impl DidDht {
                 });
             }
             let identity_key = zbase32::decode_full_bytes_str(&did.id)
-                .map_err(|_| ResolutionMetadataError::InvalidDid)?;
+                .map_err(|_| ResolutionMetadataError::InvalidPublicKey)?;
             let identity_key = ed25519::public_jwk_from_bytes(&identity_key)
-                .map_err(|_| ResolutionMetadataError::InvalidDid)?;
+                .map_err(|_| ResolutionMetadataError::InvalidPublicKey)?;
 
             // construct http endpoint from gateway url and last part of did_uri
             let url = format!(

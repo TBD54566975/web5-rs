@@ -242,7 +242,7 @@ jobs:
       - name: Run Rust Tests
         run: |
           mkdir -p test-results
-          cargo nextest run --profile ci --config-file ./nextest.toml
+          cargo nextest run --profile ci --config-file ./nextest.toml -E 'test(test_vectors::)'
       - name: Modify testsuite name in XML for test runner consumption
         run: |
           sed -i '' 's/<testsuite name="web5"/<testsuite name="Web5TestVectorsProtocolTest"/' target/nextest/ci/junit.xml

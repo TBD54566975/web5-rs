@@ -1,11 +1,10 @@
-package web5.sdk.vcs.pex
+package web5.sdk.vc.pex
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
-import web5.sdk.vc.pex.*
 
 class PresentationDefinitionTest {
 

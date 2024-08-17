@@ -2,14 +2,14 @@ namespace web5 {
   JwkData ed25519_generator_generate();
 
   ResolutionResult did_jwk_resolve([ByRef] string uri);
-  [Async, Throws=RustCoreError]
+  [Async, Throws=Web5Error]
   ResolutionResult did_web_resolve([ByRef] string uri);
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   ResolutionResult did_dht_resolve([ByRef] string uri);
 };
 
 [Error]
-interface RustCoreError {
+interface Web5Error {
   Error(string type, string variant, string msg);
 };
 
@@ -24,15 +24,15 @@ dictionary JwkData {
 
 [Trait, WithForeign]
 interface KeyManager {
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   Signer get_signer(JwkData public_jwk);
 };
 
 interface InMemoryKeyManager {
   constructor();
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   Signer get_signer(JwkData public_jwk);
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   JwkData import_private_jwk(JwkData private_key);
   KeyManager get_as_key_manager();
 };
@@ -43,25 +43,25 @@ enum Dsa {
 
 [Trait, WithForeign]
 interface Signer {
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   bytes sign(bytes payload);
 };
 
 [Trait, WithForeign]
 interface Verifier {
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   boolean verify(bytes message, bytes signature);
 };
 
 interface Ed25519Signer {
   constructor(JwkData private_key);
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   bytes sign(bytes payload);
 };
 
 interface Ed25519Verifier {
   constructor(JwkData public_jwk);
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   boolean verify(bytes message, bytes signature);
 };
 
@@ -77,7 +77,7 @@ dictionary DidData {
 };
 
 interface Did {
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   constructor([ByRef] string uri);
   DidData get_data();
 };
@@ -112,7 +112,7 @@ dictionary ServiceData {
 interface Document {
   constructor(DocumentData data);
   DocumentData get_data();
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   JwkData find_public_key_jwk(string key_id);
 };
 
@@ -122,6 +122,7 @@ enum ResolutionMetadataError {
   "RepresentationNotSupported",
   "MethodNotSupported",
   "InvalidDidDocument",
+  "InvalidPublicKey",
   "InvalidDidDocumentLength",
   "InternalError",
 };
@@ -158,9 +159,9 @@ dictionary DidJwkData {
 };
 
 interface DidJwk {
-  [Name=from_public_jwk, Throws=RustCoreError]
+  [Name=from_public_jwk, Throws=Web5Error]
   constructor(JwkData public_jwk);
-  [Name=from_uri, Throws=RustCoreError]
+  [Name=from_uri, Throws=Web5Error]
   constructor([ByRef] string uri);
   DidJwkData get_data();
 };
@@ -171,9 +172,9 @@ dictionary DidWebData {
 };
 
 interface DidWeb {
-  [Name=from_public_jwk, Throws=RustCoreError]
+  [Name=from_public_jwk, Throws=Web5Error]
   constructor([ByRef] string domain, JwkData public_jwk);
-  [Async, Name=from_uri, Throws=RustCoreError]
+  [Async, Name=from_uri, Throws=Web5Error]
   constructor([ByRef] string uri);
   DidWebData get_data();
 };
@@ -184,13 +185,13 @@ dictionary DidDhtData {
 };
 
 interface DidDht {
-  [Name=from_identity_key, Throws=RustCoreError]
+  [Name=from_identity_key, Throws=Web5Error]
   constructor(JwkData identity_key);
-  [Name=from_uri, Throws=RustCoreError]
+  [Name=from_uri, Throws=Web5Error]
   constructor([ByRef] string uri);
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   void publish(Signer signer);
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   void deactivate(Signer signer);
   DidDhtData get_data();
 };
@@ -202,7 +203,7 @@ dictionary PortableDidData {
 };
 
 interface PortableDid {
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   constructor([ByRef] string json);
   PortableDidData get_data();
 };
@@ -214,45 +215,52 @@ dictionary BearerDidData {
 };
 
 interface BearerDid {
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   constructor([ByRef] string uri, KeyManager key_manager);
-  [Throws=RustCoreError, Name=from_portable_did]
+  [Throws=Web5Error, Name=from_portable_did]
   constructor(PortableDid portable_did);
   BearerDidData get_data();
-  [Throws=RustCoreError]
+  [Throws=Web5Error]
   Signer get_signer(string key_id);
+};
+
+interface PresentationDefinition {
+  [Throws=Web5Error]
+  constructor(string json_serialized_presentation_definition);
+  [Throws=Web5Error]
+  string get_json_serialized_presentation_definition();
+  [Throws=Web5Error]
+  sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
+};
+
+
+
+
+
+dictionary VerifiableCredentialCreateOptionsData {
+  string? id;
+  sequence<string>? context;
+  sequence<string>? type;
+  timestamp? issuance_date;
+  timestamp? expiration_date;
+};
+
+interface VerifiableCredential {
+  [Throws=Web5Error, Name=create]
+  constructor(
+    string json_serialized_issuer,
+    string json_serialized_credential_subject,
+    VerifiableCredentialCreateOptionsData? options
+  );
+  VerifiableCredentialData get_data();
 };
 
 dictionary VerifiableCredentialData {
   sequence<string> context;
-  string id;
   sequence<string> type;
+  string id;
   string json_serialized_issuer;
+  string json_serialized_credential_subject;
   timestamp issuance_date;
   timestamp? expiration_date;
-  string json_serialized_credential_subject;
-};
-
-interface VerifiableCredential {
-  [Throws=RustCoreError]
-  constructor(VerifiableCredentialData data);
-  [Name=verify, Throws=RustCoreError]
-  constructor([ByRef] string vcjwt);
-  [Name=verify_with_verifier, Throws=RustCoreError]
-  constructor([ByRef] string vcjwt, Verifier verifier);
-  [Throws=RustCoreError]
-  string sign(BearerDid bearer_did);
-  [Throws=RustCoreError]
-  string sign_with_signer([ByRef] string key_id, Signer signer);
-  [Throws=RustCoreError]
-  VerifiableCredentialData get_data();
-};
-
-interface PresentationDefinition {
-  [Throws=RustCoreError]
-  constructor(string json_serialized_presentation_definition);
-  [Throws=RustCoreError]
-  string get_json_serialized_presentation_definition();
-  [Throws=RustCoreError]
-  sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
 };

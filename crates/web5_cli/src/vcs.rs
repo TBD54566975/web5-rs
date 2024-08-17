@@ -1,12 +1,12 @@
 use chrono::{DateTime, Utc};
 use clap::Subcommand;
 use std::time::SystemTime;
-use uuid::Uuid;
 use web5::{
     credentials::verifiable_credential_1_1::{
-        CredentialSubject, Issuer, VerifiableCredential, BASE_CONTEXT, BASE_TYPE,
+        CredentialSubject, Issuer, VerifiableCredential, VerifiableCredentialCreateOptions,
     },
     dids::{bearer_did::BearerDid, portable_did::PortableDid},
+    json::ToJson,
 };
 
 #[derive(Subcommand, Debug)]
@@ -49,7 +49,7 @@ impl Commands {
                     Some(i) => i.to_string(),
                     None => match &portable_did {
                         Some(p) => p.did_uri.to_string(),
-                        None => String::default(),
+                        None => panic!("either --issuer or --portable-did must be supplied"),
                     },
                 });
                 let expiration_date = match expiration_date {
@@ -62,22 +62,21 @@ impl Commands {
                     },
                 };
 
-                let now = SystemTime::now();
-                let vc = VerifiableCredential::new(
-                    format!("urn:vc:uuid:{0}", Uuid::new_v4()),
-                    vec![BASE_CONTEXT.to_string()],
-                    vec![BASE_TYPE.to_string()],
+                let vc = VerifiableCredential::create(
                     issuer,
-                    now,
-                    expiration_date,
                     CredentialSubject {
                         id: credential_subject_id.to_string(),
                         ..Default::default()
                     },
-                );
+                    Some(VerifiableCredentialCreateOptions {
+                        expiration_date,
+                        ..Default::default()
+                    }),
+                )
+                .unwrap();
 
                 let mut output_str = match no_indent {
-                    true => serde_json::to_string(&vc).unwrap(),
+                    true => vc.to_json_string().unwrap(),
                     false => serde_json::to_string_pretty(&vc).unwrap(),
                 };
 
