@@ -6,6 +6,7 @@ pub struct TestVector<I, O> {
     pub description: String,
     pub input: I,
     pub output: O,
+    pub errors: Option<bool>,
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -205,6 +206,102 @@ mod test_vectors {
                     error_msg
                 );
             }
+        }
+    }
+
+    mod crypto_ed25519 {
+        use super::*;
+        use crate::crypto::dsa::ed25519::{Ed25519Signer, Ed25519Verifier};
+        use crate::crypto::dsa::{Signer, Verifier};
+        use crate::crypto::jwk::Jwk;
+
+        #[derive(Debug, serde::Deserialize)]
+        struct SignVectorInput {
+            data: String,
+            key: Jwk,
+        }
+
+        #[derive(Debug, serde::Deserialize)]
+        struct VerifyVectorInput {
+            data: String,
+            key: Jwk,
+            signature: String,
+        }
+
+        #[test]
+        fn sign() {
+            let path = "crypto_ed25519/sign.json";
+            let vectors: TestVectorFile<SignVectorInput, Option<String>> =
+                TestVectorFile::load_from_path(path);
+
+            for vector in vectors.vectors {
+                let input = vector.input;
+                let expected_output = vector.output;
+
+                let signer = Ed25519Signer::new(input.key);
+
+                let data = hex_string_to_byte_array(input.data.to_string());
+                let result = signer.sign(&data);
+
+                if matches!(vector.errors, Some(true)) {
+                    assert!(result.is_err(), "Expected an error, but signing succeeded");
+                } else {
+                    let signature = result.expect("Signing should not fail");
+
+                    // Convert the signature to a hex string
+                    let signature_hex = byte_array_to_hex_string(&signature);
+
+                    assert_eq!(
+                        signature_hex,
+                        expected_output.unwrap(),
+                        "Signature does not match expected output"
+                    );
+                }
+            }
+        }
+
+        #[test]
+        fn verify() {
+            let path = "crypto_ed25519/verify.json";
+            let vectors: TestVectorFile<VerifyVectorInput, bool> =
+                TestVectorFile::load_from_path(path);
+
+            for vector in vectors.vectors {
+                let input = vector.input;
+                let expected_output = vector.output;
+
+                let verifier = Ed25519Verifier::new(input.key);
+
+                let data = hex_string_to_byte_array(input.data.to_string());
+                let signature = hex_string_to_byte_array(input.signature.to_string());
+
+                let result = verifier.verify(&data, &signature);
+
+                let is_valid = result.expect("Verification should not fail");
+                assert_eq!(
+                    is_valid, expected_output,
+                    "Verification result does not match expected output: {}",
+                    vector.description
+                );
+            }
+        }
+
+        fn hex_string_to_byte_array(s: String) -> Vec<u8> {
+            s.chars()
+                .collect::<Vec<char>>()
+                .chunks(2)
+                .map(|chunk| {
+                    let hex_pair: String = chunk.iter().collect();
+                    u8::from_str_radix(&hex_pair, 16).unwrap()
+                })
+                .collect()
+        }
+
+        fn byte_array_to_hex_string(bytes: &[u8]) -> String {
+            bytes
+                .iter()
+                .map(|b| format!("{:02x}", b))
+                .collect::<String>()
         }
     }
 }
