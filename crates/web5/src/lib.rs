@@ -13,7 +13,7 @@ mod test_vectors;
 #[cfg(test)]
 mod test_helpers;
 
-pub const GIT_COMMIT_HASH: &str = env!("WEB5_GIT_COMMIT_HASH");
+pub const GIT_COMMIT_HASH: &str = include_str!("resources/git_sha.txt");
 
 // TODO: https://github.com/TBD54566975/web5-rs/issues/287
 #[allow(dead_code)]
