@@ -6,6 +6,9 @@ on:
       - main
   pull_request:
 
+env:
+  WEB5_SDK_LOG_LEVEL: debug
+
 jobs:
   build_aarch64_apple_darwin:
     runs-on: macos-latest

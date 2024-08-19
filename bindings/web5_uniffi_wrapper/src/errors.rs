@@ -207,4 +207,3 @@ impl From<InnerWeb5Error> for Web5Error {
 }
 
 pub type Result<T> = std::result::Result<T, Web5Error>;
-

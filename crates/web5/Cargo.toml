@@ -26,6 +26,7 @@ simple-dns = "0.7.0"
 thiserror = { workspace = true }
 url = "2.5.0"
 uuid = { workspace = true }
+web5_proc_macros = { path = "../web5_proc_macros" }
 zbase32 = "0.1.2"
 
 [dev-dependencies]
