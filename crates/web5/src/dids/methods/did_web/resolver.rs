@@ -93,22 +93,22 @@ mod tests {
     #[tokio::test]
     async fn resolution_success() {
         let did_uri = "did:web:tbd.website";
-        let result = Resolver::new(Did::new(did_uri).unwrap());
+        let result = Resolver::new(Did::parse(did_uri).unwrap());
         assert_eq!(result.did_url, "https://tbd.website/.well-known/did.json");
 
         let did_uri = "did:web:tbd.website:with:path";
-        let result = Resolver::new(Did::new(did_uri).unwrap());
+        let result = Resolver::new(Did::parse(did_uri).unwrap());
         assert_eq!(result.did_url, "https://tbd.website/with/path/did.json");
 
         let did_uri = "did:web:tbd.website%3A8080";
-        let result = Resolver::new(Did::new(did_uri).unwrap());
+        let result = Resolver::new(Did::parse(did_uri).unwrap());
         assert_eq!(
             result.did_url,
             "https://tbd.website:8080/.well-known/did.json"
         );
 
         let did_uri = "did:web:tbd.website%3A8080:with:path";
-        let result = Resolver::new(Did::new(did_uri).unwrap());
+        let result = Resolver::new(Did::parse(did_uri).unwrap());
         assert_eq!(
             result.did_url,
             "https://tbd.website:8080/with/path/did.json"

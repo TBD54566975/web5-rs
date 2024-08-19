@@ -27,7 +27,7 @@ class BearerDid {
     constructor(uri: String, keyManager: KeyManager) {
         this.rustCoreBearerDid = RustCoreBearerDid(uri, keyManager)
 
-        this.did = this.rustCoreBearerDid.getData().did
+        this.did = Did.fromRustCoreDidData(this.rustCoreBearerDid.getData().did)
         this.document = this.rustCoreBearerDid.getData().document
         this.keyManager = keyManager
     }
@@ -41,7 +41,7 @@ class BearerDid {
         this.rustCoreBearerDid = RustCoreBearerDid.fromPortableDid(portableDid.rustCorePortableDid)
 
         val data = this.rustCoreBearerDid.getData()
-        this.did = data.did
+        this.did = Did.fromRustCoreDidData(data.did)
         this.document = data.document
         this.keyManager = data.keyManager
     }

@@ -86,7 +86,7 @@ impl DidDht {
         // }
 
         Ok(Self {
-            did: Did::new(&did_uri)?,
+            did: Did::parse(&did_uri)?,
             document: Document {
                 id: did_uri.clone(),
                 verification_method: verification_methods,
@@ -107,7 +107,7 @@ impl DidDht {
                 Some(e) => MethodError::ResolutionError(e),
             }),
             Some(document) => {
-                let identifer = Did::new(uri)?;
+                let identifer = Did::parse(uri)?;
                 Ok(Self {
                     did: identifer,
                     document,
@@ -119,7 +119,7 @@ impl DidDht {
     pub fn resolve(uri: &str) -> ResolutionResult {
         let result: Result<ResolutionResult> = (|| {
             // check did method and decode id
-            let did = Did::new(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
+            let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
             if did.method != "dht" {
                 return Ok(ResolutionResult {
                     resolution_metadata: ResolutionMetadata {

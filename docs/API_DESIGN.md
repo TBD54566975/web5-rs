@@ -332,7 +332,7 @@ CLASS Did
   /// Spec: https://www.w3.org/TR/did-core/#fragment.
   PUBLIC DATA fragment: string?
 
-  CONSTRUCTOR(uri: string)
+  CONSTRUCTOR parse(uri: string)
 ```
 
 ### Example: Instantiate from a `did:dht`

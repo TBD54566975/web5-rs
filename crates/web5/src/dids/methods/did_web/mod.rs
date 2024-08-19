@@ -85,7 +85,7 @@ impl DidWeb {
         };
 
         Ok(DidWeb {
-            did: Did::new(&did)?,
+            did: Did::parse(&did)?,
             document,
         })
     }
@@ -98,7 +98,7 @@ impl DidWeb {
                 Some(e) => MethodError::ResolutionError(e),
             }),
             Some(document) => {
-                let identifer = Did::new(uri)?;
+                let identifer = Did::parse(uri)?;
                 Ok(Self {
                     did: identifer,
                     document,
@@ -124,7 +124,7 @@ impl DidWeb {
         };
 
         let result: Result<ResolutionResult> = rt.block_on(async {
-            let did = Did::new(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
+            let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
             let resolution_result = Resolver::new(did).await;
             Ok(match resolution_result {
                 Err(e) => ResolutionResult {

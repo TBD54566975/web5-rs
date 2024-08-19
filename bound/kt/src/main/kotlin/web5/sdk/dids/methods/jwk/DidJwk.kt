@@ -25,7 +25,7 @@ class DidJwk {
     constructor(publicKey: Jwk) {
         val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(publicKey)
 
-        this.did = rustCoreDidJwk.getData().did
+        this.did = Did.fromRustCoreDidData(rustCoreDidJwk.getData().did)
         this.document = rustCoreDidJwk.getData().document
     }
 
@@ -37,7 +37,7 @@ class DidJwk {
     constructor(uri: String) {
         val rustCoreDidJwk = RustCoreDidJwk.fromUri(uri)
 
-        this.did = rustCoreDidJwk.getData().did
+        this.did = Did.fromRustCoreDidData(rustCoreDidJwk.getData().did)
         this.document = rustCoreDidJwk.getData().document
     }
 
