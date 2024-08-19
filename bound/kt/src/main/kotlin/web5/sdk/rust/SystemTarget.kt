@@ -3,19 +3,10 @@ package web5.sdk.rust
 import java.io.File
 
 internal val logLevel = System.getenv("WEB5_SDK_LOG_LEVEL")?.lowercase()
-internal val gitCommitHash = run {
-    val commitFile = File("target/git-commit-id.txt")
-    if (commitFile.exists()) {
-        commitFile.readText().trim()
-    } else {
-        println("Git commit hash not found.")
-        ""
-    }
-}
 
 internal fun log(message: String) {
     if (logLevel == "debug") {
-        println("web5 sdk SystemArchitecture $gitCommitHash: $message")
+        println("web5 sdk SystemArchitecture: $message")
     }
 }
 
