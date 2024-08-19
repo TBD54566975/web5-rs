@@ -21,3 +21,6 @@ Cargo.lock
 # Do not put native binaries in source control
 bound/kt/src/main/resources/*.dylib
 bound/kt/src/main/resources/*.so
+
+# Created by crate on build
+crates/web5/src/resources/git_sha.txt
