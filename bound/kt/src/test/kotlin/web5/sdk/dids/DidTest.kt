@@ -9,7 +9,7 @@ import web5.sdk.rust.Web5Exception
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DidTest {
 
-  private val testSuite = UnitTestSuite("did_new")
+  private val testSuite = UnitTestSuite("did_parse")
 
   @AfterAll
   fun verifyAllTestsIncluded() {

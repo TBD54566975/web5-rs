@@ -119,7 +119,7 @@ mod tests {
         use crate::{test_helpers::UnitTestSuite, test_name};
 
         static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("did_new"));
+            LazyLock::new(|| UnitTestSuite::new("did_parse"));
 
         #[test]
         fn z_assert_all_suite_cases_covered() {
