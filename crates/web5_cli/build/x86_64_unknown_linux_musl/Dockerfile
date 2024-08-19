@@ -24,6 +24,7 @@ COPY bindings/web5_uniffi_wrapper ./bindings/web5_uniffi_wrapper
 COPY bindings/web5_uniffi ./bindings/web5_uniffi
 COPY crates/web5 ./crates/web5
 COPY crates/web5_cli ./crates/web5_cli
+COPY crates/web5_proc_macros ./crates/web5_proc_macros
 
 RUN cargo build --release --package web5_cli
 
