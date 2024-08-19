@@ -15,7 +15,6 @@ josekit = "0.8.6"
 jsonpath-rust = "0.5.1"
 jsonschema = { version = "0.18.0", default-features = false }
 k256 = { version = "0.13.3", features = ["ecdsa", "jwk"] }
-lazy_static = "1.5.0"
 tokio = "1.38.0"
 rand = { workspace = true }
 regex = "1.10.4"
@@ -27,6 +26,7 @@ simple-dns = "0.7.0"
 thiserror = { workspace = true }
 url = "2.5.0"
 uuid = { workspace = true }
+web5_proc_macros = { path = "../web5_proc_macros" }
 zbase32 = "0.1.2"
 
 [dev-dependencies]
