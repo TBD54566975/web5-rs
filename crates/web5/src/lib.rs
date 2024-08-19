@@ -22,17 +22,17 @@ pub(crate) mod logging {
     macro_rules! log_dbg {
         ($msg:literal $(, $arg:tt)*) => {
             if let Some(ref level) = *$crate::LOG_LEVEL {
-                if level == "DEBUG" {
-                  println!("[DEBUG] {}:{}", web5_proc_macros::git_sha!(), format!($msg, $($arg)*));
-                }
+              if level.to_lowercase() == "debug" {
+                println!("[DEBUG] {}: {}", web5_proc_macros::git_sha!(), format!($msg, $($arg)*));
+              }
             }
         };
         ($closure:expr) => {
             if let Some(ref level) = *$crate::LOG_LEVEL {
-                if level == "DEBUG" {
-                    let msg = $closure();
-                    println!("[DEBUG] {}:{}", web5_proc_macros::git_sha!(), msg);
-                }
+              if level.to_lowercase() == "debug" {
+                let msg = $closure();
+                println!("[DEBUG] {}: {}", web5_proc_macros::git_sha!(), msg);
+              }
             }
         };
     }

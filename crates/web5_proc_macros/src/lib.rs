@@ -6,7 +6,7 @@ use std::process::Command;
 #[proc_macro]
 pub fn git_sha(_input: TokenStream) -> TokenStream {
     let output = Command::new("git")
-        .args(&["rev-parse", "HEAD"])
+        .args(&["rev-parse", "--short", "HEAD"])
         .output()
         .expect("Failed to execute git command");
 
