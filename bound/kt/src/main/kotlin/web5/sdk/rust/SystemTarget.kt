@@ -6,7 +6,7 @@ internal val logLevel = System.getenv("WEB5_SDK_LOG_LEVEL")?.lowercase()
 
 internal fun log(message: String) {
     if (logLevel == "debug") {
-        println("web5 sdk SystemArchitecture $message")
+        println("web5 sdk SystemArchitecture: $message")
     }
 }
 

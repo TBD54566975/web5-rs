@@ -13,6 +13,8 @@ mod test_helpers;
 #[cfg(test)]
 mod test_vectors;
 
+pub const GIT_COMMIT_HASH: &str = include_str!("resources/git_sha.txt");
+
 // TODO: https://github.com/TBD54566975/web5-rs/issues/287
 #[allow(dead_code)]
 static LOG_LEVEL: LazyLock<Option<String>> = LazyLock::new(|| env::var("WEB5_SDK_LOG_LEVEL").ok());
