@@ -28,7 +28,7 @@ class DidWeb {
             RustCoreDidWeb.fromUri(uri)
         }
 
-        this.did = rustCoreDidWeb.getData().did
+        this.did = Did.fromRustCoreDidData(rustCoreDidWeb.getData().did)
         this.document = rustCoreDidWeb.getData().document
     }
 
@@ -42,7 +42,7 @@ class DidWeb {
             RustCoreDidWeb.fromPublicJwk(domain, publicKey);
         }
 
-        this.did = rustCoreDidWeb.getData().did
+        this.did = Did.fromRustCoreDidData(rustCoreDidWeb.getData().did)
         this.document = rustCoreDidWeb.getData().document
     }
 

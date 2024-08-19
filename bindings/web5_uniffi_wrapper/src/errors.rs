@@ -8,7 +8,6 @@ use web5::crypto::dsa::DsaError;
 use web5::crypto::{jwk::JwkError, key_managers::KeyManagerError};
 use web5::dids::bearer_did::BearerDidError;
 use web5::dids::data_model::DataModelError as DidDataModelError;
-use web5::dids::did::DidError;
 use web5::dids::methods::MethodError;
 use web5::dids::portable_did::PortableDidError;
 use web5::errors::Web5Error as InnerWeb5Error;
@@ -94,12 +93,6 @@ impl From<KeyManagerError> for Web5Error {
 
 impl From<DsaError> for Web5Error {
     fn from(error: DsaError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
-impl From<DidError> for Web5Error {
-    fn from(error: DidError) -> Self {
         Web5Error::new(error)
     }
 }
@@ -207,4 +200,3 @@ impl From<InnerWeb5Error> for Web5Error {
 }
 
 pub type Result<T> = std::result::Result<T, Web5Error>;
-

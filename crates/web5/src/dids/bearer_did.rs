@@ -1,23 +1,26 @@
 use super::{
     data_model::{document::Document, DataModelError as DidDataModelError},
-    did::{Did, DidError},
+    did::Did,
     portable_did::PortableDid,
     resolution::{
         resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
     },
 };
-use crate::crypto::{
-    dsa::Signer,
-    key_managers::{
-        in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager, KeyManagerError,
+use crate::{
+    crypto::{
+        dsa::Signer,
+        key_managers::{
+            in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager, KeyManagerError,
+        },
     },
+    errors::Web5Error,
 };
 use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum BearerDidError {
     #[error(transparent)]
-    DidError(#[from] DidError),
+    Web5Error(#[from] Web5Error),
     #[error(transparent)]
     ResolutionError(#[from] ResolutionMetadataError),
     #[error(transparent)]
@@ -45,7 +48,7 @@ impl BearerDid {
                 Some(e) => BearerDidError::ResolutionError(e),
             }),
             Some(document) => {
-                let did = Did::new(uri)?;
+                let did = Did::parse(uri)?;
                 Ok(Self {
                     did,
                     document,
@@ -56,7 +59,7 @@ impl BearerDid {
     }
 
     pub fn from_portable_did(portable_did: PortableDid) -> Result<Self> {
-        let did = Did::new(&portable_did.did_uri)?;
+        let did = Did::parse(&portable_did.did_uri)?;
 
         let key_manager = Arc::new(InMemoryKeyManager::new());
         for private_jwk in portable_did.private_jwks {

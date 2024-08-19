@@ -16,7 +16,7 @@ pub struct ResolutionResult {
 
 impl ResolutionResult {
     pub fn new(uri: &str) -> Self {
-        let did = match Did::new(uri) {
+        let did = match Did::parse(uri) {
             Ok(did) => did,
             Err(_) => {
                 return ResolutionResult {

@@ -5,7 +5,7 @@ pub struct Did(pub InnerDid);
 
 impl Did {
     pub fn new(uri: &str) -> Result<Self> {
-        let did = InnerDid::new(uri)?;
+        let did = InnerDid::parse(uri)?;
         Ok(Self(did))
     }
 
