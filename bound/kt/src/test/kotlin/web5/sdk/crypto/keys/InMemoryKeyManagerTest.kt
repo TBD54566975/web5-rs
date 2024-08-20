@@ -14,9 +14,9 @@ class InMemoryKeyManagerTest {
   fun `test key manager`() {
     val privateJwk = rustCoreEd25519GeneratorGenerate()
 
-    val keyManager = InMemoryKeyManager(listOf(privateJwk))
+    val keyManager = InMemoryKeyManager(listOf(Jwk.fromRustCoreJwkData(privateJwk)))
 
-    val signer = keyManager.getSigner(privateJwk)
+    val signer = keyManager.getSigner(Jwk.fromRustCoreJwkData(privateJwk))
     val payload = signer.sign("abc".toByteArray())
 
     assertNotNull(payload)
@@ -36,10 +36,10 @@ class InMemoryKeyManagerTest {
     val privateJwk = rustCoreEd25519GeneratorGenerate()
 
     val keyManager = InMemoryKeyManager(listOf())
-    keyManager.importPrivateJwk(privateJwk)
+    keyManager.importPrivateJwk(Jwk.fromRustCoreJwkData(privateJwk))
 
     privateJwk.d = null
-    val signer = keyManager.getSigner(privateJwk)
+    val signer = keyManager.getSigner(Jwk.fromRustCoreJwkData(privateJwk))
     val payload = signer.sign("abc".toByteArray())
 
     assertNotNull(payload)

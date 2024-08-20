@@ -9,6 +9,7 @@ use web5_uniffi_wrapper::{
             Signer, Verifier,
         },
         in_memory_key_manager::InMemoryKeyManager,
+        jwk::Jwk,
         key_manager::KeyManager,
     },
     dids::{

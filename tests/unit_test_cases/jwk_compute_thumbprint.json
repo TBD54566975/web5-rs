@@ -1,0 +1,10 @@
+[
+  "test_ec_valid",
+  "test_okp_valid",
+  "test_unsupported_kty",
+  "test_empty_kty",
+  "test_empty_x",
+  "test_empty_crv",
+  "test_ec_missing_y",
+  "test_ec_empty_y"
+]

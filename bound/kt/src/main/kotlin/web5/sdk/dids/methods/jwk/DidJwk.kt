@@ -23,7 +23,7 @@ class DidJwk {
      * @param publicKey The public key represented as a Jwk.
      */
     constructor(publicKey: Jwk) {
-        val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(publicKey)
+        val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(publicKey.rustCoreJwkData)
 
         this.did = Did.fromRustCoreDidData(rustCoreDidJwk.getData().did)
         this.document = rustCoreDidJwk.getData().document

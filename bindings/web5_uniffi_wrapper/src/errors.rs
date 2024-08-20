@@ -5,7 +5,7 @@ use thiserror::Error;
 use web5::credentials::presentation_definition::PexError;
 use web5::credentials::CredentialError;
 use web5::crypto::dsa::DsaError;
-use web5::crypto::{jwk::JwkError, key_managers::KeyManagerError};
+use web5::crypto::key_managers::KeyManagerError;
 use web5::dids::bearer_did::BearerDidError;
 use web5::dids::data_model::DataModelError as DidDataModelError;
 use web5::dids::methods::MethodError;
@@ -79,12 +79,6 @@ where
     variant_name.to_string()
 }
 
-impl From<JwkError> for Web5Error {
-    fn from(error: JwkError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
 impl From<KeyManagerError> for Web5Error {
     fn from(error: KeyManagerError) -> Self {
         Web5Error::new(error)
@@ -144,13 +138,7 @@ impl From<Web5Error> for KeyManagerError {
         let variant = error.variant();
         let msg = error.msg();
 
-        if variant
-            == variant_name(&KeyManagerError::JwkError(JwkError::ThumbprintFailed(
-                String::default(),
-            )))
-        {
-            return KeyManagerError::JwkError(JwkError::ThumbprintFailed(msg.to_string()));
-        } else if variant == variant_name(&KeyManagerError::KeyGenerationFailed) {
+        if variant == variant_name(&KeyManagerError::KeyGenerationFailed) {
             return KeyManagerError::KeyGenerationFailed;
         } else if variant
             == variant_name(&KeyManagerError::InternalKeyStoreError(String::default()))

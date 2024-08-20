@@ -1,6 +1,7 @@
-use crate::crypto::{dsa::DsaError, jwk::JwkError};
+use crate::crypto::dsa::DsaError;
 use crate::dids::data_model::document::Document;
 use crate::dids::data_model::{service::Service, verification_method::VerificationMethod};
+use crate::errors::Web5Error;
 use simple_dns::SimpleDnsError;
 use std::collections::HashMap;
 
@@ -52,7 +53,7 @@ pub enum DocumentPacketError {
     #[error(transparent)]
     Dns(#[from] SimpleDnsError),
     #[error(transparent)]
-    JwkError(#[from] JwkError),
+    Web5Error(#[from] Web5Error),
     #[error("DNS packet was malformed: {0}")]
     RootRecord(String),
     #[error("Could not convert between publicKeyJwk and resource record: {0}")]

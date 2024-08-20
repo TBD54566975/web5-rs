@@ -20,6 +20,6 @@ class PortableDid {
 
         this.didUri = rustCorePortableDid.getData().didUri
         this.document = rustCorePortableDid.getData().document
-        this.privateKeys = rustCorePortableDid.getData().privateJwks
+        this.privateKeys = rustCorePortableDid.getData().privateJwks.map {Jwk.fromRustCoreJwkData(it) }
     }
 }

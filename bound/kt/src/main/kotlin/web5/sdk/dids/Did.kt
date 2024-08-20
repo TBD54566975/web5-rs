@@ -20,7 +20,7 @@ data class Did (
         fun parse(uri: String): Did {
             val rustCoreDid = RustCoreDid(uri)
             val data = rustCoreDid.getData()
-            return Did.fromRustCoreDidData(data)
+            return fromRustCoreDidData(data)
         }
 
         internal fun fromRustCoreDidData(data: RustCoreDidData): Did {
