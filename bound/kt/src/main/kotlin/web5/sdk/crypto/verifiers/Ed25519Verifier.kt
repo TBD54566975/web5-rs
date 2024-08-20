@@ -7,7 +7,7 @@ class Ed25519Verifier : Verifier {
     private val rustCoreVerifier: RustCoreEd25519Verifier
 
     constructor(privateKey: Jwk) {
-        this.rustCoreVerifier = RustCoreEd25519Verifier(privateKey)
+        this.rustCoreVerifier = RustCoreEd25519Verifier(privateKey.rustCoreJwkData)
     }
 
     private constructor(rustCoreVerifier: RustCoreEd25519Verifier) {
