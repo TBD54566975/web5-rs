@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Nested
 import web5.sdk.crypto.keys.Jwk
 import web5.sdk.crypto.signers.Ed25519Signer
 import web5.sdk.crypto.verifiers.Ed25519Verifier
-import web5.sdk.rust.DocumentData
+import web5.sdk.dids.Document
 import web5.sdk.rust.DocumentMetadataData
 import web5.sdk.rust.ResolutionMetadataData
 
@@ -57,7 +57,7 @@ class Web5TestVectorsProtocolTest {
 
     data class DidJwkResolveTestOutput(
         val context: String?,
-        val didDocument: DocumentData?,
+        val didDocument: Document?,
         val didDocumentMetadata: DocumentMetadataData,
         val didResolutionMetadata: ResolutionMetadataData?
     )
