@@ -1,5 +1,5 @@
 use super::{
-    data_model::{document::Document, DataModelError as DidDataModelError},
+    data_model::document::Document,
     did::Did,
     portable_did::PortableDid,
     resolution::{
@@ -23,8 +23,6 @@ pub enum BearerDidError {
     Web5Error(#[from] Web5Error),
     #[error(transparent)]
     ResolutionError(#[from] ResolutionMetadataError),
-    #[error(transparent)]
-    DidDataModelError(#[from] DidDataModelError),
     #[error(transparent)]
     KeyManagerError(#[from] KeyManagerError),
 }
@@ -74,7 +72,7 @@ impl BearerDid {
     }
 
     pub fn get_signer(&self, key_id: String) -> Result<Arc<dyn Signer>> {
-        let public_jwk = self.document.find_public_key_jwk(key_id)?;
+        let public_jwk = self.document.find_public_jwk(key_id)?;
         Ok(self.key_manager.get_signer(public_jwk)?)
     }
 }

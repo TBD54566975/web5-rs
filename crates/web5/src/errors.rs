@@ -8,6 +8,8 @@ pub enum Web5Error {
     Parameter(String),
     #[error("data member error {0}")]
     DataMember(String),
+    #[error("not found error {0}")]
+    NotFound(String),
 }
 
 impl From<SerdeJsonError> for Web5Error {

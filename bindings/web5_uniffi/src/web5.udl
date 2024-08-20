@@ -119,8 +119,6 @@ dictionary ServiceData {
 interface Document {
   constructor(DocumentData data);
   DocumentData get_data();
-  [Throws=Web5Error]
-  JwkData find_public_key_jwk(string key_id);
 };
 
 enum ResolutionMetadataError {
@@ -210,9 +208,11 @@ dictionary PortableDidData {
 };
 
 interface PortableDid {
-  [Throws=Web5Error]
+  [Name=from_json_string, Throws=Web5Error]
   constructor([ByRef] string json);
   PortableDidData get_data();
+  [Throws=Web5Error]
+  string to_json_string();
 };
 
 dictionary BearerDidData {

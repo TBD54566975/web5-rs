@@ -266,7 +266,7 @@ impl VerifiableCredential {
             .ok_or_else(|| {
                 JosekitError::InvalidJwtFormat(ResolutionMetadataError::InternalError.into())
             })?
-            .find_public_key_jwk(kid.to_string())?;
+            .find_public_jwk(kid.to_string())?;
 
         let verifier = Ed25519Verifier::new(public_key_jwk);
 
