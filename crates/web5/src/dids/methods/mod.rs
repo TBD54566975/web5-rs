@@ -1,4 +1,4 @@
-use crate::{crypto::dsa::DsaError, errors::Web5Error};
+use crate::errors::Web5Error;
 
 use super::resolution::resolution_metadata::ResolutionMetadataError;
 use base64::DecodeError;
@@ -23,8 +23,6 @@ pub enum MethodError {
     DecodeError(#[from] DecodeError),
     #[error(transparent)]
     ResolutionError(#[from] ResolutionMetadataError),
-    #[error(transparent)]
-    DsaError(#[from] DsaError),
 }
 
 impl From<SerdeJsonError> for MethodError {
