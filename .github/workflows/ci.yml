@@ -52,6 +52,8 @@ jobs:
           cache: true
       - name: Setup
         run: just setup
+      - name: Install MSRV
+        run: cargo install msrv
       - name: MSRV
         run: cargo msrv --path crates/web5 verify
   
