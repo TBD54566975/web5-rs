@@ -1,8 +1,8 @@
 use crate::errors::{Result, Web5Error};
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Did {
