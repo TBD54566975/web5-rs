@@ -884,6 +884,8 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1018,9 +1020,11 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_portabledid(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_portabledid_new(`json`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_portabledid_from_json_string(`json`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_portabledid_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_uniffi_fn_method_portabledid_to_json_string(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_presentationdefinition(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1228,6 +1232,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_portabledid_get_data(
     ): Short
+    fun uniffi_web5_uniffi_checksum_method_portabledid_to_json_string(
+    ): Short
     fun uniffi_web5_uniffi_checksum_method_presentationdefinition_get_json_serialized_presentation_definition(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials(
@@ -1268,7 +1274,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_jwk_new(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_portabledid_new(
+    fun uniffi_web5_uniffi_checksum_constructor_portabledid_from_json_string(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new(
     ): Short
@@ -1359,6 +1365,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_portabledid_get_data() != 27045.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_web5_uniffi_checksum_method_portabledid_to_json_string() != 53673.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_get_json_serialized_presentation_definition() != 52261.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1419,7 +1428,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_jwk_new() != 59888.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_portabledid_new() != 37852.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_portabledid_from_json_string() != 64165.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 13282.toShort()) {
@@ -4649,6 +4658,8 @@ public interface PortableDidInterface {
     
     fun `getData`(): PortableDidData
     
+    fun `toJsonString`(): kotlin.String
+    
     companion object
 }
 
@@ -4669,13 +4680,6 @@ open class PortableDid: Disposable, AutoCloseable, PortableDidInterface {
         this.pointer = null
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
     }
-    constructor(`json`: kotlin.String) :
-        this(
-    uniffiRustCallWithError(Web5Exception) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_portabledid_new(
-        FfiConverterString.lower(`json`),_status)
-}
-    )
 
     protected val pointer: Pointer?
     protected val cleanable: UniffiCleaner.Cleanable
@@ -4753,10 +4757,35 @@ open class PortableDid: Disposable, AutoCloseable, PortableDidInterface {
     
 
     
+    @Throws(Web5Exception::class)override fun `toJsonString`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_portabledid_to_json_string(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
+
     
-    companion object
+    companion object {
+        
+    @Throws(Web5Exception::class) fun `fromJsonString`(`json`: kotlin.String): PortableDid {
+            return FfiConverterTypePortableDid.lift(
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_portabledid_from_json_string(
+        FfiConverterString.lower(`json`),_status)
+}
+    )
+    }
+    
+
+        
+    }
     
 }
 
