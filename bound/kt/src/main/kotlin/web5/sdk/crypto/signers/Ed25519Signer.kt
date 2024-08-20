@@ -7,7 +7,7 @@ class Ed25519Signer : Signer {
     private val rustCoreSigner: RustCoreEd25519Signer
 
     constructor(privateKey: Jwk) {
-        this.rustCoreSigner = RustCoreEd25519Signer(privateKey)
+        this.rustCoreSigner = RustCoreEd25519Signer(privateKey.rustCoreJwkData)
     }
 
     private constructor(rustCoreSigner: RustCoreEd25519Signer) {

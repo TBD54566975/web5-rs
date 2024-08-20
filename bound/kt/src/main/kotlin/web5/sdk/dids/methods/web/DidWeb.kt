@@ -39,7 +39,7 @@ class DidWeb {
      */
     constructor(domain: String, publicKey: Jwk) {
         val rustCoreDidWeb = runBlocking {
-            RustCoreDidWeb.fromPublicJwk(domain, publicKey);
+            RustCoreDidWeb.fromPublicJwk(domain, publicKey.rustCoreJwkData);
         }
 
         this.did = Did.fromRustCoreDidData(rustCoreDidWeb.getData().did)

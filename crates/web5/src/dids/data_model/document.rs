@@ -1,5 +1,8 @@
-use super::{service::Service, verification_method::VerificationMethod, Result};
-use crate::crypto::jwk::Jwk;
+use super::{service::Service, verification_method::VerificationMethod};
+use crate::{
+    crypto::jwk::Jwk,
+    errors::{Result, Web5Error},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -34,12 +37,15 @@ pub struct Document {
 }
 
 impl Document {
-    pub fn find_public_key_jwk(&self, key_id: String) -> Result<Jwk> {
+    pub(crate) fn find_public_jwk(&self, key_id: String) -> Result<Jwk> {
         for vm in &self.verification_method {
             if vm.id == key_id {
                 return Ok(vm.public_key_jwk.clone());
             }
         }
-        Err(super::DataModelError::MissingPublicKeyJwk(key_id))
+        Err(Web5Error::NotFound(format!(
+            "jwk not found for key_id {}",
+            key_id
+        )))
     }
 }

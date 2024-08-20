@@ -5,11 +5,9 @@ use thiserror::Error;
 use web5::credentials::presentation_definition::PexError;
 use web5::credentials::CredentialError;
 use web5::crypto::dsa::DsaError;
-use web5::crypto::{jwk::JwkError, key_managers::KeyManagerError};
+use web5::crypto::key_managers::KeyManagerError;
 use web5::dids::bearer_did::BearerDidError;
-use web5::dids::data_model::DataModelError as DidDataModelError;
 use web5::dids::methods::MethodError;
-use web5::dids::portable_did::PortableDidError;
 use web5::errors::Web5Error as InnerWeb5Error;
 
 #[derive(Debug, Error)]
@@ -79,12 +77,6 @@ where
     variant_name.to_string()
 }
 
-impl From<JwkError> for Web5Error {
-    fn from(error: JwkError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
 impl From<KeyManagerError> for Web5Error {
     fn from(error: KeyManagerError) -> Self {
         Web5Error::new(error)
@@ -93,12 +85,6 @@ impl From<KeyManagerError> for Web5Error {
 
 impl From<DsaError> for Web5Error {
     fn from(error: DsaError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
-impl From<PortableDidError> for Web5Error {
-    fn from(error: PortableDidError) -> Self {
         Web5Error::new(error)
     }
 }
@@ -121,12 +107,6 @@ impl From<PexError> for Web5Error {
     }
 }
 
-impl From<DidDataModelError> for Web5Error {
-    fn from(error: DidDataModelError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
 impl From<BearerDidError> for Web5Error {
     fn from(error: BearerDidError) -> Self {
         Web5Error::new(error)
@@ -144,13 +124,7 @@ impl From<Web5Error> for KeyManagerError {
         let variant = error.variant();
         let msg = error.msg();
 
-        if variant
-            == variant_name(&KeyManagerError::JwkError(JwkError::ThumbprintFailed(
-                String::default(),
-            )))
-        {
-            return KeyManagerError::JwkError(JwkError::ThumbprintFailed(msg.to_string()));
-        } else if variant == variant_name(&KeyManagerError::KeyGenerationFailed) {
+        if variant == variant_name(&KeyManagerError::KeyGenerationFailed) {
             return KeyManagerError::KeyGenerationFailed;
         } else if variant
             == variant_name(&KeyManagerError::InternalKeyStoreError(String::default()))

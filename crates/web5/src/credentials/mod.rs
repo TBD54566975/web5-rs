@@ -6,8 +6,7 @@ use serde_json::Error as SerdeJsonError;
 use crate::errors::Web5Error;
 
 use super::dids::{
-    bearer_did::BearerDidError, data_model::DataModelError,
-    resolution::resolution_metadata::ResolutionMetadataError,
+    bearer_did::BearerDidError, resolution::resolution_metadata::ResolutionMetadataError,
 };
 
 pub mod presentation_definition;
@@ -37,8 +36,6 @@ pub enum CredentialError {
     MissingKid,
     #[error(transparent)]
     Resolution(#[from] ResolutionMetadataError),
-    #[error(transparent)]
-    DidDataModel(#[from] DataModelError),
     #[error(transparent)]
     Web5Error(#[from] Web5Error),
     #[error(transparent)]
