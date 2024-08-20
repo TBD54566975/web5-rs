@@ -51,7 +51,7 @@ jobs:
         with:
           cache: true
       - name: MSRV
-        run: cd crates/web5; cargo msrv verify --min 1.70.0
+        run: cargo msrv --path crates/web5 verify
   
   test:
     strategy:
