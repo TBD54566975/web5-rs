@@ -3,9 +3,10 @@ use std::time::SystemTimeError;
 use josekit::JoseError as JosekitError;
 use serde_json::Error as SerdeJsonError;
 
+use crate::errors::Web5Error;
+
 use super::dids::{
-    bearer_did::BearerDidError, data_model::DataModelError, did::DidError,
-    resolution::resolution_metadata::ResolutionMetadataError,
+    bearer_did::BearerDidError, resolution::resolution_metadata::ResolutionMetadataError,
 };
 
 pub mod presentation_definition;
@@ -36,9 +37,7 @@ pub enum CredentialError {
     #[error(transparent)]
     Resolution(#[from] ResolutionMetadataError),
     #[error(transparent)]
-    DidDataModel(#[from] DataModelError),
-    #[error(transparent)]
-    Did(#[from] DidError),
+    Web5Error(#[from] Web5Error),
     #[error(transparent)]
     SystemTime(#[from] SystemTimeError),
 }

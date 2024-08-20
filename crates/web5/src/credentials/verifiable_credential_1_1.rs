@@ -254,7 +254,7 @@ impl VerifiableCredential {
             .ok_or_else(|| JosekitError::InvalidJwtFormat(CredentialError::MissingKid.into()))?
             .to_string();
 
-        let did = Did::new(&kid)?;
+        let did = Did::parse(&kid)?;
 
         let resolution_result = ResolutionResult::new(&did.uri);
         if let Some(err) = resolution_result.resolution_metadata.error.clone() {
@@ -266,7 +266,7 @@ impl VerifiableCredential {
             .ok_or_else(|| {
                 JosekitError::InvalidJwtFormat(ResolutionMetadataError::InternalError.into())
             })?
-            .find_public_key_jwk(kid.to_string())?;
+            .find_public_jwk(kid.to_string())?;
 
         let verifier = Ed25519Verifier::new(public_key_jwk);
 

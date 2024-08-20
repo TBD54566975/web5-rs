@@ -332,7 +332,7 @@ CLASS Did
   /// Spec: https://www.w3.org/TR/did-core/#fragment.
   PUBLIC DATA fragment: string?
 
-  CONSTRUCTOR(uri: string)
+  CONSTRUCTOR parse(uri: string)
 ```
 
 ### Example: Instantiate from a `did:dht`
@@ -413,9 +413,6 @@ CLASS Document
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#services)
   PUBLIC DATA service: []Service?
-
-  /// Return the Jwk from the Verification Method with the matching key ID.
-  METHOD find_public_jwk_jwk(key_id: string): Jwk
 ```
 
 ### `VerificationMethod`
@@ -698,7 +695,9 @@ CLASS PortableDid
   DATA MEMBER uri: string
   DATA MEMBER private_jwks: []Jwk
   DATA MEMBER document: Document
-  CONSTRUCTOR(json: string)
+  
+  CONSTRUCTOR from_json_string(json: string)
+  METHOD to_json_string(): string
 ```
 
 ### Example: Create a [`PortableDid`](#portabledid) via the `web5` CLI

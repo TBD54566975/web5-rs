@@ -1,5 +1,6 @@
 package web5.sdk.crypto.keys
 
+import web5.sdk.crypto.signers.ToOuterSigner
 import web5.sdk.crypto.signers.Signer
 import web5.sdk.rust.InMemoryKeyManager as RustCoreInMemoryKeyManager
 
@@ -16,7 +17,7 @@ class InMemoryKeyManager : KeyManager {
      */
     constructor(privateJwks: List<Jwk>) {
         privateJwks.forEach {
-            this.rustCoreInMemoryKeyManager.importPrivateJwk(it)
+            this.rustCoreInMemoryKeyManager.importPrivateJwk(it.rustCoreJwkData)
         }
     }
 
@@ -27,7 +28,8 @@ class InMemoryKeyManager : KeyManager {
      * @return Signer The signer for the given public key.
      */
     override fun getSigner(publicJwk: Jwk): Signer {
-        return this.rustCoreInMemoryKeyManager.getSigner(publicJwk)
+        val rustCoreSigner = this.rustCoreInMemoryKeyManager.getSigner(publicJwk.rustCoreJwkData)
+        return ToOuterSigner(rustCoreSigner)
     }
 
     /**
@@ -37,6 +39,7 @@ class InMemoryKeyManager : KeyManager {
      * @return Jwk The public key represented as a JWK.
      */
     fun importPrivateJwk(privateJwk: Jwk): Jwk {
-        return this.rustCoreInMemoryKeyManager.importPrivateJwk(privateJwk)
+        val rustCoreJwkData = this.rustCoreInMemoryKeyManager.importPrivateJwk(privateJwk.rustCoreJwkData)
+        return Jwk.fromRustCoreJwkData(rustCoreJwkData)
     }
 }

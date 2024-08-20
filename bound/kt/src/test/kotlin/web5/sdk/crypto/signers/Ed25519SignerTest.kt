@@ -3,6 +3,7 @@ package web5.sdk.crypto.signers
 import org.junit.jupiter.api.Test
 import web5.sdk.crypto.keys.InMemoryKeyManager
 import org.junit.jupiter.api.Assertions.assertNotNull
+import web5.sdk.crypto.keys.Jwk
 
 import web5.sdk.rust.ed25519GeneratorGenerate as rustCoreEd25519GeneratorGenerate
 
@@ -11,7 +12,7 @@ class Ed25519SignerTest {
     @Test
     fun `test signer`() {
         val rustCorePrivateJwk = rustCoreEd25519GeneratorGenerate()
-        val ed25519Signer = Ed25519Signer(rustCorePrivateJwk)
+        val ed25519Signer = Ed25519Signer(Jwk.fromRustCoreJwkData(rustCorePrivateJwk))
 
         val payload = ed25519Signer.sign("abc".toByteArray())
 
@@ -23,7 +24,7 @@ class Ed25519SignerTest {
         val privateJwk = rustCoreEd25519GeneratorGenerate()
 
         val keyManager = InMemoryKeyManager(listOf())
-        val publicJwk = keyManager.importPrivateJwk(privateJwk)
+        val publicJwk = keyManager.importPrivateJwk(Jwk.fromRustCoreJwkData(privateJwk))
 
         val ed25519Signer = keyManager.getSigner(publicJwk)
         val payload = ed25519Signer.sign("abc".toByteArray())

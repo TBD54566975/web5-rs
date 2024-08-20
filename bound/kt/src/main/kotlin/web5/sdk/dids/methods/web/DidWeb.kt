@@ -28,7 +28,7 @@ class DidWeb {
             RustCoreDidWeb.fromUri(uri)
         }
 
-        this.did = rustCoreDidWeb.getData().did
+        this.did = Did.fromRustCoreDidData(rustCoreDidWeb.getData().did)
         this.document = rustCoreDidWeb.getData().document
     }
 
@@ -39,10 +39,10 @@ class DidWeb {
      */
     constructor(domain: String, publicKey: Jwk) {
         val rustCoreDidWeb = runBlocking {
-            RustCoreDidWeb.fromPublicJwk(domain, publicKey);
+            RustCoreDidWeb.fromPublicJwk(domain, publicKey.rustCoreJwkData);
         }
 
-        this.did = rustCoreDidWeb.getData().did
+        this.did = Did.fromRustCoreDidData(rustCoreDidWeb.getData().did)
         this.document = rustCoreDidWeb.getData().document
     }
 

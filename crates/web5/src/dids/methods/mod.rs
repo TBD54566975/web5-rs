@@ -1,6 +1,6 @@
-use crate::crypto::dsa::DsaError;
+use crate::{crypto::dsa::DsaError, errors::Web5Error};
 
-use super::{did::DidError, resolution::resolution_metadata::ResolutionMetadataError};
+use super::resolution::resolution_metadata::ResolutionMetadataError;
 use base64::DecodeError;
 use serde_json::Error as SerdeJsonError;
 
@@ -12,7 +12,7 @@ pub mod did_jwk;
 #[derive(thiserror::Error, Debug)]
 pub enum MethodError {
     #[error(transparent)]
-    DidError(#[from] DidError),
+    Web5Error(#[from] Web5Error),
     #[error("Failure creating DID: {0}")]
     DidCreationFailure(String),
     #[error("Failure publishing DID: {0}")]

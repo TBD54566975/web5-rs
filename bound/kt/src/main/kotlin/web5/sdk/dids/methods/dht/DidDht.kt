@@ -27,9 +27,9 @@ class DidDht {
      * @param identityKey The identity key represented as a Jwk.
      */
     constructor(identityKey: Jwk) {
-        rustCoreDidDht = RustCoreDidDht.fromIdentityKey(identityKey)
+        rustCoreDidDht = RustCoreDidDht.fromIdentityKey(identityKey.rustCoreJwkData)
 
-        this.did = rustCoreDidDht.getData().did
+        this.did = Did.fromRustCoreDidData(rustCoreDidDht.getData().did)
         this.document = rustCoreDidDht.getData().document
     }
 
@@ -41,7 +41,7 @@ class DidDht {
     constructor(uri: String) {
         rustCoreDidDht = RustCoreDidDht.fromUri(uri)
 
-        this.did = rustCoreDidDht.getData().did
+        this.did = Did.fromRustCoreDidData(rustCoreDidDht.getData().did)
         this.document = rustCoreDidDht.getData().document
     }
 

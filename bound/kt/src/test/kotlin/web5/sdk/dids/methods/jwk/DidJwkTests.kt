@@ -2,6 +2,7 @@ package web5.sdk.dids.methods.jwk
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import web5.sdk.crypto.keys.Jwk
 
 import web5.sdk.rust.DidJwk as RustCoreDidJwk
 
@@ -12,7 +13,7 @@ class DidJwkTests {
     fun `can create did jwk same as rust core`() {
         val jwk = rustCoreEd25519GeneratorGenerate()
 
-        val didJwk = DidJwk(jwk)
+        val didJwk = DidJwk(Jwk.fromRustCoreJwkData(jwk))
 
         val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(jwk);
         assertEquals(rustCoreDidJwk.getData().did.uri, didJwk.did.uri)

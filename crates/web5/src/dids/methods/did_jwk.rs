@@ -25,7 +25,7 @@ impl DidJwk {
 
         let uri = format!("did:jwk:{}", method_specific_id);
 
-        let did = Did::new(&uri)?;
+        let did = Did::parse(&uri)?;
 
         let verification_method_id = format!("{}#0", uri);
 
@@ -58,7 +58,7 @@ impl DidJwk {
                 Some(e) => MethodError::ResolutionError(e),
             }),
             Some(document) => {
-                let did = Did::new(uri)?;
+                let did = Did::parse(uri)?;
                 Ok(Self { did, document })
             }
         }
@@ -66,7 +66,7 @@ impl DidJwk {
 
     pub fn resolve(uri: &str) -> ResolutionResult {
         let result: Result<ResolutionResult> = (|| {
-            let did = Did::new(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
+            let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
             let decoded_jwk = general_purpose::URL_SAFE_NO_PAD
                 .decode(did.id)
                 .map_err(|_| ResolutionMetadataError::InvalidDid)?;
