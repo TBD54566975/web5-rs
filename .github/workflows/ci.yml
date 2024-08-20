@@ -50,6 +50,8 @@ jobs:
         uses: cashapp/activate-hermit@v1
         with:
           cache: true
+      - name: Setup
+        run: just setup
       - name: MSRV
         run: cargo msrv --path crates/web5 verify
   
