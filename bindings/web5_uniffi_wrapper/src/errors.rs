@@ -7,7 +7,6 @@ use web5::credentials::CredentialError;
 use web5::crypto::dsa::DsaError;
 use web5::crypto::key_managers::KeyManagerError;
 use web5::dids::bearer_did::BearerDidError;
-use web5::dids::data_model::DataModelError as DidDataModelError;
 use web5::dids::methods::MethodError;
 use web5::dids::portable_did::PortableDidError;
 use web5::errors::Web5Error as InnerWeb5Error;
@@ -111,12 +110,6 @@ impl From<CredentialError> for Web5Error {
 
 impl From<PexError> for Web5Error {
     fn from(error: PexError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
-impl From<DidDataModelError> for Web5Error {
-    fn from(error: DidDataModelError) -> Self {
         Web5Error::new(error)
     }
 }

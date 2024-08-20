@@ -119,8 +119,6 @@ dictionary ServiceData {
 interface Document {
   constructor(DocumentData data);
   DocumentData get_data();
-  [Throws=Web5Error]
-  JwkData find_public_key_jwk(string key_id);
 };
 
 enum ResolutionMetadataError {

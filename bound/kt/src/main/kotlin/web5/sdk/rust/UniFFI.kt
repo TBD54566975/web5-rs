@@ -884,8 +884,6 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -968,8 +966,6 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_uniffi_fn_constructor_document_new(`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_document_find_public_key_jwk(`ptr`: Pointer,`keyId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_document_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_ed25519signer(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1212,8 +1208,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_didweb_get_data(
     ): Short
-    fun uniffi_web5_uniffi_checksum_method_document_find_public_key_jwk(
-    ): Short
     fun uniffi_web5_uniffi_checksum_method_document_get_data(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_ed25519signer_sign(
@@ -1333,9 +1327,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_didweb_get_data() != 40916.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_method_document_find_public_key_jwk() != 16969.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_document_get_data() != 16490.toShort()) {
@@ -3113,8 +3104,6 @@ public object FfiConverterTypeDidWeb: FfiConverter<DidWeb, Pointer> {
 
 public interface DocumentInterface {
     
-    fun `findPublicKeyJwk`(`keyId`: kotlin.String): JwkData
-    
     fun `getData`(): DocumentData
     
     companion object
@@ -3207,19 +3196,6 @@ open class Document: Disposable, AutoCloseable, DocumentInterface {
             UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_document(pointer!!, status)
         }
     }
-
-    
-    @Throws(Web5Exception::class)override fun `findPublicKeyJwk`(`keyId`: kotlin.String): JwkData {
-            return FfiConverterTypeJwkData.lift(
-    callWithPointer {
-    uniffiRustCallWithError(Web5Exception) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_document_find_public_key_jwk(
-        it, FfiConverterString.lower(`keyId`),_status)
-}
-    }
-    )
-    }
-    
 
     override fun `getData`(): DocumentData {
             return FfiConverterTypeDocumentData.lift(

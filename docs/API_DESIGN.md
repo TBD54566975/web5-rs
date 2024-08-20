@@ -413,9 +413,6 @@ CLASS Document
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#services)
   PUBLIC DATA service: []Service?
-
-  /// Return the Jwk from the Verification Method with the matching key ID.
-  METHOD find_public_jwk_jwk(key_id: string): Jwk
 ```
 
 ### `VerificationMethod`
