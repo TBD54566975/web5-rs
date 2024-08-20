@@ -25,7 +25,7 @@ pub(crate) mod logging {
         ($msg:literal $(, $arg:tt)*) => {
             if let Some(ref level) = *$crate::LOG_LEVEL {
                 if level.to_lowercase() == "debug" {
-                   println!("[DEBUG] {}: {}", web5_proc_macros::git_sha!(), format!($msg, $($arg)*));
+                   println!("[DEBUG] {}: {}", $crate::GIT_COMMIT_HASH, format!($msg, $($arg)*));
                 }
             }
         };
@@ -33,7 +33,7 @@ pub(crate) mod logging {
             if let Some(ref level) = *$crate::LOG_LEVEL {
                 if level.to_lowercase() == "debug" {
                     let msg = $closure();
-                    println!("[DEBUG] {}: {}", web5_proc_macros::git_sha!(), msg);
+                    println!("[DEBUG] {}: {}", $crate::GIT_COMMIT_HASH, msg);
                 }
             }
         };
