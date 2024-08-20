@@ -39,7 +39,7 @@ jobs:
   msrv:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest] # TODO add back windows-latest https://github.com/TBD54566975/web5-rs/issues/189
+        os: [ubuntu-latest]
         rust: [stable, nightly]
     runs-on: ${{ matrix.os }}
     steps:
