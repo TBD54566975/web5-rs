@@ -55,7 +55,7 @@ jobs:
       - name: Install MSRV
         run: cargo install cargo-msrv
       - name: MSRV
-        run: cargo msrv --path crates/web5 verify
+        run: cargo msrv --path . verify
   
   test:
     strategy:
