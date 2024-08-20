@@ -36,6 +36,23 @@ jobs:
       - name: Lint
         run: just lint
 
+  msrv:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest] # TODO add back windows-latest https://github.com/TBD54566975/web5-rs/issues/189
+        rust: [stable, nightly]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: MSRV
+        run: cargo msrv verify --min 1.70.0
+  
   test:
     strategy:
       matrix:
