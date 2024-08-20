@@ -22,7 +22,7 @@ import web5.sdk.dids.Document
 import web5.sdk.rust.DocumentMetadataData
 import web5.sdk.rust.ResolutionMetadataData
 
-class Web5TestVectorsProtocolTest {
+class Web5TestVectorsTest {
 
     class TestVectors<I, O>(
         val description: String,
