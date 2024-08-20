@@ -8,7 +8,6 @@ use web5::crypto::dsa::DsaError;
 use web5::crypto::key_managers::KeyManagerError;
 use web5::dids::bearer_did::BearerDidError;
 use web5::dids::methods::MethodError;
-use web5::dids::portable_did::PortableDidError;
 use web5::errors::Web5Error as InnerWeb5Error;
 
 #[derive(Debug, Error)]
@@ -86,12 +85,6 @@ impl From<KeyManagerError> for Web5Error {
 
 impl From<DsaError> for Web5Error {
     fn from(error: DsaError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
-impl From<PortableDidError> for Web5Error {
-    fn from(error: PortableDidError) -> Self {
         Web5Error::new(error)
     }
 }

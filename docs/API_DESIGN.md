@@ -695,7 +695,9 @@ CLASS PortableDid
   DATA MEMBER uri: string
   DATA MEMBER private_jwks: []Jwk
   DATA MEMBER document: Document
-  CONSTRUCTOR(json: string)
+  
+  CONSTRUCTOR from_json_string(json: string)
+  METHOD to_json_string(): string
 ```
 
 ### Example: Create a [`PortableDid`](#portabledid) via the `web5` CLI

@@ -208,9 +208,11 @@ dictionary PortableDidData {
 };
 
 interface PortableDid {
-  [Throws=Web5Error]
+  [Name=from_json_string, Throws=Web5Error]
   constructor([ByRef] string json);
   PortableDidData get_data();
+  [Throws=Web5Error]
+  string to_json_string();
 };
 
 dictionary BearerDidData {

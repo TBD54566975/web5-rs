@@ -6,7 +6,7 @@ use web5::{
         CredentialSubject, Issuer, VerifiableCredential, VerifiableCredentialCreateOptions,
     },
     dids::{bearer_did::BearerDid, portable_did::PortableDid},
-    json::ToJson,
+    json::{FromJson, ToJson},
 };
 
 #[derive(Subcommand, Debug)]
@@ -44,7 +44,9 @@ impl Commands {
                 no_indent,
                 json_escape,
             } => {
-                let portable_did = portable_did.as_ref().map(|p| PortableDid::new(p).unwrap());
+                let portable_did = portable_did
+                    .as_ref()
+                    .map(|p| PortableDid::from_json_string(p).unwrap());
                 let issuer = Issuer::String(match issuer {
                     Some(i) => i.to_string(),
                     None => match &portable_did {
