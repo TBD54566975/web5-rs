@@ -214,6 +214,7 @@ mod test_vectors {
         use crate::crypto::dsa::ed25519::{Ed25519Signer, Ed25519Verifier};
         use crate::crypto::dsa::{Signer, Verifier};
         use crate::crypto::jwk::Jwk;
+        use crate::errors::Web5Error;
 
         #[derive(Debug, serde::Deserialize)]
         struct SignVectorInput {
@@ -263,12 +264,12 @@ mod test_vectors {
         #[test]
         fn verify() {
             let path = "crypto_ed25519/verify.json";
-            let vectors: TestVectorFile<VerifyVectorInput, bool> =
+            let vectors: TestVectorFile<VerifyVectorInput, Option<bool>> =
                 TestVectorFile::load_from_path(path);
 
             for vector in vectors.vectors {
                 let input = vector.input;
-                let expected_output = vector.output;
+                let expected_output_is_valid = vector.output;
 
                 let verifier = Ed25519Verifier::new(input.key);
 
@@ -277,12 +278,31 @@ mod test_vectors {
 
                 let result = verifier.verify(&data, &signature);
 
-                let is_valid = result.expect("Verification should not fail");
-                assert_eq!(
-                    is_valid, expected_output,
-                    "Verification result does not match expected output: {}",
-                    vector.description
-                );
+                match expected_output_is_valid {
+                    Some(true) => {
+                        assert!(
+                            result.is_ok(),
+                            "Verification should succeed: {}",
+                            vector.description
+                        );
+                    }
+                    Some(false) | None => {
+                        match result {
+                            Err(Web5Error::Crypto(_)) => {
+                                // The error is the expected variant, test passes
+                            }
+                            Err(e) => {
+                                panic!("Expected Web5Error::Crypto variant, but got: {:?}", e);
+                            }
+                            Ok(_) => {
+                                panic!(
+                                    "Expected verification to fail, but it succeeded: {}",
+                                    vector.description
+                                );
+                            }
+                        }
+                    }
+                }
             }
         }
 

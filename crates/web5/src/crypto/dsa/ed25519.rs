@@ -118,6 +118,14 @@ impl Ed25519Verifier {
 
 impl Verifier for Ed25519Verifier {
     fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<()> {
+        if let Some(d) = &self.public_jwk.d {
+            if !d.is_empty() {
+                return Err(Web5Error::Crypto(
+                    "provided verification key cannot contain private key material".to_string(),
+                ));
+            }
+        }
+
         let mut public_key_bytes = [0u8; PUBLIC_KEY_LENGTH];
         let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&self.public_jwk.x)?;
 

@@ -1,16 +1,10 @@
-#[cfg(test)]
 use crate::crypto::jwk::Jwk;
-#[cfg(test)]
 use crate::errors::Result;
-#[cfg(test)]
 use crate::errors::Web5Error;
-#[cfg(test)]
 use base64::{engine::general_purpose, Engine as _};
 
-#[cfg(test)]
 pub struct Secp256k1Generator;
 
-#[cfg(test)]
 impl Secp256k1Generator {
     pub fn generate() -> Jwk {
         let signing_key = k256::ecdsa::SigningKey::random(&mut rand::thread_rng());
@@ -31,7 +25,6 @@ impl Secp256k1Generator {
     }
 }
 
-#[cfg(test)]
 pub fn to_public_jwk(jwk: &Jwk) -> Jwk {
     Jwk {
         alg: jwk.alg.clone(),
