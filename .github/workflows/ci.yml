@@ -56,7 +56,7 @@ jobs:
         run: cargo install cargo-msrv
       - name: MSRV
         run: cargo msrv --path crates/web5/ verify
-  
+
   test:
     strategy:
       matrix:
@@ -79,8 +79,12 @@ jobs:
     name: Build aarch64-apple-darwin target
     steps:
       - uses: actions/checkout@v2
-      - name: Install Rust
-        run: rustup toolchain install stable
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: Setup
+        run: just setup
       - name: Run Build Script
         run: |
           cd bindings/web5_uniffi/libtargets/aarch64_apple_darwin
@@ -96,8 +100,12 @@ jobs:
     name: Build x86_64-apple-darwin target
     steps:
       - uses: actions/checkout@v2
-      - name: Install Rust
-        run: rustup toolchain install stable
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: Setup
+        run: just setup
       - name: Run Build Script
         run: |
           cd bindings/web5_uniffi/libtargets/x86_64_apple_darwin

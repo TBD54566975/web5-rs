@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     pkg-config
 
-# Install rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# Install rust with specific rustup version
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path --default-toolchain 1.74.0
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Copy the source code to the container
