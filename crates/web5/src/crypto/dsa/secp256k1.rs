@@ -66,3 +66,53 @@ pub fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
         ..Default::default()
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod generate {
+        use super::*;
+
+        #[test]
+        fn test_must_set_alg() {
+            let jwk = Secp256k1Generator::generate();
+            assert_eq!(jwk.alg, Some("ES256K".to_string()));
+        }
+
+        #[test]
+        fn test_must_set_kty() {
+            let jwk = Secp256k1Generator::generate();
+            assert_eq!(jwk.kty, "EC".to_string());
+        }
+
+        #[test]
+        fn test_must_set_crv() {
+            let jwk = Secp256k1Generator::generate();
+            assert_eq!(jwk.crv, "secp256k1");
+        }
+
+        #[test]
+        fn test_must_set_public_key_with_correct_length() {
+            let jwk = Secp256k1Generator::generate();
+            let x_bytes = general_purpose::URL_SAFE_NO_PAD
+                .decode(&jwk.x)
+                .expect("Failed to decode x coordinate");
+            let y_bytes = general_purpose::URL_SAFE_NO_PAD
+                .decode(jwk.y.as_ref().expect("y coordinate is missing"))
+                .expect("Failed to decode y coordinate");
+            assert_eq!(x_bytes.len(), 32);
+            assert_eq!(y_bytes.len(), 32);
+        }
+
+        #[test]
+        fn test_must_set_private_key_with_correct_length() {
+            let jwk = Secp256k1Generator::generate();
+            let private_key_bytes = jwk.d.expect("Private key is missing");
+            let decoded_private_key_bytes = general_purpose::URL_SAFE_NO_PAD
+                .decode(private_key_bytes)
+                .expect("Failed to decode private key");
+            assert_eq!(decoded_private_key_bytes.len(), 32);
+        }
+    }
+}
