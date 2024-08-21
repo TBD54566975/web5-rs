@@ -79,12 +79,10 @@ jobs:
     name: Build aarch64-apple-darwin target
     steps:
       - uses: actions/checkout@v2
-      - name: Init Hermit
-        uses: cashapp/activate-hermit@v1
-        with:
-          cache: true
-      - name: Setup
-        run: just setup
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
       - name: Run Build Script
         run: |
           cd bindings/web5_uniffi/libtargets/aarch64_apple_darwin
@@ -100,12 +98,10 @@ jobs:
     name: Build x86_64-apple-darwin target
     steps:
       - uses: actions/checkout@v2
-      - name: Init Hermit
-        uses: cashapp/activate-hermit@v1
-        with:
-          cache: true
-      - name: Setup
-        run: just setup
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
       - name: Run Build Script
         run: |
           cd bindings/web5_uniffi/libtargets/x86_64_apple_darwin
