@@ -1,5 +1,5 @@
 use base64::{engine::general_purpose, Engine as _};
-use x25519_dalek::{StaticSecret, PublicKey};
+use x25519_dalek::{PublicKey, StaticSecret};
 
 use super::{DsaError, Result};
 use crate::crypto::jwk::Jwk;
@@ -104,7 +104,7 @@ mod tests {
             let decoded_private_key_bytes = general_purpose::URL_SAFE_NO_PAD
                 .decode(private_key_bytes)
                 .expect("Failed to decode private key");
-            assert_eq!(decoded_private_key_bytes.len(), 32); // X25519 private key length
+            assert_eq!(decoded_private_key_bytes.len(), PUBLIC_KEY_LENGTH);
         }
     }
 }
