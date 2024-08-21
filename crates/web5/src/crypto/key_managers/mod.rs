@@ -1,12 +1,12 @@
+use crate::errors::Web5Error;
+
 pub mod in_memory_key_manager;
 pub mod key_manager;
-
-use crate::crypto::jwk::JwkError;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum KeyManagerError {
     #[error(transparent)]
-    JwkError(#[from] JwkError),
+    Web5Error(#[from] Web5Error),
     #[error("Key generation failed")]
     KeyGenerationFailed,
     #[error("{0}")]

@@ -1,6 +1,6 @@
-use crate::crypto::{dsa::DsaError, jwk::JwkError};
 use crate::dids::data_model::document::Document;
 use crate::dids::data_model::{service::Service, verification_method::VerificationMethod};
+use crate::errors::Web5Error;
 use simple_dns::SimpleDnsError;
 use std::collections::HashMap;
 
@@ -45,14 +45,12 @@ fn reconstitute_verification_relationship(
 /// Errors that can occur when converting between did:dht documents and DNS packets.
 #[derive(thiserror::Error, Debug)]
 pub enum DocumentPacketError {
-    #[error(transparent)]
-    DsaError(#[from] DsaError),
     #[error("DID Document is malformed for did:dht: {0}")]
     DocumentError(String),
     #[error(transparent)]
     Dns(#[from] SimpleDnsError),
     #[error(transparent)]
-    JwkError(#[from] JwkError),
+    Web5Error(#[from] Web5Error),
     #[error("DNS packet was malformed: {0}")]
     RootRecord(String),
     #[error("Could not convert between publicKeyJwk and resource record: {0}")]

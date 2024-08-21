@@ -27,6 +27,7 @@ simple-dns = "0.7.0"
 thiserror = { workspace = true }
 url = "2.5.0"
 uuid = { workspace = true }
+x25519-dalek = { version = "2.0.1", features = ["getrandom", "static_secrets"] }
 zbase32 = "0.1.2"
 lazy_static = "1.5.0"
 

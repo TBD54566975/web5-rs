@@ -22,6 +22,13 @@ dictionary JwkData {
   string? y;
 };
 
+interface Jwk {
+  constructor(JwkData data);
+  JwkData get_data();
+  [Throws=Web5Error]
+  string compute_thumbprint();
+};
+
 [Trait, WithForeign]
 interface KeyManager {
   [Throws=Web5Error]
@@ -50,7 +57,7 @@ interface Signer {
 [Trait, WithForeign]
 interface Verifier {
   [Throws=Web5Error]
-  boolean verify(bytes message, bytes signature);
+  void verify(bytes message, bytes signature);
 };
 
 interface Ed25519Signer {
@@ -62,7 +69,7 @@ interface Ed25519Signer {
 interface Ed25519Verifier {
   constructor(JwkData public_jwk);
   [Throws=Web5Error]
-  boolean verify(bytes message, bytes signature);
+  void verify(bytes message, bytes signature);
 };
 
 dictionary DidData {
@@ -112,8 +119,6 @@ dictionary ServiceData {
 interface Document {
   constructor(DocumentData data);
   DocumentData get_data();
-  [Throws=Web5Error]
-  JwkData find_public_key_jwk(string key_id);
 };
 
 enum ResolutionMetadataError {
@@ -203,9 +208,11 @@ dictionary PortableDidData {
 };
 
 interface PortableDid {
-  [Throws=Web5Error]
+  [Name=from_json_string, Throws=Web5Error]
   constructor([ByRef] string json);
   PortableDidData get_data();
+  [Throws=Web5Error]
+  string to_json_string();
 };
 
 dictionary BearerDidData {

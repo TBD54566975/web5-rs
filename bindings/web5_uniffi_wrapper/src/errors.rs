@@ -4,12 +4,9 @@ use std::{any::type_name, fmt::Debug};
 use thiserror::Error;
 use web5::credentials::presentation_definition::PexError;
 use web5::credentials::CredentialError;
-use web5::crypto::dsa::DsaError;
-use web5::crypto::{jwk::JwkError, key_managers::KeyManagerError};
+use web5::crypto::key_managers::KeyManagerError;
 use web5::dids::bearer_did::BearerDidError;
-use web5::dids::data_model::DataModelError as DidDataModelError;
 use web5::dids::methods::MethodError;
-use web5::dids::portable_did::PortableDidError;
 use web5::errors::Web5Error as InnerWeb5Error;
 
 #[derive(Debug, Error)]
@@ -79,26 +76,8 @@ where
     variant_name.to_string()
 }
 
-impl From<JwkError> for Web5Error {
-    fn from(error: JwkError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
 impl From<KeyManagerError> for Web5Error {
     fn from(error: KeyManagerError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
-impl From<DsaError> for Web5Error {
-    fn from(error: DsaError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
-impl From<PortableDidError> for Web5Error {
-    fn from(error: PortableDidError) -> Self {
         Web5Error::new(error)
     }
 }
@@ -121,12 +100,6 @@ impl From<PexError> for Web5Error {
     }
 }
 
-impl From<DidDataModelError> for Web5Error {
-    fn from(error: DidDataModelError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
 impl From<BearerDidError> for Web5Error {
     fn from(error: BearerDidError) -> Self {
         Web5Error::new(error)
@@ -144,13 +117,7 @@ impl From<Web5Error> for KeyManagerError {
         let variant = error.variant();
         let msg = error.msg();
 
-        if variant
-            == variant_name(&KeyManagerError::JwkError(JwkError::ThumbprintFailed(
-                String::default(),
-            )))
-        {
-            return KeyManagerError::JwkError(JwkError::ThumbprintFailed(msg.to_string()));
-        } else if variant == variant_name(&KeyManagerError::KeyGenerationFailed) {
+        if variant == variant_name(&KeyManagerError::KeyGenerationFailed) {
             return KeyManagerError::KeyGenerationFailed;
         } else if variant
             == variant_name(&KeyManagerError::InternalKeyStoreError(String::default()))
@@ -164,32 +131,26 @@ impl From<Web5Error> for KeyManagerError {
     }
 }
 
-impl From<Web5Error> for DsaError {
+impl From<Web5Error> for InnerWeb5Error {
     fn from(error: Web5Error) -> Self {
         let variant = error.variant();
         let msg = error.msg();
 
-        if variant == variant_name(&DsaError::MissingPrivateKey) {
-            return DsaError::MissingPrivateKey;
-        } else if variant == variant_name(&DsaError::DecodeError(String::default())) {
-            return DsaError::DecodeError(msg);
-        } else if variant == variant_name(&DsaError::InvalidKeyLength(String::default())) {
-            return DsaError::InvalidKeyLength(msg);
-        } else if variant == variant_name(&DsaError::InvalidSignatureLength(String::default())) {
-            return DsaError::InvalidSignatureLength(msg);
-        } else if variant == variant_name(&DsaError::PublicKeyFailure(String::default())) {
-            return DsaError::PublicKeyFailure(msg);
-        } else if variant == variant_name(&DsaError::PrivateKeyFailure(String::default())) {
-            return DsaError::PrivateKeyFailure(msg);
-        } else if variant == variant_name(&DsaError::VerificationFailure(String::default())) {
-            return DsaError::VerificationFailure(msg);
-        } else if variant == variant_name(&DsaError::SignFailure(String::default())) {
-            return DsaError::SignFailure(msg);
-        } else if variant == variant_name(&DsaError::UnsupportedDsa) {
-            return DsaError::UnsupportedDsa;
+        if variant == variant_name(&InnerWeb5Error::Json(String::default())) {
+            return InnerWeb5Error::Json(msg);
+        } else if variant == variant_name(&InnerWeb5Error::Parameter(String::default())) {
+            return InnerWeb5Error::Parameter(msg);
+        } else if variant == variant_name(&InnerWeb5Error::DataMember(String::default())) {
+            return InnerWeb5Error::DataMember(msg);
+        } else if variant == variant_name(&InnerWeb5Error::NotFound(String::default())) {
+            return InnerWeb5Error::NotFound(msg);
+        } else if variant == variant_name(&InnerWeb5Error::Crypto(String::default())) {
+            return InnerWeb5Error::Crypto(msg);
+        } else if variant == variant_name(&InnerWeb5Error::Encoding(String::default())) {
+            return InnerWeb5Error::Encoding(msg);
         }
 
-        DsaError::Unknown
+        InnerWeb5Error::Unknown(format!("unknown variant {} with msg {}", variant, msg))
     }
 }
 

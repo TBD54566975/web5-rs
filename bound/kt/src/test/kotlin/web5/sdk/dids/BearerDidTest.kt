@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import web5.sdk.crypto.keys.InMemoryKeyManager
+import web5.sdk.crypto.keys.Jwk
 import web5.sdk.dids.methods.jwk.DidJwk
 import web5.sdk.rust.ed25519GeneratorGenerate
 
@@ -14,7 +15,7 @@ class BearerDidTest {
         val privateJwk = ed25519GeneratorGenerate()
 
         val keyManager = InMemoryKeyManager(listOf())
-        val publicJwk = keyManager.importPrivateJwk(privateJwk)
+        val publicJwk = keyManager.importPrivateJwk(Jwk.fromRustCoreJwkData(privateJwk))
 
         val didJwk = DidJwk(publicJwk)
 
@@ -28,7 +29,7 @@ class BearerDidTest {
         val privateJwk = ed25519GeneratorGenerate()
 
         val keyManager = InMemoryKeyManager(listOf())
-        val publicJwk = keyManager.importPrivateJwk(privateJwk)
+        val publicJwk = keyManager.importPrivateJwk(Jwk.fromRustCoreJwkData(privateJwk))
 
         val didJwk = DidJwk(publicJwk)
 
