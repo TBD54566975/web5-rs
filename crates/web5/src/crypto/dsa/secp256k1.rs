@@ -66,4 +66,3 @@ pub fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
         ..Default::default()
     })
 }
-

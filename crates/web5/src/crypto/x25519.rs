@@ -1,8 +1,7 @@
 use base64::{engine::general_purpose, Engine as _};
 use x25519_dalek::{PublicKey, StaticSecret};
 
-use super::{DsaError, Result};
-use crate::crypto::jwk::Jwk;
+use crate::{crypto::jwk::Jwk, errors::Result, errors::Web5Error};
 
 const PUBLIC_KEY_LENGTH: usize = 32;
 
@@ -27,10 +26,15 @@ impl X25519Generator {
 }
 
 pub(crate) fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
-    let x_bytes = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
+    let x_bytes = general_purpose::URL_SAFE_NO_PAD
+        .decode(&jwk.x)
+        .map_err(|e| Web5Error::Parameter(e.to_string()))?;
 
     if x_bytes.len() != PUBLIC_KEY_LENGTH {
-        return Err(DsaError::InvalidKeyLength(PUBLIC_KEY_LENGTH.to_string()));
+        return Err(Web5Error::Parameter(format!(
+            "Public key has incorrect length {}",
+            PUBLIC_KEY_LENGTH
+        )));
     }
 
     let mut public_key_bytes = [0u8; 32];
@@ -41,7 +45,7 @@ pub(crate) fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
 
 pub(crate) fn public_jwk_from_bytes(public_key_bytes: &[u8]) -> Result<Jwk> {
     if public_key_bytes.len() != PUBLIC_KEY_LENGTH {
-        return Err(DsaError::PublicKeyFailure(format!(
+        return Err(Web5Error::Parameter(format!(
             "Public key has incorrect length {}",
             PUBLIC_KEY_LENGTH
         )));

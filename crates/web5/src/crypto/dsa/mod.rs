@@ -1,6 +1,5 @@
 pub mod ed25519;
 pub(crate) mod secp256k1;
-pub mod x25519;
 
 use base64::DecodeError;
 
