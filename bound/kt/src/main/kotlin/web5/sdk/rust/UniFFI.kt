@@ -647,7 +647,7 @@ internal interface UniffiCallbackInterfaceSignerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`payload`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceVerifierMethod0 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,`uniffiOutReturn`: ByteByReference,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 @Structure.FieldOrder("getSigner", "uniffiFree")
 internal open class UniffiVTableCallbackInterfaceKeyManager(
@@ -985,7 +985,7 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_uniffi_fn_constructor_ed25519verifier_new(`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_ed25519verifier_verify(`ptr`: Pointer,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
+    ): Unit
     fun uniffi_web5_uniffi_fn_clone_inmemorykeymanager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_inmemorykeymanager(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1067,7 +1067,7 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_uniffi_fn_init_callback_vtable_verifier(`vtable`: UniffiVTableCallbackInterfaceVerifier,
     ): Unit
     fun uniffi_web5_uniffi_fn_method_verifier_verify(`ptr`: Pointer,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
+    ): Unit
     fun uniffi_web5_uniffi_fn_func_did_dht_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_func_did_jwk_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1341,7 +1341,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_ed25519signer_sign() != 7079.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_ed25519verifier_verify() != 48256.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_ed25519verifier_verify() != 54498.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_as_key_manager() != 57819.toShort()) {
@@ -1383,7 +1383,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data() != 34047.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_verifier_verify() != 49443.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_verifier_verify() != 51688.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_bearerdid_from_portable_did() != 49122.toShort()) {
@@ -3592,7 +3592,7 @@ public object FfiConverterTypeEd25519Signer: FfiConverter<Ed25519Signer, Pointer
 
 public interface Ed25519VerifierInterface {
     
-    fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray): kotlin.Boolean
+    fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray)
     
     companion object
 }
@@ -3686,16 +3686,15 @@ open class Ed25519Verifier: Disposable, AutoCloseable, Ed25519VerifierInterface 
     }
 
     
-    @Throws(Web5Exception::class)override fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
+    @Throws(Web5Exception::class)override fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray)
+        = 
     callWithPointer {
     uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_ed25519verifier_verify(
         it, FfiConverterByteArray.lower(`message`),FfiConverterByteArray.lower(`signature`),_status)
 }
     }
-    )
-    }
+    
     
 
     
@@ -5926,7 +5925,7 @@ public object FfiConverterTypeVerifiableCredential: FfiConverter<VerifiableCrede
 
 public interface Verifier {
     
-    fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray): kotlin.Boolean
+    fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray)
     
     companion object
 }
@@ -6013,16 +6012,15 @@ open class VerifierImpl: Disposable, AutoCloseable, Verifier {
     }
 
     
-    @Throws(Web5Exception::class)override fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
+    @Throws(Web5Exception::class)override fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray)
+        = 
     callWithPointer {
     uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifier_verify(
         it, FfiConverterByteArray.lower(`message`),FfiConverterByteArray.lower(`signature`),_status)
 }
     }
-    )
-    }
+    
     
 
     
@@ -6037,7 +6035,7 @@ open class VerifierImpl: Disposable, AutoCloseable, Verifier {
 // Put the implementation in an object so we don't pollute the top-level namespace
 internal object uniffiCallbackInterfaceVerifier {
     internal object `verify`: UniffiCallbackInterfaceVerifierMethod0 {
-        override fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,`uniffiOutReturn`: ByteByReference,uniffiCallStatus: UniffiRustCallStatus,) {
+        override fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeVerifier.handleMap.get(uniffiHandle)
             val makeCall = { ->
                 uniffiObj.`verify`(
@@ -6045,7 +6043,7 @@ internal object uniffiCallbackInterfaceVerifier {
                     FfiConverterByteArray.lift(`signature`),
                 )
             }
-            val writeReturn = { value: kotlin.Boolean -> uniffiOutReturn.setValue(FfiConverterBoolean.lower(value)) }
+            val writeReturn = { _: Unit -> Unit }
             uniffiTraitInterfaceCallWithError(
                 uniffiCallStatus,
                 makeCall,

@@ -6,7 +6,7 @@ use crate::rfc3339::{
     serialize_system_time,
 };
 use crate::{
-    crypto::dsa::{ed25519::Ed25519Verifier, DsaError, Signer, Verifier},
+    crypto::dsa::{ed25519::Ed25519Verifier, Signer, Verifier},
     dids::{
         bearer_did::BearerDid,
         did::Did,
@@ -515,18 +515,9 @@ impl JosekitJwsVerifier for JoseVerifier {
     }
 
     fn verify(&self, message: &[u8], signature: &[u8]) -> core::result::Result<(), JosekitError> {
-        let result = self
-            .verifier
+        self.verifier
             .verify(message, signature)
-            .map_err(|e| JosekitError::InvalidSignature(e.into()))?;
-
-        match result {
-            true => Ok(()),
-            false => Err(JosekitError::InvalidSignature(
-                // 🚧 improve error message semantics
-                DsaError::VerificationFailure("ed25519 verification failed".to_string()).into(),
-            )),
-        }
+            .map_err(|e| JosekitError::InvalidSignature(e.into()))
     }
 
     fn box_clone(&self) -> Box<dyn JosekitJwsVerifier> {

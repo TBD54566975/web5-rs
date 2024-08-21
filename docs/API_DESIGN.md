@@ -266,7 +266,7 @@ INTERFACE Signer
 /// Set of functionality required to implement to be a compatible DSA verifier.
 INTERFACE Verifier
   /// Execute the verification of the signature against the payload by using the encapsulated public key material.
-  METHOD verify(payload: []byte, signature: []byte): bool
+  METHOD verify(payload: []byte, signature: []byte)
 ```
 
 ### `Ed25519Generator`
@@ -299,7 +299,6 @@ CLASS Ed25519Verifier IMPLEMENTS Verifier
   /// Implementation of Verifier's dsa_verify instance method for Ed25519.
   METHOD verify(payload: []byte): bool
 ```
-
 
 ### `Secp256k1Generator`
 

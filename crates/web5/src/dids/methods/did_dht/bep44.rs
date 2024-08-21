@@ -3,7 +3,10 @@ use std::{
     time::{SystemTime, SystemTimeError, UNIX_EPOCH},
 };
 
-use crate::crypto::dsa::{ed25519::Ed25519Verifier, DsaError, Verifier};
+use crate::{
+    crypto::dsa::{ed25519::Ed25519Verifier, Verifier},
+    errors::Web5Error,
+};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
 /// Minimum size of a bep44 encoded message
@@ -18,15 +21,15 @@ const MAX_MESSAGE_LEN: usize = MAX_V_LEN + MIN_MESSAGE_LEN;
 #[derive(thiserror::Error, Debug)]
 pub enum Bep44EncodingError {
     #[error(transparent)]
-    SystemTimeError(#[from] SystemTimeError),
+    SystemTime(#[from] SystemTimeError),
     #[error(transparent)]
-    DsaError(#[from] DsaError),
+    Web5Error(#[from] Web5Error),
     #[error("Failure creating DID: {0}")]
-    BigEndianError(String),
+    BigEndian(String),
     #[error(
         "Message must have size between {MIN_MESSAGE_LEN} and {MAX_MESSAGE_LEN} but got size {0}"
     )]
-    SizeError(usize),
+    Size(usize),
 }
 
 #[derive(Debug, PartialEq)]
@@ -50,17 +53,17 @@ fn signable(seq: u64, message: &[u8]) -> Vec<u8> {
 
 fn encode_seq(seq: u64) -> Result<Vec<u8>, Bep44EncodingError> {
     let mut seq_bytes = vec![];
-    seq_bytes.write_u64::<BigEndian>(seq).map_err(|_| {
-        Bep44EncodingError::BigEndianError("Failed to write big endian seq".to_string())
-    })?;
+    seq_bytes
+        .write_u64::<BigEndian>(seq)
+        .map_err(|_| Bep44EncodingError::BigEndian("Failed to write big endian seq".to_string()))?;
     Ok(seq_bytes)
 }
 
 fn decode_seq(seq_bytes: &[u8]) -> Result<u64, Bep44EncodingError> {
     let mut rdr = Cursor::new(seq_bytes);
-    let seq = rdr.read_u64::<BigEndian>().map_err(|_| {
-        Bep44EncodingError::BigEndianError("Failed to read big endian seq".to_string())
-    })?;
+    let seq = rdr
+        .read_u64::<BigEndian>()
+        .map_err(|_| Bep44EncodingError::BigEndian("Failed to read big endian seq".to_string()))?;
     Ok(seq)
 }
 
@@ -76,11 +79,11 @@ fn decode_seq(seq_bytes: &[u8]) -> Result<u64, Bep44EncodingError> {
 impl Bep44Message {
     pub fn new<F>(message: &[u8], sign: F) -> Result<Self, Bep44EncodingError>
     where
-        F: Fn(Vec<u8>) -> Result<Vec<u8>, DsaError>,
+        F: Fn(Vec<u8>) -> Result<Vec<u8>, Web5Error>,
     {
         let message_len = message.len();
         if message_len > MAX_V_LEN {
-            return Err(Bep44EncodingError::SizeError(message_len));
+            return Err(Bep44EncodingError::Size(message_len));
         }
 
         let seq = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
@@ -109,7 +112,7 @@ impl Bep44Message {
     pub fn decode(message_bytes: &[u8]) -> Result<Self, Bep44EncodingError> {
         let message_len = message_bytes.len();
         if !(MIN_MESSAGE_LEN..=MAX_MESSAGE_LEN).contains(&message_len) {
-            return Err(Bep44EncodingError::SizeError(message_len));
+            return Err(Bep44EncodingError::Size(message_len));
         }
 
         let sig = &message_bytes[0..64];
@@ -125,13 +128,7 @@ impl Bep44Message {
 
     pub fn verify(&self, verifier: &Ed25519Verifier) -> Result<(), Bep44EncodingError> {
         let signable = signable(self.seq, &self.v);
-        let is_verified = verifier.verify(&signable, &self.sig)?;
-
-        if !is_verified {
-            return Err(Bep44EncodingError::DsaError(DsaError::VerificationFailure(
-                "bep44 verification failure".to_string(),
-            )));
-        }
+        verifier.verify(&signable, &self.sig)?;
 
         Ok(())
     }
@@ -154,14 +151,16 @@ mod tests {
         let signer = Ed25519Signer::new(private_jwk.clone());
 
         let result_bep44_message =
-            Bep44Message::new(message, |payload| -> Result<Vec<u8>, DsaError> {
+            Bep44Message::new(message, |payload| -> Result<Vec<u8>, Web5Error> {
                 signer.sign(&payload)
             });
         assert!(result_bep44_message.is_ok());
 
         let bep44_message = result_bep44_message.unwrap();
 
-        let verifier = Ed25519Verifier::new(private_jwk);
+        let mut public_jwk = private_jwk.clone();
+        public_jwk.d = None;
+        let verifier = Ed25519Verifier::new(public_jwk);
         let verify_result = bep44_message.verify(&verifier);
         assert!(verify_result.is_ok());
     }
@@ -169,11 +168,11 @@ mod tests {
     #[test]
     fn test_new_message_too_big() {
         let too_big = vec![0; 10_000];
-        let error = Bep44Message::new(&too_big, |_| -> Result<Vec<u8>, DsaError> { Ok(vec![]) })
+        let error = Bep44Message::new(&too_big, |_| -> Result<Vec<u8>, Web5Error> { Ok(vec![]) })
             .expect_err("Should have returned error for malformed signature");
 
         match error {
-            Bep44EncodingError::SizeError(size) => assert_eq!(size, 10_000),
+            Bep44EncodingError::Size(size) => assert_eq!(size, 10_000),
             _ => panic!(),
         }
     }
@@ -182,13 +181,13 @@ mod tests {
     fn test_new_sign_fails() {
         let message = "Hello World".as_bytes();
 
-        let error = Bep44Message::new(message, |_| -> Result<Vec<u8>, DsaError> {
-            Err(DsaError::UnsupportedDsa)
+        let error = Bep44Message::new(message, |_| -> Result<Vec<u8>, Web5Error> {
+            Err(Web5Error::Parameter("some example error".to_string()))
         })
         .expect_err("Should have returned error for malformed signature");
 
         match error {
-            Bep44EncodingError::DsaError(_) => {}
+            Bep44EncodingError::Web5Error(_) => {}
             _ => panic!(),
         }
     }
@@ -201,7 +200,7 @@ mod tests {
         let signer = Ed25519Signer::new(private_jwk.clone());
 
         let mut bep44_message =
-            Bep44Message::new(message, |payload| -> Result<Vec<u8>, DsaError> {
+            Bep44Message::new(message, |payload| -> Result<Vec<u8>, Web5Error> {
                 signer.sign(&payload)
             })
             .unwrap();
@@ -220,7 +219,7 @@ mod tests {
         let private_jwk = Ed25519Generator::generate();
         let signer = Ed25519Signer::new(private_jwk);
 
-        let bep44_message = Bep44Message::new(message, |payload| -> Result<Vec<u8>, DsaError> {
+        let bep44_message = Bep44Message::new(message, |payload| -> Result<Vec<u8>, Web5Error> {
             signer.sign(&payload)
         })
         .unwrap();
@@ -239,7 +238,7 @@ mod tests {
         let error = Bep44Message::decode(&too_short)
             .expect_err("Should error because bep44 message is too short");
         match error {
-            Bep44EncodingError::SizeError(_) => {}
+            Bep44EncodingError::Size(_) => {}
             _ => panic!(),
         }
 
@@ -247,7 +246,7 @@ mod tests {
         let error = Bep44Message::decode(&too_long)
             .expect_err("Should error because bep44 message is too long");
         match error {
-            Bep44EncodingError::SizeError(_) => {}
+            Bep44EncodingError::Size(_) => {}
             _ => panic!(),
         }
     }

@@ -1,11 +1,10 @@
-use super::{DsaError, Result};
 use crate::crypto::jwk::Jwk;
+use crate::errors::Result;
+use crate::errors::Web5Error;
 use base64::{engine::general_purpose, Engine as _};
 
-#[cfg(test)]
 pub struct Secp256k1Generator;
 
-#[cfg(test)]
 impl Secp256k1Generator {
     pub fn generate() -> Jwk {
         let signing_key = k256::ecdsa::SigningKey::random(&mut rand::thread_rng());
@@ -43,7 +42,7 @@ pub fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     let decoded_y = general_purpose::URL_SAFE_NO_PAD.decode(
         jwk.y
             .as_ref()
-            .ok_or(DsaError::PublicKeyFailure("missing y".to_string()))?,
+            .ok_or(Web5Error::Parameter("missing y".to_string()))?,
     )?;
 
     let mut pk_bytes = Vec::with_capacity(1 + decoded_x.len() + decoded_y.len());

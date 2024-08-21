@@ -38,7 +38,7 @@ impl Ed25519Verifier {
 }
 
 impl Verifier for Ed25519Verifier {
-    fn verify(&self, payload: Vec<u8>, signature: Vec<u8>) -> Result<bool> {
+    fn verify(&self, payload: Vec<u8>, signature: Vec<u8>) -> Result<()> {
         Ok(self.0.verify(&payload, &signature)?)
     }
 }

@@ -1,4 +1,3 @@
-use crate::crypto::dsa::DsaError;
 use crate::dids::data_model::document::Document;
 use crate::dids::data_model::{service::Service, verification_method::VerificationMethod};
 use crate::errors::Web5Error;
@@ -46,8 +45,6 @@ fn reconstitute_verification_relationship(
 /// Errors that can occur when converting between did:dht documents and DNS packets.
 #[derive(thiserror::Error, Debug)]
 pub enum DocumentPacketError {
-    #[error(transparent)]
-    DsaError(#[from] DsaError),
     #[error("DID Document is malformed for did:dht: {0}")]
     DocumentError(String),
     #[error(transparent)]

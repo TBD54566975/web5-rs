@@ -57,7 +57,7 @@ interface Signer {
 [Trait, WithForeign]
 interface Verifier {
   [Throws=Web5Error]
-  boolean verify(bytes message, bytes signature);
+  void verify(bytes message, bytes signature);
 };
 
 interface Ed25519Signer {
@@ -69,7 +69,7 @@ interface Ed25519Signer {
 interface Ed25519Verifier {
   constructor(JwkData public_jwk);
   [Throws=Web5Error]
-  boolean verify(bytes message, bytes signature);
+  void verify(bytes message, bytes signature);
 };
 
 dictionary DidData {
