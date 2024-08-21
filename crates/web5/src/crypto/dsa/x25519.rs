@@ -28,9 +28,7 @@ impl X25519Generator {
     }
 }
 
-
-
-pub fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
+pub(crate) fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     let x_bytes = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
 
     if x_bytes.len() != PUBLIC_KEY_LENGTH {
@@ -43,7 +41,7 @@ pub fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     Ok(public_key_bytes.to_vec())
 }
 
-pub fn public_jwk_from_bytes(public_key_bytes: &[u8]) -> Result<Jwk> {
+pub(crate) fn public_jwk_from_bytes(public_key_bytes: &[u8]) -> Result<Jwk> {
     if public_key_bytes.len() != PUBLIC_KEY_LENGTH {
         return Err(DsaError::PublicKeyFailure(format!(
             "Public key has incorrect length {}",
