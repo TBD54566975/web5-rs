@@ -19,7 +19,7 @@ const MAX_MESSAGE_LEN: usize = MAX_V_LEN + MIN_MESSAGE_LEN;
 
 /// Errors that can occur when working with Bep44 messages for did:dht.
 #[derive(thiserror::Error, Debug)]
-pub(crate) enum Bep44EncodingError {
+pub enum Bep44EncodingError {
     #[error(transparent)]
     SystemTime(#[from] SystemTimeError),
     #[error(transparent)]
@@ -33,7 +33,7 @@ pub(crate) enum Bep44EncodingError {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct Bep44Message {
+pub struct Bep44Message {
     /// The sequence number of the message, used to ensure the latest version of
     /// the data is retrieved and updated. It's a monotonically increasing number.
     pub seq: u64,
