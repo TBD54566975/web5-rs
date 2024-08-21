@@ -8,7 +8,7 @@ setup:
     git submodule update --init --recursive
   fi
   if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
-    rustup default 1.74.0
+    rustup default 1.75.0
     rustup target add aarch64-apple-darwin
   fi
 
