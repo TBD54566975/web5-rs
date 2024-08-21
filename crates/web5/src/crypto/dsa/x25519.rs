@@ -9,22 +9,20 @@ const PUBLIC_KEY_LENGTH: usize = 32;
 pub struct X25519Generator;
 
 impl X25519Generator {
-    pub fn generate() -> Result<Jwk> {
+    pub fn generate() -> Jwk {
         let private_key = StaticSecret::random();
         let public_key = PublicKey::from(&private_key);
         let x = general_purpose::URL_SAFE_NO_PAD.encode(public_key.as_bytes());
         let d = general_purpose::URL_SAFE_NO_PAD.encode(private_key.as_bytes());
 
-        let public_key_jwk = Jwk {
+        Jwk {
             alg: Some("ECDH-ES+A256KW".to_string()),
             kty: "OKP".to_string(),
             crv: "X25519".to_string(),
             d: Some(d),
             x,
             y: None,
-        };
-
-        Ok(public_key_jwk)
+        }
     }
 }
 
@@ -72,25 +70,25 @@ mod tests {
 
         #[test]
         fn test_must_set_alg() {
-            let jwk = X25519Generator::generate().unwrap();
+            let jwk = X25519Generator::generate();
             assert_eq!(jwk.alg, Some("ECDH-ES+A256KW".to_string()));
         }
 
         #[test]
         fn test_must_set_kty() {
-            let jwk = X25519Generator::generate().unwrap();
+            let jwk = X25519Generator::generate();
             assert_eq!(jwk.kty, "OKP".to_string());
         }
 
         #[test]
         fn test_must_set_crv() {
-            let jwk = X25519Generator::generate().unwrap();
+            let jwk = X25519Generator::generate();
             assert_eq!(jwk.crv, "X25519");
         }
 
         #[test]
         fn test_must_set_public_key_with_correct_length() {
-            let jwk = X25519Generator::generate().unwrap();
+            let jwk = X25519Generator::generate();
             let public_key_bytes = general_purpose::URL_SAFE_NO_PAD
                 .decode(&jwk.x)
                 .expect("Failed to decode public key");
@@ -99,7 +97,7 @@ mod tests {
 
         #[test]
         fn test_must_set_private_key_with_correct_length() {
-            let jwk = X25519Generator::generate().unwrap();
+            let jwk = X25519Generator::generate();
             let private_key_bytes = jwk.d.expect("Private key is missing");
             let decoded_private_key_bytes = general_purpose::URL_SAFE_NO_PAD
                 .decode(private_key_bytes)
