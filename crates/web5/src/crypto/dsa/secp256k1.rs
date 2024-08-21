@@ -3,12 +3,9 @@ use crate::errors::Result;
 use crate::errors::Web5Error;
 use base64::{engine::general_purpose, Engine as _};
 
-#[cfg(test)]
 pub struct Secp256k1Generator;
 
-#[cfg(test)]
 impl Secp256k1Generator {
-    #[cfg(test)]
     pub fn generate() -> Jwk {
         let signing_key = k256::ecdsa::SigningKey::random(&mut rand::thread_rng());
         let verifying_key = signing_key.verifying_key();
