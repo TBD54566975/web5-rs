@@ -158,7 +158,9 @@ mod tests {
 
         let bep44_message = result_bep44_message.unwrap();
 
-        let verifier = Ed25519Verifier::new(private_jwk);
+        let mut public_jwk = private_jwk.clone();
+        public_jwk.d = None;
+        let verifier = Ed25519Verifier::new(public_jwk);
         let verify_result = bep44_message.verify(&verifier);
         assert!(verify_result.is_ok());
     }

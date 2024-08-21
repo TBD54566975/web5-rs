@@ -25,6 +25,7 @@ impl Secp256k1Generator {
     }
 }
 
+#[cfg(test)]
 pub fn to_public_jwk(jwk: &Jwk) -> Jwk {
     Jwk {
         alg: jwk.alg.clone(),

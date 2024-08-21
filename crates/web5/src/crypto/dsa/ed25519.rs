@@ -327,6 +327,13 @@ mod tests {
         static TEST_SUITE: LazyLock<UnitTestSuite> =
             LazyLock::new(|| UnitTestSuite::new("ed25519_verify"));
 
+        fn generate_keys() -> (Jwk, Jwk) {
+            let private_jwk = Ed25519Generator::generate();
+            let mut public_jwk = private_jwk.clone();
+            public_jwk.d = None;
+            (public_jwk, private_jwk)
+        }
+
         #[test]
         fn z_assert_all_suite_cases_covered() {
             std::thread::sleep(std::time::Duration::from_millis(100));
@@ -337,9 +344,9 @@ mod tests {
         fn test_with_valid_signature() {
             TEST_SUITE.include(test_name!());
 
-            let jwk = Ed25519Generator::generate();
-            let signer = Ed25519Signer::new(jwk.clone());
-            let verifier = Ed25519Verifier::new(jwk);
+            let (public_jwk, private_jwk) = generate_keys();
+            let signer = Ed25519Signer::new(private_jwk);
+            let verifier = Ed25519Verifier::new(public_jwk);
 
             let message = b"Test message";
             let signature = signer.sign(message).expect("Signing failed");
@@ -353,11 +360,35 @@ mod tests {
         }
 
         #[test]
+        fn test_with_private_key() {
+            TEST_SUITE.include(test_name!());
+
+            let (_, private_jwk) = generate_keys();
+            let verifier = Ed25519Verifier::new(private_jwk); // this is not allowed
+
+            let message = b"Test message";
+            let invalid_signature = vec![0u8; SIGNATURE_LENGTH - 1]; // invalid length
+
+            let verify_result = verifier.verify(message, &invalid_signature);
+
+            assert!(
+                verify_result.is_err(),
+                "Verification should fail with private key not allowed"
+            );
+            assert_eq!(
+                verify_result.unwrap_err(),
+                Web5Error::Crypto(
+                    "provided verification key cannot contain private key material".to_string()
+                )
+            );
+        }
+
+        #[test]
         fn test_with_invalid_signature() {
             TEST_SUITE.include(test_name!());
 
-            let jwk = Ed25519Generator::generate();
-            let verifier = Ed25519Verifier::new(jwk);
+            let (public_jwk, _) = generate_keys();
+            let verifier = Ed25519Verifier::new(public_jwk);
 
             let message = b"Test message";
             let invalid_signature = vec![0u8; SIGNATURE_LENGTH]; // an obviously invalid signature
@@ -378,17 +409,14 @@ mod tests {
         fn test_with_invalid_public_key() {
             TEST_SUITE.include(test_name!());
 
-            let jwk = Ed25519Generator::generate();
-            let mut invalid_jwk = jwk.clone();
+            let (mut public_jwk, private_jwk) = generate_keys();
+            public_jwk.x = URL_SAFE_NO_PAD.encode(&[0u8; PUBLIC_KEY_LENGTH - 1]);
 
-            // Set an invalid public key (wrong length)
-            invalid_jwk.x = URL_SAFE_NO_PAD.encode(&[0u8; PUBLIC_KEY_LENGTH - 1]);
+            let signer = Ed25519Signer::new(private_jwk);
+            let verifier = Ed25519Verifier::new(public_jwk);
 
-            let verifier = Ed25519Verifier::new(invalid_jwk);
             let message = b"Test message";
-            let signature = Ed25519Signer::new(jwk)
-                .sign(message)
-                .expect("Signing failed");
+            let signature = signer.sign(message).expect("Signing failed");
 
             let verify_result = verifier.verify(message, &signature);
 
@@ -410,8 +438,8 @@ mod tests {
         fn test_with_invalid_signature_length() {
             TEST_SUITE.include(test_name!());
 
-            let jwk = Ed25519Generator::generate();
-            let verifier = Ed25519Verifier::new(jwk);
+            let (public_jwk, _) = generate_keys();
+            let verifier = Ed25519Verifier::new(public_jwk);
 
             let message = b"Test message";
             let invalid_signature = vec![0u8; SIGNATURE_LENGTH - 1]; // invalid length
