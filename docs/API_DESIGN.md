@@ -32,6 +32,15 @@
     - [`Ed25519Generator`](#ed25519generator)
     - [`Ed25519Signer`](#ed25519signer)
     - [`Ed25519Verifier`](#ed25519verifier)
+    - [`Secp256k1Generator`](#secp256k1generator)
+    - [`Secp256k1Signer`](#secp256k1signer)
+    - [`Secp256k1Verifier`](#secp256k1verifier)
+    - [`X25519Generator`](#x25519generator)
+    - [`X25519Signer`](#x25519signer)
+    - [`X25519Verifier`](#x25519verifier)
+    - [`Secp256r1Generator`](#secp256r1generator)
+    - [`Secp256r1Signer`](#secp256r1signer)
+    - [`Secp256r1Verifier`](#secp256r1verifier)
 - [Decentralized Identifier's (DIDs)](#decentralized-identifiers-dids)
   - [`Did`](#did)
     - [Example: Instantiate from a `did:dht`](#example-instantiate-from-a-diddht)
@@ -290,6 +299,102 @@ CLASS Ed25519Verifier IMPLEMENTS Verifier
   CONSTRUCTOR(public_jwk: Jwk)
 
   /// Implementation of Verifier's dsa_verify instance method for Ed25519.
+  METHOD verify(payload: []byte): bool
+```
+
+
+### `Secp256k1Generator`
+
+```pseudocode!
+/// Generates private key material for Secp256k1.
+CLASS Secp256k1Generator
+  /// Generate the private key material; return Jwk includes private key material.
+  STATIC METHOD generate(): Jwk
+```
+
+### `Secp256k1Signer`
+
+```pseudocode!
+/// Implementation of [`Signer`](#signer) for Secp256k1.
+CLASS Secp256k1Signer IMPLEMENTS Signer
+  CONSTRUCTOR(private_jwk: Jwk)
+
+  /// Implementation of Signer's sign instance method for Secp256k1.
+  METHOD sign(payload: []byte): []byte
+```
+
+### `Secp256k1Verifier`
+
+```pseudocode!
+/// Implementation of [`Verifier`](#verifier) for Secp256k1.
+CLASS Secp256k1Verifier IMPLEMENTS Verifier
+  CONSTRUCTOR(public_jwk: Jwk)
+
+  /// Implementation of Verifier's dsa_verify instance method for Secp256k1.
+  METHOD verify(payload: []byte): bool
+```
+
+
+### `X25519Generator`
+
+```pseudocode!
+/// Generates private key material for X25519.
+CLASS Ed25519Generator
+  /// Generate the private key material; return Jwk includes private key material.
+  STATIC METHOD generate(): Jwk
+```
+
+### `X25519Signer`
+
+```pseudocode!
+/// Implementation of [`Signer`](#signer) for X25519.
+CLASS X25519Signer IMPLEMENTS Signer
+  CONSTRUCTOR(private_jwk: Jwk)
+
+  /// Implementation of Signer's sign instance method for X25519.
+  METHOD sign(payload: []byte): []byte
+```
+
+### `X25519Verifier`
+
+```pseudocode!
+/// Implementation of [`Verifier`](#verifier) for X25519.
+CLASS X25519Verifier IMPLEMENTS Verifier
+  CONSTRUCTOR(public_jwk: Jwk)
+
+  /// Implementation of Verifier's dsa_verify instance method for X25519.
+  METHOD verify(payload: []byte): bool
+```
+
+
+### `Secp256r1Generator`
+
+```pseudocode!
+/// Generates private key material for Secp256r1.
+CLASS Secp256r1Generator
+  /// Generate the private key material; return Jwk includes private key material.
+  STATIC METHOD generate(): Jwk
+```
+
+### `Secp256r1Signer`
+
+```pseudocode!
+/// Implementation of [`Signer`](#signer) for Secp256r1.
+CLASS Secp256r1Signer IMPLEMENTS Signer
+  CONSTRUCTOR(private_jwk: Jwk)
+
+  /// Implementation of Signer's sign instance method for Secp256r1.
+  METHOD sign(payload: []byte): []byte
+```
+
+### `Secp256r1Verifier`
+
+```pseudocode!
+/// Implementation of [`Verifier`](#verifier) for Secp256r1.
+CLASS Secp256r1Verifier IMPLEMENTS Verifier
+  CONSTRUCTOR(public_jwk: Jwk)
+
+  /// Implementation of Verifier's dsa_verify instance method for Secp256r1.
   METHOD verify(payload: []byte): bool
 ```
 

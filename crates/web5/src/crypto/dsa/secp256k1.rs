@@ -1,8 +1,5 @@
-#[cfg(test)]
 use super::{DsaError, Result};
-#[cfg(test)]
 use crate::crypto::jwk::Jwk;
-#[cfg(test)]
 use base64::{engine::general_purpose, Engine as _};
 
 #[cfg(test)]
@@ -10,7 +7,6 @@ pub struct Secp256k1Generator;
 
 #[cfg(test)]
 impl Secp256k1Generator {
-    #[cfg(test)]
     pub fn generate() -> Jwk {
         let signing_key = k256::ecdsa::SigningKey::random(&mut rand::thread_rng());
         let verifying_key = signing_key.verifying_key();
@@ -42,7 +38,6 @@ pub fn to_public_jwk(jwk: &Jwk) -> Jwk {
     }
 }
 
-#[cfg(test)]
 pub fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
     let decoded_y = general_purpose::URL_SAFE_NO_PAD.decode(
@@ -59,7 +54,6 @@ pub fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     Ok(pk_bytes)
 }
 
-#[cfg(test)]
 pub fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
     let x_bytes = &public_key[1..33];
     let y_bytes = &public_key[33..65];
