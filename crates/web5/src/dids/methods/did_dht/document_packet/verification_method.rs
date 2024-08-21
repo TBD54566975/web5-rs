@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use crate::crypto::dsa::{secp256k1, x25519};
+use crate::crypto::dsa::secp256k1;
+use crate::crypto::x25519;
 use crate::{crypto::dsa::ed25519, dids::data_model::verification_method::VerificationMethod};
 use base64::{engine::general_purpose, Engine as _};
 use simple_dns::{
