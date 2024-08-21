@@ -8,19 +8,15 @@ setup:
     git submodule update --init --recursive
   fi
   if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
-    rustup default 1.80.0
+    rustup default 1.74.0
     rustup target add aarch64-apple-darwin
   fi
 
 build: setup
   cargo build --workspace
-  # Build web5 crate with lower rustc version than rest of the project
-  cd crates/web5 && cargo build
 
 test: setup
   cargo test --workspace
-  # Test web5 crate with lower rustc version than rest of the project
-  cd crates/web5 && cargo test
 
 lint: setup
   cargo clippy --workspace
