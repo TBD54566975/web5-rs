@@ -111,13 +111,13 @@ mod tests {
     use super::*;
 
     mod new {
-        use std::sync::LazyLock;
-
         use super::*;
         use crate::{test_helpers::UnitTestSuite, test_name};
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("did_parse"));
+        lazy_static::lazy_static! {
+        static ref TEST_SUITE: UnitTestSuite =
+            UnitTestSuite::new("did_parse");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {

@@ -5,7 +5,7 @@ edition = "2021"
 homepage.workspace = true
 repository.workspace = true
 license-file.workspace = true
-rust-version = "1.70.0"
+rust-version = "1.74.0"
 
 [dependencies]
 base64 = { workspace = true }

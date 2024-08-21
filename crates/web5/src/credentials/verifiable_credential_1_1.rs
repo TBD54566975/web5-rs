@@ -546,7 +546,6 @@ mod tests {
     use crate::json::JsonValue;
     use regex::Regex;
     use std::collections::HashMap;
-    use std::sync::LazyLock;
 
     const ISSUER_DID_URI: &str = "did:web:tbd.website";
     const SUBJECT_DID_URI: &str = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y";
@@ -562,8 +561,9 @@ mod tests {
         use super::*;
         use crate::{test_helpers::UnitTestSuite, test_name};
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("verifiable_credential_1_1_create"));
+        lazy_static::lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("verifiable_credential_1_1_create");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {
