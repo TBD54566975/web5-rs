@@ -22,7 +22,7 @@ use crate::{
 };
 use std::sync::Arc;
 
-pub(crate) mod bep44;
+mod bep44;
 pub mod document_packet;
 
 const JSON_WEB_KEY: &str = "JsonWebKey";
