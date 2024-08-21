@@ -1,7 +1,7 @@
 use crate::errors::{Result, Web5Error};
 
 pub mod ed25519;
-pub(crate) mod secp256k1;
+pub mod secp256k1;
 
 pub enum Dsa {
     Ed25519,
