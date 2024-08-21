@@ -76,10 +76,11 @@ mod tests {
     mod compute_thumbprint {
         use super::*;
         use crate::{errors::Web5Error, test_helpers::UnitTestSuite, test_name};
-        use std::sync::LazyLock;
+        use lazy_static::lazy_static;
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("jwk_compute_thumbprint"));
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("jwk_compute_thumbprint");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {
