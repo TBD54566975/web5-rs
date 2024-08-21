@@ -21,6 +21,7 @@ import web5.sdk.crypto.verifiers.Ed25519Verifier
 import web5.sdk.dids.Document
 import web5.sdk.rust.DocumentMetadataData
 import web5.sdk.rust.ResolutionMetadataData
+import web5.sdk.rust.Web5Exception
 
 class Web5TestVectorsTest {
 
@@ -110,20 +111,21 @@ class Web5TestVectorsTest {
                 val ed25519Jwk = Jwk(
                     kty = testVectorJwk.kty,
                     crv = testVectorJwk.crv,
-                    d = null,
+                    d = testVectorJwk.d,
                     x = testVectorJwk.x,
                     alg = null,
                     y = null
                 )
                 val verifier = Ed25519Verifier(ed25519Jwk)
 
-                if (vector.errors == true) {
-                    assertThrows(Exception::class.java) {
+                if (vector.errors == true || vector.output == false) {
+                    assertThrows(Web5Exception.Exception::class.java) {
                         verifier.verify(inputByteArray, signatureByteArray)
                     }
                 } else {
-                    val verified = verifier.verify(inputByteArray, signatureByteArray)
-                    assertEquals(vector.output, verified)
+                    assertDoesNotThrow {
+                        verifier.verify(inputByteArray, signatureByteArray)
+                    }
                 }
             }
         }

@@ -300,7 +300,6 @@ CLASS Ed25519Verifier IMPLEMENTS Verifier
   METHOD verify(payload: []byte): bool
 ```
 
-
 ### `Secp256k1Generator`
 
 ```pseudocode!
