@@ -29,17 +29,13 @@ impl DidJwk {
     pub fn create(options: Option<DidJwkCreateOptions>) -> Result<BearerDid> {
         let options = options.unwrap_or_default();
 
-        let key_manager = match options.key_manager {
-            Some(km) => km,
-            None => Arc::new(InMemoryKeyManager::new()),
-        };
+        let key_manager = options
+            .key_manager
+            .unwrap_or_else(|| Arc::new(InMemoryKeyManager::new()));
 
-        let private_jwk = match options.dsa {
-            None => Ed25519Generator::generate(),
-            Some(dsa) => match dsa {
-                Dsa::Ed25519 => Ed25519Generator::generate(),
-                Dsa::Secp256k1 => Secp256k1Generator::generate(),
-            },
+        let private_jwk = match options.dsa.unwrap_or(Dsa::Ed25519) {
+            Dsa::Ed25519 => Ed25519Generator::generate(),
+            Dsa::Secp256k1 => Secp256k1Generator::generate(),
         };
         let mut public_jwk = key_manager.import_private_jwk(private_jwk)?;
         public_jwk.d = None;
