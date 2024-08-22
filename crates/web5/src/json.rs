@@ -1,16 +1,16 @@
-use crate::errors::{Result, Web5Error};
+use crate::errors::Result;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::collections::HashMap;
 
 pub trait FromJson: Sized + DeserializeOwned {
     fn from_json_string(json: &str) -> Result<Self> {
-        serde_json::from_str(json).map_err(Web5Error::from)
+        Ok(serde_json::from_str(json)?)
     }
 }
 
 pub trait ToJson: Serialize {
     fn to_json_string(&self) -> Result<String> {
-        serde_json::to_string(self).map_err(Web5Error::from)
+        Ok(serde_json::to_string(self)?)
     }
 }
 

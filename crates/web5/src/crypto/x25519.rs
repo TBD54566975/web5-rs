@@ -26,9 +26,7 @@ impl X25519Generator {
 }
 
 pub(crate) fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
-    let x_bytes = general_purpose::URL_SAFE_NO_PAD
-        .decode(&jwk.x)
-        .map_err(|e| Web5Error::Parameter(e.to_string()))?;
+    let x_bytes = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
 
     if x_bytes.len() != PUBLIC_KEY_LENGTH {
         return Err(Web5Error::Parameter(format!(

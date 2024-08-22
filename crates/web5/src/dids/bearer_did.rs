@@ -9,9 +9,7 @@ use super::{
 use crate::{
     crypto::{
         dsa::Signer,
-        key_managers::{
-            in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager, KeyManagerError,
-        },
+        key_managers::{in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager},
     },
     errors::Web5Error,
 };
@@ -23,8 +21,6 @@ pub enum BearerDidError {
     Web5Error(#[from] Web5Error),
     #[error(transparent)]
     ResolutionError(#[from] ResolutionMetadataError),
-    #[error(transparent)]
-    KeyManagerError(#[from] KeyManagerError),
 }
 
 type Result<T> = std::result::Result<T, BearerDidError>;
