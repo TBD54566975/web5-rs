@@ -1,7 +1,8 @@
 use crate::errors::{Result, Web5Error};
+use lazy_static::lazy_static;
 use regex::Regex;
+use std::collections::HashMap;
 use std::fmt;
-use std::{collections::HashMap, sync::LazyLock};
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Did {
@@ -28,36 +29,31 @@ static PATH_INDEX: usize = 6;
 static QUERY_INDEX: usize = 7;
 static FRAGMENT_INDEX: usize = 8;
 
-static DID_URL_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
-    // relevant ABNF rules: https://www.w3.org/TR/did-core/#did-syntax
-    let pct_encoded_pattern: &str = r"(?:%[0-9a-fA-F]{2})";
-    let method_pattern: &str = r"([a-z0-9]+)";
-    let param_char_pattern: &str = r"[a-zA-Z0-9_.:%-]";
-    let path_pattern: &str = r"(/[^#?]*)?";
-    let query_pattern: &str = r"(\?[^\#]*)?";
-    let fragment_pattern: &str = r"(\#.*)?";
-    let id_char_pattern = format!(r"(?:[a-zA-Z0-9._-]|{})", pct_encoded_pattern);
-    let method_id_pattern = format!(r"((?:{}*:)*({}+))", id_char_pattern, id_char_pattern);
-    let param_pattern = format!(r";{}+={}*", param_char_pattern, param_char_pattern);
-    let params_pattern = format!(r"(({})*)", param_pattern);
+lazy_static! {
+    static ref DID_URL_PATTERN: Regex = {
+        let pct_encoded_pattern: &str = r"(?:%[0-9a-fA-F]{2})";
+        let method_pattern: &str = r"([a-z0-9]+)";
+        let param_char_pattern: &str = r"[a-zA-Z0-9_.:%-]";
+        let path_pattern: &str = r"(/[^#?]*)?";
+        let query_pattern: &str = r"(\?[^\#]*)?";
+        let fragment_pattern: &str = r"(\#.*)?";
+        let id_char_pattern = format!(r"(?:[a-zA-Z0-9._-]|{})", pct_encoded_pattern);
+        let method_id_pattern = format!(r"((?:{}*:)*({}+))", id_char_pattern, id_char_pattern);
+        let param_pattern = format!(r";{}+={}*", param_char_pattern, param_char_pattern);
+        let params_pattern = format!(r"(({})*)", param_pattern);
 
-    Regex::new(&format!(
-        r"^did:{}:{}{}{}{}{}$",
-        method_pattern,
-        method_id_pattern,
-        params_pattern,
-        path_pattern,
-        query_pattern,
-        fragment_pattern
-    ))
-    .map_err(|e| {
-        Web5Error::Parameter(format!(
-            "DID_URL_PATTERN regex instantiation failure: {}",
-            e
+        Regex::new(&format!(
+            r"^did:{}:{}{}{}{}{}$",
+            method_pattern,
+            method_id_pattern,
+            params_pattern,
+            path_pattern,
+            query_pattern,
+            fragment_pattern
         ))
-    })
-    .unwrap() // immediately panic on startup if regex is faulty, this will assist in shift-left development
-});
+        .unwrap()
+    };
+}
 
 impl Did {
     pub fn parse(uri: &str) -> Result<Did> {
@@ -118,8 +114,9 @@ mod tests {
         use super::*;
         use crate::{test_helpers::UnitTestSuite, test_name};
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("did_parse"));
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("did_parse");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {

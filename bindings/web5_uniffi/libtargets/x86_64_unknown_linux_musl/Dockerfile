@@ -14,7 +14,7 @@ RUN apk add --no-cache \
     openssl-libs-static
 
 # Install rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path --default-toolchain 1.74.0
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Copy the source code to the container

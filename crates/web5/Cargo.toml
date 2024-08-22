@@ -5,6 +5,7 @@ edition = "2021"
 homepage.workspace = true
 repository.workspace = true
 license-file.workspace = true
+rust-version = "1.74.0"
 
 [dependencies]
 base64 = { workspace = true }
@@ -28,6 +29,7 @@ url = "2.5.0"
 uuid = { workspace = true }
 x25519-dalek = { version = "2.0.1", features = ["getrandom", "static_secrets"] }
 zbase32 = "0.1.2"
+lazy_static = "1.5.0"
 
 [dev-dependencies]
 tokio = { version = "1.38.0", features = ["macros", "test-util"] }

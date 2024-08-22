@@ -535,23 +535,28 @@ impl core::fmt::Debug for JoseVerifier {
 mod tests {
     use super::*;
     use crate::json::JsonValue;
+    use crate::{test_helpers::UnitTestSuite, test_name};
+    use lazy_static::lazy_static;
     use regex::Regex;
     use std::collections::HashMap;
-    use std::sync::LazyLock;
 
     const ISSUER_DID_URI: &str = "did:web:tbd.website";
     const SUBJECT_DID_URI: &str = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y";
 
-    static ISSUER: LazyLock<Issuer> = LazyLock::new(|| Issuer::from(ISSUER_DID_URI));
-    static CREDENTIAL_SUBJECT: LazyLock<CredentialSubject> =
-        LazyLock::new(|| CredentialSubject::from(SUBJECT_DID_URI));
+    fn issuer() -> Issuer {
+        Issuer::from(ISSUER_DID_URI)
+    }
+    fn credential_subject() -> CredentialSubject {
+        CredentialSubject::from(SUBJECT_DID_URI)
+    }
 
     mod create {
         use super::*;
-        use crate::{test_helpers::UnitTestSuite, test_name};
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("verifiable_credential_1_1_create"));
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite =
+                UnitTestSuite::new("verifiable_credential_1_1_create");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {
@@ -569,8 +574,7 @@ mod tests {
         fn test_default_context_added_if_not_supplied() {
             TEST_SUITE.include(test_name!());
 
-            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
-                .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), None).unwrap();
 
             assert_eq!(vc.context, vec![BASE_CONTEXT]);
         }
@@ -584,9 +588,7 @@ mod tests {
                 ..Default::default()
             });
 
-            let vc =
-                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
-                    .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), options).unwrap();
 
             assert_eq!(vc.context, vec![BASE_CONTEXT]);
         }
@@ -601,9 +603,7 @@ mod tests {
                 ..Default::default()
             });
 
-            let vc =
-                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
-                    .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), options).unwrap();
 
             assert_eq!(vc.context, vec![BASE_CONTEXT, custom_context]);
         }
@@ -612,8 +612,7 @@ mod tests {
         fn test_default_type_added_if_not_supplied() {
             TEST_SUITE.include(test_name!());
 
-            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
-                .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), None).unwrap();
 
             assert_eq!(vc.r#type, vec![BASE_TYPE]);
         }
@@ -627,9 +626,7 @@ mod tests {
                 ..Default::default()
             });
 
-            let vc =
-                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
-                    .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), options).unwrap();
 
             assert_eq!(vc.r#type, vec![BASE_TYPE]);
         }
@@ -644,9 +641,7 @@ mod tests {
                 ..Default::default()
             });
 
-            let vc =
-                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
-                    .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), options).unwrap();
 
             assert_eq!(vc.r#type, vec![BASE_TYPE, custom_type]);
         }
@@ -655,8 +650,7 @@ mod tests {
         fn test_id_generated_if_not_supplied() {
             TEST_SUITE.include(test_name!());
 
-            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
-                .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), None).unwrap();
 
             let uuid_regex = Regex::new(r"^urn:uuid:[0-9a-fA-F-]{36}$").unwrap();
             assert!(uuid_regex.is_match(&vc.id));
@@ -672,9 +666,7 @@ mod tests {
                 ..Default::default()
             });
 
-            let vc =
-                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
-                    .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), options).unwrap();
 
             assert_eq!(vc.id, custom_id);
         }
@@ -684,8 +676,7 @@ mod tests {
             TEST_SUITE.include(test_name!());
 
             let empty_issuer = Issuer::from("");
-            let result =
-                VerifiableCredential::create(empty_issuer, CREDENTIAL_SUBJECT.clone(), None);
+            let result = VerifiableCredential::create(empty_issuer, credential_subject(), None);
 
             match result {
                 Err(Web5Error::Parameter(err_msg)) => {
@@ -699,10 +690,9 @@ mod tests {
         fn test_issuer_string_must_be_set() {
             TEST_SUITE.include(test_name!());
 
-            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
-                .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), None).unwrap();
 
-            assert_eq!(vc.issuer, ISSUER.clone());
+            assert_eq!(vc.issuer, issuer());
         }
 
         #[test]
@@ -715,7 +705,7 @@ mod tests {
                 additional_properties: None,
             });
 
-            let result = VerifiableCredential::create(issuer, CREDENTIAL_SUBJECT.clone(), None);
+            let result = VerifiableCredential::create(issuer, credential_subject(), None);
 
             match result {
                 Err(Web5Error::Parameter(err_msg)) => {
@@ -735,7 +725,7 @@ mod tests {
                 additional_properties: None,
             });
 
-            let result = VerifiableCredential::create(issuer, CREDENTIAL_SUBJECT.clone(), None);
+            let result = VerifiableCredential::create(issuer, credential_subject(), None);
 
             match result {
                 Err(Web5Error::Parameter(err_msg)) => {
@@ -755,8 +745,8 @@ mod tests {
                 additional_properties: None,
             });
 
-            let vc = VerifiableCredential::create(issuer.clone(), CREDENTIAL_SUBJECT.clone(), None)
-                .unwrap();
+            let vc =
+                VerifiableCredential::create(issuer.clone(), credential_subject(), None).unwrap();
 
             assert_eq!(vc.issuer, issuer);
         }
@@ -778,8 +768,8 @@ mod tests {
                 additional_properties: Some(additional_properties.clone()),
             });
 
-            let vc = VerifiableCredential::create(issuer.clone(), CREDENTIAL_SUBJECT.clone(), None)
-                .unwrap();
+            let vc =
+                VerifiableCredential::create(issuer.clone(), credential_subject(), None).unwrap();
 
             match vc.issuer {
                 Issuer::Object(ref obj) => {
@@ -795,7 +785,7 @@ mod tests {
 
             let credential_subject = CredentialSubject::from("");
 
-            let result = VerifiableCredential::create(ISSUER.clone(), credential_subject, None);
+            let result = VerifiableCredential::create(issuer(), credential_subject, None);
 
             match result {
                 Err(Web5Error::Parameter(err_msg)) => {
@@ -809,10 +799,9 @@ mod tests {
         fn test_credential_subject_must_be_set() {
             TEST_SUITE.include(test_name!());
 
-            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
-                .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), None).unwrap();
 
-            assert_eq!(vc.credential_subject, CREDENTIAL_SUBJECT.clone());
+            assert_eq!(vc.credential_subject, credential_subject());
         }
 
         #[test]
@@ -831,8 +820,8 @@ mod tests {
                 additional_properties: Some(additional_properties.clone()),
             };
 
-            let vc = VerifiableCredential::create(ISSUER.clone(), credential_subject.clone(), None)
-                .unwrap();
+            let vc =
+                VerifiableCredential::create(issuer(), credential_subject.clone(), None).unwrap();
 
             assert_eq!(
                 vc.credential_subject.additional_properties,
@@ -851,9 +840,7 @@ mod tests {
                 ..Default::default()
             });
 
-            let vc =
-                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
-                    .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), options).unwrap();
 
             assert_eq!(vc.issuance_date, issuance_date);
         }
@@ -862,8 +849,7 @@ mod tests {
         fn test_issuance_date_must_be_now_if_not_supplied() {
             TEST_SUITE.include(test_name!());
 
-            let vc = VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), None)
-                .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), None).unwrap();
 
             let now = SystemTime::now();
             let hundred_millis_ago = now - std::time::Duration::from_millis(100);
@@ -881,9 +867,7 @@ mod tests {
                 ..Default::default()
             });
 
-            let vc =
-                VerifiableCredential::create(ISSUER.clone(), CREDENTIAL_SUBJECT.clone(), options)
-                    .unwrap();
+            let vc = VerifiableCredential::create(issuer(), credential_subject(), options).unwrap();
 
             assert_eq!(vc.expiration_date, Some(expiration_date));
         }
