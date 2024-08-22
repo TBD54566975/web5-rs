@@ -17,13 +17,13 @@ class Ed25519SignerTest {
         if (testSuite.tests.isNotEmpty()) {
             println("The following tests were not included or executed:")
             testSuite.tests.forEach { println(it) }
-            fail("Not all tests were executed! ${this.testSuite.tests}")
+            fail("Not all tests were executed! ${testSuite.tests}")
         }
     }
 
     @Test
     fun test_with_valid_key() {
-        this.testSuite.include()
+        testSuite.include()
 
         val jwk = Ed25519Generator.generate()
         val signer = Ed25519Signer(jwk)
@@ -38,7 +38,7 @@ class Ed25519SignerTest {
 
     @Test
     fun test_with_invalid_private_key() {
-        this.testSuite.include()
+        testSuite.include()
 
         val jwk = Ed25519Generator.generate()
         val invalidJwk = jwk.copy(d = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(SECRET_KEY_LENGTH - 1)))
@@ -55,7 +55,7 @@ class Ed25519SignerTest {
 
     @Test
     fun test_with_missing_private_key() {
-        this.testSuite.include()
+        testSuite.include()
 
         val jwk = Ed25519Generator.generate()
         val missingKeyJwk = jwk.copy(d = null)

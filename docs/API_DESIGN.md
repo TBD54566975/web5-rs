@@ -53,9 +53,7 @@
     - [`DocumentMetadata`](#documentmetadata)
   - [Methods](#methods)
     - [`DidJwk`](#didjwk)
-      - [Example: Create a `did:jwk`](#example-create-a-didjwk)
-      - [Example: Instantiate an existing `did:jwk`](#example-instantiate-an-existing-didjwk)
-      - [Example: Resolve a `did:jwk`](#example-resolve-a-didjwk)
+      - [`DidJwkCreateOptions`](#didjwkcreateoptions)
     - [`DidWeb`](#didweb)
       - [Example: Instantiate an existing `did:web`](#example-instantiate-an-existing-didweb)
       - [Example: Resolve a `did:web`](#example-resolve-a-didweb)
@@ -221,6 +219,9 @@ CLASS Jwk
 INTERFACE KeyManager
   /// Returns the signer for the given public key.
   METHOD get_signer(public_jwk: Jwk): Signer
+
+  /// For importing keys which may be stored somewhere such as environment variables. Return Jwk is the public key for the given private key.
+  METHOD import_private_jwk(private_jwk: Jwk): Jwk
 ```
 
 ### `InMemoryKeyManager`
@@ -247,6 +248,7 @@ CLASS InMemoryKeyManager IMPLEMENTS KeyManager
 /// The set of Digital Signature Algorithms natively supported within this SDK.
 ENUM Dsa
   Ed25519
+  Secp256k1
 ```
 
 > We must add support for `X25519`, `secp256k1`, and `secp256r1` for [full did:dht conformance](https://did-dht.com/registry/index.html#key-type-index).
@@ -606,33 +608,16 @@ CLASS DocumentMetadata
 
 ```pseudocode!
 CLASS DidJwk
-  PUBLIC DATA did: Did
-  PUBLIC DATA document: Document
-  CONSTRUCTOR(public_jwk: Jwk)
-  CONSTRUCTOR(uri: string)
+  STATIC METHOD create(options: DidJwkCreateOptions): BearerDid
   STATIC METHOD resolve(uri: string): ResolutionResult
 ```
 
-#### Example: Create a `did:jwk`
+#### `DidJwkCreateOptions`
 
 ```pseudocode!
-key_manager = new InMemoryKeyManager()
-public_jwk = key_manager.import_private_jwk(Ed25519Generator::generate())
-did_jwk = new DidJwk(public_jwk)
-```
-
-#### Example: Instantiate an existing `did:jwk`
-
-```pseudocode!
-uri = "did:jwk:eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImNydiI6InNlY3AyNTZrMSIsImtpZCI6ImkzU1BSQnRKS292SEZzQmFxTTkydGk2eFFDSkxYM0U3WUNld2lIVjJDU2ciLCJ4IjoidmRyYnoyRU96dmJMRFZfLWtMNGVKdDdWS04VEZaTm1BOVlnV3p2aGg3VSIsInkiOiJWTEZxUU1aUF9Bc3B1Y1hvV1gyLWJHWHBBTzFmUTVMbjE5VjVSQXhyZZVIiwiYWxnIjoiRVMyNTZLIn0"
-did_jwk = new DidJwk(uri)
-```
-
-#### Example: Resolve a `did:jwk`
-
-```pseudocode!
-uri = "did:jwk:eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImNydiI6InNlY3AyNTZrMSIsImtpZCI6ImkzU1BSQnRKS292SEZzQmFxTTkydGk2eFFDSkxYM0U3WUNld2lIVjJDU2ciLCJ4IjoidmRyYnoyRU96dmJMRFZfLWtMNGVKdDdWS04VEZaTm1BOVlnV3p2aGg3VSIsInkiOiJWTEZxUU1aUF9Bc3B1Y1hvV1gyLWJHWHBBTzFmUTVMbjE5VjVSQXhyZZVIiwiYWxnIjoiRVMyNTZLIn0"
-resolution_result = DidJwk.resolve(uri)
+CLASS DidJwkCreateOptions
+  PUBLIC DATA key_manager: KeyManager?
+  PUBLIC DATA dsa: Dsa?
 ```
 
 ### `DidWeb`

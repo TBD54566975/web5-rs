@@ -4,7 +4,6 @@ use std::{any::type_name, fmt::Debug};
 use thiserror::Error;
 use web5::credentials::presentation_definition::PexError;
 use web5::credentials::CredentialError;
-use web5::crypto::key_managers::KeyManagerError;
 use web5::dids::bearer_did::BearerDidError;
 use web5::dids::methods::MethodError;
 use web5::errors::Web5Error as InnerWeb5Error;
@@ -76,12 +75,6 @@ where
     variant_name.to_string()
 }
 
-impl From<KeyManagerError> for Web5Error {
-    fn from(error: KeyManagerError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
 impl From<MethodError> for Web5Error {
     fn from(error: MethodError) -> Self {
         Web5Error::new(error)
@@ -112,45 +105,21 @@ impl From<SerdeJsonError> for Web5Error {
     }
 }
 
-impl From<Web5Error> for KeyManagerError {
-    fn from(error: Web5Error) -> Self {
-        let variant = error.variant();
-        let msg = error.msg();
-
-        if variant == variant_name(&KeyManagerError::KeyGenerationFailed) {
-            return KeyManagerError::KeyGenerationFailed;
-        } else if variant
-            == variant_name(&KeyManagerError::InternalKeyStoreError(String::default()))
-        {
-            return KeyManagerError::InternalKeyStoreError(msg.to_string());
-        } else if variant == variant_name(&KeyManagerError::KeyNotFound(String::default())) {
-            return KeyManagerError::KeyNotFound(msg.to_string());
-        }
-
-        KeyManagerError::Unknown
-    }
-}
-
 impl From<Web5Error> for InnerWeb5Error {
     fn from(error: Web5Error) -> Self {
         let variant = error.variant();
         let msg = error.msg();
 
-        if variant == variant_name(&InnerWeb5Error::Json(String::default())) {
-            return InnerWeb5Error::Json(msg);
-        } else if variant == variant_name(&InnerWeb5Error::Parameter(String::default())) {
-            return InnerWeb5Error::Parameter(msg);
-        } else if variant == variant_name(&InnerWeb5Error::DataMember(String::default())) {
-            return InnerWeb5Error::DataMember(msg);
-        } else if variant == variant_name(&InnerWeb5Error::NotFound(String::default())) {
-            return InnerWeb5Error::NotFound(msg);
-        } else if variant == variant_name(&InnerWeb5Error::Crypto(String::default())) {
-            return InnerWeb5Error::Crypto(msg);
-        } else if variant == variant_name(&InnerWeb5Error::Encoding(String::default())) {
-            return InnerWeb5Error::Encoding(msg);
+        match variant.as_str() {
+            "Json" => InnerWeb5Error::Json(msg),
+            "Parameter" => InnerWeb5Error::Parameter(msg),
+            "DataMember" => InnerWeb5Error::DataMember(msg),
+            "NotFound" => InnerWeb5Error::NotFound(msg),
+            "Crypto" => InnerWeb5Error::Crypto(msg),
+            "Encoding" => InnerWeb5Error::Encoding(msg),
+            "Mutex" => InnerWeb5Error::Mutex(msg),
+            _ => InnerWeb5Error::Unknown(format!("unknown variant {} with msg {}", variant, msg)),
         }
-
-        InnerWeb5Error::Unknown(format!("unknown variant {} with msg {}", variant, msg))
     }
 }
 

@@ -18,7 +18,7 @@ use web5_uniffi_wrapper::{
         did::Did,
         methods::{
             did_dht::{did_dht_resolve, DidDht},
-            did_jwk::{did_jwk_resolve, DidJwk},
+            did_jwk::{did_jwk_create, did_jwk_resolve, DidJwkCreateOptions},
             did_web::{did_web_resolve, DidWeb},
         },
         portable_did::PortableDid,
@@ -36,10 +36,7 @@ use web5::{
             verification_method::VerificationMethod as VerificationMethodData,
         },
         did::Did as DidData,
-        methods::{
-            did_dht::DidDht as DidDhtData, did_jwk::DidJwk as DidJwkData,
-            did_web::DidWeb as DidWebData,
-        },
+        methods::{did_dht::DidDht as DidDhtData, did_web::DidWeb as DidWebData},
         portable_did::PortableDid as PortableDidData,
         resolution::{
             document_metadata::DocumentMetadata as DocumentMetadataData,

@@ -1,7 +1,10 @@
 namespace web5 {
   JwkData ed25519_generator_generate();
 
+  [Throws=Web5Error]
+  BearerDid did_jwk_create(DidJwkCreateOptions? options);
   ResolutionResult did_jwk_resolve([ByRef] string uri);
+
   [Async, Throws=Web5Error]
   ResolutionResult did_web_resolve([ByRef] string uri);
   [Throws=Web5Error]
@@ -32,20 +35,23 @@ interface Jwk {
 [Trait, WithForeign]
 interface KeyManager {
   [Throws=Web5Error]
+  JwkData import_private_jwk(JwkData private_jwk);
+  [Throws=Web5Error]
   Signer get_signer(JwkData public_jwk);
 };
 
 interface InMemoryKeyManager {
   constructor();
   [Throws=Web5Error]
-  Signer get_signer(JwkData public_jwk);
+  JwkData import_private_jwk(JwkData private_jwk);
   [Throws=Web5Error]
-  JwkData import_private_jwk(JwkData private_key);
+  Signer get_signer(JwkData public_jwk);
   KeyManager get_as_key_manager();
 };
 
 enum Dsa {
-  "Ed25519"
+  "Ed25519",
+  "Secp256k1"
 };
 
 [Trait, WithForeign]
@@ -158,17 +164,9 @@ interface ResolutionResult {
   ResolutionResultData get_data();
 };
 
-dictionary DidJwkData {
-  DidData did;
-  DocumentData document;
-};
-
-interface DidJwk {
-  [Name=from_public_jwk, Throws=Web5Error]
-  constructor(JwkData public_jwk);
-  [Name=from_uri, Throws=Web5Error]
-  constructor([ByRef] string uri);
-  DidJwkData get_data();
+dictionary DidJwkCreateOptions {
+  KeyManager? key_manager;
+  Dsa? dsa;
 };
 
 dictionary DidWebData {

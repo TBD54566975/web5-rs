@@ -1,47 +1,46 @@
 package web5.sdk.dids.methods.jwk
 
 import web5.sdk.crypto.keys.Jwk
+import web5.sdk.crypto.keys.KeyManager
+import web5.sdk.crypto.keys.ToInnerKeyManager
+import web5.sdk.crypto.keys.ToOuterKeyManager
+import web5.sdk.dids.BearerDid
 import web5.sdk.dids.Did
 import web5.sdk.dids.Document
 import web5.sdk.dids.ResolutionResult
+import web5.sdk.rust.Dsa
+import web5.sdk.rust.didJwkCreate
+import web5.sdk.rust.didJwkCreate as rustCoreJwkCreate
+import web5.sdk.rust.DidJwkCreateOptions as RustCoreDidJwkCreateOptions
 import web5.sdk.rust.didJwkResolve as rustCoreDidJwkResolve
-import web5.sdk.rust.DidJwk as RustCoreDidJwk
+
+data class DidJwkCreateOptions(
+    val keyManager: KeyManager? = null,
+    val dsa: Dsa? = null
+)
 
 /**
  * A class representing a DID (Decentralized Identifier) using the JWK (JSON Web Key) method.
- *
- * @property did The DID associated with this instance.
- * @property document The DID document associated with this instance.
  */
 class DidJwk {
-    val did: Did
-    val document: Document
-
-    /**
-     * Constructs a DidJwk instance using a public key.
-     *
-     * @param publicKey The public key represented as a Jwk.
-     */
-    constructor(publicKey: Jwk) {
-        val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(publicKey.rustCoreJwkData)
-
-        this.did = Did.fromRustCoreDidData(rustCoreDidJwk.getData().did)
-        this.document = rustCoreDidJwk.getData().document
-    }
-
-    /**
-     * Constructs a DidJwk instance using a DID URI.
-     *
-     * @param uri The DID URI.
-     */
-    constructor(uri: String) {
-        val rustCoreDidJwk = RustCoreDidJwk.fromUri(uri)
-
-        this.did = Did.fromRustCoreDidData(rustCoreDidJwk.getData().did)
-        this.document = rustCoreDidJwk.getData().document
-    }
-
     companion object {
+        /**
+         * Create a DidJwk BearerDid using available options.
+         *
+         * @param options The set of options to configure creation.
+         */
+        fun create(options: DidJwkCreateOptions? = null): BearerDid {
+            val rustCoreOptions = options?.let { opts ->
+                RustCoreDidJwkCreateOptions(
+                keyManager = opts.keyManager?.let { ToInnerKeyManager(it) },
+                dsa = opts.dsa
+            ) }
+            val rustCoreBearerDid = didJwkCreate(rustCoreOptions)
+            val rustCoreBearerDidData = rustCoreBearerDid.getData()
+            val keyManager = ToOuterKeyManager(rustCoreBearerDidData.keyManager)
+            return BearerDid(rustCoreBearerDidData.did.uri, keyManager)
+        }
+
         /**
          * Resolves a DID URI to a DidResolutionResult.
          *

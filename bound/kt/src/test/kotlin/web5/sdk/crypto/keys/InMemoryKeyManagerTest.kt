@@ -1,47 +1,112 @@
 package web5.sdk.crypto.keys
 
-import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Assertions.assertNotNull
-
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.fail
+import web5.sdk.UnitTestSuite
+import web5.sdk.crypto.Ed25519Generator
 import web5.sdk.rust.Web5Exception
 
-import web5.sdk.rust.ed25519GeneratorGenerate as rustCoreEd25519GeneratorGenerate
-
 class InMemoryKeyManagerTest {
+  @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+  inner class ImportPrivateJwk {
+    private val testSuite = UnitTestSuite("in_memory_key_manager_import_private_jwk")
 
-  @Test
-  fun `test key manager`() {
-    val privateJwk = rustCoreEd25519GeneratorGenerate()
+    @AfterAll
+    fun verifyAllTestsIncluded() {
+      if (testSuite.tests.isNotEmpty()) {
+        println("The following tests were not included or executed:")
+        testSuite.tests.forEach { println(it) }
+        fail("Not all tests were executed! ${testSuite.tests}")
+      }
+    }
 
-    val keyManager = InMemoryKeyManager(listOf(Jwk.fromRustCoreJwkData(privateJwk)))
+    @Test
+    fun test_must_be_private_jwk() {
+      testSuite.include()
 
-    val signer = keyManager.getSigner(Jwk.fromRustCoreJwkData(privateJwk))
-    val payload = signer.sign("abc".toByteArray())
+      val keyManager = InMemoryKeyManager(listOf())
+      val privateJwk = Ed25519Generator.generate()
+      val publicJwk = privateJwk.copy(d = null)
 
-    assertNotNull(payload)
-  }
+      val exception = assertThrows<Web5Exception.Exception> {
+        keyManager.importPrivateJwk(publicJwk)
+      }
 
-  @Test
-  fun `test wrong jwk for key manager`() {
-    val publicJwk = Jwk(alg="Ed25519", kty="OKP", crv="Ed25519", d=null, x="yxTpaqbGhLNMfOCu31znPNNei0OtDiQ_AS9DxC7Bstg", y=null)
+      assertEquals("parameter error private_jwk must be a private key", exception.msg)
+      assertEquals("Parameter", exception.variant)
+    }
 
-    assertThrows(Web5Exception::class.java) {
-      InMemoryKeyManager(listOf(publicJwk))
+    @Test
+    fun test_successfully_imports_and_returns_public_jwk() {
+      testSuite.include()
+
+      val keyManager = InMemoryKeyManager(listOf())
+      val privateJwk = Ed25519Generator.generate()
+
+      val publicJwk = keyManager.importPrivateJwk(privateJwk)
+
+      assertEquals(publicJwk, privateJwk.copy(d = null))
     }
   }
 
-  @Test
-  fun `test key manager import key`() {
-    val privateJwk = rustCoreEd25519GeneratorGenerate()
+  @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+  inner class GetSigner {
+    private val testSuite = UnitTestSuite("in_memory_key_manager_get_signer")
 
-    val keyManager = InMemoryKeyManager(listOf())
-    keyManager.importPrivateJwk(Jwk.fromRustCoreJwkData(privateJwk))
+    @AfterAll
+    fun verifyAllTestsIncluded() {
+      if (testSuite.tests.isNotEmpty()) {
+        println("The following tests were not included or executed:")
+        testSuite.tests.forEach { println(it) }
+        fail("Not all tests were executed! ${testSuite.tests}")
+      }
+    }
 
-    privateJwk.d = null
-    val signer = keyManager.getSigner(Jwk.fromRustCoreJwkData(privateJwk))
-    val payload = signer.sign("abc".toByteArray())
+    @Test
+    fun test_must_be_public_key() {
+      testSuite.include()
 
-    assertNotNull(payload)
+      val privateJwk = Ed25519Generator.generate()
+      val keyManager = InMemoryKeyManager(listOf(privateJwk))
+
+      val exception = assertThrows<Web5Exception.Exception> {
+        keyManager.getSigner(privateJwk)
+      }
+
+      assertEquals("parameter error public_jwk must be a public key", exception.msg)
+      assertEquals("Parameter", exception.variant)
+    }
+
+    @Test
+    fun test_not_found() {
+      testSuite.include()
+
+      val keyManager = InMemoryKeyManager(listOf())
+      val privateJwk = Ed25519Generator.generate()
+      val publicJwk = privateJwk.copy(d = null)
+
+      val exception = assertThrows<Web5Exception.Exception> {
+        keyManager.getSigner(publicJwk)
+      }
+
+      assertEquals("not found error signer not found for public_jwk with thumbprint ${publicJwk.computeThumbprint()}", exception.msg)
+      assertEquals("NotFound", exception.variant)
+    }
+
+    @Test
+    fun test_found() {
+      testSuite.include()
+      
+      val privateJwk = Ed25519Generator.generate()
+      val publicJwk = privateJwk.copy(d = null)
+      val keyManager = InMemoryKeyManager(listOf(privateJwk))
+
+      assertDoesNotThrow {
+        keyManager.getSigner(publicJwk)
+      }
+    }
   }
 }

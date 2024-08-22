@@ -1,26 +1,12 @@
-use crate::errors::Web5Error;
+use crate::{
+    crypto::{dsa::Signer, jwk::Jwk},
+    errors::Result,
+};
+use std::sync::Arc;
 
 pub mod in_memory_key_manager;
-pub mod key_manager;
 
-#[derive(thiserror::Error, Debug, Clone, PartialEq)]
-pub enum KeyManagerError {
-    #[error(transparent)]
-    Web5Error(#[from] Web5Error),
-    #[error("Key generation failed")]
-    KeyGenerationFailed,
-    #[error("{0}")]
-    InternalKeyStoreError(String),
-    #[error("key not found {0}")]
-    KeyNotFound(String),
-    #[error("unknown error")]
-    Unknown,
+pub trait KeyManager: Send + Sync {
+    fn import_private_jwk(&self, private_jwk: Jwk) -> Result<Jwk>;
+    fn get_signer(&self, public_jwk: Jwk) -> Result<Arc<dyn Signer>>;
 }
-
-impl Default for KeyManagerError {
-    fn default() -> Self {
-        Self::Unknown
-    }
-}
-
-pub type Result<T> = std::result::Result<T, KeyManagerError>;

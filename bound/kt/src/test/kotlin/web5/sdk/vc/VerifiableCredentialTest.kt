@@ -25,20 +25,20 @@ class VerifiableCredentialTest {
         if (testSuite.tests.isNotEmpty()) {
             println("The following tests were not included or executed:")
             testSuite.tests.forEach { println(it) }
-            fail("Not all tests were executed! ${this.testSuite.tests}")
+            fail("Not all tests were executed! ${testSuite.tests}")
         }
     }
 
     @Test
     fun test_default_context_added_if_not_supplied() {
-        this.testSuite.include()
+        testSuite.include()
         val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT)
         assertEquals(listOf("https://www.w3.org/2018/credentials/v1"), vc.context)
     }
 
     @Test
     fun test_default_context_not_duplicated_if_supplied() {
-        this.testSuite.include()
+        testSuite.include()
         val options = VerifiableCredentialCreateOptions(
             context = listOf("https://www.w3.org/2018/credentials/v1")
         )
@@ -49,7 +49,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_developer_provided_context_appended_to_default() {
-        this.testSuite.include()
+        testSuite.include()
         val customContext = "https://example.com/custom-context"
         val options = VerifiableCredentialCreateOptions(
             context = listOf(customContext)
@@ -61,14 +61,14 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_default_type_added_if_not_supplied() {
-        this.testSuite.include()
+        testSuite.include()
         val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, VerifiableCredentialCreateOptions())
         assertEquals(listOf("VerifiableCredential"), vc.type)
     }
 
     @Test
     fun test_default_type_not_duplicated_if_supplied() {
-        this.testSuite.include()
+        testSuite.include()
         val options = VerifiableCredentialCreateOptions(
             type = listOf("VerifiableCredential")
         )
@@ -79,7 +79,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_developer_provided_type_appended_to_default() {
-        this.testSuite.include()
+        testSuite.include()
         val customType = "CustomType"
         val options = VerifiableCredentialCreateOptions(
             type = listOf(customType)
@@ -91,7 +91,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_id_generated_if_not_supplied() {
-        this.testSuite.include()
+        testSuite.include()
         val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, VerifiableCredentialCreateOptions())
         val uuidPattern = Pattern.compile("^urn:uuid:[0-9a-fA-F-]{36}$")
         assertTrue(uuidPattern.matcher(vc.id).matches())
@@ -99,7 +99,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_id_must_be_set_if_supplied() {
-        this.testSuite.include()
+        testSuite.include()
         val customId = "custom-id"
         val options = VerifiableCredentialCreateOptions(
             id = customId
@@ -111,7 +111,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_issuer_string_must_not_be_empty() {
-        this.testSuite.include()
+        testSuite.include()
         val emptyIssuer = Issuer.StringIssuer("")
 
         val exception = assertThrows<Web5Exception.Exception> {
@@ -123,14 +123,14 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_issuer_string_must_be_set() {
-        this.testSuite.include()
+        testSuite.include()
         val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, VerifiableCredentialCreateOptions())
         assertEquals(ISSUER, vc.issuer)
     }
 
     @Test
     fun test_issuer_object_id_must_not_be_empty() {
-        this.testSuite.include()
+        testSuite.include()
         val issuer = Issuer.ObjectIssuer("", "Example Name")
 
         val exception = assertThrows<Web5Exception.Exception> {
@@ -142,7 +142,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_issuer_object_name_must_not_be_empty() {
-        this.testSuite.include()
+        testSuite.include()
         val issuer = Issuer.ObjectIssuer(ISSUER_DID_URI, "")
 
         val exception = assertThrows<Web5Exception.Exception> {
@@ -154,7 +154,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_issuer_object_must_be_set() {
-        this.testSuite.include()
+        testSuite.include()
         val issuer = Issuer.ObjectIssuer(ISSUER_DID_URI, "Example Name")
 
         val vc = VerifiableCredential.create(issuer, CREDENTIAL_SUBJECT, VerifiableCredentialCreateOptions())
@@ -163,7 +163,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_issuer_object_supports_additional_properties() {
-        this.testSuite.include()
+        testSuite.include()
         val additionalProperties = mapOf("extra_key" to "extra_value")
 
         val issuer = Issuer.ObjectIssuer(
@@ -183,7 +183,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_credential_subject_id_must_not_be_empty() {
-        this.testSuite.include()
+        testSuite.include()
         val credentialSubject = CredentialSubject("")
 
         val exception = assertThrows<Web5Exception.Exception> {
@@ -195,14 +195,14 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_credential_subject_must_be_set() {
-        this.testSuite.include()
+        testSuite.include()
         val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, VerifiableCredentialCreateOptions())
         assertEquals(CREDENTIAL_SUBJECT, vc.credentialSubject)
     }
 
     @Test
     fun test_credential_subject_supports_additional_properties() {
-        this.testSuite.include()
+        testSuite.include()
         val additionalProperties = mapOf("extra_key" to "extra_value")
 
         val credentialSubject = CredentialSubject(
@@ -216,7 +216,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_issuance_date_must_be_set() {
-        this.testSuite.include()
+        testSuite.include()
         val issuanceDate = Date()
 
         val options = VerifiableCredentialCreateOptions(
@@ -229,7 +229,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_issuance_date_must_be_now_if_not_supplied() {
-        this.testSuite.include()
+        testSuite.include()
         val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, VerifiableCredentialCreateOptions())
 
         val now = Date()
@@ -241,7 +241,7 @@ class VerifiableCredentialTest {
 
     @Test
     fun test_expiration_date_must_be_set_if_supplied() {
-        this.testSuite.include()
+        testSuite.include()
         val expirationDate = Date()
         val options = VerifiableCredentialCreateOptions(
             expirationDate = expirationDate

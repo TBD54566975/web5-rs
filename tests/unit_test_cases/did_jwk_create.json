@@ -1,0 +1,5 @@
+[
+  "test_can_specify_key_manager",
+  "test_can_specify_secp256k1",
+  "test_defaults_to_ed25519"
+]

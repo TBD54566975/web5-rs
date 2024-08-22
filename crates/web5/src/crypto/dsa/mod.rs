@@ -5,7 +5,6 @@ pub mod secp256k1;
 
 pub enum Dsa {
     Ed25519,
-    #[cfg(test)]
     Secp256k1,
 }
 
@@ -15,7 +14,6 @@ impl std::str::FromStr for Dsa {
     fn from_str(input: &str) -> std::result::Result<Self, Web5Error> {
         match input.to_ascii_lowercase().as_str() {
             "ed25519" => Ok(Dsa::Ed25519),
-            #[cfg(test)]
             "secp256k1" => Ok(Dsa::Secp256k1),
             _ => Err(Web5Error::Parameter(format!("unsupported dsa {}", input))),
         }

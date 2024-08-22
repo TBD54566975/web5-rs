@@ -19,7 +19,7 @@ class Ed25519VerifierTest {
         if (testSuite.tests.isNotEmpty()) {
             println("The following tests were not included or executed:")
             testSuite.tests.forEach { println(it) }
-            fail("Not all tests were executed! ${this.testSuite.tests}")
+            fail("Not all tests were executed! ${testSuite.tests}")
         }
     }
 
@@ -31,7 +31,7 @@ class Ed25519VerifierTest {
 
     @Test
     fun test_with_valid_signature() {
-        this.testSuite.include()
+        testSuite.include()
 
         val (publicJwk, privateJwk) = generateKeys()
         val signer = Ed25519Signer(privateJwk)
@@ -47,7 +47,7 @@ class Ed25519VerifierTest {
 
     @Test
     fun test_with_private_key() {
-        this.testSuite.include()
+        testSuite.include()
 
         val (_, privateJwk) = generateKeys()
         val verifier = Ed25519Verifier(privateJwk) // this is not allowed
@@ -65,7 +65,7 @@ class Ed25519VerifierTest {
 
     @Test
     fun test_with_invalid_signature() {
-        this.testSuite.include()
+        testSuite.include()
 
         val (publicJwk, _) = generateKeys()
         val verifier = Ed25519Verifier(publicJwk)
@@ -83,7 +83,7 @@ class Ed25519VerifierTest {
 
     @Test
     fun test_with_invalid_public_key() {
-        this.testSuite.include()
+        testSuite.include()
 
         val (publicJwk, privateJwk) = generateKeys()
         val invalidPublicJwk = publicJwk.copy(x = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(PUBLIC_KEY_LENGTH - 1)))
@@ -104,7 +104,7 @@ class Ed25519VerifierTest {
 
     @Test
     fun test_with_invalid_signature_length() {
-        this.testSuite.include()
+        testSuite.include()
 
         val (publicJwk, _) = generateKeys()
         val verifier = Ed25519Verifier(publicJwk)

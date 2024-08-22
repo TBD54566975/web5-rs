@@ -1,36 +1,97 @@
 package web5.sdk.dids.methods.jwk
 
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
+import web5.sdk.UnitTestSuite
+import web5.sdk.crypto.keys.InMemoryKeyManager
 import web5.sdk.crypto.keys.Jwk
-
-import web5.sdk.rust.DidJwk as RustCoreDidJwk
-
-import web5.sdk.rust.ed25519GeneratorGenerate as rustCoreEd25519GeneratorGenerate
+import web5.sdk.rust.Dsa
+import web5.sdk.rust.ResolutionMetadataError
 
 class DidJwkTests {
-    @Test
-    fun `can create did jwk same as rust core`() {
-        val jwk = rustCoreEd25519GeneratorGenerate()
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    inner class Create {
+        private val testSuite = UnitTestSuite("did_jwk_create")
 
-        val didJwk = DidJwk(Jwk.fromRustCoreJwkData(jwk))
+        @AfterAll
+        fun verifyAllTestsIncluded() {
+            if (testSuite.tests.isNotEmpty()) {
+                println("The following tests were not included or executed:")
+                testSuite.tests.forEach { println(it) }
+                fail("Not all tests were executed! ${testSuite.tests}")
+            }
+        }
 
-        val rustCoreDidJwk = RustCoreDidJwk.fromPublicJwk(jwk);
-        assertEquals(rustCoreDidJwk.getData().did.uri, didJwk.did.uri)
-        assertEquals(rustCoreDidJwk.getData().document.id, didJwk.document.id)
+        @Test
+        fun test_can_specify_key_manager() {
+            testSuite.include()
+
+            val keyManager = InMemoryKeyManager(listOf())
+            val bearerDid = DidJwk.create(DidJwkCreateOptions(keyManager))
+
+            // TODO publicKeyJwk on the document should be of type Jwk
+            val publicJwk = bearerDid.document.verificationMethod.first().publicKeyJwk
+            assertDoesNotThrow {
+                keyManager.getSigner(Jwk.fromRustCoreJwkData(publicJwk))
+            }
+        }
+
+        @Test
+        fun test_can_specify_secp256k1() {
+            testSuite.include()
+
+            val bearerDid = DidJwk.create(DidJwkCreateOptions(dsa = Dsa.SECP256K1))
+
+            val publicJwk = bearerDid.document.verificationMethod.first().publicKeyJwk
+            assertEquals("ES256K", publicJwk.alg)
+            assertEquals("EC", publicJwk.kty)
+            assertEquals("secp256k1", publicJwk.crv)
+        }
+
+        @Test
+        fun test_defaults_to_ed25519() {
+            testSuite.include()
+
+            val bearerDid = DidJwk.create()
+
+            val publicJwk = bearerDid.document.verificationMethod.first().publicKeyJwk
+            assertEquals("Ed25519", publicJwk.alg)
+            assertEquals("OKP", publicJwk.kty)
+            assertEquals("Ed25519", publicJwk.crv)
+        }
     }
 
-    @Test
-    fun `can resolve did jwk uri`() {
-        val didUri = "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsImQiOm51bGwsIngiOiJPQ1RWd1pReWFkUWpnVnR4bHZ3aTZTNGFTeEF0OVg2dHl3NU5OZkRoeEtrIiwieSI6bnVsbH0"
-        val resolvedDid = DidJwk.resolve(didUri)
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    inner class Resolve {
+        private val testSuite = UnitTestSuite("did_jwk_resolve")
 
-        assertEquals(resolvedDid.document!!.id, didUri)
-    }
+        @AfterAll
+        fun verifyAllTestsIncluded() {
+            if (testSuite.tests.isNotEmpty()) {
+                println("The following tests were not included or executed:")
+                testSuite.tests.forEach { println(it) }
+                fail("Not all tests were executed! ${testSuite.tests}")
+            }
+        }
 
-    @Test
-    fun `throws exception if did method is not jwk`() {
-        val resolutionResult = DidJwk.resolve("did:example:123")
-        assertEquals(resolutionResult.resolutionMetadata.error!!.name, "INVALID_DID");
+        @Test
+        fun test_invalid_did() {
+            testSuite.include()
+
+            val resolutionResult = DidJwk.resolve("something invalid")
+            assertEquals(ResolutionMetadataError.INVALID_DID, resolutionResult.resolutionMetadata.error)
+        }
+
+        @Test
+        fun test_create_then_resolve() {
+            testSuite.include()
+
+            val bearerDid = DidJwk.create()
+            val resolutionResult = DidJwk.resolve(bearerDid.did.uri)
+            assertEquals(bearerDid.document, resolutionResult.document)
+        }
     }
 }
