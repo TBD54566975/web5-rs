@@ -9,7 +9,7 @@ use super::{
 use crate::{
     crypto::{
         dsa::Signer,
-        key_managers::{in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager},
+        key_managers::{in_memory_key_manager::InMemoryKeyManager, KeyManager},
     },
     errors::Web5Error,
 };

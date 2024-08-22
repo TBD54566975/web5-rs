@@ -42,6 +42,15 @@ impl ResolutionResult {
     }
 }
 
+impl From<ResolutionMetadataError> for ResolutionResult {
+    fn from(error: ResolutionMetadataError) -> Self {
+        Self {
+            resolution_metadata: ResolutionMetadata { error: Some(error) },
+            ..Default::default()
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
