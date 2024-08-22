@@ -23,16 +23,13 @@ pub struct DidJwkCreateOptions {
 }
 
 pub fn did_jwk_create(options: Option<DidJwkCreateOptions>) -> Result<Arc<BearerDid>> {
-    let inner_options = match options {
-        None => None,
-        Some(options) => Some(InnerCreateOptions {
-            dsa: options.dsa,
-            key_manager: match options.key_manager {
-                None => None,
-                Some(km) => Some(Arc::new(ToInnerKeyManager(km))),
-            },
-        }),
-    };
+    let inner_options = options.map(|o| InnerCreateOptions {
+        dsa: o.dsa,
+        key_manager: match o.key_manager {
+            None => None,
+            Some(km) => Some(Arc::new(ToInnerKeyManager(km))),
+        },
+    });
 
     let inner_bearer_did = InnerDidJwk::create(inner_options)?;
     Ok(Arc::new(BearerDid(inner_bearer_did)))
