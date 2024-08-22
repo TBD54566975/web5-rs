@@ -248,6 +248,7 @@ CLASS InMemoryKeyManager IMPLEMENTS KeyManager
 /// The set of Digital Signature Algorithms natively supported within this SDK.
 ENUM Dsa
   Ed25519
+  Secp256k1
 ```
 
 > We must add support for `X25519`, `secp256k1`, and `secp256r1` for [full did:dht conformance](https://did-dht.com/registry/index.html#key-type-index).
