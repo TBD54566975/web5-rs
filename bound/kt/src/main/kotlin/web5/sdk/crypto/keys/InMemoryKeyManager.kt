@@ -19,6 +19,17 @@ class InMemoryKeyManager (privateJwks: List<Jwk>) : KeyManager {
     }
 
     /**
+     * Imports a private key which may be stored somewhere such as environment variables.
+     *
+     * @param privateJwk The private key represented as a JWK.
+     * @return Jwk The public key represented as a JWK.
+     */
+    override fun importPrivateJwk(privateJwk: Jwk): Jwk {
+        val rustCoreJwkData = this.rustCoreInMemoryKeyManager.importPrivateJwk(privateJwk.rustCoreJwkData)
+        return Jwk.fromRustCoreJwkData(rustCoreJwkData)
+    }
+
+    /**
      * Returns the Signer for the given public key.
      *
      * @param publicJwk The public key represented as a JWK.
@@ -27,16 +38,5 @@ class InMemoryKeyManager (privateJwks: List<Jwk>) : KeyManager {
     override fun getSigner(publicJwk: Jwk): Signer {
         val rustCoreSigner = this.rustCoreInMemoryKeyManager.getSigner(publicJwk.rustCoreJwkData)
         return ToOuterSigner(rustCoreSigner)
-    }
-
-    /**
-     * Imports a private key which may be stored somewhere such as environment variables.
-     *
-     * @param privateJwk The private key represented as a JWK.
-     * @return Jwk The public key represented as a JWK.
-     */
-    fun importPrivateJwk(privateJwk: Jwk): Jwk {
-        val rustCoreJwkData = this.rustCoreInMemoryKeyManager.importPrivateJwk(privateJwk.rustCoreJwkData)
-        return Jwk.fromRustCoreJwkData(rustCoreJwkData)
     }
 }

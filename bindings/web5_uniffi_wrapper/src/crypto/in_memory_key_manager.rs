@@ -8,7 +8,7 @@ use web5::crypto::{
     jwk::Jwk,
     key_managers::{
         in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager,
-        key_manager::KeyManager as InnerKeyManager,
+        KeyManager as InnerKeyManager,
     },
 };
 
@@ -30,6 +30,10 @@ impl InMemoryKeyManager {
 }
 
 impl KeyManager for InMemoryKeyManager {
+    fn import_private_jwk(&self, private_jwk: Jwk) -> Result<Jwk> {
+        Ok(self.0.import_private_jwk(private_jwk)?)
+    }
+
     fn get_signer(&self, public_jwk: Jwk) -> Result<Arc<dyn Signer>> {
         let signer = self.0.get_signer(public_jwk)?;
         let outer_signer = ToOuterSigner(signer);

@@ -3,12 +3,12 @@ use std::sync::Arc;
 use web5::{
     crypto::{
         dsa::ed25519::{Ed25519Generator, Ed25519Signer},
-        key_managers::in_memory_key_manager::InMemoryKeyManager,
+        key_managers::{in_memory_key_manager::InMemoryKeyManager, KeyManager},
     },
     dids::{
         methods::{
             did_dht::DidDht,
-            did_jwk::{CreateOptions, DidJwk},
+            did_jwk::{DidJwkCreateOptions, DidJwk},
             did_web::DidWeb,
         },
         portable_did::PortableDid,
@@ -64,7 +64,7 @@ impl Commands {
                 let key_manager = InMemoryKeyManager::new();
                 key_manager.import_private_jwk(private_jwk.clone()).unwrap();
 
-                let did_jwk = DidJwk::create(Some(CreateOptions {
+                let did_jwk = DidJwk::create(Some(DidJwkCreateOptions {
                     key_manager: Some(Arc::new(key_manager)),
                     ..Default::default()
                 }))

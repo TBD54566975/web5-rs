@@ -1,4 +1,4 @@
-use super::key_manager::KeyManager;
+use super::KeyManager;
 use crate::{
     crypto::{
         dsa::{ed25519::Ed25519Signer, Signer},
@@ -31,8 +31,10 @@ impl InMemoryKeyManager {
             map: RwLock::new(HashMap::new()),
         }
     }
+}
 
-    pub fn import_private_jwk(&self, private_jwk: Jwk) -> Result<Jwk> {
+impl KeyManager for InMemoryKeyManager {
+    fn import_private_jwk(&self, private_jwk: Jwk) -> Result<Jwk> {
         if private_jwk.is_public_key() {
             return Err(Web5Error::Parameter(
                 "private_jwk must be a private key".to_string(),
@@ -46,9 +48,7 @@ impl InMemoryKeyManager {
         map_lock.insert(public_jwk.compute_thumbprint()?, private_jwk);
         Ok(public_jwk)
     }
-}
 
-impl KeyManager for InMemoryKeyManager {
     fn get_signer(&self, public_jwk: Jwk) -> Result<Arc<dyn Signer>> {
         if !public_jwk.is_public_key() {
             return Err(Web5Error::Parameter(

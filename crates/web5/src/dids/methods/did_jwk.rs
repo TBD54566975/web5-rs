@@ -2,7 +2,7 @@ use crate::{
     crypto::{
         dsa::{ed25519::Ed25519Generator, secp256k1::Secp256k1Generator, Dsa},
         jwk::Jwk,
-        key_managers::{in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager},
+        key_managers::{in_memory_key_manager::InMemoryKeyManager, KeyManager},
     },
     dids::{
         bearer_did::BearerDid,
@@ -18,7 +18,7 @@ use base64::{engine::general_purpose, Engine as _};
 use std::sync::Arc;
 
 #[derive(Default)]
-pub struct CreateOptions {
+pub struct DidJwkCreateOptions {
     pub key_manager: Option<Arc<dyn KeyManager>>,
     pub dsa: Option<Dsa>,
 }
@@ -26,7 +26,7 @@ pub struct CreateOptions {
 pub struct DidJwk;
 
 impl DidJwk {
-    pub fn create(options: Option<CreateOptions>) -> Result<BearerDid> {
+    pub fn create(options: Option<DidJwkCreateOptions>) -> Result<BearerDid> {
         let options = options.unwrap_or_default();
 
         let key_manager = match options.key_manager {
@@ -41,7 +41,7 @@ impl DidJwk {
                 Dsa::Secp256k1 => Secp256k1Generator::generate(),
             },
         };
-        let mut public_jwk = private_jwk.clone();
+        let mut public_jwk = key_manager.import_private_jwk(private_jwk)?;
         public_jwk.d = None;
 
         let jwk_string = serde_json::to_string(&public_jwk)?;
@@ -54,6 +54,7 @@ impl DidJwk {
         let verification_method_id = format!("{}#0", did_uri);
 
         let document = Document {
+            context: Some(vec!["https://www.w3.org/ns/did/v1".to_string()]),
             id: did_uri.clone(),
             verification_method: vec![VerificationMethod {
                 id: verification_method_id.clone(),
@@ -116,6 +117,130 @@ impl DidJwk {
         ResolutionResult {
             document: Some(document),
             ..Default::default()
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{test_helpers::UnitTestSuite, test_name};
+    use std::sync::LazyLock;
+
+    mod create {
+        use super::*;
+
+        static TEST_SUITE: LazyLock<UnitTestSuite> =
+            LazyLock::new(|| UnitTestSuite::new("did_jwk_create"));
+
+        #[test]
+        fn z_assert_all_suite_cases_covered() {
+            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
+            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
+            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
+
+            // wait 100ms to be last-in-queue of mutex lock
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            TEST_SUITE.assert_coverage()
+        }
+
+        #[test]
+        fn test_can_specify_key_manager() {
+            TEST_SUITE.include(test_name!());
+
+            let key_manager = Arc::new(InMemoryKeyManager::new());
+            let result = DidJwk::create(Some(DidJwkCreateOptions {
+                key_manager: Some(key_manager.clone()),
+                ..Default::default()
+            }));
+
+            assert!(result.is_ok());
+
+            let bearer_did = result.unwrap();
+            let public_jwk = bearer_did.document.verification_method[0]
+                .public_key_jwk
+                .clone();
+            let result = key_manager.get_signer(public_jwk);
+            assert!(result.is_ok())
+        }
+
+        #[test]
+        fn test_can_specify_secp256k1() {
+            TEST_SUITE.include(test_name!());
+
+            let result = DidJwk::create(Some(DidJwkCreateOptions {
+                dsa: Some(Dsa::Secp256k1),
+                ..Default::default()
+            }));
+
+            assert!(result.is_ok());
+
+            let bearer_did = result.unwrap();
+            let public_jwk = bearer_did.document.verification_method[0]
+                .public_key_jwk
+                .clone();
+            assert_eq!(public_jwk.alg, Some("ES256K".to_string()));
+            assert_eq!(public_jwk.kty, "EC".to_string());
+            assert_eq!(public_jwk.crv, "secp256k1".to_string());
+        }
+
+        #[test]
+        fn test_defaults_to_ed25519() {
+            TEST_SUITE.include(test_name!());
+
+            let result = DidJwk::create(None);
+            assert!(result.is_ok());
+
+            let bearer_did = result.unwrap();
+            let public_jwk = bearer_did.document.verification_method[0]
+                .public_key_jwk
+                .clone();
+            assert_eq!(public_jwk.alg, Some("Ed25519".to_string()));
+            assert_eq!(public_jwk.kty, "OKP".to_string());
+            assert_eq!(public_jwk.crv, "Ed25519".to_string());
+        }
+    }
+
+    mod resolve {
+        use super::*;
+
+        static TEST_SUITE: LazyLock<UnitTestSuite> =
+            LazyLock::new(|| UnitTestSuite::new("did_jwk_resolve"));
+
+        #[test]
+        fn z_assert_all_suite_cases_covered() {
+            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
+            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
+            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
+
+            // wait 100ms to be last-in-queue of mutex lock
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            TEST_SUITE.assert_coverage()
+        }
+
+        #[test]
+        fn test_invalid_did() {
+            TEST_SUITE.include(test_name!());
+
+            let resolution_result = DidJwk::resolve("something invalid");
+            assert_eq!(
+                resolution_result.resolution_metadata.error,
+                Some(ResolutionMetadataError::InvalidDid)
+            )
+        }
+
+        #[test]
+        fn test_create_then_resolve() {
+            TEST_SUITE.include(test_name!());
+
+            let result = DidJwk::create(None);
+            assert!(result.is_ok());
+            let bearer_did = result.unwrap();
+
+            let resolution_result = DidJwk::resolve(&bearer_did.did.uri);
+            assert_eq!(resolution_result.document, Some(bearer_did.document));
         }
     }
 }

@@ -643,24 +643,30 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 internal interface UniffiCallbackInterfaceKeyManagerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`publicJwk`: RustBuffer.ByValue,`uniffiOutReturn`: PointerByReference,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceKeyManagerMethod1 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`privateJwk`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceSignerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`payload`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceVerifierMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
-@Structure.FieldOrder("getSigner", "uniffiFree")
+@Structure.FieldOrder("getSigner", "importPrivateJwk", "uniffiFree")
 internal open class UniffiVTableCallbackInterfaceKeyManager(
     @JvmField internal var `getSigner`: UniffiCallbackInterfaceKeyManagerMethod0? = null,
+    @JvmField internal var `importPrivateJwk`: UniffiCallbackInterfaceKeyManagerMethod1? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
 ) : Structure() {
     class UniffiByValue(
         `getSigner`: UniffiCallbackInterfaceKeyManagerMethod0? = null,
+        `importPrivateJwk`: UniffiCallbackInterfaceKeyManagerMethod1? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceKeyManager(`getSigner`,`uniffiFree`,), Structure.ByValue
+    ): UniffiVTableCallbackInterfaceKeyManager(`getSigner`,`importPrivateJwk`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceKeyManager) {
         `getSigner` = other.`getSigner`
+        `importPrivateJwk` = other.`importPrivateJwk`
         `uniffiFree` = other.`uniffiFree`
     }
 
@@ -697,6 +703,8 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
     }
 
 }
+
+
 
 
 
@@ -980,7 +988,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_get_signer(`ptr`: Pointer,`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_import_private_jwk(`ptr`: Pointer,`privateKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_inmemorykeymanager_import_private_jwk(`ptr`: Pointer,`privateJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_jwk(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1000,6 +1008,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_uniffi_fn_method_keymanager_get_signer(`ptr`: Pointer,`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_web5_uniffi_fn_method_keymanager_import_private_jwk(`ptr`: Pointer,`privateJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_portabledid(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_portabledid(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1216,6 +1226,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_keymanager_get_signer(
     ): Short
+    fun uniffi_web5_uniffi_checksum_method_keymanager_import_private_jwk(
+    ): Short
     fun uniffi_web5_uniffi_checksum_method_portabledid_get_data(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_portabledid_to_json_string(
@@ -1332,7 +1344,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_get_signer() != 64632.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_private_jwk() != 54213.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_inmemorykeymanager_import_private_jwk() != 1224.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_jwk_compute_thumbprint() != 15254.toShort()) {
@@ -1342,6 +1354,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_keymanager_get_signer() != 27148.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_method_keymanager_import_private_jwk() != 6800.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_portabledid_get_data() != 27045.toShort()) {
@@ -3556,7 +3571,7 @@ public interface InMemoryKeyManagerInterface {
     
     fun `getSigner`(`publicJwk`: JwkData): Signer
     
-    fun `importPrivateJwk`(`privateKey`: JwkData): JwkData
+    fun `importPrivateJwk`(`privateJwk`: JwkData): JwkData
     
     companion object
 }
@@ -3675,12 +3690,12 @@ open class InMemoryKeyManager: Disposable, AutoCloseable, InMemoryKeyManagerInte
     
 
     
-    @Throws(Web5Exception::class)override fun `importPrivateJwk`(`privateKey`: JwkData): JwkData {
+    @Throws(Web5Exception::class)override fun `importPrivateJwk`(`privateJwk`: JwkData): JwkData {
             return FfiConverterTypeJwkData.lift(
     callWithPointer {
     uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_inmemorykeymanager_import_private_jwk(
-        it, FfiConverterTypeJwkData.lower(`privateKey`),_status)
+        it, FfiConverterTypeJwkData.lower(`privateJwk`),_status)
 }
     }
     )
@@ -4077,6 +4092,8 @@ public interface KeyManager {
     
     fun `getSigner`(`publicJwk`: JwkData): Signer
     
+    fun `importPrivateJwk`(`privateJwk`: JwkData): JwkData
+    
     companion object
 }
 
@@ -4175,6 +4192,19 @@ open class KeyManagerImpl: Disposable, AutoCloseable, KeyManager {
     
 
     
+    @Throws(Web5Exception::class)override fun `importPrivateJwk`(`privateJwk`: JwkData): JwkData {
+            return FfiConverterTypeJwkData.lift(
+    callWithPointer {
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_keymanager_import_private_jwk(
+        it, FfiConverterTypeJwkData.lower(`privateJwk`),_status)
+}
+    }
+    )
+    }
+    
+
+    
 
     
     
@@ -4230,6 +4260,23 @@ internal object uniffiCallbackInterfaceKeyManager {
             )
         }
     }
+    internal object `importPrivateJwk`: UniffiCallbackInterfaceKeyManagerMethod1 {
+        override fun callback(`uniffiHandle`: Long,`privateJwk`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeKeyManager.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`importPrivateJwk`(
+                    FfiConverterTypeJwkData.lift(`privateJwk`),
+                )
+            }
+            val writeReturn = { value: JwkData -> uniffiOutReturn.setValue(FfiConverterTypeJwkData.lower(value)) }
+            uniffiTraitInterfaceCallWithError(
+                uniffiCallStatus,
+                makeCall,
+                writeReturn,
+                { e: Web5Exception -> FfiConverterTypeWeb5Error.lower(e) }
+            )
+        }
+    }
 
     internal object uniffiFree: UniffiCallbackInterfaceFree {
         override fun callback(handle: Long) {
@@ -4239,6 +4286,7 @@ internal object uniffiCallbackInterfaceKeyManager {
 
     internal var vtable = UniffiVTableCallbackInterfaceKeyManager.UniffiByValue(
         `getSigner`,
+        `importPrivateJwk`,
         uniffiFree,
     )
 

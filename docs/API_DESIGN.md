@@ -53,7 +53,7 @@
     - [`DocumentMetadata`](#documentmetadata)
   - [Methods](#methods)
     - [`DidJwk`](#didjwk)
-      - [`CreateOptions`](#createoptions-1)
+      - [`DidJwkCreateOptions`](#didjwkcreateoptions)
     - [`DidWeb`](#didweb)
       - [Example: Instantiate an existing `did:web`](#example-instantiate-an-existing-didweb)
       - [Example: Resolve a `did:web`](#example-resolve-a-didweb)
@@ -219,6 +219,9 @@ CLASS Jwk
 INTERFACE KeyManager
   /// Returns the signer for the given public key.
   METHOD get_signer(public_jwk: Jwk): Signer
+
+  /// For importing keys which may be stored somewhere such as environment variables. Return Jwk is the public key for the given private key.
+  METHOD import_private_jwk(private_jwk: Jwk): Jwk
 ```
 
 ### `InMemoryKeyManager`
@@ -604,14 +607,14 @@ CLASS DocumentMetadata
 
 ```pseudocode!
 CLASS DidJwk
-  STATIC METHOD create(options: CreateOptions): BearerDid
+  STATIC METHOD create(options: DidJwkCreateOptions): BearerDid
   STATIC METHOD resolve(uri: string): ResolutionResult
 ```
 
-#### `CreateOptions`
+#### `DidJwkCreateOptions`
 
 ```pseudocode!
-CLASS CreateOptions
+CLASS DidJwkCreateOptions
   PUBLIC DATA key_manager: KeyManager?
   PUBLIC DATA dsa: Dsa?
 ```

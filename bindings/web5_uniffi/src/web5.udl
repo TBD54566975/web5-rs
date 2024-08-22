@@ -35,15 +35,17 @@ interface Jwk {
 [Trait, WithForeign]
 interface KeyManager {
   [Throws=Web5Error]
+  JwkData import_private_jwk(JwkData private_jwk);
+  [Throws=Web5Error]
   Signer get_signer(JwkData public_jwk);
 };
 
 interface InMemoryKeyManager {
   constructor();
   [Throws=Web5Error]
-  Signer get_signer(JwkData public_jwk);
+  JwkData import_private_jwk(JwkData private_jwk);
   [Throws=Web5Error]
-  JwkData import_private_jwk(JwkData private_key);
+  Signer get_signer(JwkData public_jwk);
   KeyManager get_as_key_manager();
 };
 
