@@ -1,9 +1,16 @@
 use clap::Subcommand;
 use std::sync::Arc;
 use web5::{
-    crypto::dsa::ed25519::{Ed25519Generator, Ed25519Signer},
+    crypto::{
+        dsa::ed25519::{Ed25519Generator, Ed25519Signer},
+        key_managers::in_memory_key_manager::InMemoryKeyManager,
+    },
     dids::{
-        methods::{did_dht::DidDht, did_jwk::DidJwk, did_web::DidWeb},
+        methods::{
+            did_dht::DidDht,
+            did_jwk::{CreateOptions, DidJwk},
+            did_web::DidWeb,
+        },
         portable_did::PortableDid,
     },
 };
@@ -54,10 +61,14 @@ impl Commands {
                 json_escape,
             } => {
                 let private_jwk = Ed25519Generator::generate();
-                let mut public_jwk = private_jwk.clone();
-                public_jwk.d = None;
+                let key_manager = InMemoryKeyManager::new();
+                key_manager.import_private_jwk(private_jwk.clone()).unwrap();
 
-                let did_jwk = DidJwk::from_public_jwk(public_jwk).unwrap();
+                let did_jwk = DidJwk::create(Some(CreateOptions {
+                    key_manager: Some(Arc::new(key_manager)),
+                    ..Default::default()
+                }))
+                .unwrap();
 
                 let portable_did = PortableDid {
                     did_uri: did_jwk.did.uri,

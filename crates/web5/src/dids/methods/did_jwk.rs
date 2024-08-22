@@ -1,44 +1,66 @@
-use super::{MethodError, Result};
 use crate::{
-    crypto::jwk::Jwk,
+    crypto::{
+        dsa::{ed25519::Ed25519Generator, secp256k1::Secp256k1Generator, Dsa},
+        jwk::Jwk,
+        key_managers::{in_memory_key_manager::InMemoryKeyManager, key_manager::KeyManager},
+    },
     dids::{
+        bearer_did::BearerDid,
         data_model::{document::Document, verification_method::VerificationMethod},
         did::Did,
         resolution::{
-            resolution_metadata::{ResolutionMetadata, ResolutionMetadataError},
-            resolution_result::ResolutionResult,
+            resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
         },
     },
+    errors::Result,
 };
 use base64::{engine::general_purpose, Engine as _};
+use std::sync::Arc;
 
-#[derive(Clone)]
-pub struct DidJwk {
-    pub did: Did,
-    pub document: Document,
+#[derive(Default)]
+pub struct CreateOptions {
+    pub key_manager: Option<Arc<dyn KeyManager>>,
+    pub dsa: Option<Dsa>,
 }
 
+pub struct DidJwk;
+
 impl DidJwk {
-    pub fn from_public_jwk(public_jwk: Jwk) -> Result<Self> {
+    pub fn create(options: Option<CreateOptions>) -> Result<BearerDid> {
+        let options = options.unwrap_or_default();
+
+        let key_manager = match options.key_manager {
+            Some(km) => km,
+            None => Arc::new(InMemoryKeyManager::new()),
+        };
+
+        let private_jwk = match options.dsa {
+            None => Ed25519Generator::generate(),
+            Some(dsa) => match dsa {
+                Dsa::Ed25519 => Ed25519Generator::generate(),
+                Dsa::Secp256k1 => Secp256k1Generator::generate(),
+            },
+        };
+        let mut public_jwk = private_jwk.clone();
+        public_jwk.d = None;
+
         let jwk_string = serde_json::to_string(&public_jwk)?;
         let method_specific_id = general_purpose::URL_SAFE_NO_PAD.encode(jwk_string);
 
-        let uri = format!("did:jwk:{}", method_specific_id);
+        let did_uri = format!("did:jwk:{}", method_specific_id);
 
-        let did = Did::parse(&uri)?;
+        let did = Did::parse(&did_uri)?;
 
-        let verification_method_id = format!("{}#0", uri);
-
-        let verification_method = VerificationMethod {
-            id: verification_method_id.clone(),
-            r#type: "JsonWebKey".to_string(),
-            controller: uri.clone(),
-            public_key_jwk: public_jwk.clone(),
-        };
+        let verification_method_id = format!("{}#0", did_uri);
 
         let document = Document {
-            id: uri.clone(),
-            verification_method: vec![verification_method.clone()],
+            id: did_uri.clone(),
+            verification_method: vec![VerificationMethod {
+                id: verification_method_id.clone(),
+                r#type: "JsonWebKey".to_string(),
+                controller: did_uri.clone(),
+                public_key_jwk: public_jwk.clone(),
+            }],
             authentication: Some(vec![verification_method_id.clone()]),
             assertion_method: Some(vec![verification_method_id.clone()]),
             capability_invocation: Some(vec![verification_method_id.clone()]),
@@ -46,72 +68,54 @@ impl DidJwk {
             ..Default::default()
         };
 
-        Ok(Self { did, document })
-    }
-
-    pub fn from_uri(uri: &str) -> Result<Self> {
-        let resolution_result = DidJwk::resolve(uri);
-
-        match resolution_result.document {
-            None => Err(match resolution_result.resolution_metadata.error {
-                None => MethodError::ResolutionError(ResolutionMetadataError::InternalError),
-                Some(e) => MethodError::ResolutionError(e),
-            }),
-            Some(document) => {
-                let did = Did::parse(uri)?;
-                Ok(Self { did, document })
-            }
-        }
+        Ok(BearerDid {
+            did,
+            document,
+            key_manager,
+        })
     }
 
     pub fn resolve(uri: &str) -> ResolutionResult {
-        let result: Result<ResolutionResult> = (|| {
-            let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
-            let decoded_jwk = general_purpose::URL_SAFE_NO_PAD
-                .decode(did.id)
-                .map_err(|_| ResolutionMetadataError::InvalidDid)?;
-            let public_jwk = serde_json::from_slice::<Jwk>(&decoded_jwk)
-                .map_err(|_| ResolutionMetadataError::InvalidDid)?;
+        let did = match Did::parse(uri) {
+            Ok(d) => d,
+            Err(_) => return ResolutionResult::from_error(ResolutionMetadataError::InvalidDid),
+        };
 
-            let kid = format!("{}#0", did.uri);
-            let document = Document {
-                context: Some(vec!["https://www.w3.org/ns/did/v1".to_string()]),
-                id: did.uri.clone(),
-                verification_method: vec![VerificationMethod {
-                    id: kid.clone(),
-                    r#type: "JsonWebKey".to_string(),
-                    controller: did.uri.clone(),
-                    public_key_jwk: public_jwk,
-                }],
-                assertion_method: Some(vec![kid.clone()]),
-                authentication: Some(vec![kid.clone()]),
-                capability_invocation: Some(vec![kid.clone()]),
-                capability_delegation: Some(vec![kid.clone()]),
+        let decoded_jwk = match general_purpose::URL_SAFE_NO_PAD.decode(did.id) {
+            Ok(dj) => dj,
+            Err(_) => return ResolutionResult::from_error(ResolutionMetadataError::InvalidDid),
+        };
 
-                // TODO: https://github.com/TBD54566975/web5-rs/issues/257 - If the JWK contains a `use` property with the value "sig" then the `keyAgreement` property
-                // is not included in the DID Document. If the `use` value is "enc" then only the `keyAgreement`
-                // property is included in the DID Document.
-                // key_agreement: if public_jwk.use_.as_deref() != Some("sig") { Some(vec![kid.clone()]) } else { None },
-                ..Default::default()
-            };
+        let public_jwk = match serde_json::from_slice::<Jwk>(&decoded_jwk) {
+            Ok(pj) => pj,
+            Err(_) => return ResolutionResult::from_error(ResolutionMetadataError::InvalidDid),
+        };
 
-            Ok(ResolutionResult {
-                document: Some(document),
-                ..Default::default()
-            })
-        })();
+        let kid = format!("{}#0", did.uri);
+        let document = Document {
+            context: Some(vec!["https://www.w3.org/ns/did/v1".to_string()]),
+            id: did.uri.clone(),
+            verification_method: vec![VerificationMethod {
+                id: kid.clone(),
+                r#type: "JsonWebKey".to_string(),
+                controller: did.uri.clone(),
+                public_key_jwk: public_jwk,
+            }],
+            assertion_method: Some(vec![kid.clone()]),
+            authentication: Some(vec![kid.clone()]),
+            capability_invocation: Some(vec![kid.clone()]),
+            capability_delegation: Some(vec![kid.clone()]),
 
-        match result {
-            Ok(resolution_result) => resolution_result,
-            Err(err) => ResolutionResult {
-                resolution_metadata: ResolutionMetadata {
-                    error: Some(match err {
-                        MethodError::ResolutionError(e) => e,
-                        _ => ResolutionMetadataError::InternalError,
-                    }),
-                },
-                ..Default::default()
-            },
+            // TODO: https://github.com/TBD54566975/web5-rs/issues/257 - If the JWK contains a `use` property with the value "sig" then the `keyAgreement` property
+            // is not included in the DID Document. If the `use` value is "enc" then only the `keyAgreement`
+            // property is included in the DID Document.
+            // key_agreement: if public_jwk.use_.as_deref() != Some("sig") { Some(vec![kid.clone()]) } else { None },
+            ..Default::default()
+        };
+
+        ResolutionResult {
+            document: Some(document),
+            ..Default::default()
         }
     }
 }
