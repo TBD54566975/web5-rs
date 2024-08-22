@@ -8,7 +8,7 @@ use web5::{
     dids::{
         methods::{
             did_dht::DidDht,
-            did_jwk::{DidJwkCreateOptions, DidJwk},
+            did_jwk::{DidJwk, DidJwkCreateOptions},
             did_web::DidWeb,
         },
         portable_did::PortableDid,

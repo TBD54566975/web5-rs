@@ -6,7 +6,7 @@ use crate::{
 use std::sync::Arc;
 use web5::{
     crypto::dsa::Dsa,
-    dids::methods::did_jwk::{DidJwkCreateOptions as InnerCreateOptions, DidJwk as InnerDidJwk},
+    dids::methods::did_jwk::{DidJwk as InnerDidJwk, DidJwkCreateOptions as InnerCreateOptions},
 };
 
 pub struct DidJwk(pub InnerDidJwk);

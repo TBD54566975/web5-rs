@@ -40,8 +40,10 @@ impl ResolutionResult {
             },
         }
     }
+}
 
-    pub(crate) fn from_error(error: ResolutionMetadataError) -> Self {
+impl From<ResolutionMetadataError> for ResolutionResult {
+    fn from(error: ResolutionMetadataError) -> Self {
         Self {
             resolution_metadata: ResolutionMetadata { error: Some(error) },
             ..Default::default()

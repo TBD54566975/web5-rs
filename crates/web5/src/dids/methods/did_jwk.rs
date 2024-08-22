@@ -79,17 +79,17 @@ impl DidJwk {
     pub fn resolve(uri: &str) -> ResolutionResult {
         let did = match Did::parse(uri) {
             Ok(d) => d,
-            Err(_) => return ResolutionResult::from_error(ResolutionMetadataError::InvalidDid),
+            Err(_) => return ResolutionResult::from(ResolutionMetadataError::InvalidDid),
         };
 
         let decoded_jwk = match general_purpose::URL_SAFE_NO_PAD.decode(did.id) {
             Ok(dj) => dj,
-            Err(_) => return ResolutionResult::from_error(ResolutionMetadataError::InvalidDid),
+            Err(_) => return ResolutionResult::from(ResolutionMetadataError::InvalidDid),
         };
 
         let public_jwk = match serde_json::from_slice::<Jwk>(&decoded_jwk) {
             Ok(pj) => pj,
-            Err(_) => return ResolutionResult::from_error(ResolutionMetadataError::InvalidDid),
+            Err(_) => return ResolutionResult::from(ResolutionMetadataError::InvalidDid),
         };
 
         let kid = format!("{}#0", did.uri);
