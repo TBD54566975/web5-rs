@@ -9,8 +9,9 @@
 # The format is described: https://github.blog/2017-07-06-introducing-code-owners/
 
 # These owners will be the default owners for everything in the repo.
-*       @KendallWeihe @nitro-neal @kirahsapong @shamilovtim @diehuxx @decentralgabe @frankhinek @leordev @ALRubinger
+*                               @KendallWeihe @nitro-neal @kirahsapong @shamilovtim @diehuxx @decentralgabe @frankhinek @leordev @ALRubinger
 
+.github/workflows/release.yaml  @finn-tbd
 
 # -----------------------------------------------
 # BELOW THIS LINE ARE TEMPLATES, UNUSED
