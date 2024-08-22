@@ -14,13 +14,9 @@ setup:
 
 build: setup
   cargo build --workspace
-  # Build web5 crate with lower rustc version than rest of the project
-  cd crates/web5 && cargo build
 
 test: setup
   cargo test --workspace
-  # Test web5 crate with lower rustc version than rest of the project
-  cd crates/web5 && cargo test
 
 lint: setup
   cargo clippy --workspace
