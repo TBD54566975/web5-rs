@@ -9,7 +9,6 @@ use ed25519_dalek::{
     PUBLIC_KEY_LENGTH, SECRET_KEY_LENGTH, SIGNATURE_LENGTH,
 };
 use rand::rngs::OsRng;
-use lazy_static::lazy_static;
 
 pub struct Ed25519Generator;
 
