@@ -73,13 +73,15 @@ mod tests {
     use super::*;
     use crate::crypto::dsa::ed25519::Ed25519Generator;
     use crate::{test_helpers::UnitTestSuite, test_name};
-    use std::sync::LazyLock;
+    use lazy_static::lazy_static;
 
     mod import_private_jwk {
         use super::*;
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("in_memory_key_manager_import_private_jwk"));
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite =
+                UnitTestSuite::new("in_memory_key_manager_import_private_jwk");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {
@@ -128,8 +130,10 @@ mod tests {
     mod get_signer {
         use super::*;
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("in_memory_key_manager_get_signer"));
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite =
+                UnitTestSuite::new("in_memory_key_manager_get_signer");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {

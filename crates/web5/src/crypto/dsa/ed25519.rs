@@ -167,13 +167,14 @@ mod tests {
     use super::*;
     use crate::{test_helpers::UnitTestSuite, test_name};
     use general_purpose::URL_SAFE_NO_PAD;
-    use std::sync::LazyLock;
+    use lazy_static::lazy_static;
 
     mod generate {
         use super::*;
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("ed25519_generate"));
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("ed25519_generate");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {
@@ -238,8 +239,9 @@ mod tests {
     mod sign {
         use super::*;
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("ed25519_sign"));
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("ed25519_sign");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {
@@ -324,8 +326,9 @@ mod tests {
     mod verify {
         use super::*;
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("ed25519_verify"));
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("ed25519_verify");
+        }
 
         fn generate_keys() -> (Jwk, Jwk) {
             let private_jwk = Ed25519Generator::generate();

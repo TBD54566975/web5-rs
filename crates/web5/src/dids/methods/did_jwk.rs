@@ -121,13 +121,14 @@ impl DidJwk {
 mod tests {
     use super::*;
     use crate::{test_helpers::UnitTestSuite, test_name};
-    use std::sync::LazyLock;
+    use lazy_static::lazy_static;
 
     mod create {
         use super::*;
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("did_jwk_create"));
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("did_jwk_create");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {
@@ -201,8 +202,9 @@ mod tests {
     mod resolve {
         use super::*;
 
-        static TEST_SUITE: LazyLock<UnitTestSuite> =
-            LazyLock::new(|| UnitTestSuite::new("did_jwk_resolve"));
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("did_jwk_resolve");
+        }
 
         #[test]
         fn z_assert_all_suite_cases_covered() {
