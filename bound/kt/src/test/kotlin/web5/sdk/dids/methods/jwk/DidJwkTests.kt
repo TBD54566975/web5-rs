@@ -20,13 +20,13 @@ class DidJwkTests {
             if (testSuite.tests.isNotEmpty()) {
                 println("The following tests were not included or executed:")
                 testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${this.testSuite.tests}")
+                fail("Not all tests were executed! ${testSuite.tests}")
             }
         }
 
         @Test
         fun test_can_specify_key_manager() {
-            this.testSuite.include()
+            testSuite.include()
 
             val keyManager = InMemoryKeyManager(listOf())
             val bearerDid = DidJwk.create(DidJwkCreateOptions(keyManager))
@@ -40,7 +40,7 @@ class DidJwkTests {
 
         @Test
         fun test_can_specify_secp256k1() {
-            this.testSuite.include()
+            testSuite.include()
 
             val bearerDid = DidJwk.create(DidJwkCreateOptions(dsa = Dsa.SECP256K1))
 
@@ -52,7 +52,7 @@ class DidJwkTests {
 
         @Test
         fun test_defaults_to_ed25519() {
-            this.testSuite.include()
+            testSuite.include()
 
             val bearerDid = DidJwk.create()
 
@@ -73,13 +73,13 @@ class DidJwkTests {
             if (testSuite.tests.isNotEmpty()) {
                 println("The following tests were not included or executed:")
                 testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${this.testSuite.tests}")
+                fail("Not all tests were executed! ${testSuite.tests}")
             }
         }
 
         @Test
         fun test_invalid_did() {
-            this.testSuite.include()
+            testSuite.include()
 
             val resolutionResult = DidJwk.resolve("something invalid")
             assertEquals(ResolutionMetadataError.INVALID_DID, resolutionResult.resolutionMetadata.error)
@@ -87,7 +87,7 @@ class DidJwkTests {
 
         @Test
         fun test_create_then_resolve() {
-            this.testSuite.include()
+            testSuite.include()
 
             val bearerDid = DidJwk.create()
             val resolutionResult = DidJwk.resolve(bearerDid.did.uri)

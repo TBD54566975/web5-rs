@@ -15,13 +15,13 @@ class Ed25519GeneratorTest {
         if (testSuite.tests.isNotEmpty()) {
             println("The following tests were not included or executed:")
             testSuite.tests.forEach { println(it) }
-            fail("Not all tests were executed! ${this.testSuite.tests}")
+            fail("Not all tests were executed! ${testSuite.tests}")
         }
     }
 
     @Test
     fun test_must_set_alg() {
-        this.testSuite.include()
+        testSuite.include()
 
         val jwk = Ed25519Generator.generate()
         assertEquals("Ed25519", jwk.alg)
@@ -29,7 +29,7 @@ class Ed25519GeneratorTest {
 
     @Test
     fun test_must_set_kty() {
-        this.testSuite.include()
+        testSuite.include()
 
         val jwk = Ed25519Generator.generate()
         assertEquals("OKP", jwk.kty)
@@ -37,7 +37,7 @@ class Ed25519GeneratorTest {
 
     @Test
     fun test_must_set_crv() {
-        this.testSuite.include()
+        testSuite.include()
 
         val jwk = Ed25519Generator.generate()
         assertEquals("Ed25519", jwk.crv)
@@ -45,7 +45,7 @@ class Ed25519GeneratorTest {
 
     @Test
     fun test_must_set_public_key_with_correct_length() {
-        this.testSuite.include()
+        testSuite.include()
 
         val jwk = Ed25519Generator.generate()
         val publicKeyBytes = java.util.Base64.getUrlDecoder().decode(jwk.x)
@@ -54,7 +54,7 @@ class Ed25519GeneratorTest {
 
     @Test
     fun test_must_set_private_key_with_correct_length() {
-        this.testSuite.include()
+        testSuite.include()
 
         val jwk = Ed25519Generator.generate()
         val privateKeyBytes = jwk.d ?: fail("Private key is missing")

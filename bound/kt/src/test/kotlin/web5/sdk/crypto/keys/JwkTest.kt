@@ -16,13 +16,13 @@ class JwkTest {
         if (testSuite.tests.isNotEmpty()) {
             println("The following tests were not included or executed:")
             testSuite.tests.forEach { println(it) }
-            fail("Not all tests were executed! ${this.testSuite.tests}")
+            fail("Not all tests were executed! ${testSuite.tests}")
         }
     }
 
     @Test
     fun test_ec_valid() {
-        this.testSuite.include()
+        testSuite.include()
         val jwk = Jwk(
             kty = "EC",
             crv = "secp256k1",
@@ -36,7 +36,7 @@ class JwkTest {
 
     @Test
     fun test_okp_valid() {
-        this.testSuite.include()
+        testSuite.include()
         val jwk = Jwk(
             kty = "OKP",
             crv = "Ed25519",
@@ -49,7 +49,7 @@ class JwkTest {
 
     @Test
     fun test_unsupported_kty() {
-        this.testSuite.include()
+        testSuite.include()
         val jwk = Jwk(
             kty = "RSA",
             crv = "RS256",
@@ -66,7 +66,7 @@ class JwkTest {
 
     @Test
     fun test_empty_kty() {
-        this.testSuite.include()
+        testSuite.include()
         val jwk = Jwk(
             kty = "",
             crv = "Ed25519",
@@ -82,7 +82,7 @@ class JwkTest {
 
     @Test
     fun test_empty_x() {
-        this.testSuite.include()
+        testSuite.include()
         val jwk = Jwk(
             kty = "OKP",
             crv = "Ed25519",
@@ -98,7 +98,7 @@ class JwkTest {
 
     @Test
     fun test_empty_crv() {
-        this.testSuite.include()
+        testSuite.include()
         val jwk = Jwk(
             kty = "EC",
             crv = "",
@@ -115,7 +115,7 @@ class JwkTest {
 
     @Test
     fun test_ec_missing_y() {
-        this.testSuite.include()
+        testSuite.include()
         val jwk = Jwk(
             kty = "EC",
             crv = "P-256",
@@ -131,7 +131,7 @@ class JwkTest {
 
     @Test
     fun test_ec_empty_y() {
-        this.testSuite.include()
+        testSuite.include()
         val jwk = Jwk(
             kty = "EC",
             crv = "P-256",

@@ -18,13 +18,13 @@ class InMemoryKeyManagerTest {
       if (testSuite.tests.isNotEmpty()) {
         println("The following tests were not included or executed:")
         testSuite.tests.forEach { println(it) }
-        fail("Not all tests were executed! ${this.testSuite.tests}")
+        fail("Not all tests were executed! ${testSuite.tests}")
       }
     }
 
     @Test
     fun test_must_be_private_jwk() {
-      this.testSuite.include()
+      testSuite.include()
 
       val keyManager = InMemoryKeyManager(listOf())
       val privateJwk = Ed25519Generator.generate()
@@ -40,7 +40,7 @@ class InMemoryKeyManagerTest {
 
     @Test
     fun test_successfully_imports_and_returns_public_jwk() {
-      this.testSuite.include()
+      testSuite.include()
 
       val keyManager = InMemoryKeyManager(listOf())
       val privateJwk = Ed25519Generator.generate()
@@ -61,13 +61,13 @@ class InMemoryKeyManagerTest {
       if (testSuite.tests.isNotEmpty()) {
         println("The following tests were not included or executed:")
         testSuite.tests.forEach { println(it) }
-        fail("Not all tests were executed! ${this.testSuite.tests}")
+        fail("Not all tests were executed! ${testSuite.tests}")
       }
     }
 
     @Test
     fun test_must_be_public_key() {
-      this.testSuite.include()
+      testSuite.include()
 
       val privateJwk = Ed25519Generator.generate()
       val keyManager = InMemoryKeyManager(listOf(privateJwk))
@@ -82,7 +82,7 @@ class InMemoryKeyManagerTest {
 
     @Test
     fun test_not_found() {
-      this.testSuite.include()
+      testSuite.include()
 
       val keyManager = InMemoryKeyManager(listOf())
       val privateJwk = Ed25519Generator.generate()
@@ -98,7 +98,7 @@ class InMemoryKeyManagerTest {
 
     @Test
     fun test_found() {
-      this.testSuite.include()
+      testSuite.include()
       
       val privateJwk = Ed25519Generator.generate()
       val publicJwk = privateJwk.copy(d = null)
