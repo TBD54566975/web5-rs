@@ -110,23 +110,16 @@ impl From<Web5Error> for InnerWeb5Error {
         let variant = error.variant();
         let msg = error.msg();
 
-        if variant == variant_name(&InnerWeb5Error::Json(String::default())) {
-            return InnerWeb5Error::Json(msg);
-        } else if variant == variant_name(&InnerWeb5Error::Parameter(String::default())) {
-            return InnerWeb5Error::Parameter(msg);
-        } else if variant == variant_name(&InnerWeb5Error::DataMember(String::default())) {
-            return InnerWeb5Error::DataMember(msg);
-        } else if variant == variant_name(&InnerWeb5Error::NotFound(String::default())) {
-            return InnerWeb5Error::NotFound(msg);
-        } else if variant == variant_name(&InnerWeb5Error::Crypto(String::default())) {
-            return InnerWeb5Error::Crypto(msg);
-        } else if variant == variant_name(&InnerWeb5Error::Encoding(String::default())) {
-            return InnerWeb5Error::Encoding(msg);
-        } else if variant == variant_name(&InnerWeb5Error::Mutex(String::default())) {
-            return InnerWeb5Error::Mutex(msg);
+        match variant.as_str() {
+            "Json" => InnerWeb5Error::Json(msg),
+            "Parameter" => InnerWeb5Error::Parameter(msg),
+            "DataMember" => InnerWeb5Error::DataMember(msg),
+            "NotFound" => InnerWeb5Error::NotFound(msg),
+            "Crypto" => InnerWeb5Error::Crypto(msg),
+            "Encoding" => InnerWeb5Error::Encoding(msg),
+            "Mutex" => InnerWeb5Error::Mutex(msg),
+            _ => InnerWeb5Error::Unknown(format!("unknown variant {} with msg {}", variant, msg)),
         }
-
-        InnerWeb5Error::Unknown(format!("unknown variant {} with msg {}", variant, msg))
     }
 }
 
