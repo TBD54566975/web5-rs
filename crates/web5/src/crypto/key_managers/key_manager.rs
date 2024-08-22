@@ -1,5 +1,7 @@
-use super::Result;
-use crate::crypto::{dsa::Signer, jwk::Jwk};
+use crate::{
+    crypto::{dsa::Signer, jwk::Jwk},
+    errors::Result,
+};
 use std::sync::Arc;
 
 pub trait KeyManager: Send + Sync {

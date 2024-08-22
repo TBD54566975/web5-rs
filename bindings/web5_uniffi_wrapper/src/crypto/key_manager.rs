@@ -23,7 +23,7 @@ impl InnerKeyManager for ToInnerKeyManager {
     fn get_signer(
         &self,
         public_jwk: Jwk,
-    ) -> web5::crypto::key_managers::Result<Arc<dyn web5::crypto::dsa::Signer>> {
+    ) -> web5::errors::Result<Arc<dyn web5::crypto::dsa::Signer>> {
         let outer_signer = self.0.get_signer(public_jwk)?;
         let inner_signer = Arc::new(ToInnerSigner(outer_signer));
         Ok(inner_signer)
