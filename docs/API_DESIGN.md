@@ -57,11 +57,7 @@
     - [`DidWeb`](#didweb)
       - [`DidWebCreateOptions`](#didwebcreateoptions)
     - [`DidDht`](#diddht)
-      - [Example: Create \& publish a `did:dht`](#example-create--publish-a-diddht)
-      - [Example: Create a `did:dht`, add to the Core Properties \& publish](#example-create-a-diddht-add-to-the-core-properties--publish)
-      - [Example: Instantiate an existing `did:dht`](#example-instantiate-an-existing-diddht)
-      - [Example: Update a `did:dht`](#example-update-a-diddht)
-      - [Example: Resolve a `did:dht`](#example-resolve-a-diddht)
+      - [`DidDhtCreateOptions`](#diddhtcreateoptions)
   - [`BearerDid`](#bearerdid)
     - [Example: Instantiate from a `PortableDid`](#example-instantiate-from-a-portabledid)
   - [`PortableDid`](#portabledid)
@@ -647,76 +643,25 @@ CLASS DidWebCreateOptions
 
 ```pseudocode!
 CLASS DidDht
-  PUBLIC DATA did: Did
-  PUBLIC DATA document: Document
-  CONSTRUCTOR(identity_key: Jwk)
-  CONSTRUCTOR(uri: string)
-  METHOD publish(signer: Signer)
-  METHOD deactivate(signer: Signer)
+  STATIC METHOD create(options: DidDhtCreateOptions?): BearerDid
   STATIC METHOD resolve(uri: string): ResolutionResult
+  STATIC METHOD publish(bearer_did: BearerDid)
 ```
 
 > [!NOTE]
 > `resolve()` makes use of [`Ed25519Verifier`](#ed25519verifier) internally for DNS packet verification.
 
-#### Example: Create & publish a `did:dht`
+#### `DidDhtCreateOptions`
 
 ```pseudocode!
-key_manager = new InMemoryKeyManager()
-identity_key = key_manager.import_private_jwk(Ed25519Generator::generate())
-did_dht = new DidDht(identity_key)
-signer = key_manager.get_signer(identity_key)
-did_dht.publish(signer)
-```
-
-#### Example: Create a `did:dht`, add to the Core Properties & publish
-
-> [!NOTE]
-> The call to the `new DidDht()` constructor only adds the minimum requirements to the DID Document.
-> If additional [Core Properties](https://www.w3.org/TR/did-core/#core-properties) are required, update the `document` data member prior-to the call to `publish()`.
-
-```pseudocode!
-key_manager = new InMemoryKeyManager()
-identity_key = key_manager.import_private_jwk(Ed25519Generator::generate())
-did_dht = new DidDht(identity_key)
-
-/// Set the alsoKnownAs
-did_dht.document.alsoKnownAs = "did:example:efgh"
-/// Note: you could also add a verification method, set the controller etc.
-
-signer = key_manager.get_signer(identity_key)
-did_dht.publish(signer)
-```
-
-#### Example: Instantiate an existing `did:dht`
-
-```pseudocode!
-uri = "did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y"
-did_dht = new DidDht(uri)
-```
-
-#### Example: Update a `did:dht`
-
-```pseudocode!
-uri = "did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y"
-did_dht = new DidDht(uri)
-
-/// Set the alsoKnownAs
-did_dht.document.alsoKnownAs = "did:example:efgh"
-/// Note: you could also add a verification method, set the controller etc.
-
-key_manager = new InMemoryKeyManager()
-public_jwk = key_manager.import_private_jwk(private_jwk) /// assume private_jwk pre-exists, eg. read from env var
-signer = key_manager.get_signer(public_jwk)
-
-did_dht.publish(signer)
-```
-
-#### Example: Resolve a `did:dht`
-
-```pseudocode!
-uri = "did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y"
-resolution_result = DidDht.resolve(uri)
+CLASS DidDhtCreateOptions
+  PUBLIC DATA key_manager: KeyManager?
+  PUBLIC DATA service: []Service?
+  PUBLIC DATA controller: []string?
+  PUBLIC DATA also_known_as: []string?
+  PUBLIC DATA verification_method: []VerificationMethod?
+  PUBLIC DATA publish: bool? = true
+  PUBLIC DATA gateway_url: string?
 ```
 
 ## `BearerDid`

@@ -2,12 +2,12 @@ use clap::Subcommand;
 use std::sync::Arc;
 use web5::{
     crypto::{
-        dsa::ed25519::{Ed25519Generator, Ed25519Signer},
+        dsa::ed25519::Ed25519Generator,
         key_managers::{in_memory_key_manager::InMemoryKeyManager, KeyManager},
     },
     dids::{
         methods::{
-            did_dht::DidDht,
+            did_dht::{DidDht, DidDhtCreateOptions},
             did_jwk::{DidJwk, DidJwkCreateOptions},
             did_web::{DidWeb, DidWebCreateOptions},
         },
@@ -64,15 +64,15 @@ impl Commands {
                 let key_manager = InMemoryKeyManager::new();
                 key_manager.import_private_jwk(private_jwk.clone()).unwrap();
 
-                let did_jwk = DidJwk::create(Some(DidJwkCreateOptions {
+                let bearer_did = DidJwk::create(Some(DidJwkCreateOptions {
                     key_manager: Some(Arc::new(key_manager)),
                     ..Default::default()
                 }))
                 .unwrap();
 
                 let portable_did = PortableDid {
-                    did_uri: did_jwk.did.uri,
-                    document: did_jwk.document,
+                    did_uri: bearer_did.did.uri,
+                    document: bearer_did.document,
                     private_jwks: vec![private_jwk],
                 };
 
@@ -87,7 +87,7 @@ impl Commands {
                 let key_manager = InMemoryKeyManager::new();
                 key_manager.import_private_jwk(private_jwk.clone()).unwrap();
 
-                let did_web = DidWeb::create(
+                let bearer_did = DidWeb::create(
                     domain,
                     Some(DidWebCreateOptions {
                         key_manager: Some(Arc::new(key_manager)),
@@ -96,8 +96,8 @@ impl Commands {
                 )
                 .unwrap();
                 let portable_did = PortableDid {
-                    did_uri: did_web.did.uri,
-                    document: did_web.document,
+                    did_uri: bearer_did.did.uri,
+                    document: bearer_did.document,
                     private_jwks: vec![private_jwk],
                 };
 
@@ -109,18 +109,19 @@ impl Commands {
                 json_escape,
             } => {
                 let private_jwk = Ed25519Generator::generate();
-                let signer = Ed25519Signer::new(private_jwk.clone());
-                let mut identity_key = private_jwk.clone();
-                identity_key.d = None;
+                let key_manager = InMemoryKeyManager::new();
+                key_manager.import_private_jwk(private_jwk.clone()).unwrap();
 
-                let did_dht = DidDht::from_identity_key(identity_key).unwrap();
-                if !no_publish {
-                    did_dht.publish(Arc::new(signer)).unwrap();
-                }
+                let bearer_did = DidDht::create(Some(DidDhtCreateOptions {
+                    publish: Some(!no_publish),
+                    key_manager: Some(Arc::new(key_manager)),
+                    ..Default::default()
+                }))
+                .unwrap();
 
                 let portable_did = PortableDid {
-                    did_uri: did_dht.did.uri,
-                    document: did_dht.document,
+                    did_uri: bearer_did.did.uri,
+                    document: bearer_did.document,
                     private_jwks: vec![private_jwk],
                 };
 

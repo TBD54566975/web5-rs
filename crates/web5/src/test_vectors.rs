@@ -146,7 +146,7 @@ mod test_vectors {
                     // };
                 }
 
-                let resolution_result = DidDht::resolve(&vector_input.did_uri);
+                let resolution_result = DidDht::resolve(&vector_input.did_uri, None);
 
                 let metadata_error = resolution_result.resolution_metadata.error.as_ref();
                 let expected_error = vector_output.did_resolution_metadata.error.as_ref();

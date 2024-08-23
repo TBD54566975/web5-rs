@@ -1,0 +1,8 @@
+[
+  "test_can_specify_key_manager",
+  "test_can_specify_publish_and_gateway_url",
+  "test_should_add_optional_verification_methods",
+  "test_should_add_optional_services",
+  "test_should_add_optional_also_known_as",
+  "test_should_add_optional_controllers"
+]
