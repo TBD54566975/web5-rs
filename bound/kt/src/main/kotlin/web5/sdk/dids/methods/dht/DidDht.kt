@@ -9,7 +9,7 @@ import web5.sdk.rust.VerificationMethodData
 import web5.sdk.rust.didDhtResolve as rustCoreDidDhtResolve
 
 data class DidDhtCreateOptions(
-    val publish: Boolean? = false,
+    val publish: Boolean? = true,
     val gatewayUrl: String? = null,
     val keyManager: KeyManager? = null,
     val service: List<ServiceData>? = null,
