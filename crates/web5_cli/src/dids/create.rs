@@ -9,7 +9,7 @@ use web5::{
         methods::{
             did_dht::DidDht,
             did_jwk::{DidJwk, DidJwkCreateOptions},
-            did_web::DidWeb,
+            did_web::{DidWeb, DidWebCreateOptions},
         },
         portable_did::PortableDid,
     },
@@ -84,10 +84,17 @@ impl Commands {
                 json_escape,
             } => {
                 let private_jwk = Ed25519Generator::generate();
-                let mut public_jwk = private_jwk.clone();
-                public_jwk.d = None;
+                let key_manager = InMemoryKeyManager::new();
+                key_manager.import_private_jwk(private_jwk.clone()).unwrap();
 
-                let did_web = DidWeb::new(domain, public_jwk).unwrap();
+                let did_web = DidWeb::create(
+                    domain,
+                    Some(DidWebCreateOptions {
+                        key_manager: Some(Arc::new(key_manager)),
+                        ..Default::default()
+                    }),
+                )
+                .unwrap();
                 let portable_did = PortableDid {
                     did_uri: did_web.did.uri,
                     document: did_web.document,

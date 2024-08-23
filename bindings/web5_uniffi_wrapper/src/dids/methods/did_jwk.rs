@@ -9,8 +9,6 @@ use web5::{
     dids::methods::did_jwk::{DidJwk as InnerDidJwk, DidJwkCreateOptions as InnerCreateOptions},
 };
 
-pub struct DidJwk(pub InnerDidJwk);
-
 pub fn did_jwk_resolve(uri: &str) -> Arc<ResolutionResult> {
     let resolution_result = InnerDidJwk::resolve(uri);
     Arc::new(ResolutionResult(resolution_result))

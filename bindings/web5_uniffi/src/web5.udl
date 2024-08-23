@@ -169,17 +169,9 @@ dictionary DidJwkCreateOptions {
   Dsa? dsa;
 };
 
-dictionary DidWebData {
-  DidData did;
-  DocumentData document;
-};
-
-interface DidWeb {
-  [Name=from_public_jwk, Throws=Web5Error]
-  constructor([ByRef] string domain, JwkData public_jwk);
-  [Async, Name=from_uri, Throws=Web5Error]
-  constructor([ByRef] string uri);
-  DidWebData get_data();
+dictionary DidWebCreateOptions {
+  KeyManager? key_manager;
+  Dsa? dsa;
 };
 
 dictionary DidDhtData {

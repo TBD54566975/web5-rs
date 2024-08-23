@@ -10,6 +10,7 @@ use std::{
     future::{Future, IntoFuture},
     pin::Pin,
 };
+use url::Url;
 
 // PORT_SEP is the : character that separates the domain from the port in a URI.
 const PORT_SEP: &str = "%3A";
@@ -17,14 +18,14 @@ const PORT_SEP: &str = "%3A";
 /// Resolver is the implementation of the did:web method for resolving DID URIs. It is responsible
 /// for fetching the DID Document from the web according for the did-web spec.
 pub struct Resolver {
-    did_url: String,
+    http_url: String,
 }
 
 impl Resolver {
-    pub fn new(did: Did) -> Self {
+    pub fn new(did: Did) -> Result<Self, ResolutionMetadataError> {
         // note: delimited is : generally, but ; is allowed by the spec. The did-web spec (§3.2) says
         // ; should be avoided because of it's potential use for matrix URIs.
-        let did_url = match did.id.split_once(':') {
+        let http_url = match did.id.split_once(':') {
             Some((domain, path)) => format!(
                 "{}/{}",
                 domain.replace(PORT_SEP, ":"),
@@ -33,16 +34,17 @@ impl Resolver {
             None => format!("{}/{}", did.id.replace(PORT_SEP, ":"), ".well-known",),
         };
 
-        Self {
-            did_url: format!(
-                "{}://{}/did.json",
-                match did_url.contains("localhost") {
-                    true => "http",
-                    false => "https",
-                },
-                did_url
-            ),
-        }
+        let url = Url::parse(&format!("http://{}", http_url))
+            .map_err(|_| ResolutionMetadataError::InvalidDid)?;
+        let protocol =
+            match url.host_str() == Some("localhost") || url.host_str() == Some("127.0.0.1") {
+                true => "http",
+                false => "https",
+            };
+
+        Ok(Self {
+            http_url: format!("{}://{}/did.json", protocol, http_url),
+        })
     }
 
     async fn resolve(url: String) -> Result<ResolutionResult, ResolutionMetadataError> {
@@ -81,7 +83,7 @@ impl IntoFuture for Resolver {
     type IntoFuture = Pin<Box<dyn Future<Output = Self::Output> + Send>>;
 
     fn into_future(self) -> Self::IntoFuture {
-        let did_url = self.did_url;
+        let did_url = self.http_url;
         Box::pin(async move { Self::resolve(did_url).await })
     }
 }
@@ -93,24 +95,24 @@ mod tests {
     #[tokio::test]
     async fn resolution_success() {
         let did_uri = "did:web:tbd.website";
-        let result = Resolver::new(Did::parse(did_uri).unwrap());
-        assert_eq!(result.did_url, "https://tbd.website/.well-known/did.json");
+        let result = Resolver::new(Did::parse(did_uri).unwrap()).unwrap();
+        assert_eq!(result.http_url, "https://tbd.website/.well-known/did.json");
 
         let did_uri = "did:web:tbd.website:with:path";
-        let result = Resolver::new(Did::parse(did_uri).unwrap());
-        assert_eq!(result.did_url, "https://tbd.website/with/path/did.json");
+        let result = Resolver::new(Did::parse(did_uri).unwrap()).unwrap();
+        assert_eq!(result.http_url, "https://tbd.website/with/path/did.json");
 
         let did_uri = "did:web:tbd.website%3A8080";
-        let result = Resolver::new(Did::parse(did_uri).unwrap());
+        let result = Resolver::new(Did::parse(did_uri).unwrap()).unwrap();
         assert_eq!(
-            result.did_url,
+            result.http_url,
             "https://tbd.website:8080/.well-known/did.json"
         );
 
         let did_uri = "did:web:tbd.website%3A8080:with:path";
-        let result = Resolver::new(Did::parse(did_uri).unwrap());
+        let result = Resolver::new(Did::parse(did_uri).unwrap()).unwrap();
         assert_eq!(
-            result.did_url,
+            result.http_url,
             "https://tbd.website:8080/with/path/did.json"
         );
     }

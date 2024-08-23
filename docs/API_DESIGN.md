@@ -55,8 +55,7 @@
     - [`DidJwk`](#didjwk)
       - [`DidJwkCreateOptions`](#didjwkcreateoptions)
     - [`DidWeb`](#didweb)
-      - [Example: Instantiate an existing `did:web`](#example-instantiate-an-existing-didweb)
-      - [Example: Resolve a `did:web`](#example-resolve-a-didweb)
+      - [`DidWebCreateOptions`](#didwebcreateoptions)
     - [`DidDht`](#diddht)
       - [Example: Create \& publish a `did:dht`](#example-create--publish-a-diddht)
       - [Example: Create a `did:dht`, add to the Core Properties \& publish](#example-create-a-diddht-add-to-the-core-properties--publish)
@@ -608,7 +607,7 @@ CLASS DocumentMetadata
 
 ```pseudocode!
 CLASS DidJwk
-  STATIC METHOD create(options: DidJwkCreateOptions): BearerDid
+  STATIC METHOD create(options: DidJwkCreateOptions?): BearerDid
   STATIC METHOD resolve(uri: string): ResolutionResult
 ```
 
@@ -624,27 +623,24 @@ CLASS DidJwkCreateOptions
 
 > [!NOTE]
 >
-> The `CONSTRUCTOR(domain: string, public_jwk: Jwk)` does not publish the DID Document to a host, but merely creates the instance of the `did:web` in the local scope. 
+> The `create` does not publish the DID Document to a host, but creates the instance of the `did:web` `BearerDid` in the local scope. 
 
 ```pseudocode!
 CLASS DidWeb
-  CONSTRUCTOR(domain: string, public_jwk: Jwk)
-  CONSTRUCTOR(uri: string)
+  STATIC METHOD create(domain: string, options: DidWebCreateOptions?): BearerDid
   STATIC METHOD resolve(uri: string): ResolutionResult
 ```
 
-#### Example: Instantiate an existing `did:web`
+#### `DidWebCreateOptions`
 
 ```pseudocode!
-uri = "did:web:example.com"
-did_web = new DidWeb(uri)
-```
-
-#### Example: Resolve a `did:web`
-
-```pseudocode!
-uri = "did:web:example.com"
-resolution_result = DidWeb.resolve(uri)
+CLASS DidWebCreateOptions
+  PUBLIC DATA key_manager: KeyManager?
+  PUBLIC DATA dsa: Dsa?
+  PUBLIC DATA service: []Service?
+  PUBLIC DATA controller: []string?
+  PUBLIC DATA also_known_as: []string?
+  PUBLIC DATA verification_method: []VerificationMethod?
 ```
 
 ### `DidDht`
