@@ -31,13 +31,6 @@ import java.nio.charset.CodingErrorAction
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.resume
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -882,12 +875,6 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
-
-
-
-
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -944,16 +931,6 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_diddht_publish(`ptr`: Pointer,`signer`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_clone_didweb(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_uniffi_fn_free_didweb(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_didweb_from_public_jwk(`domain`: RustBuffer.ByValue,`publicJwk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_uniffi_fn_constructor_didweb_from_uri(`uri`: RustBuffer.ByValue,
-    ): Long
-    fun uniffi_web5_uniffi_fn_method_didweb_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_document(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_document(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1068,8 +1045,10 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_func_did_jwk_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_func_did_web_resolve(`uri`: RustBuffer.ByValue,
-    ): Long
+    fun uniffi_web5_uniffi_fn_func_did_web_create(`domain`: RustBuffer.ByValue,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_uniffi_fn_func_did_web_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_uniffi_fn_func_ed25519_generator_generate(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_web5_uniffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -1190,6 +1169,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_func_did_jwk_resolve(
     ): Short
+    fun uniffi_web5_uniffi_checksum_func_did_web_create(
+    ): Short
     fun uniffi_web5_uniffi_checksum_func_did_web_resolve(
     ): Short
     fun uniffi_web5_uniffi_checksum_func_ed25519_generator_generate(
@@ -1205,8 +1186,6 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_uniffi_checksum_method_diddht_get_data(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_diddht_publish(
-    ): Short
-    fun uniffi_web5_uniffi_checksum_method_didweb_get_data(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_document_get_data(
     ): Short
@@ -1254,10 +1233,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_diddht_from_uri(
     ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_didweb_from_public_jwk(
-    ): Short
-    fun uniffi_web5_uniffi_checksum_constructor_didweb_from_uri(
-    ): Short
     fun uniffi_web5_uniffi_checksum_constructor_document_new(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_ed25519signer_new(
@@ -1302,7 +1277,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_func_did_jwk_resolve() != 47278.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_did_web_resolve() != 32907.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_web_create() != 8722.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_func_did_web_resolve() != 15538.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_func_ed25519_generator_generate() != 57849.toShort()) {
@@ -1324,9 +1302,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_diddht_publish() != 3488.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_method_didweb_get_data() != 40916.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_document_get_data() != 16490.toShort()) {
@@ -1398,12 +1373,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_diddht_from_uri() != 63936.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_didweb_from_public_jwk() != 22173.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_didweb_from_uri() != 39137.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_web5_uniffi_checksum_constructor_document_new() != 10173.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1434,46 +1403,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
 }
 
 // Async support
-// Async return type handlers
-
-internal const val UNIFFI_RUST_FUTURE_POLL_READY = 0.toByte()
-internal const val UNIFFI_RUST_FUTURE_POLL_MAYBE_READY = 1.toByte()
-
-internal val uniffiContinuationHandleMap = UniffiHandleMap<CancellableContinuation<Byte>>()
-
-// FFI type for Rust future continuations
-internal object uniffiRustFutureContinuationCallbackImpl: UniffiRustFutureContinuationCallback {
-    override fun callback(data: Long, pollResult: Byte) {
-        uniffiContinuationHandleMap.remove(data).resume(pollResult)
-    }
-}
-
-internal suspend fun<T, F, E: Exception> uniffiRustCallAsync(
-    rustFuture: Long,
-    pollFunc: (Long, UniffiRustFutureContinuationCallback, Long) -> Unit,
-    completeFunc: (Long, UniffiRustCallStatus) -> F,
-    freeFunc: (Long) -> Unit,
-    liftFunc: (F) -> T,
-    errorHandler: UniffiRustCallStatusErrorHandler<E>
-): T {
-    try {
-        do {
-            val pollResult = suspendCancellableCoroutine<Byte> { continuation ->
-                pollFunc(
-                    rustFuture,
-                    uniffiRustFutureContinuationCallbackImpl,
-                    uniffiContinuationHandleMap.insert(continuation)
-                )
-            }
-        } while (pollResult != UNIFFI_RUST_FUTURE_POLL_READY);
-
-        return liftFunc(
-            uniffiRustCallWithError(errorHandler, { status -> completeFunc(rustFuture, status) })
-        )
-    } finally {
-        freeFunc(rustFuture)
-    }
-}
 
 // Public interface members begin here.
 
@@ -2482,266 +2411,6 @@ public object FfiConverterTypeDidDht: FfiConverter<DidDht, Pointer> {
     override fun allocationSize(value: DidDht) = 8UL
 
     override fun write(value: DidDht, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
-// to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
-//
-// There's some subtlety here, because we have to be careful not to operate on a Rust
-// struct after it has been dropped, and because we must expose a public API for freeing
-// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
-//
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
-//     the Rust FFI.
-//
-//   * When an instance is no longer needed, its pointer should be passed to a
-//     special destructor function provided by the Rust FFI, which will drop the
-//     underlying Rust struct.
-//
-//   * Given an instance, calling code is expected to call the special
-//     `destroy` method in order to free it after use, either by calling it explicitly
-//     or by using a higher-level helper like the `use` method. Failing to do so risks
-//     leaking the underlying Rust struct.
-//
-//   * We can't assume that calling code will do the right thing, and must be prepared
-//     to handle Kotlin method calls executing concurrently with or even after a call to
-//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
-//
-//   * We must never allow Rust code to operate on the underlying Rust struct after
-//     the destructor has been called, and must never call the destructor more than once.
-//     Doing so may trigger memory unsafety.
-//
-//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
-//     is implemented to call the destructor when the Kotlin object becomes unreachable.
-//     This is done in a background thread. This is not a panacea, and client code should be aware that
-//      1. the thread may starve if some there are objects that have poorly performing
-//     `drop` methods or do significant work in their `drop` methods.
-//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
-//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
-//
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
-// possibility of a race between a method call and a concurrent call to `destroy`:
-//
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
-//    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
-//      a use-after-free.
-//
-// One possible solution would be to use a `ReadWriteLock`, with each method call taking
-// a read lock (and thus allowed to run concurrently) and the special `destroy` method
-// taking a write lock (and thus blocking on live method calls). However, we aim not to
-// generate methods with any hidden blocking semantics, and a `destroy` method that might
-// block if called incorrectly seems to meet that bar.
-//
-// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
-// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
-// has been called. These are updated according to the following rules:
-//
-//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
-//      The initial value for the flag is false.
-//
-//    * At the start of each method call, we atomically check the counter.
-//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
-//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
-//
-//    * At the end of each method call, we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-//    * When `destroy` is called, we atomically flip the flag from false to true.
-//      If the flag was already true we silently fail.
-//      Otherwise we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
-// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
-//
-// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
-// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
-// of the underlying Rust code.
-//
-// This makes a cleaner a better alternative to _not_ calling `destroy()` as
-// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
-// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
-// thread may be starved, and the app will leak memory.
-//
-// In this case, `destroy`ing manually may be a better solution.
-//
-// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
-// with Rust peers are reclaimed:
-//
-// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
-// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
-// 3. The memory is reclaimed when the process terminates.
-//
-// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
-//
-
-
-public interface DidWebInterface {
-    
-    fun `getData`(): DidWebData
-    
-    companion object
-}
-
-open class DidWeb: Disposable, AutoCloseable, DidWebInterface {
-
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
-    }
-
-    /**
-     * This constructor can be used to instantiate a fake object. Only used for tests. Any
-     * attempt to actually use an object constructed this way will fail as there is no
-     * connected Rust object.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
-    }
-
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
-
-    private val wasDestroyed = AtomicBoolean(false)
-    private val callCounter = AtomicLong(1)
-
-    override fun destroy() {
-        // Only allow a single call to this method.
-        // TODO: maybe we should log a warning if called more than once?
-        if (this.wasDestroyed.compareAndSet(false, true)) {
-            // This decrement always matches the initial count of 1 given at creation time.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
-            }
-        }
-    }
-
-    @Synchronized
-    override fun close() {
-        this.destroy()
-    }
-
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
-        // Check and increment the call counter, to keep the object alive.
-        // This needs a compare-and-set retry loop in case of concurrent updates.
-        do {
-            val c = this.callCounter.get()
-            if (c == 0L) {
-                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
-            }
-            if (c == Long.MAX_VALUE) {
-                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
-            }
-        } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
-        try {
-            return block(this.uniffiClonePointer())
-        } finally {
-            // This decrement always matches the increment we performed above.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
-            }
-        }
-    }
-
-    // Use a static inner class instead of a closure so as not to accidentally
-    // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
-        override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_didweb(ptr, status)
-                }
-            }
-        }
-    }
-
-    fun uniffiClonePointer(): Pointer {
-        return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_didweb(pointer!!, status)
-        }
-    }
-
-    override fun `getData`(): DidWebData {
-            return FfiConverterTypeDidWebData.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_didweb_get_data(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    
-
-    
-    companion object {
-        
-    @Throws(Web5Exception::class) fun `fromPublicJwk`(`domain`: kotlin.String, `publicJwk`: JwkData): DidWeb {
-            return FfiConverterTypeDidWeb.lift(
-    uniffiRustCallWithError(Web5Exception) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didweb_from_public_jwk(
-        FfiConverterString.lower(`domain`),FfiConverterTypeJwkData.lower(`publicJwk`),_status)
-}
-    )
-    }
-    
-
-        
-    @Throws(Web5Exception::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-     suspend fun `fromUri`(`uri`: kotlin.String) : DidWeb {
-        return uniffiRustCallAsync(
-        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_didweb_from_uri(FfiConverterString.lower(`uri`),),
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_poll_pointer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_complete_pointer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_free_pointer(future) },
-        // lift function
-        { FfiConverterTypeDidWeb.lift(it) },
-        // Error FFI converter
-        Web5Exception.ErrorHandler,
-    )
-    }
-
-        
-    }
-    
-}
-
-public object FfiConverterTypeDidWeb: FfiConverter<DidWeb, Pointer> {
-
-    override fun lower(value: DidWeb): Pointer {
-        return value.uniffiClonePointer()
-    }
-
-    override fun lift(value: Pointer): DidWeb {
-        return DidWeb(value)
-    }
-
-    override fun read(buf: ByteBuffer): DidWeb {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: DidWeb) = 8UL
-
-    override fun write(value: DidWeb, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -6029,30 +5698,58 @@ public object FfiConverterTypeDidJwkCreateOptions: FfiConverterRustBuffer<DidJwk
 
 
 
-data class DidWebData (
-    var `did`: DidData, 
-    var `document`: DocumentData
-) {
+data class DidWebCreateOptions (
+    var `keyManager`: KeyManager?, 
+    var `dsa`: Dsa?, 
+    var `service`: List<ServiceData>?, 
+    var `controller`: List<kotlin.String>?, 
+    var `alsoKnownAs`: List<kotlin.String>?, 
+    var `verificationMethod`: List<VerificationMethodData>?
+) : Disposable {
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+    Disposable.destroy(
+        this.`keyManager`, 
+        this.`dsa`, 
+        this.`service`, 
+        this.`controller`, 
+        this.`alsoKnownAs`, 
+        this.`verificationMethod`)
+    }
     
     companion object
 }
 
-public object FfiConverterTypeDidWebData: FfiConverterRustBuffer<DidWebData> {
-    override fun read(buf: ByteBuffer): DidWebData {
-        return DidWebData(
-            FfiConverterTypeDidData.read(buf),
-            FfiConverterTypeDocumentData.read(buf),
+public object FfiConverterTypeDidWebCreateOptions: FfiConverterRustBuffer<DidWebCreateOptions> {
+    override fun read(buf: ByteBuffer): DidWebCreateOptions {
+        return DidWebCreateOptions(
+            FfiConverterOptionalTypeKeyManager.read(buf),
+            FfiConverterOptionalTypeDsa.read(buf),
+            FfiConverterOptionalSequenceTypeServiceData.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceTypeVerificationMethodData.read(buf),
         )
     }
 
-    override fun allocationSize(value: DidWebData) = (
-            FfiConverterTypeDidData.allocationSize(value.`did`) +
-            FfiConverterTypeDocumentData.allocationSize(value.`document`)
+    override fun allocationSize(value: DidWebCreateOptions) = (
+            FfiConverterOptionalTypeKeyManager.allocationSize(value.`keyManager`) +
+            FfiConverterOptionalTypeDsa.allocationSize(value.`dsa`) +
+            FfiConverterOptionalSequenceTypeServiceData.allocationSize(value.`service`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`controller`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`alsoKnownAs`) +
+            FfiConverterOptionalSequenceTypeVerificationMethodData.allocationSize(value.`verificationMethod`)
     )
 
-    override fun write(value: DidWebData, buf: ByteBuffer) {
-            FfiConverterTypeDidData.write(value.`did`, buf)
-            FfiConverterTypeDocumentData.write(value.`document`, buf)
+    override fun write(value: DidWebCreateOptions, buf: ByteBuffer) {
+            FfiConverterOptionalTypeKeyManager.write(value.`keyManager`, buf)
+            FfiConverterOptionalTypeDsa.write(value.`dsa`, buf)
+            FfiConverterOptionalSequenceTypeServiceData.write(value.`service`, buf)
+            FfiConverterOptionalSequenceString.write(value.`controller`, buf)
+            FfiConverterOptionalSequenceString.write(value.`alsoKnownAs`, buf)
+            FfiConverterOptionalSequenceTypeVerificationMethodData.write(value.`verificationMethod`, buf)
     }
 }
 
@@ -6744,6 +6441,35 @@ public object FfiConverterOptionalTypeDidJwkCreateOptions: FfiConverterRustBuffe
 
 
 
+public object FfiConverterOptionalTypeDidWebCreateOptions: FfiConverterRustBuffer<DidWebCreateOptions?> {
+    override fun read(buf: ByteBuffer): DidWebCreateOptions? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeDidWebCreateOptions.read(buf)
+    }
+
+    override fun allocationSize(value: DidWebCreateOptions?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeDidWebCreateOptions.allocationSize(value)
+        }
+    }
+
+    override fun write(value: DidWebCreateOptions?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeDidWebCreateOptions.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeDocumentData: FfiConverterRustBuffer<DocumentData?> {
     override fun read(buf: ByteBuffer): DocumentData? {
         if (buf.get().toInt() == 0) {
@@ -6947,6 +6673,35 @@ public object FfiConverterOptionalSequenceTypeServiceData: FfiConverterRustBuffe
 
 
 
+public object FfiConverterOptionalSequenceTypeVerificationMethodData: FfiConverterRustBuffer<List<VerificationMethodData>?> {
+    override fun read(buf: ByteBuffer): List<VerificationMethodData>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeVerificationMethodData.read(buf)
+    }
+
+    override fun allocationSize(value: List<VerificationMethodData>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceTypeVerificationMethodData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<VerificationMethodData>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeVerificationMethodData.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalMapStringString: FfiConverterRustBuffer<Map<kotlin.String, kotlin.String>?> {
     override fun read(buf: ByteBuffer): Map<kotlin.String, kotlin.String>? {
         if (buf.get().toInt() == 0) {
@@ -7107,14 +6862,6 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
         }
     }
 }
-
-
-
-
-
-
-
-
     @Throws(Web5Exception::class) fun `didDhtResolve`(`uri`: kotlin.String): ResolutionResult {
             return FfiConverterTypeResolutionResult.lift(
     uniffiRustCallWithError(Web5Exception) { _status ->
@@ -7144,20 +6891,24 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
     }
     
 
-    @Throws(Web5Exception::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-     suspend fun `didWebResolve`(`uri`: kotlin.String) : ResolutionResult {
-        return uniffiRustCallAsync(
-        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_web_resolve(FfiConverterString.lower(`uri`),),
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_poll_pointer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_complete_pointer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_free_pointer(future) },
-        // lift function
-        { FfiConverterTypeResolutionResult.lift(it) },
-        // Error FFI converter
-        Web5Exception.ErrorHandler,
+    @Throws(Web5Exception::class) fun `didWebCreate`(`domain`: kotlin.String, `options`: DidWebCreateOptions?): BearerDid {
+            return FfiConverterTypeBearerDid.lift(
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_web_create(
+        FfiConverterString.lower(`domain`),FfiConverterOptionalTypeDidWebCreateOptions.lower(`options`),_status)
+}
     )
     }
+    
+ fun `didWebResolve`(`uri`: kotlin.String): ResolutionResult {
+            return FfiConverterTypeResolutionResult.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_web_resolve(
+        FfiConverterString.lower(`uri`),_status)
+}
+    )
+    }
+    
  fun `ed25519GeneratorGenerate`(): JwkData {
             return FfiConverterTypeJwkData.lift(
     uniffiRustCall() { _status ->

@@ -5,8 +5,10 @@ namespace web5 {
   BearerDid did_jwk_create(DidJwkCreateOptions? options);
   ResolutionResult did_jwk_resolve([ByRef] string uri);
 
-  [Async, Throws=Web5Error]
+  [Throws=Web5Error]
+  BearerDid did_web_create(string domain, DidWebCreateOptions? options);
   ResolutionResult did_web_resolve([ByRef] string uri);
+
   [Throws=Web5Error]
   ResolutionResult did_dht_resolve([ByRef] string uri);
 };
@@ -172,6 +174,10 @@ dictionary DidJwkCreateOptions {
 dictionary DidWebCreateOptions {
   KeyManager? key_manager;
   Dsa? dsa;
+  sequence<ServiceData>? service;
+  sequence<string>? controller;
+  sequence<string>? also_known_as;
+  sequence<VerificationMethodData>? verification_method;
 };
 
 dictionary DidDhtData {

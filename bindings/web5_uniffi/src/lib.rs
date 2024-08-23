@@ -19,7 +19,7 @@ use web5_uniffi_wrapper::{
         methods::{
             did_dht::{did_dht_resolve, DidDht},
             did_jwk::{did_jwk_create, did_jwk_resolve, DidJwkCreateOptions},
-            did_web::{did_web_resolve, DidWebCreateOptions},
+            did_web::{did_web_create, did_web_resolve, DidWebCreateOptions},
         },
         portable_did::PortableDid,
         resolution::resolution_result::ResolutionResult,

@@ -8,6 +8,7 @@ use crate::{
         key_managers::{in_memory_key_manager::InMemoryKeyManager, KeyManager},
     },
     dids::{
+        bearer_did::BearerDid,
         data_model::{
             document::Document, service::Service, verification_method::VerificationMethod,
         },
@@ -22,10 +23,7 @@ use resolver::Resolver;
 use url::Url;
 
 #[derive(Clone)]
-pub struct DidWeb {
-    pub did: Did,
-    pub document: Document,
-}
+pub struct DidWeb;
 
 #[derive(Default)]
 pub struct DidWebCreateOptions {
@@ -38,7 +36,7 @@ pub struct DidWebCreateOptions {
 }
 
 impl DidWeb {
-    pub fn create(domain: &str, options: Option<DidWebCreateOptions>) -> Result<Self> {
+    pub fn create(domain: &str, options: Option<DidWebCreateOptions>) -> Result<BearerDid> {
         let options = options.unwrap_or_default();
 
         let key_manager = options
@@ -97,17 +95,17 @@ impl DidWeb {
         let encoded_domain = normalized.replace(':', "%3A");
         let encoded_domain = encoded_domain.replace('/', ":");
 
-        let did = format!("did:web:{}", encoded_domain);
+        let did_uri = format!("did:web:{}", encoded_domain);
 
         let verification_method = VerificationMethod {
-            id: format!("{}#key-0", did),
+            id: format!("{}#key-0", did_uri),
             r#type: "JsonWebKey".to_string(),
-            controller: did.clone(),
+            controller: did_uri.clone(),
             public_key_jwk: public_jwk,
         };
 
         let document = Document {
-            id: did.clone(),
+            id: did_uri.clone(),
             context: Some(vec!["https://www.w3.org/ns/did/v1".to_string()]),
             verification_method: {
                 let mut methods = vec![verification_method];
@@ -122,9 +120,10 @@ impl DidWeb {
             ..Default::default()
         };
 
-        Ok(DidWeb {
-            did: Did::parse(&did)?,
+        Ok(BearerDid {
+            did: Did::parse(&did_uri)?,
             document,
+            key_manager,
         })
     }
 
