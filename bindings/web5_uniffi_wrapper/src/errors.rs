@@ -5,7 +5,6 @@ use thiserror::Error;
 use web5::credentials::presentation_definition::PexError;
 use web5::credentials::CredentialError;
 use web5::dids::bearer_did::BearerDidError;
-use web5::dids::methods::MethodError;
 use web5::errors::Web5Error as InnerWeb5Error;
 
 #[derive(Debug, Error)]
@@ -73,12 +72,6 @@ where
     let msg = format!("{:?}", error);
     let variant_name = msg.split('(').next().unwrap_or("UnknownVariant");
     variant_name.to_string()
-}
-
-impl From<MethodError> for Web5Error {
-    fn from(error: MethodError) -> Self {
-        Web5Error::new(error)
-    }
 }
 
 impl From<CredentialError> for Web5Error {

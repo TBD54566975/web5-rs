@@ -5,10 +5,15 @@ namespace web5 {
   BearerDid did_jwk_create(DidJwkCreateOptions? options);
   ResolutionResult did_jwk_resolve([ByRef] string uri);
 
-  [Async, Throws=Web5Error]
-  ResolutionResult did_web_resolve([ByRef] string uri);
   [Throws=Web5Error]
-  ResolutionResult did_dht_resolve([ByRef] string uri);
+  BearerDid did_web_create(string domain, DidWebCreateOptions? options);
+  ResolutionResult did_web_resolve([ByRef] string uri);
+
+  [Throws=Web5Error]
+  BearerDid did_dht_create(DidDhtCreateOptions? options);
+  [Throws=Web5Error]
+  void did_dht_publish(BearerDid bearer_did, DidDhtPublishOptions? options);
+  ResolutionResult did_dht_resolve([ByRef] string uri, DidDhtResolveOptions? options);
 };
 
 [Error]
@@ -169,34 +174,31 @@ dictionary DidJwkCreateOptions {
   Dsa? dsa;
 };
 
-dictionary DidWebData {
-  DidData did;
-  DocumentData document;
+dictionary DidWebCreateOptions {
+  KeyManager? key_manager;
+  Dsa? dsa;
+  sequence<ServiceData>? service;
+  sequence<string>? controller;
+  sequence<string>? also_known_as;
+  sequence<VerificationMethodData>? verification_method;
 };
 
-interface DidWeb {
-  [Name=from_public_jwk, Throws=Web5Error]
-  constructor([ByRef] string domain, JwkData public_jwk);
-  [Async, Name=from_uri, Throws=Web5Error]
-  constructor([ByRef] string uri);
-  DidWebData get_data();
+dictionary DidDhtCreateOptions {
+  boolean? publish;
+  string? gateway_url;
+  KeyManager? key_manager;
+  sequence<ServiceData>? service;
+  sequence<string>? controller;
+  sequence<string>? also_known_as;
+  sequence<VerificationMethodData>? verification_method;
 };
 
-dictionary DidDhtData {
-  DidData did;
-  DocumentData document;
+dictionary DidDhtResolveOptions {
+  string? gateway_url;
 };
 
-interface DidDht {
-  [Name=from_identity_key, Throws=Web5Error]
-  constructor(JwkData identity_key);
-  [Name=from_uri, Throws=Web5Error]
-  constructor([ByRef] string uri);
-  [Throws=Web5Error]
-  void publish(Signer signer);
-  [Throws=Web5Error]
-  void deactivate(Signer signer);
-  DidDhtData get_data();
+dictionary DidDhtPublishOptions {
+  string? gateway_url;
 };
 
 dictionary PortableDidData {

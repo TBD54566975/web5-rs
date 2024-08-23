@@ -30,7 +30,7 @@ impl ResolutionResult {
 
         match did.method.as_str() {
             "jwk" => DidJwk::resolve(uri),
-            "dht" => DidDht::resolve(uri),
+            "dht" => DidDht::resolve(uri, None),
             "web" => DidWeb::resolve(uri),
             _ => ResolutionResult {
                 resolution_metadata: ResolutionMetadata {

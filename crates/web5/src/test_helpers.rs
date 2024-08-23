@@ -43,6 +43,8 @@ impl UnitTestSuite {
         let mut tests = self.tests.lock().unwrap();
         if let Some(pos) = tests.iter().position(|x| *x == test_name) {
             tests.remove(pos);
+        } else {
+            panic!("test {} not included in the test suite", test_name);
         }
     }
 

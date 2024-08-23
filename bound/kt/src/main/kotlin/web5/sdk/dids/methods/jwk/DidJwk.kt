@@ -1,16 +1,12 @@
 package web5.sdk.dids.methods.jwk
 
-import web5.sdk.crypto.keys.Jwk
 import web5.sdk.crypto.keys.KeyManager
 import web5.sdk.crypto.keys.ToInnerKeyManager
 import web5.sdk.crypto.keys.ToOuterKeyManager
 import web5.sdk.dids.BearerDid
-import web5.sdk.dids.Did
-import web5.sdk.dids.Document
 import web5.sdk.dids.ResolutionResult
 import web5.sdk.rust.Dsa
 import web5.sdk.rust.didJwkCreate
-import web5.sdk.rust.didJwkCreate as rustCoreJwkCreate
 import web5.sdk.rust.DidJwkCreateOptions as RustCoreDidJwkCreateOptions
 import web5.sdk.rust.didJwkResolve as rustCoreDidJwkResolve
 

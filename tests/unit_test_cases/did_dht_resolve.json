@@ -1,0 +1,7 @@
+[
+  "test_invalid_did",
+  "test_method_not_supported",
+  "test_not_found",
+  "test_internal_error",
+  "test_can_create_then_resolve"
+]

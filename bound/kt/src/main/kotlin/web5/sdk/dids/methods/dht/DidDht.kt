@@ -1,69 +1,72 @@
 package web5.sdk.dids.methods.dht
 
-import web5.sdk.crypto.keys.Jwk
-import web5.sdk.crypto.signers.Signer
-import web5.sdk.dids.Did
-import web5.sdk.dids.Document
+import web5.sdk.crypto.keys.KeyManager
+import web5.sdk.crypto.keys.ToInnerKeyManager
+import web5.sdk.dids.BearerDid
 import web5.sdk.dids.ResolutionResult
+import web5.sdk.rust.ServiceData
+import web5.sdk.rust.VerificationMethodData
 import web5.sdk.rust.didDhtResolve as rustCoreDidDhtResolve
-import web5.sdk.rust.DidDht as RustCoreDidDht
-import web5.sdk.rust.Signer as RustCoreSigner
+
+data class DidDhtCreateOptions(
+    val publish: Boolean? = true,
+    val gatewayUrl: String? = null,
+    val keyManager: KeyManager? = null,
+    val service: List<ServiceData>? = null,
+    val controller: List<String>? = null,
+    val alsoKnownAs: List<String>? = null,
+    val verificationMethod: List<VerificationMethodData>? = null
+)
+
+data class DidDhtPublishOptions(
+    val gatewayUrl: String? = null
+)
+
+data class DidDhtResolveOptions(
+    val gatewayUrl: String? = null
+)
 
 /**
  * A class representing a DID (Decentralized Identifier) using the DHT method.
- *
- * @property did The DID associated with this instance.
- * @property document The DID document associated with this instance.
  */
 class DidDht {
-    val did: Did
-    val document: Document
-
-    private val rustCoreDidDht: RustCoreDidDht
-
-    /**
-     * Constructs a DidDht instance using an identity key.
-     *
-     * @param identityKey The identity key represented as a Jwk.
-     */
-    constructor(identityKey: Jwk) {
-        rustCoreDidDht = RustCoreDidDht.fromIdentityKey(identityKey.rustCoreJwkData)
-
-        this.did = Did.fromRustCoreDidData(rustCoreDidDht.getData().did)
-        this.document = rustCoreDidDht.getData().document
-    }
-
-    /**
-     * Constructs a DidDht instance using a DID URI.
-     *
-     * @param uri The DID URI.
-     */
-    constructor(uri: String) {
-        rustCoreDidDht = RustCoreDidDht.fromUri(uri)
-
-        this.did = Did.fromRustCoreDidData(rustCoreDidDht.getData().did)
-        this.document = rustCoreDidDht.getData().document
-    }
-
-    /**
-     * Publishes the DID document.
-     *
-     * @param signer The signer used to sign the publish operation.
-     */
-    fun publish(signer: Signer) {
-        rustCoreDidDht.publish(signer as RustCoreSigner)
-    }
-
-    /**
-     * Deactivates the DID document.
-     *
-     * @param signer The signer used to sign the deactivate operation.
-     */
-    fun deactivate(signer: Signer) {
-        rustCoreDidDht.deactivate(signer as RustCoreSigner)
-    }
-
     companion object {
+        /**
+         * Create a DidDht BearerDid using available options.
+         *
+         * @param options The set of options to configure creation.
+         */
+        fun create(options: DidDhtCreateOptions? = null): BearerDid {
+            val rustCoreOptions = options?.let { opts ->
+                web5.sdk.rust.DidDhtCreateOptions(
+                    opts.publish,
+                    opts.gatewayUrl,
+                    opts.keyManager?.let { ToInnerKeyManager(it) },
+                    opts.service,
+                    opts.controller,
+                    opts.alsoKnownAs,
+                    opts.verificationMethod
+                )
+            }
+            val rustCoreBearerDid = web5.sdk.rust.didDhtCreate(rustCoreOptions)
+            return BearerDid(rustCoreBearerDid)
+        }
+
+        /**
+         * Publish a DidDht BearerDid using available options.
+         *
+         * @param bearerDid The DidDht BearerDid instance to publish.
+         * @param options The set of options to configure publish.
+         */
+        fun publish(bearerDid: BearerDid, options: DidDhtPublishOptions? = null) {
+           web5.sdk.rust.didDhtPublish(
+               bearerDid.rustCoreBearerDid,
+               web5.sdk.rust.DidDhtPublishOptions(
+                   options?.gatewayUrl
+               )
+           )
+        }
+
         /**
          * Resolves a DID URI to a DidResolutionResult.
          *
@@ -71,8 +74,11 @@ class DidDht {
          * @return DidResolutionResult The result of the DID resolution.
          */
         @JvmStatic
-        fun resolve(uri: String): ResolutionResult {
-            return rustCoreDidDhtResolve(uri).getData()
+        fun resolve(uri: String, options: DidDhtResolveOptions? = null): ResolutionResult {
+            val rustCoreOptions = web5.sdk.rust.DidDhtResolveOptions(
+                options?.gatewayUrl
+            )
+            return rustCoreDidDhtResolve(uri, rustCoreOptions).getData()
         }
     }
 }

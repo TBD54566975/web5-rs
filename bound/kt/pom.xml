@@ -105,7 +105,7 @@
 
     <!-- Versioning for Test Dependencies -->
     <version.org.junit.jupiter>5.10.1</version.org.junit.jupiter>
-
+    <version.com.squareup.okhttp3.mockwebserver>4.12.0</version.com.squareup.okhttp3.mockwebserver>
   </properties>
 
   <!-- Dependency Management -->
@@ -202,6 +202,12 @@
         <version>${version.org.junit.jupiter}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>com.squareup.okhttp3</groupId>
+        <artifactId>mockwebserver</artifactId>
+        <version>${version.com.squareup.okhttp3.mockwebserver}</version>
+        <scope>test</scope>
+      </dependency>
 
 
     </dependencies>
@@ -236,6 +242,10 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>mockwebserver</artifactId>
     </dependency>
 
   </dependencies>

@@ -6,10 +6,10 @@ use crate::{
 use std::sync::Arc;
 use web5::{
     crypto::dsa::Dsa,
-    dids::methods::did_jwk::{DidJwk as InnerDidJwk, DidJwkCreateOptions as InnerCreateOptions},
+    dids::methods::did_jwk::{
+        DidJwk as InnerDidJwk, DidJwkCreateOptions as InnerDidJwkCreateOptions,
+    },
 };
-
-pub struct DidJwk(pub InnerDidJwk);
 
 pub fn did_jwk_resolve(uri: &str) -> Arc<ResolutionResult> {
     let resolution_result = InnerDidJwk::resolve(uri);
@@ -23,7 +23,7 @@ pub struct DidJwkCreateOptions {
 }
 
 pub fn did_jwk_create(options: Option<DidJwkCreateOptions>) -> Result<Arc<BearerDid>> {
-    let inner_options = options.map(|o| InnerCreateOptions {
+    let inner_options = options.map(|o| InnerDidJwkCreateOptions {
         dsa: o.dsa,
         key_manager: match o.key_manager {
             None => None,

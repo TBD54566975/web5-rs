@@ -19,7 +19,14 @@ class BearerDid {
     val document: Document
     val keyManager: KeyManager
 
-    private val rustCoreBearerDid: RustCoreBearerDid
+    internal val rustCoreBearerDid: RustCoreBearerDid
+
+    internal constructor(rustCoreBearerDid: RustCoreBearerDid) {
+        this.rustCoreBearerDid = rustCoreBearerDid
+        this.did = Did.fromRustCoreDidData(this.rustCoreBearerDid.getData().did)
+        this.document = this.rustCoreBearerDid.getData().document
+        this.keyManager = ToOuterKeyManager(this.rustCoreBearerDid.getData().keyManager)
+    }
 
     /**
      * Constructs a BearerDid instance using a DID URI and a key manager.
