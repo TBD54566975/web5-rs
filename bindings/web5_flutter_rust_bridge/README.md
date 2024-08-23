@@ -1,6 +1,6 @@
 # web5_flutter_rust_bridge
 
-A new Flutter project.
+Flutter bindings for the Web5 Rust library.
 
 ## Getting Started
 
@@ -14,3 +14,6 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## Updating Bindings
+You can update the `rust` directory and run `flutter_rust_bridge_codegen generate --watch`. `flutter_rust_bridge_codegen` should take care of the rest.
