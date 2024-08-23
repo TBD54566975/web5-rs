@@ -2,7 +2,6 @@ package web5.sdk.dids.methods.web
 
 import web5.sdk.crypto.keys.KeyManager
 import web5.sdk.crypto.keys.ToInnerKeyManager
-import web5.sdk.crypto.keys.ToOuterKeyManager
 import web5.sdk.dids.BearerDid
 import web5.sdk.dids.ResolutionResult
 import web5.sdk.rust.Dsa

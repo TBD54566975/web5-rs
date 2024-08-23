@@ -19,7 +19,7 @@ class BearerDid {
     val document: Document
     val keyManager: KeyManager
 
-    private val rustCoreBearerDid: RustCoreBearerDid
+    internal val rustCoreBearerDid: RustCoreBearerDid
 
     internal constructor(rustCoreBearerDid: RustCoreBearerDid) {
         this.rustCoreBearerDid = rustCoreBearerDid
