@@ -20,6 +20,8 @@ pub enum Web5Error {
     Encoding(String),
     #[error("mutex error {0}")]
     Mutex(String),
+    #[error("network error {0}")]
+    Network(String),
 }
 
 impl From<DecodeError> for Web5Error {

@@ -10,7 +10,10 @@ namespace web5 {
   ResolutionResult did_web_resolve([ByRef] string uri);
 
   [Throws=Web5Error]
-  ResolutionResult did_dht_resolve([ByRef] string uri);
+  BearerDid did_dht_create(DidDhtCreateOptions? options);
+  [Throws=Web5Error]
+  void did_dht_publish(BearerDid bearer_did, DidDhtPublishOptions? options);
+  ResolutionResult did_dht_resolve([ByRef] string uri, DidDhtResolveOptions? options);
 };
 
 [Error]
@@ -180,21 +183,22 @@ dictionary DidWebCreateOptions {
   sequence<VerificationMethodData>? verification_method;
 };
 
-dictionary DidDhtData {
-  DidData did;
-  DocumentData document;
+dictionary DidDhtCreateOptions {
+  boolean? publish;
+  string? gateway_url;
+  KeyManager? key_manager;
+  sequence<ServiceData>? service;
+  sequence<string>? controller;
+  sequence<string>? also_known_as;
+  sequence<VerificationMethodData>? verification_method;
 };
 
-interface DidDht {
-  [Name=from_identity_key, Throws=Web5Error]
-  constructor(JwkData identity_key);
-  [Name=from_uri, Throws=Web5Error]
-  constructor([ByRef] string uri);
-  [Throws=Web5Error]
-  void publish(Signer signer);
-  [Throws=Web5Error]
-  void deactivate(Signer signer);
-  DidDhtData get_data();
+dictionary DidDhtResolveOptions {
+  string? gateway_url;
+};
+
+dictionary DidDhtPublishOptions {
+  string? gateway_url;
 };
 
 dictionary PortableDidData {

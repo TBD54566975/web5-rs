@@ -487,11 +487,11 @@ mod tests {
                 .with_body(serde_json::to_string(&bearer_did.document).unwrap())
                 .create();
 
-            let resolve_result = DidWeb::resolve(&bearer_did.did.uri);
+            let resolution_result = DidWeb::resolve(&bearer_did.did.uri);
 
-            assert_eq!(resolve_result.resolution_metadata.error, None);
-            assert!(resolve_result.document.is_some());
-            let resolved_document = resolve_result.document.unwrap();
+            assert_eq!(resolution_result.resolution_metadata.error, None);
+            assert!(resolution_result.document.is_some());
+            let resolved_document = resolution_result.document.unwrap();
             assert_eq!(resolved_document, bearer_did.document);
         }
     }
