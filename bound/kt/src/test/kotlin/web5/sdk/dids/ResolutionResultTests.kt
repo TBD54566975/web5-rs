@@ -80,62 +80,6 @@ class ResolutionResultTests {
         }
 
         @Test
-        fun test_did_dht_with_specified_gateway() {
-            testSuite.include()
-
-            val mockWebServer = MockWebServer()
-            mockWebServer.start()
-
-            // Capture the body of the published DID Document
-            val publishedBody = mutableListOf<ByteArray>()
-
-            mockWebServer.dispatcher = object : Dispatcher() {
-                override fun dispatch(request: RecordedRequest): MockResponse {
-                    return when {
-                        request.method == "PUT" -> {
-                            // Capture the published body
-                            publishedBody.add(request.body.readByteArray())
-                            MockResponse()
-                                .setResponseCode(200)
-                                .addHeader("Content-Type", "application/octet-stream")
-                        }
-
-                        request.method == "GET" -> {
-                            MockResponse()
-                                .setResponseCode(200)
-                                .addHeader("Content-Type", "application/octet-stream")
-                                .setBody(okio.Buffer().write(publishedBody.first()))
-                        }
-
-                        else -> MockResponse().setResponseCode(404)
-                    }
-                }
-            }
-
-            val gatewayUrl = mockWebServer.url("")
-
-            val bearerDid = DidDht.create(
-                DidDhtCreateOptions(
-                    publish = true,
-                    gatewayUrl = gatewayUrl.toString()
-                )
-            )
-
-            val resolutionResult = ResolutionResult.resolve(
-                bearerDid.did.uri,
-                ResolutionResultResolveOptions(
-                    didDhtGatewayUrl = gatewayUrl.toString()
-                )
-            )
-
-            assertNull(resolutionResult.resolutionMetadata.error)
-            assertNotNull(resolutionResult.document)
-            assertEquals(bearerDid.document, resolutionResult.document)
-
-            mockWebServer.shutdown()
-        }
-
-        @Test
         fun test_method_not_supported() {
             testSuite.include()
 

@@ -668,8 +668,8 @@ CLASS DidWebCreateOptions
 ```pseudocode!
 CLASS DidDht
   STATIC METHOD create(options: DidDhtCreateOptions?): BearerDid
-  STATIC METHOD resolve(uri: string): ResolutionResult
-  STATIC METHOD publish(bearer_did: BearerDid)
+  STATIC METHOD publish(bearer_did: BearerDid, gateway_url: string?)
+  STATIC METHOD resolve(uri: string, gateway_url: string?): ResolutionResult
 ```
 
 > [!NOTE]

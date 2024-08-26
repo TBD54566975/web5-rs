@@ -3,7 +3,6 @@ package web5.sdk.dids
 import web5.sdk.rust.DocumentMetadataData
 import web5.sdk.rust.ResolutionMetadataData
 import web5.sdk.rust.ResolutionResult as RustCoreResolutionResult
-import web5.sdk.rust.ResolutionResultResolveOptionsData as RustCoreResolutionResultResolveOptions
 
 data class ResolutionResultResolveOptions(
     val didDhtGatewayUrl: String? = null,
@@ -18,10 +17,8 @@ class ResolutionResult(
     val resolutionMetadata: ResolutionMetadataData) {
 
     companion object {
-        fun resolve(uri: String, options: ResolutionResultResolveOptions? = null): ResolutionResult {
-            val rustCoreResolutionResult = RustCoreResolutionResult.resolve(uri, RustCoreResolutionResultResolveOptions(
-                options?.didDhtGatewayUrl
-            ))
+        fun resolve(uri: String): ResolutionResult {
+            val rustCoreResolutionResult = RustCoreResolutionResult.resolve(uri)
             return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
         }
 

@@ -1034,7 +1034,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_resolutionresult(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_resolutionresult_resolve(`uri`: RustBuffer.ByValue,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_constructor_resolutionresult_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_resolutionresult_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -1064,9 +1064,9 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_uniffi_fn_func_did_dht_create(`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_func_did_dht_publish(`bearerDid`: Pointer,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_func_did_dht_publish(`bearerDid`: Pointer,`gatewayUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_func_did_dht_resolve(`uri`: RustBuffer.ByValue,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_func_did_dht_resolve(`uri`: RustBuffer.ByValue,`gatewayUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_func_did_jwk_create(`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1300,10 +1300,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_func_did_dht_create() != 3925.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_publish() != 33632.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_publish() != 17158.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_resolve() != 43251.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_resolve() != 56140.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_func_did_jwk_create() != 64914.toShort()) {
@@ -1426,7 +1426,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 13282.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_resolve() != 29014.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_resolve() != 11404.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_create() != 31236.toShort()) {
@@ -4767,11 +4767,11 @@ open class ResolutionResult: Disposable, AutoCloseable, ResolutionResultInterfac
 
     
     companion object {
-         fun `resolve`(`uri`: kotlin.String, `options`: ResolutionResultResolveOptionsData?): ResolutionResult {
+         fun `resolve`(`uri`: kotlin.String): ResolutionResult {
             return FfiConverterTypeResolutionResult.lift(
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_resolutionresult_resolve(
-        FfiConverterString.lower(`uri`),FfiConverterOptionalTypeResolutionResultResolveOptionsData.lower(`options`),_status)
+        FfiConverterString.lower(`uri`),_status)
 }
     )
     }
@@ -5781,56 +5781,6 @@ public object FfiConverterTypeDidDhtCreateOptions: FfiConverterRustBuffer<DidDht
 
 
 
-data class DidDhtPublishOptions (
-    var `gatewayUrl`: kotlin.String?
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeDidDhtPublishOptions: FfiConverterRustBuffer<DidDhtPublishOptions> {
-    override fun read(buf: ByteBuffer): DidDhtPublishOptions {
-        return DidDhtPublishOptions(
-            FfiConverterOptionalString.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: DidDhtPublishOptions) = (
-            FfiConverterOptionalString.allocationSize(value.`gatewayUrl`)
-    )
-
-    override fun write(value: DidDhtPublishOptions, buf: ByteBuffer) {
-            FfiConverterOptionalString.write(value.`gatewayUrl`, buf)
-    }
-}
-
-
-
-data class DidDhtResolveOptions (
-    var `gatewayUrl`: kotlin.String?
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeDidDhtResolveOptions: FfiConverterRustBuffer<DidDhtResolveOptions> {
-    override fun read(buf: ByteBuffer): DidDhtResolveOptions {
-        return DidDhtResolveOptions(
-            FfiConverterOptionalString.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: DidDhtResolveOptions) = (
-            FfiConverterOptionalString.allocationSize(value.`gatewayUrl`)
-    )
-
-    override fun write(value: DidDhtResolveOptions, buf: ByteBuffer) {
-            FfiConverterOptionalString.write(value.`gatewayUrl`, buf)
-    }
-}
-
-
-
 data class DidJwkCreateOptions (
     var `keyManager`: KeyManager?, 
     var `dsa`: Dsa?
@@ -6174,31 +6124,6 @@ public object FfiConverterTypeResolutionResultData: FfiConverterRustBuffer<Resol
             FfiConverterOptionalTypeDocumentData.write(value.`document`, buf)
             FfiConverterOptionalTypeDocumentMetadataData.write(value.`documentMetadata`, buf)
             FfiConverterTypeResolutionMetadataData.write(value.`resolutionMetadata`, buf)
-    }
-}
-
-
-
-data class ResolutionResultResolveOptionsData (
-    var `didDhtGatewayUrl`: kotlin.String?
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeResolutionResultResolveOptionsData: FfiConverterRustBuffer<ResolutionResultResolveOptionsData> {
-    override fun read(buf: ByteBuffer): ResolutionResultResolveOptionsData {
-        return ResolutionResultResolveOptionsData(
-            FfiConverterOptionalString.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: ResolutionResultResolveOptionsData) = (
-            FfiConverterOptionalString.allocationSize(value.`didDhtGatewayUrl`)
-    )
-
-    override fun write(value: ResolutionResultResolveOptionsData, buf: ByteBuffer) {
-            FfiConverterOptionalString.write(value.`didDhtGatewayUrl`, buf)
     }
 }
 
@@ -6636,64 +6561,6 @@ public object FfiConverterOptionalTypeDidDhtCreateOptions: FfiConverterRustBuffe
 
 
 
-public object FfiConverterOptionalTypeDidDhtPublishOptions: FfiConverterRustBuffer<DidDhtPublishOptions?> {
-    override fun read(buf: ByteBuffer): DidDhtPublishOptions? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeDidDhtPublishOptions.read(buf)
-    }
-
-    override fun allocationSize(value: DidDhtPublishOptions?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeDidDhtPublishOptions.allocationSize(value)
-        }
-    }
-
-    override fun write(value: DidDhtPublishOptions?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeDidDhtPublishOptions.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalTypeDidDhtResolveOptions: FfiConverterRustBuffer<DidDhtResolveOptions?> {
-    override fun read(buf: ByteBuffer): DidDhtResolveOptions? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeDidDhtResolveOptions.read(buf)
-    }
-
-    override fun allocationSize(value: DidDhtResolveOptions?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeDidDhtResolveOptions.allocationSize(value)
-        }
-    }
-
-    override fun write(value: DidDhtResolveOptions?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeDidDhtResolveOptions.write(value, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterOptionalTypeDidJwkCreateOptions: FfiConverterRustBuffer<DidJwkCreateOptions?> {
     override fun read(buf: ByteBuffer): DidJwkCreateOptions? {
         if (buf.get().toInt() == 0) {
@@ -6803,35 +6670,6 @@ public object FfiConverterOptionalTypeDocumentMetadataData: FfiConverterRustBuff
         } else {
             buf.put(1)
             FfiConverterTypeDocumentMetadataData.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalTypeResolutionResultResolveOptionsData: FfiConverterRustBuffer<ResolutionResultResolveOptionsData?> {
-    override fun read(buf: ByteBuffer): ResolutionResultResolveOptionsData? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeResolutionResultResolveOptionsData.read(buf)
-    }
-
-    override fun allocationSize(value: ResolutionResultResolveOptionsData?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeResolutionResultResolveOptionsData.allocationSize(value)
-        }
-    }
-
-    override fun write(value: ResolutionResultResolveOptionsData?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeResolutionResultResolveOptionsData.write(value, buf)
         }
     }
 }
@@ -7183,19 +7021,19 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
     }
     
 
-    @Throws(Web5Exception::class) fun `didDhtPublish`(`bearerDid`: BearerDid, `options`: DidDhtPublishOptions?)
+    @Throws(Web5Exception::class) fun `didDhtPublish`(`bearerDid`: BearerDid, `gatewayUrl`: kotlin.String?)
         = 
     uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_publish(
-        FfiConverterTypeBearerDid.lower(`bearerDid`),FfiConverterOptionalTypeDidDhtPublishOptions.lower(`options`),_status)
+        FfiConverterTypeBearerDid.lower(`bearerDid`),FfiConverterOptionalString.lower(`gatewayUrl`),_status)
 }
     
     
- fun `didDhtResolve`(`uri`: kotlin.String, `options`: DidDhtResolveOptions?): ResolutionResult {
+ fun `didDhtResolve`(`uri`: kotlin.String, `gatewayUrl`: kotlin.String?): ResolutionResult {
             return FfiConverterTypeResolutionResult.lift(
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_resolve(
-        FfiConverterString.lower(`uri`),FfiConverterOptionalTypeDidDhtResolveOptions.lower(`options`),_status)
+        FfiConverterString.lower(`uri`),FfiConverterOptionalString.lower(`gatewayUrl`),_status)
 }
     )
     }

@@ -6,14 +6,11 @@ use crate::{
 use std::sync::Arc;
 use web5::dids::{
     data_model::{service::Service, verification_method::VerificationMethod},
-    methods::did_dht::{
-        DidDht as InnerDidDht, DidDhtCreateOptions as InnerDidDhtCreateOptions,
-        DidDhtPublishOptions, DidDhtResolveOptions,
-    },
+    methods::did_dht::{DidDht as InnerDidDht, DidDhtCreateOptions as InnerDidDhtCreateOptions},
 };
 
-pub fn did_dht_resolve(uri: &str, options: Option<DidDhtResolveOptions>) -> Arc<ResolutionResult> {
-    let resolution_result = InnerDidDht::resolve(uri, options);
+pub fn did_dht_resolve(uri: &str, gateway_url: Option<String>) -> Arc<ResolutionResult> {
+    let resolution_result = InnerDidDht::resolve(uri, gateway_url);
     Arc::new(ResolutionResult(resolution_result))
 }
 
@@ -46,9 +43,6 @@ pub fn did_dht_create(options: Option<DidDhtCreateOptions>) -> Result<Arc<Bearer
     Ok(Arc::new(BearerDid(inner_bearer_did)))
 }
 
-pub fn did_dht_publish(
-    bearer_did: Arc<BearerDid>,
-    options: Option<DidDhtPublishOptions>,
-) -> Result<()> {
-    Ok(InnerDidDht::publish(bearer_did.0.clone(), options)?)
+pub fn did_dht_publish(bearer_did: Arc<BearerDid>, gateway_url: Option<String>) -> Result<()> {
+    Ok(InnerDidDht::publish(bearer_did.0.clone(), gateway_url)?)
 }
