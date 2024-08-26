@@ -45,6 +45,12 @@ interface KeyManager {
   Signer get_signer(JwkData public_jwk);
 };
 
+[Trait, WithForeign]
+interface KeyExporter {
+  [Throws=Web5Error]
+  sequence<JwkData> export_private_jwks();
+};
+
 interface InMemoryKeyManager {
   constructor();
   [Throws=Web5Error]
@@ -52,6 +58,8 @@ interface InMemoryKeyManager {
   [Throws=Web5Error]
   Signer get_signer(JwkData public_jwk);
   KeyManager get_as_key_manager();
+  [Throws=Web5Error]
+  sequence<JwkData> export_private_jwks();
 };
 
 enum Dsa {
@@ -164,8 +172,13 @@ dictionary ResolutionResultData {
   ResolutionMetadataData resolution_metadata;
 };
 
+dictionary ResolutionResultResolveOptionsData {
+  string? did_dht_gateway_url;
+};
+
 interface ResolutionResult {
-  constructor([ByRef] string uri);
+  [Name=resolve]
+  constructor([ByRef] string uri, ResolutionResultResolveOptionsData? options);
   ResolutionResultData get_data();
 };
 
@@ -208,6 +221,7 @@ dictionary PortableDidData {
 };
 
 interface PortableDid {
+  constructor(string did_uri, DocumentData document, sequence<JwkData> private_jwks);
   [Name=from_json_string, Throws=Web5Error]
   constructor([ByRef] string json);
   PortableDidData get_data();
@@ -221,14 +235,19 @@ dictionary BearerDidData {
   KeyManager key_manager;
 };
 
+dictionary BearerDidGetSignerOptionsData {
+  string? verification_method_id;
+};
+
 interface BearerDid {
-  [Throws=Web5Error]
-  constructor([ByRef] string uri, KeyManager key_manager);
+  constructor(DidData did, DocumentData document, KeyManager key_manager);
   [Throws=Web5Error, Name=from_portable_did]
   constructor(PortableDid portable_did);
   BearerDidData get_data();
   [Throws=Web5Error]
-  Signer get_signer(string key_id);
+  Signer get_signer(BearerDidGetSignerOptionsData options);
+  [Throws=Web5Error]
+  PortableDid to_portable_did(KeyExporter key_exporter);
 };
 
 interface PresentationDefinition {

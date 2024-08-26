@@ -109,4 +109,54 @@ class InMemoryKeyManagerTest {
       }
     }
   }
+
+  @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+  inner class ExportPrivateJwks {
+    private val testSuite = UnitTestSuite("in_memory_key_manager_export_private_jwks")
+
+    @AfterAll
+    fun verifyAllTestsIncluded() {
+      if (testSuite.tests.isNotEmpty()) {
+        println("The following tests were not included or executed:")
+        testSuite.tests.forEach { println(it) }
+        fail("Not all tests were executed! ${testSuite.tests}")
+      }
+    }
+
+    @Test
+    fun test_export_empty_list() {
+      testSuite.include()
+
+      val keyManager = InMemoryKeyManager(listOf())
+      val privateJwks = keyManager.exportPrivateJwks()
+
+      assertTrue(privateJwks.isEmpty())
+    }
+
+    @Test
+    fun test_export_single_key() {
+      testSuite.include()
+
+      val privateJwk = Ed25519Generator.generate()
+      val keyManager = InMemoryKeyManager(listOf(privateJwk))
+      val privateJwks = keyManager.exportPrivateJwks()
+
+      assertEquals(1, privateJwks.size)
+      assertEquals(privateJwk, privateJwks[0])
+    }
+
+    @Test
+    fun test_export_multiple_keys() {
+      testSuite.include()
+
+      val privateJwk1 = Ed25519Generator.generate()
+      val privateJwk2 = Ed25519Generator.generate()
+      val keyManager = InMemoryKeyManager(listOf(privateJwk1, privateJwk2))
+      val privateJwks = keyManager.exportPrivateJwks()
+
+      assertEquals(2, privateJwks.size)
+      assertTrue(privateJwks.containsAll(listOf(privateJwk1, privateJwk2)))
+    }
+  }
 }

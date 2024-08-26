@@ -20,7 +20,7 @@ impl Commands {
     pub fn command(&self) {
         match self {
             Commands::Resolve { uri } => {
-                let resolution_result = ResolutionResult::new(uri);
+                let resolution_result = ResolutionResult::resolve(uri, None);
                 match &resolution_result.resolution_metadata.error {
                     Some(e) => println!("{:?} {}", e, e),
                     None => match &resolution_result.document {

@@ -1,13 +1,16 @@
 use crate::{
     crypto::{
         dsa::{Signer, ToOuterSigner},
+        key_exporter::{KeyExporter, ToInnerKeyExporter},
         key_manager::{KeyManager, ToInnerKeyManager, ToOuterKeyManager},
     },
     errors::Result,
 };
 use std::sync::Arc;
 use web5::dids::{
-    bearer_did::BearerDid as InnerBearerDid, data_model::document::Document, did::Did,
+    bearer_did::{BearerDid as InnerBearerDid, BearerDidGetSignerOptions},
+    data_model::document::Document,
+    did::Did,
 };
 
 use super::portable_did::PortableDid;
@@ -21,10 +24,13 @@ pub struct BearerDidData {
 pub struct BearerDid(pub InnerBearerDid);
 
 impl BearerDid {
-    pub fn new(uri: &str, key_manager: Arc<dyn KeyManager>) -> Result<Self> {
+    pub fn new(did: Did, document: Document, key_manager: Arc<dyn KeyManager>) -> Self {
         let inner_key_manager = Arc::new(ToInnerKeyManager(key_manager));
-        let inner = InnerBearerDid::new(uri, inner_key_manager)?;
-        Ok(Self(inner))
+        Self(InnerBearerDid {
+            did,
+            document,
+            key_manager: inner_key_manager,
+        })
     }
 
     pub fn from_portable_did(portable_did: Arc<PortableDid>) -> Result<Self> {
@@ -42,9 +48,15 @@ impl BearerDid {
         }
     }
 
-    pub fn get_signer(&self, key_id: String) -> Result<Arc<dyn Signer>> {
-        let signer = self.0.get_signer(key_id)?;
+    pub fn get_signer(&self, options: BearerDidGetSignerOptions) -> Result<Arc<dyn Signer>> {
+        let signer = self.0.get_signer(options)?;
         let outer_signer = ToOuterSigner(signer);
         Ok(Arc::new(outer_signer))
+    }
+
+    pub fn to_portable_did(&self, key_exporter: Arc<dyn KeyExporter>) -> Result<Arc<PortableDid>> {
+        let inner_key_exporter = Arc::new(ToInnerKeyExporter(key_exporter));
+        let inner_portable_did = self.0.to_portable_did(inner_key_exporter)?;
+        Ok(Arc::new(PortableDid(inner_portable_did)))
     }
 }

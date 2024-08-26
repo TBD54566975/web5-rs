@@ -1,4 +1,4 @@
-use super::KeyManager;
+use super::{KeyExporter, KeyManager};
 use crate::{
     crypto::{
         dsa::{ed25519::Ed25519Signer, Signer},
@@ -65,6 +65,14 @@ impl KeyManager for InMemoryKeyManager {
                 thumbprint
             )))?;
         Ok(Arc::new(Ed25519Signer::new(private_jwk.clone())))
+    }
+}
+
+impl KeyExporter for InMemoryKeyManager {
+    fn export_private_jwks(&self) -> Result<Vec<Jwk>> {
+        let map_lock = self.map.read()?;
+        let jwks = map_lock.values().cloned().collect();
+        Ok(jwks)
     }
 }
 
@@ -198,6 +206,70 @@ mod tests {
             let result = key_manager.get_signer(public_jwk);
             assert!(result.is_ok());
             result.unwrap();
+        }
+    }
+
+    mod export_private_jwks {
+        use super::*;
+
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite =
+                UnitTestSuite::new("in_memory_key_manager_export_private_jwks");
+        }
+
+        #[test]
+        fn z_assert_all_suite_cases_covered() {
+            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
+            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
+            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
+
+            // wait 100ms to be last-in-queue of mutex lock
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            TEST_SUITE.assert_coverage()
+        }
+
+        #[test]
+        fn test_export_empty_list() {
+            TEST_SUITE.include(test_name!());
+
+            let key_manager = InMemoryKeyManager::new();
+            let result = key_manager.export_private_jwks().unwrap();
+            assert!(result.is_empty());
+        }
+
+        #[test]
+        fn test_export_single_key() {
+            TEST_SUITE.include(test_name!());
+
+            let key_manager = InMemoryKeyManager::new();
+            let private_jwk = Ed25519Generator::generate();
+            key_manager.import_private_jwk(private_jwk.clone()).unwrap();
+
+            let result = key_manager.export_private_jwks().unwrap();
+            assert_eq!(result.len(), 1);
+            assert_eq!(result[0], private_jwk);
+        }
+
+        #[test]
+        fn test_export_multiple_keys() {
+            TEST_SUITE.include(test_name!());
+
+            let key_manager = InMemoryKeyManager::new();
+            let private_jwk1 = Ed25519Generator::generate();
+            let private_jwk2 = Ed25519Generator::generate();
+
+            key_manager
+                .import_private_jwk(private_jwk1.clone())
+                .unwrap();
+            key_manager
+                .import_private_jwk(private_jwk2.clone())
+                .unwrap();
+
+            let result = key_manager.export_private_jwks().unwrap();
+            assert_eq!(result.len(), 2);
+            assert!(result.contains(&private_jwk1));
+            assert!(result.contains(&private_jwk2));
         }
     }
 }

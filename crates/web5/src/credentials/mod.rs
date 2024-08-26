@@ -5,9 +5,7 @@ use serde_json::Error as SerdeJsonError;
 
 use crate::errors::Web5Error;
 
-use super::dids::{
-    bearer_did::BearerDidError, resolution::resolution_metadata::ResolutionMetadataError,
-};
+use super::dids::resolution::resolution_metadata::ResolutionMetadataError;
 
 pub mod presentation_definition;
 pub mod verifiable_credential_1_1;
@@ -30,8 +28,6 @@ pub enum CredentialError {
     SerdeJsonError(String),
     #[error(transparent)]
     Jose(#[from] JosekitError),
-    #[error(transparent)]
-    BearerDid(#[from] BearerDidError),
     #[error("missing kid jose header")]
     MissingKid,
     #[error(transparent)]

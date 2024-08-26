@@ -49,7 +49,7 @@ class DidDht {
                 )
             }
             val rustCoreBearerDid = web5.sdk.rust.didDhtCreate(rustCoreOptions)
-            return BearerDid(rustCoreBearerDid)
+            return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
         }
 
         /**
@@ -78,7 +78,8 @@ class DidDht {
             val rustCoreOptions = web5.sdk.rust.DidDhtResolveOptions(
                 options?.gatewayUrl
             )
-            return rustCoreDidDhtResolve(uri, rustCoreOptions).getData()
+            val rustCoreResolutionResult = rustCoreDidDhtResolve(uri, rustCoreOptions)
+            return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
         }
     }
 }

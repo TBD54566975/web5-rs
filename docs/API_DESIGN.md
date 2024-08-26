@@ -24,6 +24,7 @@
   - [`Jwk`](#jwk)
   - [Key Managers](#key-managers)
     - [`KeyManager`](#keymanager)
+    - [`KeyExporter`](#keyexporter)
     - [`InMemoryKeyManager`](#inmemorykeymanager)
   - [Digital Signature Algorithms (DSA)](#digital-signature-algorithms-dsa)
     - [`Dsa`](#dsa)
@@ -48,6 +49,7 @@
     - [`Service`](#service)
   - [Resolution](#resolution)
     - [`ResolutionResult`](#resolutionresult)
+    - [`ResolutionResultResolveOptions`](#resolutionresultresolveoptions)
     - [`ResolutionMetadataError`](#resolutionmetadataerror)
     - [`ResolutionMetadata`](#resolutionmetadata)
     - [`DocumentMetadata`](#documentmetadata)
@@ -59,7 +61,7 @@
     - [`DidDht`](#diddht)
       - [`DidDhtCreateOptions`](#diddhtcreateoptions)
   - [`BearerDid`](#bearerdid)
-    - [Example: Instantiate from a `PortableDid`](#example-instantiate-from-a-portabledid)
+    - [`BearerDidGetSignerOptions`](#bearerdidgetsigneroptions)
   - [`PortableDid`](#portabledid)
     - [Example: Create a `PortableDid` via the `web5` CLI](#example-create-a-portabledid-via-the-web5-cli)
 
@@ -219,13 +221,25 @@ INTERFACE KeyManager
   METHOD import_private_jwk(private_jwk: Jwk): Jwk
 ```
 
+### `KeyExporter`
+
+> [!WARNING]
+>
+> Exporting private key material is an unsafe practice and should be constrained to development settings.
+
+```pseudocode!
+INTERFACE KeyExporter
+  /// Returns the full set of private keys represented as JWK's
+  METHOD export_private_jwks(): []Jwk
+```
+
 ### `InMemoryKeyManager`
 
 The `InMemoryKeyManager` manages private keys in working memory, and so therefore any production utilization of the instance may be exposed to memory safety vulnerabilities; the `InMemoryKeyManager` is primarily intended for development & testing environments. For cases wherein this is unacceptable, [`KeyManager`](#keymanager) & [`Signer`](#signer) are both polymorphic bases classes which can be implemented and utilized in the dependent areas.
 
 ```pseudocode!
 /// An encapsulation of key material stored in-memory.
-CLASS InMemoryKeyManager IMPLEMENTS KeyManager
+CLASS InMemoryKeyManager IMPLEMENTS KeyManager, KeyExporter
   CONSTRUCTOR(private_jwks: []Jwk)
 
   /// Returns the signer for the given public key.
@@ -233,6 +247,9 @@ CLASS InMemoryKeyManager IMPLEMENTS KeyManager
 
   /// For importing keys which may be stored somewhere such as environment variables. Return Jwk is the public key for the given private key.
   METHOD import_private_jwk(private_jwk: Jwk): Jwk
+
+  /// Returns the full set of private keys represented as JWK's
+  METHOD export_private_jwks(): []Jwk
 ```
 
 ## Digital Signature Algorithms (DSA)
@@ -532,16 +549,23 @@ CLASS Service
 /// Representation of the result of a DID (Decentralized Identifier) resolution.
 CLASS ResolutionResult
   /// The resolved DID document, if available.
-  PUBLIC DATA document: Document
+  PUBLIC DATA document: Document?
 
   /// The metadata associated with the DID document.
-  PUBLIC DATA document_metadata: DocumentMetadata
+  PUBLIC DATA document_metadata: DocumentMetadata?
 
   /// The metadata associated with the DID resolution process.
   PUBLIC DATA resolution_metadata: ResolutionMetadata
 
   /// Resolve via a DID URI.
-  CONSTRUCTOR(uri: string)
+  STATIC METHOD resolve(uri: string)
+```
+
+### `ResolutionResultResolveOptions`
+
+```pseudocode!
+CLASS ResolutionResultResolveOptions: 
+  PUBLIC DATA did_dht_gateway_url string?
 ```
 
 ### `ResolutionMetadataError`
@@ -671,20 +695,18 @@ CLASS BearerDid
   PUBLIC DATA did: Did
   PUBLIC DATA document: Document
   PUBLIC DATA key_manager: KeyManager
-  CONSTRUCTOR(uri: string, key_manager: KeyManager)
-  CONSTRUCTOR(portable_did: PortableDid)
-  METHOD get_signer(): Signer
+
+  CONSTRUCTOR from_portable_did(portable_did: PortableDid)
+
+  METHOD to_portable_did(key_exporter: KeyExporter): PortableDid
+  METHOD get_signer(options: BearerDidGetSignerOptions): Signer
 ```
 
-> [!WARNING]
->
-> We'll need to add support for the developer to select a VM other than defaulting to the first in the `verification_method` array; add `METHOD get_signer_by_kid(key_id: string): Signer`.
-
-### Example: Instantiate from a [`PortableDid`](#portabledid)
+### `BearerDidGetSignerOptions`
 
 ```pseudocode!
-portable_did = new PortableDid(env.get("PORTABLE_DID_JSON"))
-bearer_did = new BearerDid(portable_did)
+class BearerDidGetSignerOptions
+  PUBLIC DATA verification_method_id: string?
 ```
 
 ## `PortableDid`

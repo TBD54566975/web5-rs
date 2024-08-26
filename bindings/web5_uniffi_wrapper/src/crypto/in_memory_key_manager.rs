@@ -1,5 +1,6 @@
 use super::{
     dsa::{Signer, ToOuterSigner},
+    key_exporter::KeyExporter,
     key_manager::KeyManager,
 };
 use crate::errors::Result;
@@ -8,7 +9,7 @@ use web5::crypto::{
     jwk::Jwk,
     key_managers::{
         in_memory_key_manager::InMemoryKeyManager as InnerInMemoryKeyManager,
-        KeyManager as InnerKeyManager,
+        KeyExporter as InnerKeyExporter, KeyManager as InnerKeyManager,
     },
 };
 
@@ -38,6 +39,13 @@ impl KeyManager for InMemoryKeyManager {
         let signer = self.0.get_signer(public_jwk)?;
         let outer_signer = ToOuterSigner(signer);
         Ok(Arc::new(outer_signer))
+    }
+}
+
+impl KeyExporter for InMemoryKeyManager {
+    fn export_private_jwks(&self) -> Result<Vec<Jwk>> {
+        let private_jwks = self.0.export_private_jwks()?;
+        Ok(private_jwks)
     }
 }
 

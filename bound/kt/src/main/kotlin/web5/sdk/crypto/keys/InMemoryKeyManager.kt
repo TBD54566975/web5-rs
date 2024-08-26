@@ -9,7 +9,7 @@ import web5.sdk.rust.InMemoryKeyManager as RustCoreInMemoryKeyManager
  *
  * @param privateJwks A list of private keys represented as JWKs (JSON Web Keys).
  */
-class InMemoryKeyManager (privateJwks: List<Jwk>) : KeyManager {
+class InMemoryKeyManager (privateJwks: List<Jwk>) : KeyManager, KeyExporter {
     private val rustCoreInMemoryKeyManager = RustCoreInMemoryKeyManager()
 
     init {
@@ -38,5 +38,10 @@ class InMemoryKeyManager (privateJwks: List<Jwk>) : KeyManager {
     override fun getSigner(publicJwk: Jwk): Signer {
         val rustCoreSigner = this.rustCoreInMemoryKeyManager.getSigner(publicJwk.rustCoreJwkData)
         return ToOuterSigner(rustCoreSigner)
+    }
+
+    override fun exportPrivateJwks(): List<Jwk> {
+        val rustCorePrivateJwksData = this.rustCoreInMemoryKeyManager.exportPrivateJwks()
+        return rustCorePrivateJwksData.map { Jwk.fromRustCoreJwkData(it) }
     }
 }

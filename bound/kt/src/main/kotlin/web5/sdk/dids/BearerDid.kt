@@ -1,11 +1,17 @@
 package web5.sdk.dids
 
-import web5.sdk.crypto.signers.Signer
-import web5.sdk.crypto.keys.KeyManager
+import web5.sdk.crypto.keys.*
+import web5.sdk.crypto.keys.ToInnerKeyExporter
 import web5.sdk.crypto.keys.ToInnerKeyManager
 import web5.sdk.crypto.keys.ToOuterKeyManager
+import web5.sdk.crypto.signers.Signer
 import web5.sdk.crypto.signers.ToOuterSigner
 import web5.sdk.rust.BearerDid as RustCoreBearerDid
+import web5.sdk.rust.BearerDidGetSignerOptionsData as RustCoreBearerDidGetSignerOptions
+
+data class BearerDidGetSignerOptions(
+    val verificationMethodId: String? = null
+)
 
 /**
  * Represents a Decentralized Identifier (DID) along with its DID document, key manager, metadata,
@@ -13,48 +19,37 @@ import web5.sdk.rust.BearerDid as RustCoreBearerDid
  *
  * @property did The DID associated with this instance.
  * @property document The DID document associated with this instance.
+ * @property keyManager The KeyManager associated with this instance.
  */
-class BearerDid {
-    val did: Did
-    val document: Document
-    val keyManager: KeyManager
-
+class BearerDid private constructor(
+    val did: Did,
+    val document: Document,
+    val keyManager: KeyManager,
     internal val rustCoreBearerDid: RustCoreBearerDid
+) {
+    constructor(did: Did, document: Document, keyManager: KeyManager) : this(
+        did, document, keyManager, RustCoreBearerDid(did.toRustCoreDidData(), document, ToInnerKeyManager(keyManager))
+    )
 
-    internal constructor(rustCoreBearerDid: RustCoreBearerDid) {
-        this.rustCoreBearerDid = rustCoreBearerDid
-        this.did = Did.fromRustCoreDidData(this.rustCoreBearerDid.getData().did)
-        this.document = this.rustCoreBearerDid.getData().document
-        this.keyManager = ToOuterKeyManager(this.rustCoreBearerDid.getData().keyManager)
-    }
+    companion object {
+        /**
+         * Constructs a BearerDid instance from a PortableDid.
+         *
+         * @param portableDid The PortableDid.
+         */
+        fun fromPortableDid(portableDid: PortableDid): BearerDid {
+            val rustCoreBearerDid = RustCoreBearerDid.fromPortableDid(portableDid.rustCorePortableDid)
+            return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
+        }
 
-    /**
-     * Constructs a BearerDid instance using a DID URI and a key manager.
-     *
-     * @param uri The DID URI.
-     * @param keyManager The key manager to handle keys.
-     */
-    constructor(uri: String, keyManager: KeyManager) {
-        val innerKeyManager = ToInnerKeyManager(keyManager)
-        this.rustCoreBearerDid = RustCoreBearerDid(uri, innerKeyManager)
-
-        this.did = Did.fromRustCoreDidData(this.rustCoreBearerDid.getData().did)
-        this.document = this.rustCoreBearerDid.getData().document
-        this.keyManager = keyManager
-    }
-
-    /**
-     * Constructs a BearerDid instance from a PortableDid.
-     *
-     * @param portableDid The PortableDid.
-     */
-    constructor(portableDid: PortableDid) {
-        this.rustCoreBearerDid = RustCoreBearerDid.fromPortableDid(portableDid.rustCorePortableDid)
-
-        val data = this.rustCoreBearerDid.getData()
-        this.did = Did.fromRustCoreDidData(data.did)
-        this.document = data.document
-        this.keyManager = ToOuterKeyManager(data.keyManager)
+        internal fun fromRustCoreBearerDid(rustCoreBearerDid: RustCoreBearerDid): BearerDid {
+            val rustCoreBearerDidData = rustCoreBearerDid.getData()
+            return BearerDid(
+                Did.fromRustCoreDidData(rustCoreBearerDidData.did),
+                rustCoreBearerDidData.document,
+                ToOuterKeyManager(rustCoreBearerDidData.keyManager)
+            )
+        }
     }
 
     /**
@@ -62,8 +57,20 @@ class BearerDid {
      *
      * @return Signer The signer for the DID.
      */
-    fun getSigner(): Signer {
-        val keyId = this.document.verificationMethod.first().id
-        return ToOuterSigner(this.rustCoreBearerDid.getSigner(keyId))
+    fun getSigner(options: BearerDidGetSignerOptions): Signer {
+        val rustCoreSigner = rustCoreBearerDid.getSigner(RustCoreBearerDidGetSignerOptions(
+            verificationMethodId = options.verificationMethodId
+        ))
+
+        return ToOuterSigner(rustCoreSigner)
+    }
+
+    /**
+     * Returns the BearerDid represented as a PortableDid
+     */
+    fun toPortableDid(keyExporter: KeyExporter): PortableDid {
+        val innerKeyExporter = ToInnerKeyExporter(keyExporter)
+        val rustCorePortableDid = rustCoreBearerDid.toPortableDid(innerKeyExporter)
+        return PortableDid.fromRustCorePortableDid(rustCorePortableDid)
     }
 }
