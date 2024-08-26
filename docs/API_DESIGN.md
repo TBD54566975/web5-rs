@@ -105,7 +105,7 @@ CLASS VerifiableCredential
 
 ##### `CredentialStatus`
 
-```psuedocode!
+```pseudocode!
 CLASS CredentialStatus
   PUBLIC DATA id: string
   PUBLIC DATA type: []string
