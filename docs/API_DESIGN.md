@@ -108,9 +108,11 @@ CLASS VerifiableCredential
 
 ```psuedocode!
 CLASS CredentialStatus
-  PUBLIC DATA statusPurpose: string
-  PUBLIC DATA statusListIndex: string
-  PUBLIC DATA statusListCredential: string
+  PUBLIC DATA id: string
+  PUBLIC DATA type: []string
+  PUBLIC DATA status_purpose: string
+  PUBLIC DATA status_list_index: string
+  PUBLIC DATA status_list_credential: string
 ```
 
 ##### `CreateOptions`
@@ -122,7 +124,7 @@ CLASS CreateOptions
   PUBLIC DATA type: []string?
   PUBLIC DATA issuance_date: datetime?
   PUBLIC DATA expiration_date: datetime?
-  PUBLIC DATA credentialStatus: CredentialStatus?
+  PUBLIC DATA credential_status: CredentialStatus?
 ```
 
 ## StatusListCredential
@@ -137,6 +139,7 @@ PUBLIC DATA credentials_to_disable: []VerifiableCredential
 CONSTRUCTOR create(issuer: Issuer, status_purpose: string, credentials_to_disable: []VerifiableCredential, options: CreateOptions?)
 
 METHOD update_credentials_to_disable(credentials_to_disable: []VerifiableCredential): StatusListCredential
+METHOD validate_credential_in_status_list(credential VerifiableCredential): bool
 ```
 
 ## Presentation Exchange (PEX)
