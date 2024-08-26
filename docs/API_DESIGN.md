@@ -132,13 +132,13 @@ CLASS CreateOptions
 
 ```pseudocode!
 CLASS StatusListCredential IMPLEMENTS VerifiableCredential
-PUBLIC DATA status_purpose: string
-PUBLIC DATA credentials_to_disable: []VerifiableCredential
-
-CONSTRUCTOR create(issuer: Issuer, status_purpose: string, credentials_to_disable: []VerifiableCredential, options: CreateOptions?)
-
-METHOD update_credentials_to_disable(credentials_to_disable: []VerifiableCredential): StatusListCredential
-METHOD is_disabled(credential VerifiableCredential): bool
+  PUBLIC DATA status_purpose: string
+  PUBLIC DATA credentials_to_disable: []VerifiableCredential
+  
+  CONSTRUCTOR create(issuer: Issuer, status_purpose: string, credentials_to_disable: []VerifiableCredential, options: CreateOptions?)
+  
+  METHOD update_credentials_to_disable(credentials_to_disable: []VerifiableCredential): StatusListCredential
+  METHOD is_disabled(credential VerifiableCredential): bool
 ```
 
 ## Presentation Exchange (PEX)
