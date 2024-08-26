@@ -93,7 +93,7 @@ CLASS VerifiableCredential
   CONSTRUCTOR from_vc_jwt(vc_jwt: string, verify: bool)
 
   METHOD sign(signer: Signer): string
-  METHOD sign(bearer_did: BearerDid, verification_method_id: String?): string
+  METHOD sign_with_did(bearer_did: BearerDid, verification_method_id: String?): string
 ```
 
 ##### `CredentialSubject`
