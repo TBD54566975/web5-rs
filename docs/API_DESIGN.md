@@ -87,6 +87,7 @@ CLASS VerifiableCredential
   PUBLIC DATA expiration_date: datetime?
   PUBLIC DATA credentialSubject: CredentialSubject
 
+
   CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: CreateOptions)
 
   CONSTRUCTOR(vcjwt: string)
@@ -103,6 +104,15 @@ CLASS VerifiableCredential
 
 `Object` or `string`, and if `Object` then at least non-empty `id: string` and `name: string` data members.
 
+##### `CredentialStatus`
+
+```psuedocode!
+CLASS CredentialStatus
+  PUBLIC DATA statusPurpose: string
+  PUBLIC DATA statusListIndex: string
+  PUBLIC DATA statusListCredential: string
+```
+
 ##### `CreateOptions`
 
 ```psuedocode!
@@ -112,6 +122,21 @@ CLASS CreateOptions
   PUBLIC DATA type: []string?
   PUBLIC DATA issuance_date: datetime?
   PUBLIC DATA expiration_date: datetime?
+  PUBLIC DATA credentialStatus: CredentialStatus?
+```
+
+## StatusListCredential
+
+#### `StatusListCredential`
+
+```pseudocode!
+CLASS StatusListCredential IMPLEMENTS VerifiableCredential
+PUBLIC DATA status_purpose: string
+PUBLIC DATA credentials_to_disable: []VerifiableCredential
+
+CONSTRUCTOR create(issuer: Issuer, status_purpose: string, credentials_to_disable: []VerifiableCredential, options: CreateOptions?)
+
+METHOD update_credentials_to_disable(credentials_to_disable: []VerifiableCredential): StatusListCredential
 ```
 
 ## Presentation Exchange (PEX)
