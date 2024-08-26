@@ -108,7 +108,7 @@ CLASS VerifiableCredentialDecodeOptions
 
 > [!NOTE]
 >
-> If a `signer` is specified, then it takes first priority. Else, the `bearer_did` will be used. If a `verification_method_id` is not specified then the first Verification Method in the `bearer_did` will be utilized.
+> If a `signer` is specified, then it takes first priority. Else, the `bearer_did` will be used. If a `verification_method_id` is not specified then the first Verification Method in the `bearer_did` will be utilized. Given the `signer` IS NOT specified and the `bearer_did` IS specified, then the `issuer` ID defined in the call to `create()` MUST be equal to value of the `bearer_did`'s DID URI.
 
 ```pseudocode!
 CLASS VerifiableCredentialSignOptions
