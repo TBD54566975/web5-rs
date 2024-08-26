@@ -10,6 +10,8 @@
   - [Verifiable Credentials (VCs)](#verifiable-credentials-vcs)
     - [Data Model 1.1](#data-model-11)
       - [`VerifiableCredential`](#verifiablecredential)
+        - [`VerifiableCredentialDecodeOptions`](#verifiablecredentialdecodeoptions)
+        - [`VerifiableCredentialSignOptions`](#verifiablecredentialsignoptions)
         - [`CredentialSubject`](#credentialsubject)
         - [`Issuer`](#issuer)
         - [`CreateOptions`](#createoptions)
@@ -90,11 +92,29 @@ CLASS VerifiableCredential
   PUBLIC DATA credentialSubject: CredentialSubject
 
   CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: CreateOptions)
+  CONSTRUCTOR decode(vc_jwt: string)
 
-  CONSTRUCTOR(vcjwt: string)
-  CONSTRUCTOR(vcjwt: string, verifier: Verifier)
-  METHOD sign(bearer_did: BearerDid): string
-  METHOD sign_with_signer(key_id: string, signer: Signer): string
+  METHOD sign(options: VerifiableCredentialSignOptions)
+```
+
+##### `VerifiableCredentialDecodeOptions`
+
+```pseudocode!
+CLASS VerifiableCredentialDecodeOptions
+  PUBLIC DATA verify: bool?
+```
+
+##### `VerifiableCredentialSignOptions`
+
+> [!NOTE]
+>
+> If a `signer` is specified, then it takes first priority. Else, the `bearer_did` will be used. If a `verification_method_id` is not specified then the first Verification Method in the `bearer_did` will be utilized.
+
+```pseudocode!
+CLASS VerifiableCredentialSignOptions
+  PUBLIC DATA signer: Signer?
+  PUBLIC DATA bearer_did: BearerDid?
+  PUBLIC DATA verification_method_id: string?
 ```
 
 ##### `CredentialSubject`
