@@ -172,8 +172,13 @@ dictionary ResolutionResultData {
   ResolutionMetadataData resolution_metadata;
 };
 
+dictionary ResolutionResultResolveOptionsData {
+  string? did_dht_gateway_url;
+};
+
 interface ResolutionResult {
-  constructor([ByRef] string uri);
+  [Name=resolve]
+  constructor([ByRef] string uri, ResolutionResultResolveOptionsData? options);
   ResolutionResultData get_data();
 };
 

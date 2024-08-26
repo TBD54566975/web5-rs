@@ -78,7 +78,8 @@ class DidDht {
             val rustCoreOptions = web5.sdk.rust.DidDhtResolveOptions(
                 options?.gatewayUrl
             )
-            return rustCoreDidDhtResolve(uri, rustCoreOptions).getData()
+            val rustCoreResolutionResult = rustCoreDidDhtResolve(uri, rustCoreOptions)
+            return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
         }
     }
 }

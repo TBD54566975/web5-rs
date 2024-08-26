@@ -54,7 +54,7 @@ class DidWeb {
         @JvmStatic
         fun resolve(uri: String): ResolutionResult {
             val rustCoreResolutionResult = rustCoreDidWebResolve(uri)
-            return rustCoreResolutionResult.getData()
+            return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
         }
     }
 }

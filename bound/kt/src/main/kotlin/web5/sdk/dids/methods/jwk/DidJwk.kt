@@ -43,8 +43,8 @@ class DidJwk {
          */
         @JvmStatic
         fun resolve(uri: String): ResolutionResult {
-            val rustCoreResolutionObject = rustCoreDidJwkResolve(uri).getData()
-            return rustCoreResolutionObject
+            val rustCoreResolutionResult = rustCoreDidJwkResolve(uri)
+            return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
         }
     }
 }
