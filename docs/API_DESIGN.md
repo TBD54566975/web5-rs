@@ -138,7 +138,7 @@ PUBLIC DATA credentials_to_disable: []VerifiableCredential
 CONSTRUCTOR create(issuer: Issuer, status_purpose: string, credentials_to_disable: []VerifiableCredential, options: CreateOptions?)
 
 METHOD update_credentials_to_disable(credentials_to_disable: []VerifiableCredential): StatusListCredential
-METHOD validate_credential_in_status_list(credential VerifiableCredential): bool
+METHOD is_disabled(credential VerifiableCredential): bool
 ```
 
 ## Presentation Exchange (PEX)
