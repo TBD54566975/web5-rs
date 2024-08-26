@@ -92,7 +92,7 @@ CLASS VerifiableCredential
   PUBLIC DATA credentialSubject: CredentialSubject
 
   CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: CreateOptions)
-  CONSTRUCTOR decode(vc_jwt: string)
+  CONSTRUCTOR decode(vc_jwt: string, options: VerifiableCredentialDecodeOptions)
 
   METHOD sign(options: VerifiableCredentialSignOptions)
 ```
