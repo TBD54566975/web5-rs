@@ -49,6 +49,7 @@
     - [`Service`](#service)
   - [Resolution](#resolution)
     - [`ResolutionResult`](#resolutionresult)
+    - [`ResolutionResultResolveOptions`](#resolutionresultresolveoptions)
     - [`ResolutionMetadataError`](#resolutionmetadataerror)
     - [`ResolutionMetadata`](#resolutionmetadata)
     - [`DocumentMetadata`](#documentmetadata)
@@ -548,16 +549,23 @@ CLASS Service
 /// Representation of the result of a DID (Decentralized Identifier) resolution.
 CLASS ResolutionResult
   /// The resolved DID document, if available.
-  PUBLIC DATA document: Document
+  PUBLIC DATA document: Document?
 
   /// The metadata associated with the DID document.
-  PUBLIC DATA document_metadata: DocumentMetadata
+  PUBLIC DATA document_metadata: DocumentMetadata?
 
   /// The metadata associated with the DID resolution process.
   PUBLIC DATA resolution_metadata: ResolutionMetadata
 
   /// Resolve via a DID URI.
-  CONSTRUCTOR(uri: string)
+  STATIC METHOD resolve(uri: string)
+```
+
+### `ResolutionResultResolveOptions`
+
+```pseudocode!
+CLASS ResolutionResultResolveOptions: 
+  PUBLIC DATA did_dht_gateway_url string?
 ```
 
 ### `ResolutionMetadataError`

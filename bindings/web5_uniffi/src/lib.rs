@@ -45,7 +45,9 @@ use web5::{
             resolution_metadata::{
                 ResolutionMetadata as ResolutionMetadataData, ResolutionMetadataError,
             },
-            resolution_result::ResolutionResult as ResolutionResultData,
+            resolution_result::{
+                ResolutionResult as ResolutionResultData, ResolutionResultResolveOptions as ResolutionResultResolveOptionsData,
+            },
         },
     },
 };
