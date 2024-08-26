@@ -10,6 +10,7 @@ use web5_uniffi_wrapper::{
         },
         in_memory_key_manager::InMemoryKeyManager,
         jwk::Jwk,
+        key_exporter::KeyExporter,
         key_manager::KeyManager,
     },
     dids::{
@@ -31,6 +32,7 @@ use web5::{
     credentials::verifiable_credential_1_1::VerifiableCredentialCreateOptions as VerifiableCredentialCreateOptionsData,
     crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{
+        bearer_did::BearerDidGetSignerOptions as BearerDidGetSignerOptionsData,
         data_model::{
             document::Document as DocumentData, service::Service as ServiceData,
             verification_method::VerificationMethod as VerificationMethodData,

@@ -32,9 +32,7 @@ class DidJwk {
                 dsa = opts.dsa
             ) }
             val rustCoreBearerDid = didJwkCreate(rustCoreOptions)
-            val rustCoreBearerDidData = rustCoreBearerDid.getData()
-            val keyManager = ToOuterKeyManager(rustCoreBearerDidData.keyManager)
-            return BearerDid(rustCoreBearerDidData.did.uri, keyManager)
+            return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
         }
 
         /**

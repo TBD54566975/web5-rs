@@ -4,7 +4,6 @@ use std::{any::type_name, fmt::Debug};
 use thiserror::Error;
 use web5::credentials::presentation_definition::PexError;
 use web5::credentials::CredentialError;
-use web5::dids::bearer_did::BearerDidError;
 use web5::errors::Web5Error as InnerWeb5Error;
 
 #[derive(Debug, Error)]
@@ -82,12 +81,6 @@ impl From<CredentialError> for Web5Error {
 
 impl From<PexError> for Web5Error {
     fn from(error: PexError) -> Self {
-        Web5Error::new(error)
-    }
-}
-
-impl From<BearerDidError> for Web5Error {
-    fn from(error: BearerDidError) -> Self {
         Web5Error::new(error)
     }
 }

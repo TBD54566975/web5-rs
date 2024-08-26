@@ -36,4 +36,8 @@ data class Did (
             )
         }
     }
+
+    internal fun toRustCoreDidData(): RustCoreDidData {
+        return RustCoreDidData(uri, url, method, id, params, path, query, fragment)
+    }
 }

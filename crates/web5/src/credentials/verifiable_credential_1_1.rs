@@ -1,4 +1,6 @@
 use super::{CredentialError, Result as ResultOld};
+use crate::dids::bearer_did::BearerDidGetSignerOptions;
+use crate::dids::data_model::document::FindVerificationMethodOptions;
 use crate::errors::{Result, Web5Error};
 use crate::json::{FromJson, JsonObject, ToJson};
 use crate::rfc3339::{
@@ -206,7 +208,9 @@ impl VerifiableCredential {
     pub fn sign(&self, bearer_did: &BearerDid) -> ResultOld<String> {
         // default to first VM
         let key_id = bearer_did.document.verification_method[0].id.clone();
-        let signer = bearer_did.get_signer(key_id.clone())?;
+        let signer = bearer_did.get_signer(BearerDidGetSignerOptions {
+            verification_method_id: Some(key_id.clone()),
+        })?;
 
         self.sign_with_signer(&key_id, signer)
     }
@@ -266,7 +270,10 @@ impl VerifiableCredential {
             .ok_or_else(|| {
                 JosekitError::InvalidJwtFormat(ResolutionMetadataError::InternalError.into())
             })?
-            .find_public_jwk(kid.to_string())?;
+            .find_verification_method(FindVerificationMethodOptions {
+                verification_method_id: Some(kid.to_string()),
+            })?
+            .public_key_jwk;
 
         let verifier = Ed25519Verifier::new(public_key_jwk);
 

@@ -1,8 +1,5 @@
 use super::{service::Service, verification_method::VerificationMethod};
-use crate::{
-    crypto::jwk::Jwk,
-    errors::{Result, Web5Error},
-};
+use crate::errors::{Result, Web5Error};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -36,16 +33,29 @@ pub struct Document {
     pub service: Option<Vec<Service>>,
 }
 
+pub(crate) struct FindVerificationMethodOptions {
+    pub verification_method_id: Option<String>,
+}
+
 impl Document {
-    pub(crate) fn find_public_jwk(&self, key_id: String) -> Result<Jwk> {
+    pub(crate) fn find_verification_method(
+        &self,
+        options: FindVerificationMethodOptions,
+    ) -> Result<VerificationMethod> {
+        let verification_method_id = options.verification_method_id.unwrap_or_default();
+        if verification_method_id.is_empty() {
+            return Err(Web5Error::Parameter(
+                "verification method id cannot be empty".to_string(),
+            ));
+        }
+
         for vm in &self.verification_method {
-            if vm.id == key_id {
-                return Ok(vm.public_key_jwk.clone());
+            if vm.id == verification_method_id {
+                return Ok(vm.clone());
             }
         }
-        Err(Web5Error::NotFound(format!(
-            "jwk not found for key_id {}",
-            key_id
-        )))
+        Err(Web5Error::NotFound(
+            "verification method not found".to_string(),
+        ))
     }
 }

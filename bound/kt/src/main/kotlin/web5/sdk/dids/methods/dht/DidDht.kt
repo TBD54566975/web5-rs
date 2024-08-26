@@ -49,7 +49,7 @@ class DidDht {
                 )
             }
             val rustCoreBearerDid = web5.sdk.rust.didDhtCreate(rustCoreOptions)
-            return BearerDid(rustCoreBearerDid)
+            return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
         }
 
         /**

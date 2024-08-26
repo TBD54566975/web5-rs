@@ -42,7 +42,7 @@ class DidWeb {
                 )
             }
             val rustCoreBearerDid = rustCoreDidWebCreate(domain, rustCoreOptions)
-            return BearerDid(rustCoreBearerDid)
+            return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
         }
 
         /**
