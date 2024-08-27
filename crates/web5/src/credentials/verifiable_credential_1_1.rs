@@ -205,39 +205,57 @@ impl VerifiableCredential {
     }
 
     pub fn from_vc_jwt(vc_jwt: &str, verify: bool) -> Result<Self> {
-        let header = josekit::jwt::decode_header(vc_jwt)
-            .map_err(|_| Web5Error::Parameter("failed to decode vc-jwt jose header".to_string()))?;
+        let jwt_payload = match verify {
+            true => {
+                let header = josekit::jwt::decode_header(vc_jwt).map_err(|_| {
+                    Web5Error::Parameter("failed to decode vc-jwt jose header".to_string())
+                })?;
 
-        let kid = header
-            .claim("kid")
-            .and_then(serde_json::Value::as_str)
-            .ok_or_else(|| CredentialError::MissingKid)?;
+                let kid = header
+                    .claim("kid")
+                    .and_then(serde_json::Value::as_str)
+                    .ok_or_else(|| CredentialError::MissingKid)?;
 
-        let did = Did::parse(&kid)?;
+                if kid.is_empty() {
+                    return Err(CredentialError::MissingKid.into());
+                }
 
-        let resolution_result = ResolutionResult::resolve(&did.uri);
-        if let Some(err) = resolution_result.resolution_metadata.error.clone() {
-            return Err(err.into());
-        }
+                let did = Did::parse(&kid)?;
 
-        let public_key_jwk = resolution_result
-            .document
-            .ok_or_else(|| ResolutionMetadataError::InternalError)?
-            .find_verification_method(FindVerificationMethodOptions {
-                verification_method_id: Some(kid.to_string()),
-            })?
-            .public_key_jwk;
+                let resolution_result = ResolutionResult::resolve(&did.uri);
+                if let Some(err) = resolution_result.resolution_metadata.error.clone() {
+                    return Err(err.into());
+                }
 
-        let jose_verifier = &JoseVerifier {
-            kid: kid.to_string(),
-            // this function currently only supports Ed25519
-            verifier: Arc::new(Ed25519Verifier::new(public_key_jwk)),
+                let public_key_jwk = resolution_result
+                    .document
+                    .ok_or_else(|| ResolutionMetadataError::InternalError)?
+                    .find_verification_method(FindVerificationMethodOptions {
+                        verification_method_id: Some(kid.to_string()),
+                    })?
+                    .public_key_jwk;
+
+                let jose_verifier = &JoseVerifier {
+                    kid: kid.to_string(),
+                    // this function currently only supports Ed25519
+                    verifier: Arc::new(Ed25519Verifier::new(public_key_jwk)),
+                };
+
+                let (jwt_payload, _) = josekit::jwt::decode_with_verifier(vc_jwt, jose_verifier)
+                    .map_err(|e| {
+                        Web5Error::Crypto(format!("vc-jwt failed cryptographic verification {}", e))
+                    })?;
+
+                jwt_payload
+            }
+            false => {
+                let (jwt_payload, _) = josekit::jwt::decode_unsecured(vc_jwt).map_err(|e| {
+                    Web5Error::Crypto(format!("vc-jwt failed to decode payload {}", e))
+                })?;
+
+                jwt_payload
+            }
         };
-
-        let (jwt_payload, _) =
-            josekit::jwt::decode_with_verifier(vc_jwt, jose_verifier).map_err(|e| {
-                Web5Error::Crypto(format!("vc-jwt failed cryptographic verification {}", e))
-            })?;
 
         let vc_claim = jwt_payload
             .claim("vc")
@@ -384,6 +402,13 @@ impl VerifiableCredential {
         bearer_did: &BearerDid,
         verification_method_id: Option<String>,
     ) -> Result<String> {
+        if bearer_did.did.uri != self.issuer.to_string() {
+            return Err(Web5Error::Parameter(format!(
+                "bearer_did uri {} does not match issuer {}",
+                bearer_did.did.uri, self.issuer
+            )));
+        }
+
         let key_id = verification_method_id
             .unwrap_or_else(|| bearer_did.document.verification_method[0].id.clone());
         let signer = bearer_did.get_signer(&key_id)?;
@@ -877,5 +902,229 @@ mod tests {
 
             assert_eq!(vc.expiration_date, Some(expiration_date));
         }
+    }
+
+    mod from_vc_jwt {
+        use crate::dids::methods::did_jwk::DidJwk;
+
+        use super::*;
+
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite =
+                UnitTestSuite::new("verifiable_credential_1_1_from_vc_jwt");
+        }
+
+        #[test]
+        fn z_assert_all_suite_cases_covered() {
+            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
+            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
+            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
+
+            // wait 100ms to be last-in-queue of mutex lock
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            TEST_SUITE.assert_coverage()
+        }
+
+        #[test]
+        fn test_dev() {
+            let bearer_did = DidJwk::create(None).unwrap();
+            let vc = VerifiableCredential::create(
+                Issuer::String(bearer_did.did.uri.clone()),
+                credential_subject(),
+                None,
+            )
+            .unwrap();
+            let vc_jwt = vc.sign_with_did(&bearer_did, None).unwrap();
+            println!("{}", vc_jwt)
+        }
+
+        #[test]
+        fn test_empty_kid_jose_header() {
+            TEST_SUITE.include(test_name!());
+
+            let vc_jwt_with_empty_kid = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6IiJ9.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmE5MzcwYTZjLWFmNDAtNDU3Zi1iNDNiLWM0YmYzMzcwZTg1OSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKNE5XODFYM3BHTTE5a1QzaDBlbFZzTUVjNGREQnZkVlUyZFRsVFFVdEpiVkZXZFRaa1lsSlpiMUJqSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yN1QyMDozODo0Ni45MjcxMzYrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSjROVzgxWDNwR00xOWtUM2gwZWxWc01FYzRkREJ2ZFZVMmRUbFRRVXRKYlZGV2RUWmtZbEpaYjFCakluMCIsImp0aSI6InVybjp1dWlkOmE5MzcwYTZjLWFmNDAtNDU3Zi1iNDNiLWM0YmYzMzcwZTg1OSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNDc5MTEyNiwiaWF0IjoxNzI0NzkxMTI2fQ.0LzNrPzFY4CsEWRqYdo8pogGDonZqjRqfx9k30NEoWASw8pas6YC-mlDSAQ-4qQaE-otQ6p7zoMeopfw9M1CCQ"#;
+
+            let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_empty_kid, true);
+
+            match result {
+                Err(Web5Error::CredentialError(err)) => {
+                    assert_eq!(err, CredentialError::MissingKid)
+                }
+                _ => panic!("Expected Web5Error::CredentialError with CredentialError::MissingKid"),
+            };
+        }
+
+        #[test]
+        fn test_missing_kid_jose_header() {
+            TEST_SUITE.include(test_name!());
+
+            let vc_jwt_without_kid = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSJ9.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmEzYzY3NGI5LTliNGUtNGE2OS1hYzUwLWM3N2JhYzY0OTg2MCIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKclZ6YzNjbnA2VTNGUExYSkxUekpIY1hwd04zRk9TRGhEYWtORmJFMHpabmhMUmtWcVdFTmtaRWxWSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yN1QyMDo0NzoyNS4xMTk2MjQrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnJWemMzY25wNlUzRlBMWEpMVHpKSGNYcHdOM0ZPU0RoRGFrTkZiRTB6Wm5oTFJrVnFXRU5rWkVsVkluMCIsImp0aSI6InVybjp1dWlkOmEzYzY3NGI5LTliNGUtNGE2OS1hYzUwLWM3N2JhYzY0OTg2MCIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNDc5MTY0NSwiaWF0IjoxNzI0NzkxNjQ1fQ.ocOyYhqFwz4Jvkdwpa69oFDXCOr2n-_IXSHg5elFebOM0T_lx3Cs6DgQJ7YLLk--mAOvPqrH05bh92BSaLB_DQ"#;
+
+            let result = VerifiableCredential::from_vc_jwt(vc_jwt_without_kid, true);
+
+            match result {
+                Err(Web5Error::CredentialError(err)) => {
+                    assert_eq!(err, CredentialError::MissingKid)
+                }
+                _ => panic!("Expected Web5Error::CredentialError with CredentialError::MissingKid"),
+            };
+        }
+
+        // #[test]
+        // fn test_kid_invalid_did() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_kid_fail_to_resolve_did() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_kid_missing_verification_method() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_fails_cryptographic_verification() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_passes_cryptographic_verification() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_can_skip_cryptographic_verification() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_missing_vc_claim() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_missing_jti_claim() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_missing_issuer_claim() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_missing_subject_claim() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_missing_nbf_claim() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_claim_mismatch_id() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_claim_mismatch_issuer() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_claim_mismatch_subject() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_claim_misconfigured_exp() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_claim_mismatch_exp() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_expired() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_validate_dm_empty_id() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_validate_dm_empty_context() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_validate_dm_context_base_mismatch() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_validate_dm_empty_type() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_validate_dm_type_base_mismatch() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_validate_dm_empty_issuer() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_validate_dm_empty_subject() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_validate_dm_issuance_in_future() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
+
+        // #[test]
+        // fn test_validate_dm_credential_expired() {
+        //     TEST_SUITE.include(test_name!());
+        //     // TODO
+        // }
     }
 }
