@@ -7,11 +7,6 @@ import web5.sdk.crypto.keys.ToOuterKeyManager
 import web5.sdk.crypto.signers.Signer
 import web5.sdk.crypto.signers.ToOuterSigner
 import web5.sdk.rust.BearerDid as RustCoreBearerDid
-import web5.sdk.rust.BearerDidGetSignerOptionsData as RustCoreBearerDidGetSignerOptions
-
-data class BearerDidGetSignerOptions(
-    val verificationMethodId: String? = null
-)
 
 /**
  * Represents a Decentralized Identifier (DID) along with its DID document, key manager, metadata,
@@ -64,10 +59,8 @@ class BearerDid private constructor(
      *
      * @return Signer The signer for the DID.
      */
-    fun getSigner(options: BearerDidGetSignerOptions): Signer {
-        val rustCoreSigner = rustCoreBearerDid.getSigner(RustCoreBearerDidGetSignerOptions(
-            verificationMethodId = options.verificationMethodId
-        ))
+    fun getSigner(verificationMethodId: String): Signer {
+        val rustCoreSigner = rustCoreBearerDid.getSigner(verificationMethodId)
 
         return ToOuterSigner(rustCoreSigner)
     }

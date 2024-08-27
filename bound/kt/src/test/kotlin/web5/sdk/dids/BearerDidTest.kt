@@ -53,16 +53,16 @@ class BearerDidTest {
         }
 
         @Test
-        fun test_query_requirements_not_satisfied() {
+        fun test_verification_method_id_empty() {
             testSuite.include()
 
             val bearerDid = DidJwk.create()
 
             val exception = assertThrows<Web5Exception.Exception> {
-                bearerDid.getSigner(BearerDidGetSignerOptions())
+                bearerDid.getSigner("")
             }
 
-            assertEquals("parameter error no option satisfies query requirements", exception.msg)
+            assertEquals("parameter error verification_method_id cannot be empty", exception.msg)
             assertEquals("Parameter", exception.variant)
         }
 
@@ -73,7 +73,7 @@ class BearerDidTest {
             val bearerDid = DidJwk.create()
 
             val exception = assertThrows<Web5Exception.Exception> {
-                bearerDid.getSigner(BearerDidGetSignerOptions(verificationMethodId = "invalid_id"))
+                bearerDid.getSigner("invalid_id")
             }
 
             assertEquals("not found error verification method not found", exception.msg)
@@ -87,7 +87,7 @@ class BearerDidTest {
             val bearerDid = DidJwk.create()
 
             assertDoesNotThrow {
-                bearerDid.getSigner(BearerDidGetSignerOptions(verificationMethodId = bearerDid.document.verificationMethod[0].id))
+                bearerDid.getSigner(bearerDid.document.verificationMethod[0].id)
             }
         }
     }

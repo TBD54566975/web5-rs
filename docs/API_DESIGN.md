@@ -64,7 +64,6 @@
     - [`DidDht`](#diddht)
       - [`DidDhtCreateOptions`](#diddhtcreateoptions)
   - [`BearerDid`](#bearerdid)
-    - [`BearerDidGetSignerOptions`](#bearerdidgetsigneroptions)
   - [`PortableDid`](#portabledid)
     - [Example: Create a `PortableDid` via the `web5` CLI](#example-create-a-portabledid-via-the-web5-cli)
 
@@ -95,7 +94,7 @@ CLASS VerifiableCredential
   CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: CreateOptions)
   CONSTRUCTOR from_vc_jwt(vc_jwt: string, verify: bool)
 
-  METHOD sign(signer: Signer): string
+  METHOD sign(key_id: string, signer: Signer): string
   METHOD sign_with_did(bearer_did: BearerDid, verification_method_id: String?): string
 ```
 
@@ -732,14 +731,7 @@ CLASS BearerDid
   CONSTRUCTOR from_portable_did(portable_did: PortableDid)
 
   METHOD to_portable_did(key_exporter: KeyExporter): PortableDid
-  METHOD get_signer(options: BearerDidGetSignerOptions): Signer
-```
-
-### `BearerDidGetSignerOptions`
-
-```pseudocode!
-class BearerDidGetSignerOptions
-  PUBLIC DATA verification_method_id: string?
+  METHOD get_signer(verification_method_id: string): Signer
 ```
 
 ## `PortableDid`

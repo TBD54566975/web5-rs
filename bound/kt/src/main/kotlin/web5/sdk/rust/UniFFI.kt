@@ -934,7 +934,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_bearerdid_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_web5_uniffi_fn_method_bearerdid_get_signer(`ptr`: Pointer,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_web5_uniffi_fn_method_bearerdid_get_signer(`ptr`: Pointer,`verificationMethodId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_bearerdid_to_portable_did(`ptr`: Pointer,`keyExporter`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1336,7 +1336,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_bearerdid_get_data() != 23985.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_method_bearerdid_get_signer() != 48508.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_method_bearerdid_get_signer() != 38083.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_bearerdid_to_portable_did() != 34661.toShort()) {
@@ -1782,7 +1782,7 @@ public interface BearerDidInterface {
     
     fun `getData`(): BearerDidData
     
-    fun `getSigner`(`options`: BearerDidGetSignerOptionsData): Signer
+    fun `getSigner`(`verificationMethodId`: kotlin.String): Signer
     
     fun `toPortableDid`(`keyExporter`: KeyExporter): PortableDid
     
@@ -1890,12 +1890,12 @@ open class BearerDid: Disposable, AutoCloseable, BearerDidInterface {
     
 
     
-    @Throws(Web5Exception::class)override fun `getSigner`(`options`: BearerDidGetSignerOptionsData): Signer {
+    @Throws(Web5Exception::class)override fun `getSigner`(`verificationMethodId`: kotlin.String): Signer {
             return FfiConverterTypeSigner.lift(
     callWithPointer {
     uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_bearerdid_get_signer(
-        it, FfiConverterTypeBearerDidGetSignerOptionsData.lower(`options`),_status)
+        it, FfiConverterString.lower(`verificationMethodId`),_status)
 }
     }
     )
@@ -5681,31 +5681,6 @@ public object FfiConverterTypeBearerDidData: FfiConverterRustBuffer<BearerDidDat
             FfiConverterTypeDidData.write(value.`did`, buf)
             FfiConverterTypeDocumentData.write(value.`document`, buf)
             FfiConverterTypeKeyManager.write(value.`keyManager`, buf)
-    }
-}
-
-
-
-data class BearerDidGetSignerOptionsData (
-    var `verificationMethodId`: kotlin.String?
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeBearerDidGetSignerOptionsData: FfiConverterRustBuffer<BearerDidGetSignerOptionsData> {
-    override fun read(buf: ByteBuffer): BearerDidGetSignerOptionsData {
-        return BearerDidGetSignerOptionsData(
-            FfiConverterOptionalString.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: BearerDidGetSignerOptionsData) = (
-            FfiConverterOptionalString.allocationSize(value.`verificationMethodId`)
-    )
-
-    override fun write(value: BearerDidGetSignerOptionsData, buf: ByteBuffer) {
-            FfiConverterOptionalString.write(value.`verificationMethodId`, buf)
     }
 }
 

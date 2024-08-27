@@ -1,5 +1,4 @@
-use super::{CredentialError, Result as ResultOld};
-use crate::dids::bearer_did::BearerDidGetSignerOptions;
+use super::CredentialError;
 use crate::dids::data_model::document::FindVerificationMethodOptions;
 use crate::errors::{Result, Web5Error};
 use crate::json::{FromJson, JsonObject, ToJson};
@@ -205,93 +204,40 @@ impl VerifiableCredential {
         })
     }
 
-    pub fn sign(&self, bearer_did: &BearerDid) -> ResultOld<String> {
-        // default to first VM
-        let key_id = bearer_did.document.verification_method[0].id.clone();
-        let signer = bearer_did.get_signer(BearerDidGetSignerOptions {
-            verification_method_id: Some(key_id.clone()),
-        })?;
-
-        self.sign_with_signer(&key_id, signer)
-    }
-
-    pub fn sign_with_signer(&self, key_id: &str, signer: Arc<dyn Signer>) -> ResultOld<String> {
-        let mut payload = JwtPayload::new();
-        let vc_claim = JwtPayloadVerifiableCredential {
-            context: self.context.clone(),
-            id: Some(self.id.clone()),
-            r#type: self.r#type.clone(),
-            issuer: Some(self.issuer.clone()),
-            issuance_date: Some(self.issuance_date),
-            expiration_date: self.expiration_date,
-            credential_subject: Some(self.credential_subject.clone()),
-        };
-        payload.set_claim("vc", Some(serde_json::to_value(vc_claim)?))?;
-        payload.set_issuer(self.issuer.to_string());
-        payload.set_jwt_id(&self.id);
-        payload.set_subject(&self.credential_subject.id);
-        payload.set_not_before(&self.issuance_date);
-        payload.set_issued_at(&SystemTime::now());
-        if let Some(exp) = &self.expiration_date {
-            payload.set_expires_at(exp)
-        }
-
-        let jose_signer = JoseSigner {
-            kid: key_id.to_string(),
-            signer,
-        };
-
-        let mut header = JwsHeader::new();
-        header.set_token_type("JWT");
-        let vc_jwt = josekit::jwt::encode_with_signer(&payload, &header, &jose_signer)?;
-
-        Ok(vc_jwt)
-    }
-
-    pub fn verify(vc_jwt: &str) -> ResultOld<Self> {
-        // this function currently only supports Ed25519
-        let header = josekit::jwt::decode_header(vc_jwt)?;
+    pub fn from_vc_jwt(vc_jwt: &str, verify: bool) -> Result<Self> {
+        let header = josekit::jwt::decode_header(vc_jwt)
+            .map_err(|_| Web5Error::Parameter("failed to decode vc-jwt jose header".to_string()))?;
 
         let kid = header
             .claim("kid")
             .and_then(serde_json::Value::as_str)
-            .ok_or_else(|| JosekitError::InvalidJwtFormat(CredentialError::MissingKid.into()))?
-            .to_string();
+            .ok_or_else(|| CredentialError::MissingKid)?;
 
         let did = Did::parse(&kid)?;
 
         let resolution_result = ResolutionResult::resolve(&did.uri);
         if let Some(err) = resolution_result.resolution_metadata.error.clone() {
-            return Err(CredentialError::Resolution(err));
+            return Err(err.into());
         }
 
         let public_key_jwk = resolution_result
             .document
-            .ok_or_else(|| {
-                JosekitError::InvalidJwtFormat(ResolutionMetadataError::InternalError.into())
-            })?
+            .ok_or_else(|| ResolutionMetadataError::InternalError)?
             .find_verification_method(FindVerificationMethodOptions {
                 verification_method_id: Some(kid.to_string()),
             })?
             .public_key_jwk;
 
-        let verifier = Ed25519Verifier::new(public_key_jwk);
+        let jose_verifier = &JoseVerifier {
+            kid: kid.to_string(),
+            // this function currently only supports Ed25519
+            verifier: Arc::new(Ed25519Verifier::new(public_key_jwk)),
+        };
 
-        Self::verify_with_verifier(vc_jwt, Arc::new(verifier))
-    }
-
-    pub fn verify_with_verifier(vc_jwt: &str, verifier: Arc<dyn Verifier>) -> ResultOld<Self> {
-        let header = josekit::jwt::decode_header(vc_jwt)?;
-
-        let kid = header
-            .claim("kid")
-            .and_then(serde_json::Value::as_str)
-            .ok_or_else(|| JosekitError::InvalidJwtFormat(CredentialError::MissingKid.into()))?
-            .to_string();
-
-        let jose_verifier = &JoseVerifier { kid, verifier };
-
-        let (jwt_payload, _) = josekit::jwt::decode_with_verifier(vc_jwt, jose_verifier)?;
+        let (jwt_payload, _) =
+            josekit::jwt::decode_with_verifier(vc_jwt, jose_verifier).map_err(|e| {
+                Web5Error::Crypto(format!("vc-jwt failed cryptographic verification {}", e))
+            })?;
 
         let vc_claim = jwt_payload
             .claim("vc")
@@ -316,20 +262,20 @@ impl VerifiableCredential {
 
         if let Some(id) = &vc_payload.id {
             if id != jti {
-                return Err(CredentialError::ClaimMismatch("id".to_string()));
+                return Err(CredentialError::ClaimMismatch("id".to_string()).into());
             }
         }
 
         if let Some(issuer) = &vc_payload.issuer {
             let vc_issuer = issuer.to_string();
             if iss != vc_issuer {
-                return Err(CredentialError::ClaimMismatch("issuer".to_string()));
+                return Err(CredentialError::ClaimMismatch("issuer".to_string()).into());
             }
         }
 
         if let Some(credential_subject) = &vc_payload.credential_subject {
             if sub != credential_subject.id {
-                return Err(CredentialError::ClaimMismatch("subject".to_string()));
+                return Err(CredentialError::ClaimMismatch("subject".to_string()).into());
             }
         }
 
@@ -339,28 +285,37 @@ impl VerifiableCredential {
                 None => {
                     return Err(CredentialError::MisconfiguredExpirationDate(
                         "VC has expiration date but no exp in registered claims".to_string(),
-                    ));
+                    )
+                    .into());
                 }
                 Some(exp) => {
                     if vc_payload_expiration_date
-                        .duration_since(UNIX_EPOCH)?
+                        .duration_since(UNIX_EPOCH)
+                        .map_err(|e| {
+                            Web5Error::Unknown(format!("unknown system time error {}", e))
+                        })?
                         .as_secs()
-                        != exp.duration_since(UNIX_EPOCH)?.as_secs()
+                        != exp
+                            .duration_since(UNIX_EPOCH)
+                            .map_err(|e| {
+                                Web5Error::Unknown(format!("unknown system time error {}", e))
+                            })?
+                            .as_secs()
                     {
-                        return Err(CredentialError::ClaimMismatch(
-                            "expiration_date".to_string(),
-                        ));
+                        return Err(
+                            CredentialError::ClaimMismatch("expiration_date".to_string()).into(),
+                        );
                     }
 
                     if now > exp {
-                        return Err(CredentialError::CredentialExpired);
+                        return Err(CredentialError::CredentialExpired.into());
                     }
                 }
             },
             None => {
                 if let Some(exp) = exp {
                     if now > exp {
-                        return Err(CredentialError::CredentialExpired);
+                        return Err(CredentialError::CredentialExpired.into());
                     }
                 }
             }
@@ -387,53 +342,97 @@ impl VerifiableCredential {
 
         Ok(vc)
     }
+
+    pub fn sign(&self, key_id: &str, signer: Arc<dyn Signer>) -> Result<String> {
+        let mut payload = JwtPayload::new();
+        let vc_claim = JwtPayloadVerifiableCredential {
+            context: self.context.clone(),
+            id: Some(self.id.clone()),
+            r#type: self.r#type.clone(),
+            issuer: Some(self.issuer.clone()),
+            issuance_date: Some(self.issuance_date),
+            expiration_date: self.expiration_date,
+            credential_subject: Some(self.credential_subject.clone()),
+        };
+        payload
+            .set_claim("vc", Some(serde_json::to_value(vc_claim)?))
+            .map_err(|e| Web5Error::Unknown(format!("failed to set claim {}", e)))?;
+        payload.set_issuer(self.issuer.to_string());
+        payload.set_jwt_id(&self.id);
+        payload.set_subject(&self.credential_subject.id);
+        payload.set_not_before(&self.issuance_date);
+        payload.set_issued_at(&SystemTime::now());
+        if let Some(exp) = &self.expiration_date {
+            payload.set_expires_at(exp)
+        }
+
+        let jose_signer = JoseSigner {
+            kid: key_id.to_string(),
+            signer,
+        };
+
+        let mut header = JwsHeader::new();
+        header.set_token_type("JWT");
+        let vc_jwt = josekit::jwt::encode_with_signer(&payload, &header, &jose_signer)
+            .map_err(|e| Web5Error::Crypto(format!("failed to sign vc-jwt {}", e)))?;
+
+        Ok(vc_jwt)
+    }
+
+    pub fn sign_with_did(
+        &self,
+        bearer_did: &BearerDid,
+        verification_method_id: Option<String>,
+    ) -> Result<String> {
+        let key_id = verification_method_id
+            .unwrap_or_else(|| bearer_did.document.verification_method[0].id.clone());
+        let signer = bearer_did.get_signer(&key_id)?;
+        self.sign(&key_id, signer)
+    }
 }
 
-fn validate_vc_data_model(vc: &VerifiableCredential) -> ResultOld<()> {
+fn validate_vc_data_model(vc: &VerifiableCredential) -> Result<()> {
     // Required fields ["@context", "id", "type", "issuer", "issuanceDate", "credentialSubject"]
     if vc.id.is_empty() {
-        return Err(CredentialError::VcDataModelValidationError(
-            "missing id".to_string(),
-        ));
+        return Err(CredentialError::DataModelValidationError("missing id".to_string()).into());
     }
 
     if vc.context.is_empty() || vc.context[0] != BASE_CONTEXT {
-        return Err(CredentialError::VcDataModelValidationError(
-            "missing context".to_string(),
-        ));
+        return Err(
+            CredentialError::DataModelValidationError("missing context".to_string()).into(),
+        );
     }
 
     if vc.r#type.is_empty() || vc.r#type[0] != BASE_TYPE {
-        return Err(CredentialError::VcDataModelValidationError(
-            "missing type".to_string(),
-        ));
+        return Err(CredentialError::DataModelValidationError("missing type".to_string()).into());
     }
 
     if vc.issuer.to_string().is_empty() {
-        return Err(CredentialError::VcDataModelValidationError(
-            "missing issuer".to_string(),
-        ));
+        return Err(CredentialError::DataModelValidationError("missing issuer".to_string()).into());
     }
 
     if vc.credential_subject.id.is_empty() {
-        return Err(CredentialError::VcDataModelValidationError(
+        return Err(CredentialError::DataModelValidationError(
             "missing credential subject".to_string(),
-        ));
+        )
+        .into());
     }
 
     let now = SystemTime::now();
     if vc.issuance_date > now {
-        return Err(CredentialError::VcDataModelValidationError(
+        return Err(CredentialError::DataModelValidationError(
             "issuance date in future".to_string(),
-        ));
+        )
+        .into());
     }
 
     // Validate expiration date if it exists
     if let Some(expiration_date) = &vc.expiration_date {
         if expiration_date < &now {
-            return Err(CredentialError::VcDataModelValidationError(
+            return Err(CredentialError::DataModelValidationError(
                 "credential expired".to_string(),
-            ));
+            )
+            .into());
         }
     }
 
