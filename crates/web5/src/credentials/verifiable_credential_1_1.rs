@@ -260,7 +260,7 @@ impl VerifiableCredential {
 
         let did = Did::parse(&kid)?;
 
-        let resolution_result = ResolutionResult::resolve(&did.uri, None);
+        let resolution_result = ResolutionResult::resolve(&did.uri);
         if let Some(err) = resolution_result.resolution_metadata.error.clone() {
             return Err(CredentialError::Resolution(err));
         }

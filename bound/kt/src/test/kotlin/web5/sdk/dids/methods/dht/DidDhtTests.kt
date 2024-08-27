@@ -195,9 +195,7 @@ class DidDhtTests {
 
             DidDht.publish(
                 bearerDid,
-                DidDhtPublishOptions(
-                    gatewayUrl = gatewayUrl.toString()
-                )
+                gatewayUrl.toString()
             )
 
             val request = mockWebServer.takeRequest()
@@ -232,9 +230,7 @@ class DidDhtTests {
             val exception = assertThrows<Web5Exception.Exception> {
                 DidDht.publish(
                     bearerDid,
-                    DidDhtPublishOptions(
-                        gatewayUrl = gatewayUrl.toString()
-                    )
+                    gatewayUrl.toString()
                 )
             }
 
@@ -306,9 +302,7 @@ class DidDhtTests {
 
             val resolutionResult = DidDht.resolve(
                 bearerDid.did.uri,
-                DidDhtResolveOptions(
-                    gatewayUrl = gatewayUrl.toString()
-                )
+                gatewayUrl.toString()
             )
 
             assertEquals(
@@ -342,9 +336,7 @@ class DidDhtTests {
 
             val resolutionResult = DidDht.resolve(
                 bearerDid.did.uri,
-                DidDhtResolveOptions(
-                    gatewayUrl = gatewayUrl.toString()
-                )
+                gatewayUrl.toString()
             )
 
             assertEquals(
@@ -399,9 +391,7 @@ class DidDhtTests {
 
             val resolutionResult = DidDht.resolve(
                 bearerDid.did.uri,
-                DidDhtResolveOptions(
-                    gatewayUrl = gatewayUrl.toString()
-                )
+                gatewayUrl.toString()
             )
 
             assertNull(resolutionResult.resolutionMetadata.error)

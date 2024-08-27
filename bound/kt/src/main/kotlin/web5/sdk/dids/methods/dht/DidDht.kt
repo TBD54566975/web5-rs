@@ -58,13 +58,8 @@ class DidDht {
          * @param bearerDid The DidDht BearerDid instance to publish.
          * @param options The set of options to configure publish.
          */
-        fun publish(bearerDid: BearerDid, options: DidDhtPublishOptions? = null) {
-           web5.sdk.rust.didDhtPublish(
-               bearerDid.rustCoreBearerDid,
-               web5.sdk.rust.DidDhtPublishOptions(
-                   options?.gatewayUrl
-               )
-           )
+        fun publish(bearerDid: BearerDid, gatewayUrl: String? = null) {
+           web5.sdk.rust.didDhtPublish(bearerDid.rustCoreBearerDid, gatewayUrl)
         }
 
         /**
@@ -74,11 +69,8 @@ class DidDht {
          * @return DidResolutionResult The result of the DID resolution.
          */
         @JvmStatic
-        fun resolve(uri: String, options: DidDhtResolveOptions? = null): ResolutionResult {
-            val rustCoreOptions = web5.sdk.rust.DidDhtResolveOptions(
-                options?.gatewayUrl
-            )
-            val rustCoreResolutionResult = rustCoreDidDhtResolve(uri, rustCoreOptions)
+        fun resolve(uri: String, gatewayUrl: String? = null): ResolutionResult {
+            val rustCoreResolutionResult = rustCoreDidDhtResolve(uri, gatewayUrl)
             return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
         }
     }

@@ -48,16 +48,6 @@ pub struct DidDhtCreateOptions {
     pub verification_method: Option<Vec<VerificationMethod>>,
 }
 
-#[derive(Default)]
-pub struct DidDhtPublishOptions {
-    pub gateway_url: Option<String>,
-}
-
-#[derive(Default)]
-pub struct DidDhtResolveOptions {
-    pub gateway_url: Option<String>,
-}
-
 impl DidDht {
     pub fn create(options: Option<DidDhtCreateOptions>) -> Result<BearerDid> {
         let options = options.unwrap_or_default();
@@ -104,20 +94,13 @@ impl DidDht {
         };
 
         if options.publish.unwrap_or(true) {
-            DidDht::publish(
-                bearer_did.clone(),
-                Some(DidDhtPublishOptions {
-                    gateway_url: options.gateway_url,
-                }),
-            )?;
+            DidDht::publish(bearer_did.clone(), options.gateway_url)?;
         }
 
         Ok(bearer_did)
     }
 
-    pub fn publish(bearer_did: BearerDid, options: Option<DidDhtPublishOptions>) -> Result<()> {
-        let options = options.unwrap_or_default();
-
+    pub fn publish(bearer_did: BearerDid, gateway_url: Option<String>) -> Result<()> {
         let packet = bearer_did.document.to_packet().map_err(|e| {
             Web5Error::Encoding(format!("failed to convert document to packet {}", e))
         })?;
@@ -141,8 +124,7 @@ impl DidDht {
 
         let url = format!(
             "{}/{}",
-            options
-                .gateway_url
+            gateway_url
                 .unwrap_or_else(|| DEFAULT_RELAY.to_string())
                 .trim_end_matches('/'),
             bearer_did.did.id.trim_start_matches('/')
@@ -165,9 +147,7 @@ impl DidDht {
         Ok(())
     }
 
-    pub fn resolve(uri: &str, options: Option<DidDhtResolveOptions>) -> ResolutionResult {
-        let options = options.unwrap_or_default();
-
+    pub fn resolve(uri: &str, gateway_url: Option<String>) -> ResolutionResult {
         let result: std::result::Result<ResolutionResult, ResolutionMetadataError> = (|| {
             // check did method and decode id
             let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
@@ -184,8 +164,7 @@ impl DidDht {
             // construct http endpoint from gateway url and last part of did_uri
             let url = format!(
                 "{}/{}",
-                options
-                    .gateway_url
+                gateway_url
                     .unwrap_or_else(|| DEFAULT_RELAY.to_string())
                     .trim_end_matches('/'),
                 did.id.trim_start_matches('/')
@@ -443,9 +422,7 @@ mod tests {
 
             let result = DidDht::publish(
                 bearer_did,
-                Some(DidDhtPublishOptions {
-                    gateway_url: Some(gateway_url.clone()), // Use the mock server's URL
-                }),
+                Some(gateway_url.clone()), // Use the mock server's URL
             );
 
             assert!(result.is_ok());
@@ -473,12 +450,7 @@ mod tests {
             }))
             .unwrap();
 
-            let result = DidDht::publish(
-                bearer_did,
-                Some(DidDhtPublishOptions {
-                    gateway_url: Some(gateway_url),
-                }),
-            );
+            let result = DidDht::publish(bearer_did, Some(gateway_url));
 
             assert!(result.is_err());
             if let Err(Web5Error::Network(msg)) = result {
@@ -554,12 +526,7 @@ mod tests {
                 .with_header("content-type", "application/octet-stream")
                 .create();
 
-            let resolution_result = DidDht::resolve(
-                &bearer_did.did.uri,
-                Some(DidDhtResolveOptions {
-                    gateway_url: Some(gateway_url),
-                }),
-            );
+            let resolution_result = DidDht::resolve(&bearer_did.did.uri, Some(gateway_url));
             assert_eq!(
                 resolution_result.resolution_metadata.error,
                 Some(ResolutionMetadataError::NotFound)
@@ -588,12 +555,7 @@ mod tests {
                 .with_header("content-type", "application/octet-stream")
                 .create();
 
-            let resolution_result = DidDht::resolve(
-                &bearer_did.did.uri,
-                Some(DidDhtResolveOptions {
-                    gateway_url: Some(gateway_url),
-                }),
-            );
+            let resolution_result = DidDht::resolve(&bearer_did.did.uri, Some(gateway_url));
             assert_eq!(
                 resolution_result.resolution_metadata.error,
                 Some(ResolutionMetadataError::InternalError)
@@ -643,12 +605,7 @@ mod tests {
                 .with_body(stored_body.clone()) // Use the captured body as the response
                 .create();
 
-            let resolution_result = DidDht::resolve(
-                &bearer_did.did.uri,
-                Some(DidDhtResolveOptions {
-                    gateway_url: Some(mock_server.url()),
-                }),
-            );
+            let resolution_result = DidDht::resolve(&bearer_did.did.uri, Some(mock_server.url()));
 
             assert_eq!(resolution_result.resolution_metadata.error, None);
             assert!(resolution_result.document.is_some());
