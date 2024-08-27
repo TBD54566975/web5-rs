@@ -10,15 +10,22 @@ class PortableDid private constructor(
     internal val rustCorePortableDid: RustCorePortableDid
 ) {
     constructor(didUri: String, document: Document, privateKeys: List<Jwk>) : this(
-        didUri, document, privateKeys, RustCorePortableDid(didUri, document, privateKeys.map { it.rustCoreJwkData })
+        didUri,
+        document,
+        privateKeys,
+        RustCorePortableDid(
+            didUri,
+            document.toRustCore(),
+            privateKeys.map { it.rustCoreJwkData }
+        )
     )
 
-    /**
-     * Constructs a PortableDid from a JSON string.
-     *
-     * @param json The JSON string.
-     */
     companion object {
+        /**
+         * Constructs a PortableDid from a JSON string.
+         *
+         * @param json The JSON string.
+         */
         fun fromJsonString(json: String): PortableDid {
             val rustCorePortableDid = RustCorePortableDid.fromJsonString(json)
             return PortableDid.fromRustCorePortableDid(rustCorePortableDid)
@@ -28,7 +35,7 @@ class PortableDid private constructor(
             val data = rustCorePortableDid.getData()
             return PortableDid(
                 data.didUri,
-                data.document,
+                Document.fromRustCore(data.document),
                 data.privateJwks.map { Jwk.fromRustCoreJwkData(it) },
                 rustCorePortableDid
             )

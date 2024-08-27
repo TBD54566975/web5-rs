@@ -1,19 +1,14 @@
 package web5.sdk.dids
 
-import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
-import web5.sdk.Json
 import web5.sdk.UnitTestSuite
-import web5.sdk.dids.methods.dht.DidDht
-import web5.sdk.dids.methods.dht.DidDhtCreateOptions
 import web5.sdk.dids.methods.jwk.DidJwk
 import web5.sdk.dids.methods.web.DidWeb
-import web5.sdk.rust.ResolutionMetadataError
+import web5.sdk.dids.ResolutionMetadataError
 
 class ResolutionResultTests {
     @Nested
@@ -60,14 +55,11 @@ class ResolutionResultTests {
 
             val bearerDid = DidWeb.create(url.toString())
 
-            // temporarily removing @context from document, need to rework Document type
-            bearerDid.document.context = null
-
             mockWebServer.enqueue(
                 MockResponse()
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json")
-                    .setBody(Json.stringify(bearerDid.document))
+                    .setBody(bearerDid.document.toJsonString())
             )
 
             val resolutionResult = ResolutionResult.resolve(bearerDid.did.uri)

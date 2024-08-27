@@ -138,6 +138,10 @@ dictionary ServiceData {
 interface Document {
   constructor(DocumentData data);
   DocumentData get_data();
+  [Throws=Web5Error, Name=from_json_string]
+  constructor(string json);
+  [Throws=Web5Error]
+  string to_json_string();
 };
 
 enum ResolutionMetadataError {

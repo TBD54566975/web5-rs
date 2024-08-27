@@ -4,26 +4,18 @@ import web5.sdk.crypto.keys.KeyManager
 import web5.sdk.crypto.keys.ToInnerKeyManager
 import web5.sdk.dids.BearerDid
 import web5.sdk.dids.ResolutionResult
-import web5.sdk.rust.ServiceData
-import web5.sdk.rust.VerificationMethodData
+import web5.sdk.dids.Service
+import web5.sdk.dids.VerificationMethod
 import web5.sdk.rust.didDhtResolve as rustCoreDidDhtResolve
 
 data class DidDhtCreateOptions(
     val publish: Boolean? = true,
     val gatewayUrl: String? = null,
     val keyManager: KeyManager? = null,
-    val service: List<ServiceData>? = null,
+    val service: List<Service>? = null,
     val controller: List<String>? = null,
     val alsoKnownAs: List<String>? = null,
-    val verificationMethod: List<VerificationMethodData>? = null
-)
-
-data class DidDhtPublishOptions(
-    val gatewayUrl: String? = null
-)
-
-data class DidDhtResolveOptions(
-    val gatewayUrl: String? = null
+    val verificationMethod: List<VerificationMethod>? = null
 )
 
 /**
@@ -42,10 +34,10 @@ class DidDht {
                     opts.publish,
                     opts.gatewayUrl,
                     opts.keyManager?.let { ToInnerKeyManager(it) },
-                    opts.service,
+                    opts.service?.map { it.toRustCore() },
                     opts.controller,
                     opts.alsoKnownAs,
-                    opts.verificationMethod
+                    opts.verificationMethod?.map { it.toRustCore() }
                 )
             }
             val rustCoreBearerDid = web5.sdk.rust.didDhtCreate(rustCoreOptions)
@@ -56,7 +48,7 @@ class DidDht {
          * Publish a DidDht BearerDid using available options.
          *
          * @param bearerDid The DidDht BearerDid instance to publish.
-         * @param options The set of options to configure publish.
+         * @param gatewayUrl The optional gateway URL to publish to.
          */
         fun publish(bearerDid: BearerDid, gatewayUrl: String? = null) {
            web5.sdk.rust.didDhtPublish(bearerDid.rustCoreBearerDid, gatewayUrl)
@@ -66,7 +58,7 @@ class DidDht {
          * Resolves a DID URI to a DidResolutionResult.
          *
          * @param uri The DID URI to resolve.
-         * @return DidResolutionResult The result of the DID resolution.
+         * @param gatewayUrl The optional gateway URL to resolve from.
          */
         @JvmStatic
         fun resolve(uri: String, gatewayUrl: String? = null): ResolutionResult {

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 
 internal const val dateTimeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
 
+// this is intended strictly for serializing data over the FFI, not for external use
 internal object Json {
     val jsonMapper: ObjectMapper = jacksonObjectMapper()
         .registerKotlinModule()
