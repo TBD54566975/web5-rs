@@ -4,19 +4,19 @@ import web5.sdk.crypto.keys.KeyManager
 import web5.sdk.crypto.keys.ToInnerKeyManager
 import web5.sdk.dids.BearerDid
 import web5.sdk.dids.ResolutionResult
+import web5.sdk.dids.Service
+import web5.sdk.dids.VerificationMethod
 import web5.sdk.rust.Dsa
-import web5.sdk.rust.ServiceData
-import web5.sdk.rust.VerificationMethodData
 import web5.sdk.rust.didWebCreate as rustCoreDidWebCreate
 import web5.sdk.rust.didWebResolve as rustCoreDidWebResolve
 
 data class DidWebCreateOptions(
     val keyManager: KeyManager? = null,
     val dsa: Dsa? = null,
-    val service: List<ServiceData>? = null,
+    val service: List<Service>? = null,
     val controller: List<String>? = null,
     val alsoKnownAs: List<String>? = null,
-    val verificationMethod: List<VerificationMethodData>? = null
+    val verificationMethod: List<VerificationMethod>? = null
 )
 
 /**
@@ -35,10 +35,10 @@ class DidWeb {
                 web5.sdk.rust.DidWebCreateOptions(
                     keyManager = opts.keyManager?.let { ToInnerKeyManager(it) },
                     dsa = opts.dsa,
-                    service = opts.service,
+                    service = opts.service?.map { it.toRustCore() },
                     controller = opts.controller,
                     alsoKnownAs = opts.alsoKnownAs,
-                    verificationMethod = opts.verificationMethod
+                    verificationMethod = opts.verificationMethod?.map { it.toRustCore() }
                 )
             }
             val rustCoreBearerDid = rustCoreDidWebCreate(domain, rustCoreOptions)

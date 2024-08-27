@@ -28,7 +28,14 @@ class BearerDid private constructor(
     internal val rustCoreBearerDid: RustCoreBearerDid
 ) {
     constructor(did: Did, document: Document, keyManager: KeyManager) : this(
-        did, document, keyManager, RustCoreBearerDid(did.toRustCoreDidData(), document, ToInnerKeyManager(keyManager))
+        did,
+        document,
+        keyManager,
+        RustCoreBearerDid(
+            did.toRustCoreDidData(),
+            document.toRustCore(),
+            ToInnerKeyManager(keyManager)
+        )
     )
 
     companion object {
@@ -46,7 +53,7 @@ class BearerDid private constructor(
             val rustCoreBearerDidData = rustCoreBearerDid.getData()
             return BearerDid(
                 Did.fromRustCoreDidData(rustCoreBearerDidData.did),
-                rustCoreBearerDidData.document,
+                Document.fromRustCore(rustCoreBearerDidData.document),
                 ToOuterKeyManager(rustCoreBearerDidData.keyManager)
             )
         }

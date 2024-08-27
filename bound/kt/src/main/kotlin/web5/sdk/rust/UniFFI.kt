@@ -897,6 +897,10 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -946,9 +950,13 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_document(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_web5_uniffi_fn_constructor_document_from_json_string(`json`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_uniffi_fn_constructor_document_new(`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_document_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_uniffi_fn_method_document_to_json_string(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_ed25519signer(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1216,6 +1224,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_document_get_data(
     ): Short
+    fun uniffi_web5_uniffi_checksum_method_document_to_json_string(
+    ): Short
     fun uniffi_web5_uniffi_checksum_method_ed25519signer_sign(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_ed25519verifier_verify(
@@ -1259,6 +1269,8 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_uniffi_checksum_constructor_bearerdid_new(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_did_new(
+    ): Short
+    fun uniffi_web5_uniffi_checksum_constructor_document_from_json_string(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_document_new(
     ): Short
@@ -1336,6 +1348,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_document_get_data() != 16490.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_web5_uniffi_checksum_method_document_to_json_string() != 29709.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_uniffi_checksum_method_ed25519signer_sign() != 7079.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1400,6 +1415,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_did_new() != 60730.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_constructor_document_from_json_string() != 35057.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_document_new() != 10173.toShort()) {
@@ -2284,6 +2302,8 @@ public interface DocumentInterface {
     
     fun `getData`(): DocumentData
     
+    fun `toJsonString`(): kotlin.String
+    
     companion object
 }
 
@@ -2388,10 +2408,35 @@ open class Document: Disposable, AutoCloseable, DocumentInterface {
     
 
     
+    @Throws(Web5Exception::class)override fun `toJsonString`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_document_to_json_string(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
+
     
-    companion object
+    companion object {
+        
+    @Throws(Web5Exception::class) fun `fromJsonString`(`json`: kotlin.String): Document {
+            return FfiConverterTypeDocument.lift(
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_document_from_json_string(
+        FfiConverterString.lower(`json`),_status)
+}
+    )
+    }
+    
+
+        
+    }
     
 }
 
