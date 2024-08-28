@@ -124,6 +124,21 @@ pub struct VerifiableCredential {
         deserialize_with = "deserialize_optional_system_time"
     )]
     pub expiration_date: Option<SystemTime>,
+    #[serde(rename = "credentialStatus")]
+    pub credential_status: Option<CredentialStatus>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+pub struct CredentialStatus {
+    pub id: String,
+    #[serde(rename = "type")]
+    pub r#type: String,
+    #[serde(rename = "statusPurpose")]
+    pub status_purpose: String,
+    #[serde(rename = "statusListIndex")]
+    pub status_list_index: String,
+    #[serde(rename = "statusListCredential")]
+    pub status_list_credential: String,
 }
 
 impl FromJson for VerifiableCredential {}
@@ -136,6 +151,7 @@ pub struct VerifiableCredentialCreateOptions {
     pub r#type: Option<Vec<String>>,
     pub issuance_date: Option<SystemTime>,
     pub expiration_date: Option<SystemTime>,
+    pub credential_status: Option<CredentialStatus>
 }
 
 impl VerifiableCredential {
@@ -202,6 +218,7 @@ impl VerifiableCredential {
             issuance_date: options.issuance_date.unwrap_or_else(SystemTime::now),
             expiration_date: options.expiration_date,
             credential_subject,
+            credential_status: options.credential_status
         })
     }
 
@@ -225,6 +242,7 @@ impl VerifiableCredential {
             issuance_date: Some(self.issuance_date),
             expiration_date: self.expiration_date,
             credential_subject: Some(self.credential_subject.clone()),
+            credential_status: self.credential_status.clone()
         };
         payload.set_claim("vc", Some(serde_json::to_value(vc_claim)?))?;
         payload.set_issuer(self.issuer.to_string());
@@ -381,6 +399,7 @@ impl VerifiableCredential {
             issuance_date: nbf,
             expiration_date: exp,
             credential_subject: vc_credential_subject,
+            credential_status: vc_payload.credential_status
         };
 
         validate_vc_data_model(&vc)?;
@@ -467,6 +486,8 @@ struct JwtPayloadVerifiableCredential {
     expiration_date: Option<SystemTime>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "credentialSubject")]
     credential_subject: Option<CredentialSubject>,
+    #[serde(rename = "credentialSubject")]
+    pub credential_status: Option<CredentialStatus>,
 }
 
 #[derive(Clone)]
