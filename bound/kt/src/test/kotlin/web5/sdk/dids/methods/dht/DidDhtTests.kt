@@ -10,6 +10,9 @@ import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.keys.InMemoryKeyManager
 import web5.sdk.crypto.keys.Jwk
+import web5.sdk.dids.Service
+import web5.sdk.dids.VerificationMethod
+import web5.sdk.dids.ResolutionMetadataError
 import web5.sdk.rust.*
 
 class DidDhtTests {
@@ -41,7 +44,7 @@ class DidDhtTests {
 
             val publicJwk = bearerDid.document.verificationMethod.first().publicKeyJwk
             assertDoesNotThrow {
-                keyManager.getSigner(Jwk.fromRustCoreJwkData(publicJwk))
+                keyManager.getSigner(publicJwk)
             }
         }
 
@@ -80,11 +83,11 @@ class DidDhtTests {
         fun test_should_add_optional_verification_methods() {
             testSuite.include()
 
-            val additionalVerificationMethod = VerificationMethodData(
+            val additionalVerificationMethod = VerificationMethod(
                 id = "did:web:example.com#key-1",
                 type = "JsonWebKey",
                 controller = "did:web:example.com",
-                publicKeyJwk = JwkData(
+                publicKeyJwk = Jwk(
                     kty = "OKP",
                     crv = "Ed25519",
                     x = "some pub value",
@@ -109,7 +112,7 @@ class DidDhtTests {
         fun test_should_add_optional_services() {
             testSuite.include()
 
-            val service = ServiceData(
+            val service = Service(
                 id = "did:web:example.com#service-0",
                 type = "SomeService",
                 serviceEndpoint = listOf("https://example.com/service")
@@ -195,9 +198,7 @@ class DidDhtTests {
 
             DidDht.publish(
                 bearerDid,
-                DidDhtPublishOptions(
-                    gatewayUrl = gatewayUrl.toString()
-                )
+                gatewayUrl.toString()
             )
 
             val request = mockWebServer.takeRequest()
@@ -232,9 +233,7 @@ class DidDhtTests {
             val exception = assertThrows<Web5Exception.Exception> {
                 DidDht.publish(
                     bearerDid,
-                    DidDhtPublishOptions(
-                        gatewayUrl = gatewayUrl.toString()
-                    )
+                    gatewayUrl.toString()
                 )
             }
 
@@ -306,9 +305,7 @@ class DidDhtTests {
 
             val resolutionResult = DidDht.resolve(
                 bearerDid.did.uri,
-                DidDhtResolveOptions(
-                    gatewayUrl = gatewayUrl.toString()
-                )
+                gatewayUrl.toString()
             )
 
             assertEquals(
@@ -342,9 +339,7 @@ class DidDhtTests {
 
             val resolutionResult = DidDht.resolve(
                 bearerDid.did.uri,
-                DidDhtResolveOptions(
-                    gatewayUrl = gatewayUrl.toString()
-                )
+                gatewayUrl.toString()
             )
 
             assertEquals(
@@ -399,9 +394,7 @@ class DidDhtTests {
 
             val resolutionResult = DidDht.resolve(
                 bearerDid.did.uri,
-                DidDhtResolveOptions(
-                    gatewayUrl = gatewayUrl.toString()
-                )
+                gatewayUrl.toString()
             )
 
             assertNull(resolutionResult.resolutionMetadata.error)

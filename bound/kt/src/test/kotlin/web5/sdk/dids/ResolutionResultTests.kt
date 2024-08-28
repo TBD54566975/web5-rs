@@ -1,19 +1,14 @@
 package web5.sdk.dids
 
-import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
-import web5.sdk.Json
 import web5.sdk.UnitTestSuite
-import web5.sdk.dids.methods.dht.DidDht
-import web5.sdk.dids.methods.dht.DidDhtCreateOptions
 import web5.sdk.dids.methods.jwk.DidJwk
 import web5.sdk.dids.methods.web.DidWeb
-import web5.sdk.rust.ResolutionMetadataError
+import web5.sdk.dids.ResolutionMetadataError
 
 class ResolutionResultTests {
     @Nested
@@ -60,73 +55,14 @@ class ResolutionResultTests {
 
             val bearerDid = DidWeb.create(url.toString())
 
-            // temporarily removing @context from document, need to rework Document type
-            bearerDid.document.context = null
-
             mockWebServer.enqueue(
                 MockResponse()
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json")
-                    .setBody(Json.stringify(bearerDid.document))
+                    .setBody(bearerDid.document.toJsonString())
             )
 
             val resolutionResult = ResolutionResult.resolve(bearerDid.did.uri)
-
-            assertNull(resolutionResult.resolutionMetadata.error)
-            assertNotNull(resolutionResult.document)
-            assertEquals(bearerDid.document, resolutionResult.document)
-
-            mockWebServer.shutdown()
-        }
-
-        @Test
-        fun test_did_dht_with_specified_gateway() {
-            testSuite.include()
-
-            val mockWebServer = MockWebServer()
-            mockWebServer.start()
-
-            // Capture the body of the published DID Document
-            val publishedBody = mutableListOf<ByteArray>()
-
-            mockWebServer.dispatcher = object : Dispatcher() {
-                override fun dispatch(request: RecordedRequest): MockResponse {
-                    return when {
-                        request.method == "PUT" -> {
-                            // Capture the published body
-                            publishedBody.add(request.body.readByteArray())
-                            MockResponse()
-                                .setResponseCode(200)
-                                .addHeader("Content-Type", "application/octet-stream")
-                        }
-
-                        request.method == "GET" -> {
-                            MockResponse()
-                                .setResponseCode(200)
-                                .addHeader("Content-Type", "application/octet-stream")
-                                .setBody(okio.Buffer().write(publishedBody.first()))
-                        }
-
-                        else -> MockResponse().setResponseCode(404)
-                    }
-                }
-            }
-
-            val gatewayUrl = mockWebServer.url("")
-
-            val bearerDid = DidDht.create(
-                DidDhtCreateOptions(
-                    publish = true,
-                    gatewayUrl = gatewayUrl.toString()
-                )
-            )
-
-            val resolutionResult = ResolutionResult.resolve(
-                bearerDid.did.uri,
-                ResolutionResultResolveOptions(
-                    didDhtGatewayUrl = gatewayUrl.toString()
-                )
-            )
 
             assertNull(resolutionResult.resolutionMetadata.error)
             assertNotNull(resolutionResult.document)

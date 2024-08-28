@@ -5,9 +5,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.keys.InMemoryKeyManager
-import web5.sdk.crypto.keys.Jwk
+import web5.sdk.dids.ResolutionMetadataError
 import web5.sdk.rust.Dsa
-import web5.sdk.rust.ResolutionMetadataError
 
 class DidJwkTests {
     @Nested
@@ -34,7 +33,7 @@ class DidJwkTests {
             // TODO publicKeyJwk on the document should be of type Jwk
             val publicJwk = bearerDid.document.verificationMethod.first().publicKeyJwk
             assertDoesNotThrow {
-                keyManager.getSigner(Jwk.fromRustCoreJwkData(publicJwk))
+                keyManager.getSigner(publicJwk)
             }
         }
 

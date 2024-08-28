@@ -2,6 +2,5 @@
   "test_invalid_did",
   "test_did_jwk",
   "test_did_web",
-  "test_did_dht_with_specified_gateway",
   "test_method_not_supported"
 ]

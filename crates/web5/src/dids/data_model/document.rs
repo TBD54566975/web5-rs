@@ -1,5 +1,8 @@
 use super::{service::Service, verification_method::VerificationMethod};
-use crate::errors::{Result, Web5Error};
+use crate::{
+    errors::{Result, Web5Error},
+    json::{FromJson, ToJson},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -32,6 +35,9 @@ pub struct Document {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service: Option<Vec<Service>>,
 }
+
+impl FromJson for Document {}
+impl ToJson for Document {}
 
 pub(crate) struct FindVerificationMethodOptions {
     pub verification_method_id: Option<String>,

@@ -12,7 +12,10 @@
       - [`VerifiableCredential`](#verifiablecredential)
         - [`CredentialSubject`](#credentialsubject)
         - [`Issuer`](#issuer)
+        - [`CredentialStatus`](#credentialstatus)
         - [`CreateOptions`](#createoptions)
+  - [StatusListCredential](#statuslistcredential)
+      - [`StatusListCredential`](#statuslistcredential-1)
   - [Presentation Exchange (PEX)](#presentation-exchange-pex)
     - [`PresentationDefinition`](#presentationdefinition)
     - [`InputDescriptor`](#inputdescriptor)
@@ -533,6 +536,10 @@ CLASS Document
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#services)
   PUBLIC DATA service: []Service?
+
+  CONSTRUCTOR from_json_string(json: string)
+
+  METHOD to_json_string(): string
 ```
 
 ### `VerificationMethod`
@@ -695,8 +702,8 @@ CLASS DidWebCreateOptions
 ```pseudocode!
 CLASS DidDht
   STATIC METHOD create(options: DidDhtCreateOptions?): BearerDid
-  STATIC METHOD resolve(uri: string): ResolutionResult
-  STATIC METHOD publish(bearer_did: BearerDid)
+  STATIC METHOD publish(bearer_did: BearerDid, gateway_url: string?)
+  STATIC METHOD resolve(uri: string, gateway_url: string?): ResolutionResult
 ```
 
 > [!NOTE]

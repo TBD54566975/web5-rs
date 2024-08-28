@@ -12,8 +12,8 @@ namespace web5 {
   [Throws=Web5Error]
   BearerDid did_dht_create(DidDhtCreateOptions? options);
   [Throws=Web5Error]
-  void did_dht_publish(BearerDid bearer_did, DidDhtPublishOptions? options);
-  ResolutionResult did_dht_resolve([ByRef] string uri, DidDhtResolveOptions? options);
+  void did_dht_publish(BearerDid bearer_did, string? gateway_url);
+  ResolutionResult did_dht_resolve([ByRef] string uri, string? gateway_url);
 };
 
 [Error]
@@ -138,6 +138,10 @@ dictionary ServiceData {
 interface Document {
   constructor(DocumentData data);
   DocumentData get_data();
+  [Throws=Web5Error, Name=from_json_string]
+  constructor(string json);
+  [Throws=Web5Error]
+  string to_json_string();
 };
 
 enum ResolutionMetadataError {
@@ -172,13 +176,9 @@ dictionary ResolutionResultData {
   ResolutionMetadataData resolution_metadata;
 };
 
-dictionary ResolutionResultResolveOptionsData {
-  string? did_dht_gateway_url;
-};
-
 interface ResolutionResult {
   [Name=resolve]
-  constructor([ByRef] string uri, ResolutionResultResolveOptionsData? options);
+  constructor([ByRef] string uri);
   ResolutionResultData get_data();
 };
 
@@ -204,14 +204,6 @@ dictionary DidDhtCreateOptions {
   sequence<string>? controller;
   sequence<string>? also_known_as;
   sequence<VerificationMethodData>? verification_method;
-};
-
-dictionary DidDhtResolveOptions {
-  string? gateway_url;
-};
-
-dictionary DidDhtPublishOptions {
-  string? gateway_url;
 };
 
 dictionary PortableDidData {

@@ -38,16 +38,13 @@ use web5::{
             verification_method::VerificationMethod as VerificationMethodData,
         },
         did::Did as DidData,
-        methods::did_dht::{DidDhtPublishOptions, DidDhtResolveOptions},
         portable_did::PortableDid as PortableDidData,
         resolution::{
             document_metadata::DocumentMetadata as DocumentMetadataData,
             resolution_metadata::{
                 ResolutionMetadata as ResolutionMetadataData, ResolutionMetadataError,
             },
-            resolution_result::{
-                ResolutionResult as ResolutionResultData, ResolutionResultResolveOptions as ResolutionResultResolveOptionsData,
-            },
+            resolution_result::ResolutionResult as ResolutionResultData,
         },
     },
 };
