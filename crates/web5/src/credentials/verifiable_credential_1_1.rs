@@ -417,6 +417,20 @@ impl VerifiableCredential {
         let verification_method_id = verification_method_id
             .unwrap_or_else(|| bearer_did.document.verification_method[0].id.clone());
 
+        let is_assertion_method =
+            if let Some(assertion_methods) = &bearer_did.document.assertion_method {
+                assertion_methods.contains(&verification_method_id)
+            } else {
+                false
+            };
+
+        if !is_assertion_method {
+            return Err(Web5Error::Parameter(format!(
+                "verification_method_id {} is not an assertion_method",
+                verification_method_id
+            )));
+        }
+
         let signer = bearer_did.get_signer(&verification_method_id)?;
         self.sign_with_signer(&verification_method_id, signer)
     }
@@ -1119,6 +1133,62 @@ mod tests {
         }
 
         #[test]
+        fn test_dev_tmp() {
+            let bearer_did = crate::dids::methods::did_jwk::DidJwk::create(None).unwrap();
+            let vc = VerifiableCredential::create(
+                Issuer::Object(ObjectIssuer {
+                    id: bearer_did.did.uri.clone(),
+                    name: "some name".to_string(),
+                    ..Default::default()
+                }),
+                credential_subject(),
+                None,
+            )
+            .unwrap();
+            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+            println!("{}", vc_jwt);
+        }
+
+        #[test]
+        fn test_issuer_string() {
+            TEST_SUITE.include(test_name!());
+
+            let vc_jwt_with_issuer_as_string = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnlkMmhYU1VOWWNsSjNiMFphUm1SMU0wbHNOaTFCTkdVdGRqazNRbE14UmtaUmFWRTRhV05tV2t0ckluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjc0NTY5ZmIzLWMyZTktNGZiMy1hOThkLWY3NGFjNzVjYTg5NSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKeWQyaFhTVU5ZY2xKM2IwWmFSbVIxTTBsc05pMUJOR1V0ZGprM1FsTXhSa1pSYVZFNGFXTm1Xa3RySW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yOFQxNjozNjoyOS4zNDc4ODArMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnlkMmhYU1VOWWNsSjNiMFphUm1SMU0wbHNOaTFCTkdVdGRqazNRbE14UmtaUmFWRTRhV05tV2t0ckluMCIsImp0aSI6InVybjp1dWlkOjc0NTY5ZmIzLWMyZTktNGZiMy1hOThkLWY3NGFjNzVjYTg5NSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNDg2Mjk4OSwiaWF0IjoxNzI0ODYyOTg5fQ.0DSZ2XbPtjtrtxNKo3tImoByb1-jlQxZQN11lsngaFSe4lhy4mYmaxGAby4wIl-c_cLEkgBULfF3Qa_dlNSTCw"#;
+
+            let vc = VerifiableCredential::from_vc_jwt(&vc_jwt_with_issuer_as_string, false)
+                .expect("should be valid vc jwt");
+            match vc.issuer {
+                Issuer::String(issuer) => {
+                    assert_eq!(
+                        "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJyd2hXSUNYclJ3b0ZaRmR1M0lsNi1BNGUtdjk3QlMxRkZRaVE4aWNmWktrIn0",
+                        issuer
+                    )
+                }
+                Issuer::Object(_) => panic!("issuer should be string"),
+            }
+        }
+
+        #[test]
+        fn test_issuer_object() {
+            TEST_SUITE.include(test_name!());
+
+            let vc_jwt_with_issuer_object = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSTFVazF5YVVNMVZsaHVielpTVkRoTVdWVnJibnBKWm5OamFUUXlZbXhCYVdsTFdrcENaR2huVm5WQkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjcwNWM0MTZiLTU1ODYtNDUzMS1hMmRmLWI3YzdhNTMxMGY5NiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjp7ImlkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJMVVrMXlhVU0xVmxodWJ6WlNWRGhNV1ZWcmJucEpabk5qYVRReVlteEJhV2xMV2twQ1pHaG5WblZCSW4wIiwibmFtZSI6InNvbWUgbmFtZSJ9LCJpc3N1YW5jZURhdGUiOiIyMDI0LTA4LTI4VDE2OjQwOjExLjUwNDIyMCswMDowMCIsImV4cGlyYXRpb25EYXRlIjpudWxsLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSJ9fSwiaXNzIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJMVVrMXlhVU0xVmxodWJ6WlNWRGhNV1ZWcmJucEpabk5qYVRReVlteEJhV2xMV2twQ1pHaG5WblZCSW4wIiwianRpIjoidXJuOnV1aWQ6NzA1YzQxNmItNTU4Ni00NTMxLWEyZGYtYjdjN2E1MzEwZjk2Iiwic3ViIjoiZGlkOmRodDpxZ21tcHlqdzVod25xZmd6bjd3bXJtMzNhZHk4Z2I4ejlpZGVpYjZtOWdqNHlzNndueTh5IiwibmJmIjoxNzI0ODYzMjExLCJpYXQiOjE3MjQ4NjMyMTF9.Mv-wlUcnj0w-OWuoMBCciaQXrAogXL3qqgZnthTRI9f55S5PidYiSapWFxFqc4SzxTVSpe64H2vF7kfGU-QpBw"#;
+
+            let vc = VerifiableCredential::from_vc_jwt(&vc_jwt_with_issuer_object, false)
+                .expect("should be valid vc jwt");
+            match vc.issuer {
+                Issuer::String(_) => panic!("issuer should be object"),
+                Issuer::Object(issuer) => {
+                    assert_eq!(
+                        "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiI1Uk1yaUM1VlhubzZSVDhMWVVrbnpJZnNjaTQyYmxBaWlLWkpCZGhnVnVBIn0",
+                        issuer.id
+                    );
+                    assert_eq!("some name", issuer.name)
+                }
+            }
+        }
+
+        #[test]
         fn test_missing_vc_claim() {
             TEST_SUITE.include(test_name!());
 
@@ -1464,8 +1534,9 @@ mod tests {
     }
 
     mod sign {
-        use super::*;
         use crate::dids::methods::did_jwk::DidJwk;
+
+        use super::*;
 
         lazy_static! {
             static ref TEST_SUITE: UnitTestSuite =
@@ -1496,38 +1567,13 @@ mod tests {
             )
             .unwrap();
 
-            let key_id = bearer_did.document.verification_method[0].id.clone();
-            let signer = bearer_did.get_signer(&key_id).unwrap();
             let vc_jwt = vc
-                .sign_with_signer(&key_id, signer)
+                .sign(&bearer_did, None)
                 .expect("should be able to sign vc jwt");
 
             let vc_from_vc_jwt = VerifiableCredential::from_vc_jwt(&vc_jwt, true)
                 .expect("should be able to verify the signed vc jwt");
             assert_eq!(vc.id, vc_from_vc_jwt.id)
-        }
-    }
-
-    mod sign_with_did {
-        use crate::dids::methods::did_jwk::DidJwk;
-
-        use super::*;
-
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite =
-                UnitTestSuite::new("verifiable_credential_1_1_sign_with_did");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
         }
 
         #[test]
@@ -1583,6 +1629,41 @@ mod tests {
                 .unwrap();
 
             assert_eq!(bearer_did.document.verification_method[0].id, kid)
+        }
+
+        #[test]
+        fn test_vm_must_be_assertion_method() {
+            TEST_SUITE.include(test_name!());
+
+            let mut bearer_did = DidJwk::create(None).unwrap();
+            let vc = VerifiableCredential::create(
+                Issuer::String(bearer_did.did.uri.clone()),
+                credential_subject(),
+                None,
+            )
+            .unwrap();
+
+            // remove the assertionMethod
+            if let Some(assertion_method) = bearer_did.document.assertion_method.as_mut() {
+                assertion_method.remove(0);
+            }
+
+            let vm_id = bearer_did.document.verification_method[0].id.clone();
+
+            let result = vc.sign(&bearer_did, Some(vm_id.clone()));
+
+            match result {
+                Err(Web5Error::Parameter(err_msg)) => {
+                    assert_eq!(
+                        err_msg,
+                        format!(
+                            "verification_method_id {} is not an assertion_method",
+                            vm_id
+                        )
+                    )
+                }
+                _ => panic!("expected Web5Error::Parameter but got {:?}", result),
+            }
         }
     }
 }

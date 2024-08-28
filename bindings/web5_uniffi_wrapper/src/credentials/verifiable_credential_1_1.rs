@@ -1,5 +1,5 @@
-use crate::errors::Result;
-use std::time::SystemTime;
+use crate::{dids::bearer_did::BearerDid, errors::Result};
+use std::{sync::Arc, time::SystemTime};
 use web5::{
     credentials::verifiable_credential_1_1::{
         CredentialSubject, Issuer, VerifiableCredential as InnerVerifiableCredential,
@@ -43,6 +43,28 @@ impl VerifiableCredential {
             issuance_date: self.inner_vc.issuance_date,
             expiration_date: self.inner_vc.expiration_date,
         }
+    }
+
+    pub fn from_vc_jwt(vc_jwt: String, verify: bool) -> Result<Self> {
+        let inner_vc = InnerVerifiableCredential::from_vc_jwt(&vc_jwt, verify)?;
+        let json_serialized_issuer = serde_json::to_string(&inner_vc.issuer)?;
+        let json_serialized_credential_subject =
+            serde_json::to_string(&inner_vc.credential_subject)?;
+
+        Ok(Self {
+            inner_vc,
+            json_serialized_issuer,
+            json_serialized_credential_subject,
+        })
+    }
+
+    pub fn sign(
+        &self,
+        bearer_did: Arc<BearerDid>,
+        verification_method_id: Option<String>,
+    ) -> Result<String> {
+        let vc_jwt = self.inner_vc.sign(&bearer_did.0, verification_method_id)?;
+        Ok(vc_jwt)
     }
 }
 

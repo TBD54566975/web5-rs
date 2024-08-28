@@ -2,7 +2,6 @@ package web5.sdk.vc
 
 import com.fasterxml.jackson.annotation.JsonValue
 import web5.sdk.Json
-import java.time.Instant
 import java.util.Date
 import web5.sdk.rust.VerifiableCredential as RustCoreVerifiableCredential
 import web5.sdk.rust.VerifiableCredentialCreateOptionsData as RustCoreVerifiableCredentialCreateOptions
@@ -47,6 +46,25 @@ class VerifiableCredential private constructor(
             )
 
             val data = rustCoreVerifiableCredential.getData()
+
+            return VerifiableCredential(
+                data.context,
+                data.type,
+                data.id,
+                issuer,
+                credentialSubject,
+                Date.from(data.issuanceDate),
+                data.expirationDate?.let { Date.from(it) },
+                rustCoreVerifiableCredential,
+            )
+        }
+
+        fun fromVcJwt(vcJwt: String, verify: Boolean): VerifiableCredential {
+            val rustCoreVerifiableCredential = RustCoreVerifiableCredential.fromVcJwt(vcJwt, verify)
+            val data = rustCoreVerifiableCredential.getData()
+
+            val issuer = Json.jsonMapper.readValue(data.jsonSerializedIssuer, Issuer::class.java)
+            val credentialSubject = Json.jsonMapper.readValue(data.jsonSerializedCredentialSubject, CredentialSubject::class.java)
 
             return VerifiableCredential(
                 data.context,

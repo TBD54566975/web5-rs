@@ -901,6 +901,10 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1060,7 +1064,11 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_create(`jsonSerializedIssuer`: RustBuffer.ByValue,`jsonSerializedCredentialSubject`: RustBuffer.ByValue,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_web5_uniffi_fn_constructor_verifiablecredential_from_vc_jwt(`vcJwt`: RustBuffer.ByValue,`verify`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_uniffi_fn_method_verifiablecredential_sign(`ptr`: Pointer,`bearerDid`: Pointer,`verificationMethodId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1262,6 +1270,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data(
     ): Short
+    fun uniffi_web5_uniffi_checksum_method_verifiablecredential_sign(
+    ): Short
     fun uniffi_web5_uniffi_checksum_method_verifier_verify(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_bearerdid_from_portable_did(
@@ -1291,6 +1301,8 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_uniffi_checksum_constructor_resolutionresult_resolve(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_create(
+    ): Short
+    fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_from_vc_jwt(
     ): Short
     fun ffi_web5_uniffi_uniffi_contract_version(
     ): Int
@@ -1405,6 +1417,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data() != 34047.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_sign() != 21705.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_uniffi_checksum_method_verifier_verify() != 51688.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1448,6 +1463,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_create() != 31236.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_from_vc_jwt() != 8044.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -5228,6 +5246,8 @@ public interface VerifiableCredentialInterface {
     
     fun `getData`(): VerifiableCredentialData
     
+    fun `sign`(`bearerDid`: BearerDid, `verificationMethodId`: kotlin.String?): kotlin.String
+    
     companion object
 }
 
@@ -5325,6 +5345,19 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
     
 
     
+    @Throws(Web5Exception::class)override fun `sign`(`bearerDid`: BearerDid, `verificationMethodId`: kotlin.String?): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablecredential_sign(
+        it, FfiConverterTypeBearerDid.lower(`bearerDid`),FfiConverterOptionalString.lower(`verificationMethodId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
 
     
     companion object {
@@ -5334,6 +5367,17 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
     uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_create(
         FfiConverterString.lower(`jsonSerializedIssuer`),FfiConverterString.lower(`jsonSerializedCredentialSubject`),FfiConverterOptionalTypeVerifiableCredentialCreateOptionsData.lower(`options`),_status)
+}
+    )
+    }
+    
+
+        
+    @Throws(Web5Exception::class) fun `fromVcJwt`(`vcJwt`: kotlin.String, `verify`: kotlin.Boolean): VerifiableCredential {
+            return FfiConverterTypeVerifiableCredential.lift(
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_from_vc_jwt(
+        FfiConverterString.lower(`vcJwt`),FfiConverterBoolean.lower(`verify`),_status)
 }
     )
     }
