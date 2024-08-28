@@ -9,7 +9,7 @@ use super::dids::resolution::resolution_metadata::ResolutionMetadataError;
 
 pub mod presentation_definition;
 pub mod verifiable_credential_1_1;
-mod status_list_credential;
+pub mod status_list_credential;
 
 #[derive(thiserror::Error, Debug)]
 pub enum CredentialError {
