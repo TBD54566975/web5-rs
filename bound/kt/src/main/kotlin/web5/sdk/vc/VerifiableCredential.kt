@@ -1,7 +1,13 @@
 package web5.sdk.vc
 
 import com.fasterxml.jackson.annotation.JsonValue
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import web5.sdk.Json
+import web5.sdk.dids.BearerDid
 import java.util.Date
 import web5.sdk.rust.VerifiableCredential as RustCoreVerifiableCredential
 import web5.sdk.rust.VerifiableCredentialCreateOptionsData as RustCoreVerifiableCredentialCreateOptions
@@ -78,8 +84,13 @@ class VerifiableCredential private constructor(
             )
         }
     }
+
+    fun sign(bearerDid: BearerDid, verificationMethodId: String? = null): String {
+        return rustCoreVerifiableCredential.sign(bearerDid.rustCoreBearerDid, verificationMethodId)
+    }
 }
 
+@JsonDeserialize(using = IssuerDeserializer::class)
 sealed class Issuer {
     data class StringIssuer(val value: String) : Issuer() {
         @JsonValue
@@ -94,6 +105,25 @@ sealed class Issuer {
         @JsonValue
         fun toJson(): Map<String, Any> {
             return mapOf("id" to id, "name" to name) + additionalProperties
+        }
+    }
+}
+
+class IssuerDeserializer : JsonDeserializer<Issuer>() {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Issuer {
+        val node = p.codec.readTree<JsonNode>(p)
+        return if (node.isTextual) {
+            Issuer.StringIssuer(node.asText())
+        } else {
+            val id = node.get("id").asText()
+            val name = node.get("name").asText()
+            val additionalProperties = mutableMapOf<String, Any>()
+            node.fields().forEachRemaining { (key, value) ->
+                if (key != "id" && key != "name") {
+                    additionalProperties[key] = value
+                }
+            }
+            Issuer.ObjectIssuer(id, name, additionalProperties)
         }
     }
 }
