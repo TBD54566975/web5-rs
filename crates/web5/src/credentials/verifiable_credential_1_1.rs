@@ -364,7 +364,7 @@ impl VerifiableCredential {
         Ok(vc)
     }
 
-    pub fn sign(&self, key_id: &str, signer: Arc<dyn Signer>) -> Result<String> {
+    fn sign_with_signer(&self, key_id: &str, signer: Arc<dyn Signer>) -> Result<String> {
         let mut payload = JwtPayload::new();
         let vc_claim = JwtPayloadVerifiableCredential {
             context: self.context.clone(),
@@ -400,7 +400,7 @@ impl VerifiableCredential {
         Ok(vc_jwt)
     }
 
-    pub fn sign_with_did(
+    pub fn sign(
         &self,
         bearer_did: &BearerDid,
         verification_method_id: Option<String>,
@@ -418,7 +418,7 @@ impl VerifiableCredential {
             .unwrap_or_else(|| bearer_did.document.verification_method[0].id.clone());
 
         let signer = bearer_did.get_signer(&verification_method_id)?;
-        self.sign(&verification_method_id, signer)
+        self.sign_with_signer(&verification_method_id, signer)
     }
 }
 
@@ -1499,7 +1499,7 @@ mod tests {
             let key_id = bearer_did.document.verification_method[0].id.clone();
             let signer = bearer_did.get_signer(&key_id).unwrap();
             let vc_jwt = vc
-                .sign(&key_id, signer)
+                .sign_with_signer(&key_id, signer)
                 .expect("should be able to sign vc jwt");
 
             let vc_from_vc_jwt = VerifiableCredential::from_vc_jwt(&vc_jwt, true)
@@ -1543,7 +1543,7 @@ mod tests {
             .unwrap();
 
             let different_bearer_did = DidJwk::create(None).unwrap();
-            let result = vc.sign_with_did(&different_bearer_did, None);
+            let result = vc.sign(&different_bearer_did, None);
 
             match result {
                 Err(Web5Error::Parameter(err_msg)) => {
@@ -1572,7 +1572,7 @@ mod tests {
             .unwrap();
 
             let vc_jwt = vc
-                .sign_with_did(&bearer_did, None)
+                .sign(&bearer_did, None)
                 .expect("should sign with default vm");
 
             let header = josekit::jwt::decode_header(vc_jwt).unwrap();

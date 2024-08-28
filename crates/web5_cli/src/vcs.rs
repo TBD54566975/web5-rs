@@ -90,7 +90,7 @@ impl Commands {
 
                 if let Some(portable_did) = portable_did {
                     let bearer_did = BearerDid::from_portable_did(portable_did).unwrap();
-                    let vc_jwt = vc.sign_with_did(&bearer_did, None).unwrap();
+                    let vc_jwt = vc.sign(&bearer_did, None).unwrap();
                     println!("\n{}", vc_jwt);
                 }
             }
