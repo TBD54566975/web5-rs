@@ -264,7 +264,7 @@ interface VerifiableCredential {
   constructor(
     string json_serialized_issuer,
     string json_serialized_credential_subject,
-    VerifiableCredentialCreateOptionsData? options
+    VerifiableCredentialCreateOptionsData options
   );
   VerifiableCredentialData get_data();
   [Throws=Web5Error, Name=from_vc_jwt]

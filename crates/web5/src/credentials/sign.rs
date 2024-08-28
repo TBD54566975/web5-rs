@@ -128,7 +128,7 @@ mod tests {
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
                 credential_subject(),
-                None,
+                Default::default(),
             )
             .unwrap();
 
@@ -148,7 +148,7 @@ mod tests {
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
                 credential_subject(),
-                None,
+                Default::default(),
             )
             .unwrap();
 
@@ -177,7 +177,7 @@ mod tests {
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
                 credential_subject(),
-                None,
+                Default::default(),
             )
             .unwrap();
 
@@ -202,7 +202,7 @@ mod tests {
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
                 credential_subject(),
-                None,
+                Default::default(),
             )
             .unwrap();
 

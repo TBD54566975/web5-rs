@@ -3,9 +3,8 @@ use clap::Subcommand;
 use std::time::SystemTime;
 use web5::{
     credentials::{
-        CredentialSubject,
-        Issuer,
         verifiable_credential_1_1::{VerifiableCredential, VerifiableCredentialCreateOptions},
+        CredentialSubject, Issuer,
     },
     dids::{bearer_did::BearerDid, portable_did::PortableDid},
     json::{FromJson, ToJson},
@@ -72,10 +71,10 @@ impl Commands {
                         id: credential_subject_id.to_string(),
                         ..Default::default()
                     },
-                    Some(VerifiableCredentialCreateOptions {
+                    VerifiableCredentialCreateOptions {
                         expiration_date,
                         ..Default::default()
-                    }),
+                    },
                 )
                 .unwrap();
 

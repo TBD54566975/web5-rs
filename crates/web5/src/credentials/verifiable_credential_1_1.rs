@@ -1,6 +1,6 @@
-use super::CredentialSubject;
 use super::data_model_validation::validate_vc_data_model;
 use super::decode::decode;
+use super::CredentialSubject;
 use super::Issuer;
 
 use crate::dids::bearer_did::BearerDid;
@@ -57,7 +57,7 @@ impl VerifiableCredential {
     pub fn create(
         issuer: Issuer,
         credential_subject: CredentialSubject,
-        options: Option<VerifiableCredentialCreateOptions>,
+        options: VerifiableCredentialCreateOptions,
     ) -> Result<Self> {
         super::create::create_vc(issuer, credential_subject, options)
     }

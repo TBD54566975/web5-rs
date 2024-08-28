@@ -2,11 +2,10 @@ use crate::{dids::bearer_did::BearerDid, errors::Result};
 use std::{sync::Arc, time::SystemTime};
 use web5::{
     credentials::{
-        CredentialSubject, Issuer,
         verifiable_credential_1_1::{
-            VerifiableCredential as InnerVerifiableCredential,
-            VerifiableCredentialCreateOptions,
+            VerifiableCredential as InnerVerifiableCredential, VerifiableCredentialCreateOptions,
         },
+        CredentialSubject, Issuer,
     },
     json::FromJson as _,
 };
@@ -21,7 +20,7 @@ impl VerifiableCredential {
     pub fn create(
         json_serialized_issuer: String,
         json_serialized_credential_subject: String,
-        options: Option<VerifiableCredentialCreateOptions>,
+        options: VerifiableCredentialCreateOptions,
     ) -> Result<Self> {
         let issuer = Issuer::from_json_string(&json_serialized_issuer)?;
         let credential_subject =

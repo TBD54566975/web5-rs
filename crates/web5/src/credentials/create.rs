@@ -1,5 +1,4 @@
 use std::time::SystemTime;
-
 use uuid::Uuid;
 
 use crate::{
@@ -18,17 +17,16 @@ use super::{
 pub fn create_vc(
     issuer: Issuer,
     credential_subject: CredentialSubject,
-    options: Option<VerifiableCredentialCreateOptions>,
+    options: VerifiableCredentialCreateOptions,
 ) -> Result<VerifiableCredential> {
-    // Validate issuer and credential_subject
     validate_issuer(&issuer)?;
     validate_credential_subject(&credential_subject)?;
 
-    let options = options.unwrap_or_default();
-
     let context = build_context(options.context);
     let r#type = build_type(options.r#type);
-    let id = options.id.unwrap_or_else(generate_uuid);
+    let id = options
+        .id
+        .unwrap_or_else(|| format!("urn:uuid:{}", Uuid::new_v4()));
 
     Ok(VerifiableCredential {
         context,
@@ -93,10 +91,6 @@ fn build_type(r#type: Option<Vec<String>>) -> Vec<String> {
     types
 }
 
-fn generate_uuid() -> String {
-    format!("urn:uuid:{}", Uuid::new_v4())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -139,7 +133,12 @@ mod tests {
     fn test_default_context_added_if_not_supplied() {
         TEST_SUITE.include(test_name!());
 
-        let vc = create_vc(issuer(), credential_subject(), None).unwrap();
+        let vc = create_vc(
+            issuer(),
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        )
+        .unwrap();
 
         assert_eq!(vc.context, vec![BASE_CONTEXT]);
     }
@@ -148,10 +147,10 @@ mod tests {
     fn test_default_context_not_duplicated_if_supplied() {
         TEST_SUITE.include(test_name!());
 
-        let options = Some(VerifiableCredentialCreateOptions {
+        let options = VerifiableCredentialCreateOptions {
             context: Some(vec![BASE_CONTEXT.to_string()]),
             ..Default::default()
-        });
+        };
 
         let vc = create_vc(issuer(), credential_subject(), options).unwrap();
 
@@ -163,10 +162,10 @@ mod tests {
         TEST_SUITE.include(test_name!());
 
         let custom_context = "https://example.com/custom-context";
-        let options = Some(VerifiableCredentialCreateOptions {
+        let options = VerifiableCredentialCreateOptions {
             context: Some(vec![custom_context.to_string()]),
             ..Default::default()
-        });
+        };
 
         let vc = create_vc(issuer(), credential_subject(), options).unwrap();
 
@@ -177,7 +176,12 @@ mod tests {
     fn test_default_type_added_if_not_supplied() {
         TEST_SUITE.include(test_name!());
 
-        let vc = create_vc(issuer(), credential_subject(), None).unwrap();
+        let vc = create_vc(
+            issuer(),
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        )
+        .unwrap();
 
         assert_eq!(vc.r#type, vec![BASE_TYPE]);
     }
@@ -186,10 +190,10 @@ mod tests {
     fn test_default_type_not_duplicated_if_supplied() {
         TEST_SUITE.include(test_name!());
 
-        let options = Some(VerifiableCredentialCreateOptions {
+        let options = VerifiableCredentialCreateOptions {
             r#type: Some(vec![BASE_TYPE.to_string()]),
             ..Default::default()
-        });
+        };
 
         let vc = create_vc(issuer(), credential_subject(), options).unwrap();
 
@@ -201,10 +205,10 @@ mod tests {
         TEST_SUITE.include(test_name!());
 
         let custom_type = "CustomType";
-        let options = Some(VerifiableCredentialCreateOptions {
+        let options = VerifiableCredentialCreateOptions {
             r#type: Some(vec![custom_type.to_string()]),
             ..Default::default()
-        });
+        };
 
         let vc = create_vc(issuer(), credential_subject(), options).unwrap();
 
@@ -215,7 +219,12 @@ mod tests {
     fn test_id_generated_if_not_supplied() {
         TEST_SUITE.include(test_name!());
 
-        let vc = create_vc(issuer(), credential_subject(), None).unwrap();
+        let vc = create_vc(
+            issuer(),
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        )
+        .unwrap();
 
         let uuid_regex = Regex::new(r"^urn:uuid:[0-9a-fA-F-]{36}$").unwrap();
         assert!(uuid_regex.is_match(&vc.id));
@@ -226,10 +235,10 @@ mod tests {
         TEST_SUITE.include(test_name!());
 
         let custom_id = "custom-id";
-        let options = Some(VerifiableCredentialCreateOptions {
+        let options = VerifiableCredentialCreateOptions {
             id: Some(custom_id.to_string()),
             ..Default::default()
-        });
+        };
 
         let vc = create_vc(issuer(), credential_subject(), options).unwrap();
 
@@ -241,7 +250,11 @@ mod tests {
         TEST_SUITE.include(test_name!());
 
         let empty_issuer = Issuer::from("");
-        let result = create_vc(empty_issuer, credential_subject(), None);
+        let result = create_vc(
+            empty_issuer,
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        );
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -255,7 +268,12 @@ mod tests {
     fn test_issuer_string_must_be_set() {
         TEST_SUITE.include(test_name!());
 
-        let vc = create_vc(issuer(), credential_subject(), None).unwrap();
+        let vc = create_vc(
+            issuer(),
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        )
+        .unwrap();
 
         assert_eq!(vc.issuer, issuer());
     }
@@ -267,7 +285,7 @@ mod tests {
         let result = create_vc(
             Issuer::String("did:invalid-123".to_string()),
             credential_subject(),
-            None,
+            VerifiableCredentialCreateOptions::default(),
         );
 
         match result {
@@ -288,7 +306,11 @@ mod tests {
             additional_properties: None,
         });
 
-        let result = create_vc(issuer, credential_subject(), None);
+        let result = create_vc(
+            issuer,
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        );
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -308,7 +330,7 @@ mod tests {
                 id: "did:something-invalid".to_string(),
                 ..Default::default()
             },
-            None,
+            VerifiableCredentialCreateOptions::default(),
         );
 
         match result {
@@ -329,7 +351,11 @@ mod tests {
             additional_properties: None,
         });
 
-        let result = create_vc(issuer, credential_subject(), None);
+        let result = create_vc(
+            issuer,
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        );
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -349,7 +375,12 @@ mod tests {
             additional_properties: None,
         });
 
-        let vc = create_vc(issuer.clone(), credential_subject(), None).unwrap();
+        let vc = create_vc(
+            issuer.clone(),
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        )
+        .unwrap();
 
         assert_eq!(vc.issuer, issuer);
     }
@@ -371,7 +402,12 @@ mod tests {
             additional_properties: Some(additional_properties.clone()),
         });
 
-        let vc = create_vc(issuer.clone(), credential_subject(), None).unwrap();
+        let vc = create_vc(
+            issuer.clone(),
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        )
+        .unwrap();
 
         match vc.issuer {
             Issuer::Object(ref obj) => {
@@ -387,7 +423,11 @@ mod tests {
 
         let credential_subject = CredentialSubject::from("");
 
-        let result = create_vc(issuer(), credential_subject, None);
+        let result = create_vc(
+            issuer(),
+            credential_subject,
+            VerifiableCredentialCreateOptions::default(),
+        );
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -401,7 +441,12 @@ mod tests {
     fn test_credential_subject_must_be_set() {
         TEST_SUITE.include(test_name!());
 
-        let vc = create_vc(issuer(), credential_subject(), None).unwrap();
+        let vc = create_vc(
+            issuer(),
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        )
+        .unwrap();
 
         assert_eq!(vc.credential_subject, credential_subject());
     }
@@ -422,7 +467,12 @@ mod tests {
             additional_properties: Some(additional_properties.clone()),
         };
 
-        let vc = create_vc(issuer(), credential_subject.clone(), None).unwrap();
+        let vc = create_vc(
+            issuer(),
+            credential_subject.clone(),
+            VerifiableCredentialCreateOptions::default(),
+        )
+        .unwrap();
 
         assert_eq!(
             vc.credential_subject.additional_properties,
@@ -436,10 +486,10 @@ mod tests {
 
         let issuance_date = SystemTime::now();
 
-        let options = Some(VerifiableCredentialCreateOptions {
+        let options = VerifiableCredentialCreateOptions {
             issuance_date: Some(issuance_date),
             ..Default::default()
-        });
+        };
 
         let vc = create_vc(issuer(), credential_subject(), options).unwrap();
 
@@ -450,7 +500,12 @@ mod tests {
     fn test_issuance_date_must_be_now_if_not_supplied() {
         TEST_SUITE.include(test_name!());
 
-        let vc = create_vc(issuer(), credential_subject(), None).unwrap();
+        let vc = create_vc(
+            issuer(),
+            credential_subject(),
+            VerifiableCredentialCreateOptions::default(),
+        )
+        .unwrap();
 
         let now = SystemTime::now();
         let hundred_millis_ago = now - std::time::Duration::from_millis(100);
@@ -463,10 +518,10 @@ mod tests {
         TEST_SUITE.include(test_name!());
 
         let expiration_date = SystemTime::now();
-        let options = Some(VerifiableCredentialCreateOptions {
+        let options = VerifiableCredentialCreateOptions {
             expiration_date: Some(expiration_date),
             ..Default::default()
-        });
+        };
 
         let vc = create_vc(issuer(), credential_subject(), options).unwrap();
 
