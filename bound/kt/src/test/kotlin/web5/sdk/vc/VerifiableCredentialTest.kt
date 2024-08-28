@@ -754,7 +754,7 @@ class VerifiableCredentialTest {
             }
 
             assertEquals(
-                "parameter error bearer_did uri ${differentBearerDid.did.uri} does not match issuer ${bearerDid.did.uri}",
+                "parameter error Bearer DID URI ${differentBearerDid.did.uri} does not match issuer ${bearerDid.did.uri}",
                 exception.msg
             )
         }
