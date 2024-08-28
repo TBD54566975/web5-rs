@@ -230,46 +230,43 @@ impl VerifiableCredential {
             return Err(CredentialError::MissingKid.into());
         }
 
-        let jwt_payload = match verify {
-            true => {
-                let did = Did::parse(kid)?;
+        let jwt_payload = if verify {
+            let did = Did::parse(kid)?;
 
-                let resolution_result = ResolutionResult::resolve(&did.uri);
-                if let Some(err) = resolution_result.resolution_metadata.error.clone() {
-                    return Err(err.into());
-                }
+            let resolution_result = ResolutionResult::resolve(&did.uri);
+            if let Some(err) = resolution_result.resolution_metadata.error.clone() {
+                return Err(err.into());
+            }
 
-                let public_key_jwk = resolution_result
-                    .document
-                    .ok_or(ResolutionMetadataError::InternalError)?
-                    .find_verification_method(FindVerificationMethodOptions {
-                        verification_method_id: Some(kid.to_string()),
-                    })?
-                    .public_key_jwk;
+            let public_key_jwk = resolution_result
+                .document
+                .ok_or(ResolutionMetadataError::InternalError)?
+                .find_verification_method(FindVerificationMethodOptions {
+                    verification_method_id: Some(kid.to_string()),
+                })?
+                .public_key_jwk;
 
-                let jose_verifier = &JoseVerifier {
+            let jose_verifier = &JoseVerifier {
+                kid: kid.to_string(),
+                verifier: Arc::new(Ed25519Verifier::new(public_key_jwk)),
+            };
+
+            let (jwt_payload, _) = josekit::jwt::decode_with_verifier(vc_jwt, jose_verifier)
+                .map_err(|e| {
+                    Web5Error::Crypto(format!("vc-jwt failed cryptographic verification {}", e))
+                })?;
+
+            jwt_payload
+        } else {
+            let (jwt_payload, _) = josekit::jwt::decode_with_verifier(
+                vc_jwt,
+                &JoseVerifierAlwaysTrue {
                     kid: kid.to_string(),
-                    verifier: Arc::new(Ed25519Verifier::new(public_key_jwk)),
-                };
+                },
+            )
+            .map_err(|e| Web5Error::Crypto(format!("vc-jwt failed to decode payload {}", e)))?;
 
-                let (jwt_payload, _) = josekit::jwt::decode_with_verifier(vc_jwt, jose_verifier)
-                    .map_err(|e| {
-                        Web5Error::Crypto(format!("vc-jwt failed cryptographic verification {}", e))
-                    })?;
-
-                jwt_payload
-            }
-            false => {
-                let (jwt_payload, _) = josekit::jwt::decode_with_verifier(
-                    vc_jwt,
-                    &JoseVerifierAlwaysTrue {
-                        kid: kid.to_string(),
-                    },
-                )
-                .map_err(|e| Web5Error::Crypto(format!("vc-jwt failed to decode payload {}", e)))?;
-
-                jwt_payload
-            }
+            jwt_payload
         };
 
         let vc_claim = jwt_payload
