@@ -36,7 +36,7 @@ pub fn sign_with_signer(
     payload.set_not_before(&vc.issuance_date);
     payload.set_issued_at(&SystemTime::now());
     if let Some(exp) = &vc.expiration_date {
-        payload.set_expires_at(exp)
+        payload.set_expires_at(exp);
     }
 
     let jose_signer = JoseSigner {
@@ -57,12 +57,10 @@ pub fn sign_with_did(
     bearer_did: &BearerDid,
     verification_method_id: Option<String>,
 ) -> Result<String> {
-    // contains() because the issuer may also include a DID Fragment
-    if vc.issuer.to_string() != bearer_did.did.uri.clone() {
+    if !vc.issuer.to_string().starts_with(&bearer_did.did.uri) {
         return Err(Web5Error::Parameter(format!(
-            "bearer_did uri {} does not match issuer {}",
-            bearer_did.did.uri.clone(),
-            vc.issuer
+            "Bearer DID URI {} does not match issuer {}",
+            bearer_did.did.uri, vc.issuer
         )));
     }
 
@@ -162,7 +160,7 @@ mod tests {
                     assert_eq!(
                         err_msg,
                         format!(
-                            "bearer_did uri {} does not match issuer {}",
+                            "Bearer DID URI {} does not match issuer {}",
                             different_bearer_did.did.uri, bearer_did.did.uri
                         )
                     )

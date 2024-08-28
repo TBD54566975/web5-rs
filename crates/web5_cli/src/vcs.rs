@@ -3,8 +3,8 @@ use clap::Subcommand;
 use std::time::SystemTime;
 use web5::{
     credentials::{
-        credential_subject::CredentialSubject,
-        issuer::Issuer,
+        CredentialSubject,
+        Issuer,
         verifiable_credential_1_1::{VerifiableCredential, VerifiableCredentialCreateOptions},
     },
     dids::{bearer_did::BearerDid, portable_did::PortableDid},

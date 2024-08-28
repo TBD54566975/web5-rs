@@ -1,12 +1,16 @@
-pub mod credential_subject;
+mod create;
+mod credential_subject;
 mod data_model_validation;
-mod from_vc_jwt;
-pub mod issuer;
+mod decode;
+mod issuer;
 mod jose_kit;
 mod jwt_payload_vc;
 pub mod presentation_definition;
 mod sign;
 pub mod verifiable_credential_1_1;
+
+pub use credential_subject::CredentialSubject;
+pub use issuer::{Issuer, ObjectIssuer};
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum CredentialError {

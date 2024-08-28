@@ -2,10 +2,10 @@ use crate::{dids::bearer_did::BearerDid, errors::Result};
 use std::{sync::Arc, time::SystemTime};
 use web5::{
     credentials::{
-        credential_subject::CredentialSubject,
-        issuer::Issuer,
+        CredentialSubject, Issuer,
         verifiable_credential_1_1::{
-            VerifiableCredential as InnerVerifiableCredential, VerifiableCredentialCreateOptions,
+            VerifiableCredential as InnerVerifiableCredential,
+            VerifiableCredentialCreateOptions,
         },
     },
     json::FromJson as _,

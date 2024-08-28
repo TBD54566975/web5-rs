@@ -1,6 +1,5 @@
-use std::fmt::{self, Display, Formatter};
-
 use serde::{Deserialize, Serialize};
+use std::fmt::{self, Display, Formatter};
 
 use crate::json::{FromJson, JsonObject, ToJson};
 
