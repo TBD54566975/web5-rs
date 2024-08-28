@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     fmt::{Display, Formatter},
     sync::Arc,
-    time::{SystemTime, UNIX_EPOCH},
+    time::SystemTime,
 };
 use uuid::Uuid;
 
@@ -318,19 +318,13 @@ impl VerifiableCredential {
                     .into());
                 }
                 Some(exp) => {
-                    if vc_payload_expiration_date
-                        .duration_since(UNIX_EPOCH)
-                        .map_err(|e| {
-                            Web5Error::Unknown(format!("unknown system time error {}", e))
-                        })?
-                        .as_secs()
-                        != exp
-                            .duration_since(UNIX_EPOCH)
-                            .map_err(|e| {
-                                Web5Error::Unknown(format!("unknown system time error {}", e))
-                            })?
-                            .as_secs()
-                    {
+                    let difference = vc_payload_expiration_date
+                        .duration_since(exp)
+                        .unwrap_or_else(|_| {
+                            exp.duration_since(vc_payload_expiration_date).unwrap()
+                        });
+
+                    if difference.as_secs() > 0 {
                         return Err(
                             CredentialError::ClaimMismatch("expiration_date".to_string()).into(),
                         );
