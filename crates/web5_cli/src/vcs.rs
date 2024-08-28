@@ -2,8 +2,10 @@ use chrono::{DateTime, Utc};
 use clap::Subcommand;
 use std::time::SystemTime;
 use web5::{
-    credentials::verifiable_credential_1_1::{
-        CredentialSubject, Issuer, VerifiableCredential, VerifiableCredentialCreateOptions,
+    credentials::{
+        credential_subject::CredentialSubject,
+        issuer::Issuer,
+        verifiable_credential_1_1::{VerifiableCredential, VerifiableCredentialCreateOptions},
     },
     dids::{bearer_did::BearerDid, portable_did::PortableDid},
     json::{FromJson, ToJson},

@@ -1,4 +1,11 @@
+pub mod credential_subject;
+mod data_model_validation;
+mod from_vc_jwt;
+pub mod issuer;
+mod jose_kit;
+mod jwt_payload_vc;
 pub mod presentation_definition;
+mod sign;
 pub mod verifiable_credential_1_1;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
