@@ -572,6 +572,22 @@ class VerifiableCredentialTest {
 
             assertEquals("claim mismatch: expiration_date", exception.msg)
         }
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    inner class DataModelValidation {
+        private val testSuite = UnitTestSuite("verifiable_credential_1_1_data_model_validation")
+
+        @AfterAll
+        fun verifyAllTestsIncluded() {
+            if (testSuite.tests.isNotEmpty()) {
+                println("The following tests were not included or executed:")
+                testSuite.tests.forEach { println(it) }
+                fail("Not all tests were executed! ${testSuite.tests}")
+            }
+        }
+
 
         @Test
         fun test_validate_dm_empty_id() {
@@ -690,6 +706,7 @@ class VerifiableCredentialTest {
             assertEquals("data model validation error: credential expired", exception.msg)
         }
     }
+
 
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
