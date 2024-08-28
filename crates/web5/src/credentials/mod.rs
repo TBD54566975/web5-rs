@@ -8,8 +8,8 @@ use crate::errors::Web5Error;
 use super::dids::resolution::resolution_metadata::ResolutionMetadataError;
 
 pub mod presentation_definition;
-pub mod verifiable_credential_1_1;
 pub mod status_list_credential;
+pub mod verifiable_credential_1_1;
 
 #[derive(thiserror::Error, Debug)]
 pub enum CredentialError {

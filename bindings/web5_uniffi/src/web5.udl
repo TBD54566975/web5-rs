@@ -253,7 +253,13 @@ interface PresentationDefinition {
 
 
 
-
+dictionary CredentialStatusData {
+  string id;
+  string type;
+  string status_purpose;
+  string status_list_index;
+  string status_list_credential;
+};
 
 dictionary VerifiableCredentialCreateOptionsData {
   string? id;
@@ -261,6 +267,7 @@ dictionary VerifiableCredentialCreateOptionsData {
   sequence<string>? type;
   timestamp? issuance_date;
   timestamp? expiration_date;
+  CredentialStatusData? credential_status;
 };
 
 interface VerifiableCredential {
@@ -281,4 +288,5 @@ dictionary VerifiableCredentialData {
   string json_serialized_credential_subject;
   timestamp issuance_date;
   timestamp? expiration_date;
+  CredentialStatusData? credential_status;
 };

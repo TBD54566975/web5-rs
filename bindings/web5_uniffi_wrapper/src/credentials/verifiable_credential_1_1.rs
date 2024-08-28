@@ -2,8 +2,8 @@ use crate::errors::Result;
 use std::time::SystemTime;
 use web5::{
     credentials::verifiable_credential_1_1::{
-        CredentialSubject, Issuer, VerifiableCredential as InnerVerifiableCredential,
-        VerifiableCredentialCreateOptions,
+        CredentialStatus, CredentialSubject, Issuer,
+        VerifiableCredential as InnerVerifiableCredential, VerifiableCredentialCreateOptions,
     },
     json::FromJson,
 };
@@ -42,6 +42,7 @@ impl VerifiableCredential {
             json_serialized_credential_subject: self.json_serialized_credential_subject.clone(),
             issuance_date: self.inner_vc.issuance_date,
             expiration_date: self.inner_vc.expiration_date,
+            credential_status: self.inner_vc.credential_status.clone(),
         }
     }
 }
@@ -55,4 +56,5 @@ pub struct VerifiableCredentialData {
     pub json_serialized_credential_subject: String,
     pub issuance_date: SystemTime,
     pub expiration_date: Option<SystemTime>,
+    pub credential_status: Option<CredentialStatus>,
 }

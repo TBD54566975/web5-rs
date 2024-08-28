@@ -151,7 +151,7 @@ pub struct VerifiableCredentialCreateOptions {
     pub r#type: Option<Vec<String>>,
     pub issuance_date: Option<SystemTime>,
     pub expiration_date: Option<SystemTime>,
-    pub credential_status: Option<CredentialStatus>
+    pub credential_status: Option<CredentialStatus>,
 }
 
 impl VerifiableCredential {
@@ -218,7 +218,7 @@ impl VerifiableCredential {
             issuance_date: options.issuance_date.unwrap_or_else(SystemTime::now),
             expiration_date: options.expiration_date,
             credential_subject,
-            credential_status: options.credential_status
+            credential_status: options.credential_status,
         })
     }
 
@@ -242,7 +242,7 @@ impl VerifiableCredential {
             issuance_date: Some(self.issuance_date),
             expiration_date: self.expiration_date,
             credential_subject: Some(self.credential_subject.clone()),
-            credential_status: self.credential_status.clone()
+            credential_status: self.credential_status.clone(),
         };
         payload.set_claim("vc", Some(serde_json::to_value(vc_claim)?))?;
         payload.set_issuer(self.issuer.to_string());
@@ -399,7 +399,7 @@ impl VerifiableCredential {
             issuance_date: nbf,
             expiration_date: exp,
             credential_subject: vc_credential_subject,
-            credential_status: vc_payload.credential_status
+            credential_status: vc_payload.credential_status,
         };
 
         validate_vc_data_model(&vc)?;

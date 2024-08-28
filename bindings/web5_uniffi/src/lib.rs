@@ -29,7 +29,10 @@ use web5_uniffi_wrapper::{
 };
 
 use web5::{
-    credentials::verifiable_credential_1_1::VerifiableCredentialCreateOptions as VerifiableCredentialCreateOptionsData,
+    credentials::{
+        verifiable_credential_1_1::CredentialStatus as CredentialStatusData,
+        verifiable_credential_1_1::VerifiableCredentialCreateOptions as VerifiableCredentialCreateOptionsData,
+    },
     crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{
         bearer_did::BearerDidGetSignerOptions as BearerDidGetSignerOptionsData,

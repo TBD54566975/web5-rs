@@ -4,9 +4,11 @@ use std::io::{Read, Write};
 use base64::Engine;
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 
+use super::verifiable_credential_1_1::{
+    CredentialSubject, Issuer, VerifiableCredential, VerifiableCredentialCreateOptions,
+};
 use crate::errors::{Result, Web5Error};
 use crate::json::{JsonObject, JsonValue};
-use super::verifiable_credential_1_1::{CredentialSubject, Issuer, VerifiableCredential, VerifiableCredentialCreateOptions};
 
 pub const STATUS_LIST_CREDENTIAL_CONTEXT: &str = "https://w3id.org/vc/status-list/2021/v1";
 pub const STATUS_LIST_CREDENTIAL_TYPE: &str = "StatusList2021Credential";
@@ -14,7 +16,7 @@ pub const STATUS_LIST_2021: &str = "StatusList2021";
 
 pub struct StatusListCredential {
     base: VerifiableCredential,
-    encoded_list: String
+    encoded_list: String,
 }
 
 impl StatusListCredential {
@@ -64,11 +66,8 @@ impl StatusListCredential {
             credential_status: None,
         };
 
-        let verifiable_credential = VerifiableCredential::create(
-            issuer,
-            credential_subject,
-            Some(vc_options),
-        )?;
+        let verifiable_credential =
+            VerifiableCredential::create(issuer, credential_subject, Some(vc_options))?;
 
         Ok(Self {
             base: verifiable_credential,
@@ -88,23 +87,30 @@ impl StatusListCredential {
         credentials_to_disable: Vec<VerifiableCredential>,
     ) -> Result<()> {
         // Retrieve the statusPurpose from the existing credential subject
-        let status_purpose = self.base.credential_subject.additional_properties
+        let status_purpose = self
+            .base
+            .credential_subject
+            .additional_properties
             .as_ref()
             .and_then(|props| props.properties.get("statusPurpose"))
             .and_then(|value| match value {
                 JsonValue::String(s) => Some(s.clone()),
                 _ => None,
             })
-            .ok_or_else(|| Web5Error::Parameter("no statusPurpose found in status list credential".to_string()))?;
+            .ok_or_else(|| {
+                Web5Error::Parameter("no statusPurpose found in status list credential".to_string())
+            })?;
 
         // Determine the status list indexes based on the provided credentials to disable.
-        let status_list_indexes = Self::get_status_list_indexes(&status_purpose, credentials_to_disable)?;
+        let status_list_indexes =
+            Self::get_status_list_indexes(&status_purpose, credentials_to_disable)?;
 
         // Generate the base64 bitstring from the status list indexes.
         let base64_bitstring = Self::bitstring_generation(status_list_indexes)?;
 
         // Update the encodedList property in the additional_properties
-        if let Some(additional_properties) = &mut self.base.credential_subject.additional_properties {
+        if let Some(additional_properties) = &mut self.base.credential_subject.additional_properties
+        {
             additional_properties.properties.insert(
                 "encodedList".to_string(),
                 JsonValue::String(base64_bitstring.clone()),
@@ -140,29 +146,47 @@ impl StatusListCredential {
 
         // Check if the status type matches
         if status.r#type != STATUS_LIST_2021 {
-            return Err(Web5Error::Parameter(format!("unsupported status type: {}", status.r#type)));
+            return Err(Web5Error::Parameter(format!(
+                "unsupported status type: {}",
+                status.r#type
+            )));
         }
 
         // Check if the status purpose matches
-        let credential_subject = self.base.credential_subject.additional_properties.as_ref().ok_or_else(|| {
-            Web5Error::Parameter("no additional properties found in status list credential".to_string())
-        })?;
+        let credential_subject = self
+            .base
+            .credential_subject
+            .additional_properties
+            .as_ref()
+            .ok_or_else(|| {
+                Web5Error::Parameter(
+                    "no additional properties found in status list credential".to_string(),
+                )
+            })?;
 
-        let status_purpose = credential_subject.properties.get("statusPurpose").ok_or_else(|| {
-            Web5Error::Parameter("no statusPurpose found in status list credential".to_string())
-        })?;
+        let status_purpose = credential_subject
+            .properties
+            .get("statusPurpose")
+            .ok_or_else(|| {
+                Web5Error::Parameter("no statusPurpose found in status list credential".to_string())
+            })?;
 
         if let JsonValue::String(purpose) = status_purpose {
             if *purpose != status.status_purpose {
                 return Err(Web5Error::Parameter("status purpose mismatch".to_string()));
             }
         } else {
-            return Err(Web5Error::Parameter("invalid statusPurpose format".to_string()));
+            return Err(Web5Error::Parameter(
+                "invalid statusPurpose format".to_string(),
+            ));
         }
 
         // Get the bit index
         let index = status.status_list_index.parse::<usize>().map_err(|_| {
-            Web5Error::Parameter(format!("invalid status list index: {}", status.status_list_index))
+            Web5Error::Parameter(format!(
+                "invalid status list index: {}",
+                status.status_list_index
+            ))
         })?;
 
         // Check the bit in the encoded list
@@ -192,9 +216,15 @@ impl StatusListCredential {
                 return Err(Web5Error::Parameter("status purpose mismatch".to_string()));
             }
 
-            let index = status_list_entry.status_list_index.parse::<usize>().map_err(|_| {
-                Web5Error::Parameter(format!("invalid status list index: {}", status_list_entry.status_list_index))
-            })?;
+            let index = status_list_entry
+                .status_list_index
+                .parse::<usize>()
+                .map_err(|_| {
+                    Web5Error::Parameter(format!(
+                        "invalid status list index: {}",
+                        status_list_entry.status_list_index
+                    ))
+                })?;
 
             status_list_indexes.push(index);
         }
@@ -226,10 +256,18 @@ impl StatusListCredential {
         }
 
         let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-        encoder.write_all(&bit_vec)
-            .map_err(|e| Web5Error::Parameter(format!("encoder write_all issue while creating bitstring: {}", e)))?;
-        let compressed = encoder.finish()
-            .map_err(|e| Web5Error::Parameter(format!("encoder finish issue while creating bitstring: {}", e)))?;
+        encoder.write_all(&bit_vec).map_err(|e| {
+            Web5Error::Parameter(format!(
+                "encoder write_all issue while creating bitstring: {}",
+                e
+            ))
+        })?;
+        let compressed = encoder.finish().map_err(|e| {
+            Web5Error::Parameter(format!(
+                "encoder finish issue while creating bitstring: {}",
+                e
+            ))
+        })?;
 
         Ok(base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(&compressed))
     }
@@ -248,32 +286,34 @@ impl StatusListCredential {
         let compressed_data = base64::engine::general_purpose::URL_SAFE_NO_PAD
             .decode(compressed_bitstring)
             .map_err(|e| Web5Error::Parameter(format!("failed to decode base64: {}", e)))?;
-        
+
         // Decompress the data using GZIP
         let mut decoder = GzDecoder::new(&compressed_data[..]);
         let mut decompressed_data = Vec::new();
         decoder
             .read_to_end(&mut decompressed_data)
             .map_err(|e| Web5Error::Parameter(format!("failed to decompress data: {}", e)))?;
-        
+
         // Find the byte index, and bit index within the byte
         let byte_index = bit_index / 8;
         let bit_index_within_byte = 7 - (bit_index % 8);
-        let byte = decompressed_data
-            .get(byte_index)
-            .ok_or_else(|| Web5Error::Parameter("bit index out of range in decompressed data".into()))?;
-        
+        let byte = decompressed_data.get(byte_index).ok_or_else(|| {
+            Web5Error::Parameter("bit index out of range in decompressed data".into())
+        })?;
+
         // Extract the targeted bit
         let bit_integer = (byte >> bit_index_within_byte) & 1;
-        
+
         Ok(bit_integer == 1)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::credentials::verifiable_credential_1_1::{CredentialStatus, BASE_CONTEXT, BASE_TYPE};
     use super::*;
+    use crate::credentials::verifiable_credential_1_1::{
+        CredentialStatus, BASE_CONTEXT, BASE_TYPE,
+    };
 
     const ISSUER_DID_URI: &str = "did:web:tbd.website";
     const SUBJECT_DID_URI: &str = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y";
@@ -292,7 +332,7 @@ mod tests {
             r#type: STATUS_LIST_2021.to_string(),
             status_purpose: purpose.to_string(),
             status_list_index: index.to_string(),
-            status_list_credential: "https://example.com/status/1".to_string()
+            status_list_credential: "https://example.com/status/1".to_string(),
         };
 
         VerifiableCredential::create(
@@ -301,11 +341,16 @@ mod tests {
             Some(VerifiableCredentialCreateOptions {
                 credential_status: Some(credential_status),
                 ..Default::default()
-            })
-        ).unwrap()
+            }),
+        )
+        .unwrap()
     }
 
-    fn create_test_credential_with_type(index: &str, status_type: &str, purpose: &str) -> VerifiableCredential {
+    fn create_test_credential_with_type(
+        index: &str,
+        status_type: &str,
+        purpose: &str,
+    ) -> VerifiableCredential {
         let mut credential = create_test_credential(index, purpose);
         if let Some(status) = &mut credential.credential_status {
             status.r#type = status_type.to_string();
@@ -323,14 +368,42 @@ mod tests {
 
         assert!(result.is_ok());
         let status_list_credential = result.unwrap();
-        
-        assert_eq!(status_list_credential.base.r#type, vec![BASE_TYPE.to_string(), STATUS_LIST_CREDENTIAL_TYPE.to_string()]);
-        assert_eq!(status_list_credential.base.context, vec![BASE_CONTEXT.to_string(), STATUS_LIST_CREDENTIAL_CONTEXT.to_string()]);
-        
-        let additional_properties = status_list_credential.base.credential_subject.additional_properties.unwrap();
-        assert_eq!(additional_properties.properties.get("statusPurpose").unwrap(), &JsonValue::String("revocation".to_string()));
-        assert_eq!(additional_properties.properties.get("type").unwrap(), &JsonValue::String(STATUS_LIST_2021.to_string()));
-        assert!(additional_properties.properties.get("encodedList").is_some());
+
+        assert_eq!(
+            status_list_credential.base.r#type,
+            vec![
+                BASE_TYPE.to_string(),
+                STATUS_LIST_CREDENTIAL_TYPE.to_string()
+            ]
+        );
+        assert_eq!(
+            status_list_credential.base.context,
+            vec![
+                BASE_CONTEXT.to_string(),
+                STATUS_LIST_CREDENTIAL_CONTEXT.to_string()
+            ]
+        );
+
+        let additional_properties = status_list_credential
+            .base
+            .credential_subject
+            .additional_properties
+            .unwrap();
+        assert_eq!(
+            additional_properties
+                .properties
+                .get("statusPurpose")
+                .unwrap(),
+            &JsonValue::String("revocation".to_string())
+        );
+        assert_eq!(
+            additional_properties.properties.get("type").unwrap(),
+            &JsonValue::String(STATUS_LIST_2021.to_string())
+        );
+        assert!(additional_properties
+            .properties
+            .get("encodedList")
+            .is_some());
     }
 
     #[test]
@@ -340,10 +413,16 @@ mod tests {
         let bitstring = StatusListCredential::bitstring_generation(bit_indices).unwrap();
 
         assert_eq!(StatusListCredential::get_bit(&bitstring, 3).unwrap(), true);
-        assert_eq!(StatusListCredential::get_bit(&bitstring, 1023).unwrap(), true);
+        assert_eq!(
+            StatusListCredential::get_bit(&bitstring, 1023).unwrap(),
+            true
+        );
         assert_eq!(StatusListCredential::get_bit(&bitstring, 0).unwrap(), false);
-        assert_eq!(StatusListCredential::get_bit(&bitstring, 1024).unwrap(), false);
-        
+        assert_eq!(
+            StatusListCredential::get_bit(&bitstring, 1024).unwrap(),
+            false
+        );
+
         let result = StatusListCredential::get_bit(&bitstring, 16 * 1024 * 8 + 1);
         assert!(result.is_err());
     }
@@ -357,7 +436,8 @@ mod tests {
             create_test_credential("3", &status_purpose),
             create_test_credential("1023", &status_purpose),
         ]);
-        let status_list_credential = StatusListCredential::create(issuer, status_purpose.clone(), credentials_to_disable)?;
+        let status_list_credential =
+            StatusListCredential::create(issuer, status_purpose.clone(), credentials_to_disable)?;
 
         // Test 1: Check a disabled credential (index 3)
         let disabled_credential = create_test_credential("3", &status_purpose);
@@ -372,12 +452,17 @@ mod tests {
         assert!(!status_list_credential.is_disabled(&enabled_credential)?);
 
         // Test 4: Check a credential with mismatched status type
-        let mismatched_type_credential = create_test_credential_with_type("7", "InvalidType", &status_purpose);
-        assert!(status_list_credential.is_disabled(&mismatched_type_credential).is_err());
+        let mismatched_type_credential =
+            create_test_credential_with_type("7", "InvalidType", &status_purpose);
+        assert!(status_list_credential
+            .is_disabled(&mismatched_type_credential)
+            .is_err());
 
         // Test 5: Check a credential with mismatched status purpose
         let mismatched_purpose_credential = create_test_credential("9", "suspension");
-        assert!(status_list_credential.is_disabled(&mismatched_purpose_credential).is_err());
+        assert!(status_list_credential
+            .is_disabled(&mismatched_purpose_credential)
+            .is_err());
 
         // Test 6: Check a credential without a status
         let no_status_credential = VerifiableCredential::create(
@@ -385,7 +470,9 @@ mod tests {
             CredentialSubject::from("did:example:subject"),
             None,
         )?;
-        assert!(status_list_credential.is_disabled(&no_status_credential).is_err());
+        assert!(status_list_credential
+            .is_disabled(&no_status_credential)
+            .is_err());
 
         Ok(())
     }
@@ -395,11 +482,18 @@ mod tests {
         let status_purpose = "revocation".to_string();
 
         // Step 1: Create an initial StatusListCredential without any disabled credentials
-        let mut status_list_credential = StatusListCredential::create(issuer(), status_purpose.clone(), None).unwrap();
+        let mut status_list_credential =
+            StatusListCredential::create(issuer(), status_purpose.clone(), None).unwrap();
 
         // Verify initial state: No bits should be set in the encoded list
-        assert_eq!(StatusListCredential::get_bit(&status_list_credential.encoded_list, 3).unwrap(), false);
-        assert_eq!(StatusListCredential::get_bit(&status_list_credential.encoded_list, 1023).unwrap(), false);
+        assert_eq!(
+            StatusListCredential::get_bit(&status_list_credential.encoded_list, 3).unwrap(),
+            false
+        );
+        assert_eq!(
+            StatusListCredential::get_bit(&status_list_credential.encoded_list, 1023).unwrap(),
+            false
+        );
 
         // Step 2: Create test credentials to disable
         let credentials_to_disable = vec![
@@ -408,18 +502,37 @@ mod tests {
         ];
 
         // Step 3: Update the StatusListCredential with these credentials
-        status_list_credential.update_credentials_to_disable(credentials_to_disable).unwrap();
+        status_list_credential
+            .update_credentials_to_disable(credentials_to_disable)
+            .unwrap();
 
         // Step 4: Verify the encoded list is updated correctly
-        assert_eq!(StatusListCredential::get_bit(&status_list_credential.encoded_list, 3).unwrap(), true);
-        assert_eq!(StatusListCredential::get_bit(&status_list_credential.encoded_list, 1023).unwrap(), true);
+        assert_eq!(
+            StatusListCredential::get_bit(&status_list_credential.encoded_list, 3).unwrap(),
+            true
+        );
+        assert_eq!(
+            StatusListCredential::get_bit(&status_list_credential.encoded_list, 1023).unwrap(),
+            true
+        );
 
         // Step 5: Verify other bits remain unset
-        assert_eq!(StatusListCredential::get_bit(&status_list_credential.encoded_list, 0).unwrap(), false);
-        assert_eq!(StatusListCredential::get_bit(&status_list_credential.encoded_list, 1000).unwrap(), false);
+        assert_eq!(
+            StatusListCredential::get_bit(&status_list_credential.encoded_list, 0).unwrap(),
+            false
+        );
+        assert_eq!(
+            StatusListCredential::get_bit(&status_list_credential.encoded_list, 1000).unwrap(),
+            false
+        );
 
         // Step 6: Verify that the base additional properties got updated
-        let additional_properties = status_list_credential.base.credential_subject.additional_properties.as_ref().unwrap();
+        let additional_properties = status_list_credential
+            .base
+            .credential_subject
+            .additional_properties
+            .as_ref()
+            .unwrap();
         assert_eq!(
             additional_properties.properties.get("encodedList").unwrap(),
             &JsonValue::String(status_list_credential.encoded_list.clone())
@@ -430,14 +543,24 @@ mod tests {
     fn test_full_flow() {
         let status_purpose = "revocation".to_string();
         let credentials_to_disable = None;
-        let status_list_credential = StatusListCredential::create(issuer(), status_purpose, credentials_to_disable).unwrap();
+        let status_list_credential =
+            StatusListCredential::create(issuer(), status_purpose, credentials_to_disable).unwrap();
 
         let encoded_list = &status_list_credential.encoded_list;
 
         // Test various bit positions
-        assert_eq!(StatusListCredential::get_bit(encoded_list, 0).unwrap(), false);
-        assert_eq!(StatusListCredential::get_bit(encoded_list, 100).unwrap(), false);
-        assert_eq!(StatusListCredential::get_bit(encoded_list, 1000).unwrap(), false);
+        assert_eq!(
+            StatusListCredential::get_bit(encoded_list, 0).unwrap(),
+            false
+        );
+        assert_eq!(
+            StatusListCredential::get_bit(encoded_list, 100).unwrap(),
+            false
+        );
+        assert_eq!(
+            StatusListCredential::get_bit(encoded_list, 1000).unwrap(),
+            false
+        );
 
         let vc1_options = Some(VerifiableCredentialCreateOptions {
             credential_status: Some(CredentialStatus {
@@ -445,12 +568,13 @@ mod tests {
                 r#type: STATUS_LIST_2021.to_string(),
                 status_purpose: "revocation".to_string(),
                 status_list_index: "3".to_string(),
-                status_list_credential: "https://example.com/status/1".to_string()
+                status_list_credential: "https://example.com/status/1".to_string(),
             }),
             ..Default::default()
         });
 
-        let vc1 = VerifiableCredential::create(issuer(), credential_subject(), vc1_options).unwrap();
+        let vc1 =
+            VerifiableCredential::create(issuer(), credential_subject(), vc1_options).unwrap();
 
         let vc2_options = Some(VerifiableCredentialCreateOptions {
             credential_status: Some(CredentialStatus {
@@ -458,25 +582,46 @@ mod tests {
                 r#type: STATUS_LIST_2021.to_string(),
                 status_purpose: "revocation".to_string(),
                 status_list_index: "1023".to_string(),
-                status_list_credential: "https://example.com/status/1".to_string()
+                status_list_credential: "https://example.com/status/1".to_string(),
             }),
             ..Default::default()
         });
 
-        let vc2 = VerifiableCredential::create(issuer(), credential_subject(), vc2_options).unwrap();
+        let vc2 =
+            VerifiableCredential::create(issuer(), credential_subject(), vc2_options).unwrap();
 
         let credentials_to_disable = Some(vec![vc1, vc2]);
 
-        let updated_status_list_credential = StatusListCredential::create(Issuer::from("did:example:123".to_string()), "revocation".to_string(), credentials_to_disable).unwrap();
+        let updated_status_list_credential = StatusListCredential::create(
+            Issuer::from("did:example:123".to_string()),
+            "revocation".to_string(),
+            credentials_to_disable,
+        )
+        .unwrap();
         let updated_encoded_list = &updated_status_list_credential.encoded_list;
 
         // Test the bits corresponding to the disabled credentials
-        assert_eq!(StatusListCredential::get_bit(updated_encoded_list, 3).unwrap(), true);
-        assert_eq!(StatusListCredential::get_bit(updated_encoded_list, 1023).unwrap(), true);
+        assert_eq!(
+            StatusListCredential::get_bit(updated_encoded_list, 3).unwrap(),
+            true
+        );
+        assert_eq!(
+            StatusListCredential::get_bit(updated_encoded_list, 1023).unwrap(),
+            true
+        );
 
         // Test other bits are still false
-        assert_eq!(StatusListCredential::get_bit(updated_encoded_list, 0).unwrap(), false);
-        assert_eq!(StatusListCredential::get_bit(updated_encoded_list, 100).unwrap(), false);
-        assert_eq!(StatusListCredential::get_bit(updated_encoded_list, 1000).unwrap(), false);
+        assert_eq!(
+            StatusListCredential::get_bit(updated_encoded_list, 0).unwrap(),
+            false
+        );
+        assert_eq!(
+            StatusListCredential::get_bit(updated_encoded_list, 100).unwrap(),
+            false
+        );
+        assert_eq!(
+            StatusListCredential::get_bit(updated_encoded_list, 1000).unwrap(),
+            false
+        );
     }
 }

@@ -5711,6 +5711,47 @@ public object FfiConverterTypeBearerDidGetSignerOptionsData: FfiConverterRustBuf
 
 
 
+data class CredentialStatusData (
+    var `id`: kotlin.String, 
+    var `type`: kotlin.String, 
+    var `statusPurpose`: kotlin.String, 
+    var `statusListIndex`: kotlin.String, 
+    var `statusListCredential`: kotlin.String
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeCredentialStatusData: FfiConverterRustBuffer<CredentialStatusData> {
+    override fun read(buf: ByteBuffer): CredentialStatusData {
+        return CredentialStatusData(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: CredentialStatusData) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterString.allocationSize(value.`type`) +
+            FfiConverterString.allocationSize(value.`statusPurpose`) +
+            FfiConverterString.allocationSize(value.`statusListIndex`) +
+            FfiConverterString.allocationSize(value.`statusListCredential`)
+    )
+
+    override fun write(value: CredentialStatusData, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterString.write(value.`type`, buf)
+            FfiConverterString.write(value.`statusPurpose`, buf)
+            FfiConverterString.write(value.`statusListIndex`, buf)
+            FfiConverterString.write(value.`statusListCredential`, buf)
+    }
+}
+
+
+
 data class DidData (
     var `uri`: kotlin.String, 
     var `url`: kotlin.String, 
@@ -6212,7 +6253,8 @@ data class VerifiableCredentialCreateOptionsData (
     var `context`: List<kotlin.String>?, 
     var `type`: List<kotlin.String>?, 
     var `issuanceDate`: java.time.Instant?, 
-    var `expirationDate`: java.time.Instant?
+    var `expirationDate`: java.time.Instant?, 
+    var `credentialStatus`: CredentialStatusData?
 ) {
     
     companion object
@@ -6226,6 +6268,7 @@ public object FfiConverterTypeVerifiableCredentialCreateOptionsData: FfiConverte
             FfiConverterOptionalSequenceString.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
+            FfiConverterOptionalTypeCredentialStatusData.read(buf),
         )
     }
 
@@ -6234,7 +6277,8 @@ public object FfiConverterTypeVerifiableCredentialCreateOptionsData: FfiConverte
             FfiConverterOptionalSequenceString.allocationSize(value.`context`) +
             FfiConverterOptionalSequenceString.allocationSize(value.`type`) +
             FfiConverterOptionalTimestamp.allocationSize(value.`issuanceDate`) +
-            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`)
+            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`) +
+            FfiConverterOptionalTypeCredentialStatusData.allocationSize(value.`credentialStatus`)
     )
 
     override fun write(value: VerifiableCredentialCreateOptionsData, buf: ByteBuffer) {
@@ -6243,6 +6287,7 @@ public object FfiConverterTypeVerifiableCredentialCreateOptionsData: FfiConverte
             FfiConverterOptionalSequenceString.write(value.`type`, buf)
             FfiConverterOptionalTimestamp.write(value.`issuanceDate`, buf)
             FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
+            FfiConverterOptionalTypeCredentialStatusData.write(value.`credentialStatus`, buf)
     }
 }
 
@@ -6255,7 +6300,8 @@ data class VerifiableCredentialData (
     var `jsonSerializedIssuer`: kotlin.String, 
     var `jsonSerializedCredentialSubject`: kotlin.String, 
     var `issuanceDate`: java.time.Instant, 
-    var `expirationDate`: java.time.Instant?
+    var `expirationDate`: java.time.Instant?, 
+    var `credentialStatus`: CredentialStatusData?
 ) {
     
     companion object
@@ -6271,6 +6317,7 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterString.read(buf),
             FfiConverterTimestamp.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
+            FfiConverterOptionalTypeCredentialStatusData.read(buf),
         )
     }
 
@@ -6281,7 +6328,8 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterString.allocationSize(value.`jsonSerializedIssuer`) +
             FfiConverterString.allocationSize(value.`jsonSerializedCredentialSubject`) +
             FfiConverterTimestamp.allocationSize(value.`issuanceDate`) +
-            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`)
+            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`) +
+            FfiConverterOptionalTypeCredentialStatusData.allocationSize(value.`credentialStatus`)
     )
 
     override fun write(value: VerifiableCredentialData, buf: ByteBuffer) {
@@ -6292,6 +6340,7 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterString.write(value.`jsonSerializedCredentialSubject`, buf)
             FfiConverterTimestamp.write(value.`issuanceDate`, buf)
             FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
+            FfiConverterOptionalTypeCredentialStatusData.write(value.`credentialStatus`, buf)
     }
 }
 
@@ -6570,6 +6619,35 @@ public object FfiConverterOptionalTypeKeyManager: FfiConverterRustBuffer<KeyMana
         } else {
             buf.put(1)
             FfiConverterTypeKeyManager.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeCredentialStatusData: FfiConverterRustBuffer<CredentialStatusData?> {
+    override fun read(buf: ByteBuffer): CredentialStatusData? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeCredentialStatusData.read(buf)
+    }
+
+    override fun allocationSize(value: CredentialStatusData?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeCredentialStatusData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: CredentialStatusData?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeCredentialStatusData.write(value, buf)
         }
     }
 }
