@@ -1,9 +1,13 @@
 package web5.sdk.vc
 
+import com.nimbusds.jose.JWSObject
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
+import web5.sdk.dids.BearerDid
+import web5.sdk.dids.PortableDid
+import web5.sdk.dids.methods.jwk.DidJwk
 import web5.sdk.rust.Web5Exception
 import java.util.Date
 import java.util.regex.Pattern
@@ -684,6 +688,107 @@ class VerifiableCredentialTest {
             }
 
             assertEquals("data model validation error: credential expired", exception.msg)
+        }
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    inner class Sign {
+        private val testSuite = UnitTestSuite("verifiable_credential_1_1_sign")
+
+        @AfterAll
+        fun verifyAllTestsIncluded() {
+            if (testSuite.tests.isNotEmpty()) {
+                println("The following tests were not included or executed:")
+                testSuite.tests.forEach { println(it) }
+                fail("Not all tests were executed! ${testSuite.tests}")
+            }
+        }
+
+        @Test
+        fun test_can_sign_then_verify() {
+            testSuite.include()
+
+            val bearerDid = DidJwk.create()
+            val vc = VerifiableCredential.create(
+                Issuer.StringIssuer(bearerDid.did.uri),
+                CREDENTIAL_SUBJECT
+            )
+
+            val vcJwt = vc.sign(bearerDid, null)
+
+            val vcFromVcJwt = VerifiableCredential.fromVcJwt(vcJwt, true)
+            assertEquals(vc.id, vcFromVcJwt.id)
+        }
+
+        @Test
+        fun test_bearer_did_mismatch_issuer() {
+            testSuite.include()
+
+            val bearerDid = DidJwk.create()
+            val vc = VerifiableCredential.create(
+                Issuer.StringIssuer(bearerDid.did.uri),
+                CREDENTIAL_SUBJECT
+            )
+
+            val differentBearerDid = DidJwk.create()
+            val exception = assertThrows<Web5Exception.Exception> {
+                vc.sign(differentBearerDid, null)
+            }
+
+            assertEquals(
+                "parameter error bearer_did uri ${differentBearerDid.did.uri} does not match issuer ${bearerDid.did.uri}",
+                exception.msg
+            )
+        }
+
+        @Test
+        fun test_defaults_to_first_vm() {
+            testSuite.include()
+
+            val bearerDid = DidJwk.create()
+            val vc = VerifiableCredential.create(
+                Issuer.StringIssuer(bearerDid.did.uri),
+                CREDENTIAL_SUBJECT
+            )
+
+            val vcJwt = vc.sign(bearerDid, null)
+
+            val jwsObject = JWSObject.parse(vcJwt)
+            val kid = jwsObject.header.keyID
+            assertEquals(bearerDid.document.verificationMethod[0].id, kid)
+        }
+
+        @Test
+        fun test_vm_must_be_assertion_method() {
+            testSuite.include()
+
+            val bearerDid = DidJwk.create()
+            val vc = VerifiableCredential.create(
+                Issuer.StringIssuer(bearerDid.did.uri),
+                CREDENTIAL_SUBJECT
+            )
+
+            val vmId = bearerDid.document.verificationMethod[0].id
+
+            // Remove the assertionMethod
+            val modifiedDocument = bearerDid.document.copy(
+                assertionMethod = null
+            )
+            val modifiedBearerDid = BearerDid(
+                did = bearerDid.did,
+                document = modifiedDocument,
+                keyManager = bearerDid.keyManager
+            )
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                vc.sign(modifiedBearerDid, vmId)
+            }
+
+            assertEquals(
+                "parameter error verification_method_id $vmId is not an assertion_method",
+                exception.msg
+            )
         }
     }
 }

@@ -106,6 +106,7 @@
     <!-- Versioning for Test Dependencies -->
     <version.org.junit.jupiter>5.10.1</version.org.junit.jupiter>
     <version.com.squareup.okhttp3.mockwebserver>4.12.0</version.com.squareup.okhttp3.mockwebserver>
+    <version.com.nimbusds.nimbus-jose-jwt>9.39.3</version.com.nimbusds.nimbus-jose-jwt>
   </properties>
 
   <!-- Dependency Management -->
@@ -208,6 +209,12 @@
         <version>${version.com.squareup.okhttp3.mockwebserver}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>com.nimbusds</groupId>
+        <artifactId>nimbus-jose-jwt</artifactId>
+        <version>${version.com.nimbusds.nimbus-jose-jwt}</version>
+        <scope>test</scope>
+      </dependency>
 
 
     </dependencies>
@@ -246,6 +253,10 @@
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>mockwebserver</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
     </dependency>
 
   </dependencies>
