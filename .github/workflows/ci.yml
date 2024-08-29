@@ -72,7 +72,12 @@ jobs:
       - name: Set Rust 1.74.0 as default
         run: rustup default 1.74.0
       - name: Test
-        run: cargo test --package web5
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            cargo test --package web5 --features x86_64_pc_windows_msvc
+          else
+            cargo test --package web5
+          fi
 
   build_aarch64_apple_darwin:
     runs-on: macos-latest

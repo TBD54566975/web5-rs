@@ -31,6 +31,15 @@ x25519-dalek = { version = "2.0.1", features = ["getrandom", "static_secrets"] }
 zbase32 = "0.1.2"
 lazy_static = "1.5.0"
 
+[dependencies.openssl]
+version = "0.10"
+optional = true
+features = ["vendored"]
+
 [dev-dependencies]
 mockito = "1.5.0"
 tokio = { version = "1.38.0", features = ["macros", "test-util"] }
+
+[features]
+default = []
+x86_64_pc_windows_msvc = ["openssl"]
