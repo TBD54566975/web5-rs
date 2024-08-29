@@ -14,7 +14,7 @@ internal fun log(message: String) {
 internal fun setJNALibraryPath() {
     // Get the class loader resource URL
     val classLoader = Thread.currentThread().contextClassLoader
-    val resource = classLoader.getResource("win32-x86-64/web5_uniffi_x86_64_pc_windows_msvc.dll")
+    val resource = classLoader.getResource("web5_uniffi_x86_64_pc_windows_msvc.dll")
 
     if (resource != null) {
         // Decode URL to handle spaces and special characters

@@ -16,7 +16,6 @@ on:
   push:
     branches:
       - main
-      - kendall/windows-build
   pull_request:
 
 env:
@@ -156,13 +155,13 @@ jobs:
       - name: Build the library
         run: |
           cargo build --target x86_64-pc-windows-msvc --release --package web5_uniffi
-          mkdir -p bound/kt/src/main/resources/win32-x86-64/
-          cp target/x86_64-pc-windows-msvc/release/web5_uniffi.dll bound/kt/src/main/resources/win32-x86-64/web5_uniffi_x86_64_pc_windows_msvc.dll
+          mkdir -p bound/kt/src/main/resources/
+          cp target/x86_64-pc-windows-msvc/release/web5_uniffi.dll bound/kt/src/main/resources/web5_uniffi_x86_64_pc_windows_msvc.dll
       - name: Upload .dll
         uses: actions/upload-artifact@v4.0.0
         with:
           name: x86_64-pc-windows-msvc-dll
-          path: bound/kt/src/main/resources/win32-x86-64/web5_uniffi_x86_64_pc_windows_msvc.dll
+          path: bound/kt/src/main/resources/web5_uniffi_x86_64_pc_windows_msvc.dll
 
   kotlin-acceptance-testing:
     needs:
@@ -217,7 +216,7 @@ jobs:
         uses: actions/download-artifact@v4.0.0
         with:
           name: x86_64-pc-windows-msvc-dll
-          path: bound/kt/src/main/resources/win32-x86-64/
+          path: bound/kt/src/main/resources/
       - name: Run Maven Tests
         run: |
           cd bound/kt/
@@ -292,7 +291,7 @@ jobs:
         uses: actions/download-artifact@v4.0.0
         with:
           name: x86_64-pc-windows-msvc-dll
-          path: bound/kt/src/main/resources/win32-x86-64/
+          path: bound/kt/src/main/resources/
 
       - name: Deploy Snapshot / Verify
         run: |
