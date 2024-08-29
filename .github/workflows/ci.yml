@@ -16,6 +16,7 @@ on:
   push:
     branches:
       - main
+      - kendall/windows-build
   pull_request:
 
 env:
@@ -141,6 +142,25 @@ jobs:
         with:
           name: x86_64-unknown-linux-musl-so
           path: bound/kt/src/main/resources/libweb5_uniffi_x86_64_unknown_linux_musl.so
+
+  build_x86_64_pc_windows_msvc:
+    runs-on: windows-latest
+    name: Build x86_64-pc-windows-msvc target
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
+      - name: Run Build Script
+        run: |
+          cd bindings/web5_uniffi/libtargets/x86_64_pc_windows_msvc
+          ./build
+      - name: Upload .dll
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: x86_64-pc-windows-msvc-dll
+          path: bound/kt/src/main/resources/libweb5_uniffi_x86_64_pc_windows_msvc.dll
 
   kotlin-build-test-deploy-snapshot:
     needs:
