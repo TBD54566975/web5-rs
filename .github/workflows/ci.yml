@@ -152,10 +152,12 @@ jobs:
         run: rustup toolchain install 1.74.0
       - name: Set Rust 1.74.0 as default
         run: rustup default 1.74.0
-      - name: Run Build Script
+      - name: Build the library
         run: |
-          cd bindings/web5_uniffi/libtargets/x86_64_pc_windows_msvc
-          ./build
+          cd ../../../../
+          cargo build --target x86_64-pc-windows-msvc --release --package web5_uniffi
+          mkdir -p bound/kt/src/main/resources
+          cp target/x86_64-pc-windows-msvc/release/web5_uniffi.dll bound/kt/src/main/resources/libweb5_uniffi_x86_64_pc_windows_msvc.dll
       - name: Upload .dll
         uses: actions/upload-artifact@v4.0.0
         with:
