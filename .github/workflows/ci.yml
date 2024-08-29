@@ -152,9 +152,10 @@ jobs:
         run: rustup toolchain install 1.74.0
       - name: Set Rust 1.74.0 as default
         run: rustup default 1.74.0
+      - name: Add MSVC target
+        run: rustup target add x86_64-pc-windows-msvc
       - name: Build the library
         run: |
-          cd ../../../../
           cargo build --target x86_64-pc-windows-msvc --release --package web5_uniffi
           mkdir -p bound/kt/src/main/resources
           cp target/x86_64-pc-windows-msvc/release/web5_uniffi.dll bound/kt/src/main/resources/libweb5_uniffi_x86_64_pc_windows_msvc.dll
@@ -170,6 +171,7 @@ jobs:
       - build_x86_64_apple_darwin
       - build_x86_64_unknown_linux_gnu
       - build_x86_64_unknown_linux_musl
+      - build_x86_64_pc_windows_msvc
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
