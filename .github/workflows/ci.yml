@@ -73,7 +73,7 @@ jobs:
       - name: Set Rust 1.74.0 as default
         run: rustup default 1.74.0
       - name: Test
-        run: just test
+        run: cargo test --workspace
 
   build_aarch64_apple_darwin:
     runs-on: macos-latest
