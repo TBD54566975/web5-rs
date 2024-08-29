@@ -19,6 +19,7 @@ features = ["vendored"]
 [features]
 default = []
 x86_64_apple_darwin = ["openssl"] 
+x86_64_pc_windows_msvc = ["openssl"] 
 
 [build-dependencies]
 uniffi = { version = "0.27.1", features = ["build"] }
