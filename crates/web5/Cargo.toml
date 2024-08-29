@@ -30,13 +30,7 @@ uuid = { workspace = true }
 x25519-dalek = { version = "2.0.1", features = ["getrandom", "static_secrets"] }
 zbase32 = "0.1.2"
 lazy_static = "1.5.0"
-openssl-sys = { version = "0.9.103", optional = true }
-openssl-src = { version = "300.3.1", optional = true }
 
 [dev-dependencies]
 mockito = "1.5.0"
 tokio = { version = "1.38.0", features = ["macros", "test-util"] }
-
-[features]
-default = []
-x86_64_pc_windows_msvc = ["openssl-sys", "openssl-src"]
