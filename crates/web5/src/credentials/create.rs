@@ -17,8 +17,10 @@ use super::{
 pub fn create_vc(
     issuer: Issuer,
     credential_subject: CredentialSubject,
-    options: VerifiableCredentialCreateOptions,
+    options: Option<VerifiableCredentialCreateOptions>,
 ) -> Result<VerifiableCredential> {
+    let options = options.unwrap_or_default();
+  
     validate_issuer(&issuer)?;
     validate_credential_subject(&credential_subject)?;
 
@@ -136,7 +138,7 @@ mod tests {
         let vc = create_vc(
             issuer(),
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         )
         .unwrap();
 
@@ -152,7 +154,7 @@ mod tests {
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), options).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
 
         assert_eq!(vc.context, vec![BASE_CONTEXT]);
     }
@@ -167,7 +169,7 @@ mod tests {
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), options).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
 
         assert_eq!(vc.context, vec![BASE_CONTEXT, custom_context]);
     }
@@ -179,7 +181,7 @@ mod tests {
         let vc = create_vc(
             issuer(),
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         )
         .unwrap();
 
@@ -195,7 +197,7 @@ mod tests {
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), options).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
 
         assert_eq!(vc.r#type, vec![BASE_TYPE]);
     }
@@ -210,7 +212,7 @@ mod tests {
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), options).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
 
         assert_eq!(vc.r#type, vec![BASE_TYPE, custom_type]);
     }
@@ -222,7 +224,7 @@ mod tests {
         let vc = create_vc(
             issuer(),
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         )
         .unwrap();
 
@@ -240,7 +242,7 @@ mod tests {
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), options).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
 
         assert_eq!(vc.id, custom_id);
     }
@@ -253,7 +255,7 @@ mod tests {
         let result = create_vc(
             empty_issuer,
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         );
 
         match result {
@@ -271,7 +273,7 @@ mod tests {
         let vc = create_vc(
             issuer(),
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         )
         .unwrap();
 
@@ -285,7 +287,7 @@ mod tests {
         let result = create_vc(
             Issuer::String("did:invalid-123".to_string()),
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         );
 
         match result {
@@ -309,7 +311,7 @@ mod tests {
         let result = create_vc(
             issuer,
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         );
 
         match result {
@@ -330,7 +332,7 @@ mod tests {
                 id: "did:something-invalid".to_string(),
                 ..Default::default()
             },
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         );
 
         match result {
@@ -354,7 +356,7 @@ mod tests {
         let result = create_vc(
             issuer,
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         );
 
         match result {
@@ -378,7 +380,7 @@ mod tests {
         let vc = create_vc(
             issuer.clone(),
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         )
         .unwrap();
 
@@ -405,7 +407,7 @@ mod tests {
         let vc = create_vc(
             issuer.clone(),
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         )
         .unwrap();
 
@@ -426,7 +428,7 @@ mod tests {
         let result = create_vc(
             issuer(),
             credential_subject,
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         );
 
         match result {
@@ -444,7 +446,7 @@ mod tests {
         let vc = create_vc(
             issuer(),
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         )
         .unwrap();
 
@@ -470,7 +472,7 @@ mod tests {
         let vc = create_vc(
             issuer(),
             credential_subject.clone(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         )
         .unwrap();
 
@@ -491,7 +493,7 @@ mod tests {
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), options).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
 
         assert_eq!(vc.issuance_date, issuance_date);
     }
@@ -503,7 +505,7 @@ mod tests {
         let vc = create_vc(
             issuer(),
             credential_subject(),
-            VerifiableCredentialCreateOptions::default(),
+            Some(VerifiableCredentialCreateOptions::default()),
         )
         .unwrap();
 
@@ -523,7 +525,7 @@ mod tests {
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), options).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
 
         assert_eq!(vc.expiration_date, Some(expiration_date));
     }

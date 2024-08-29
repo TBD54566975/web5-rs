@@ -57,7 +57,7 @@ impl VerifiableCredential {
     pub fn create(
         issuer: Issuer,
         credential_subject: CredentialSubject,
-        options: VerifiableCredentialCreateOptions,
+        options: Option<VerifiableCredentialCreateOptions>,
     ) -> Result<Self> {
         super::create::create_vc(issuer, credential_subject, options)
     }
