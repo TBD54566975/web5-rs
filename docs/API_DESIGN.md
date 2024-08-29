@@ -91,7 +91,7 @@ CLASS VerifiableCredential
   PUBLIC DATA expiration_date: datetime?
   PUBLIC DATA credentialSubject: CredentialSubject
 
-  CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: CreateOptions)
+  CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: CreateOptions?)
   CONSTRUCTOR from_vc_jwt(vc_jwt: string, verify: bool)
 
   METHOD sign(bearer_did: BearerDid, verification_method_id: String?): string

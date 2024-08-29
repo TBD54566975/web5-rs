@@ -1,11 +1,13 @@
 use crate::{dids::bearer_did::BearerDid, errors::Result};
 use std::{sync::Arc, time::SystemTime};
 use web5::{
-    credentials::verifiable_credential_1_1::{
-        CredentialSubject, Issuer, VerifiableCredential as InnerVerifiableCredential,
-        VerifiableCredentialCreateOptions,
+    credentials::{
+        verifiable_credential_1_1::{
+            VerifiableCredential as InnerVerifiableCredential, VerifiableCredentialCreateOptions,
+        },
+        CredentialSubject, Issuer,
     },
-    json::FromJson,
+    json::FromJson as _,
 };
 
 pub struct VerifiableCredential {

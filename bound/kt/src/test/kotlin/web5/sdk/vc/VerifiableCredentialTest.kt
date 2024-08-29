@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
 import web5.sdk.dids.BearerDid
-import web5.sdk.dids.PortableDid
 import web5.sdk.dids.methods.jwk.DidJwk
 import web5.sdk.rust.Web5Exception
 import java.util.Date
@@ -691,6 +690,7 @@ class VerifiableCredentialTest {
         }
     }
 
+
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Sign {
@@ -737,7 +737,7 @@ class VerifiableCredentialTest {
             }
 
             assertEquals(
-                "parameter error bearer_did uri ${differentBearerDid.did.uri} does not match issuer ${bearerDid.did.uri}",
+                "parameter error Bearer DID URI ${differentBearerDid.did.uri} does not match issuer ${bearerDid.did.uri}",
                 exception.msg
             )
         }
