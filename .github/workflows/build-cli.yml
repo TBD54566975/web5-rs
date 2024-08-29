@@ -70,3 +70,22 @@ jobs:
         with:
           name: web5-x86_64-linux-musl
           path: target/x86_64-unknown-linux-musl/release/web5_cli
+
+  build_x86_64_pc_windows_msvc:
+    runs-on: windows-latest
+    name: Build x86_64-pc-windows-msvc target
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
+      - name: Add MSVC target
+        run: rustup target add x86_64-pc-windows-msvc
+      - name: Build executable
+        run: cargo build --target x86_64-pc-windows-msvc --release --package web5_cli
+      - name: Upload executable
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: web5-x86_64-pc-windows-msvc
+          path: target/x86_64-pc-windows-msvc/release/web5_cli
