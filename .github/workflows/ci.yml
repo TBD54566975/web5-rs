@@ -223,7 +223,7 @@ jobs:
           cd bound/kt/
           mvn test --batch-mode
 
-  kotlin-build-test-deploy-snapshot:
+  kotlin-deploy-snapshot:
     needs:
       - kotlin-acceptance-testing
     runs-on: ubuntu-latest
