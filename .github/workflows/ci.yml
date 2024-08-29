@@ -165,6 +165,9 @@ jobs:
           name: x86_64-pc-windows-msvc-dll
           path: bound/kt/src/main/resources/libweb5_uniffi_x86_64_pc_windows_msvc.dll
 
+  # kotlin-accetance-testing:
+  #   // TODO matrix across our 5 target OS's and run mvn test inside of `bound/kt`
+
   kotlin-build-test-deploy-snapshot:
     needs:
       - build_aarch64_apple_darwin
@@ -233,6 +236,11 @@ jobs:
         uses: actions/download-artifact@v4.0.0
         with:
           name: x86_64-unknown-linux-musl-so
+          path: bound/kt/src/main/resources/
+      - name: Download Windows x86_64 MSVC Native Library
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: x86_64-pc-windows-msvc-dll
           path: bound/kt/src/main/resources/
 
       - name: Deploy Snapshot / Verify
