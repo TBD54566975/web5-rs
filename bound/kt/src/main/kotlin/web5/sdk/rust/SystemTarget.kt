@@ -43,6 +43,9 @@ internal fun detectSystemTarget(): String {
             }
         }
 
+        name.contains("windows") ->
+            return "web5_uniffi_x86_64_pc_windows_msvc"
+
         else -> throw Exception("Unsupported OS arch $arch $name")
     }
 }
