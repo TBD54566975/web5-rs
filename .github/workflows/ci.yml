@@ -89,11 +89,11 @@ jobs:
           git clone https://github.com/Microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg.exe install openssl:x64-windows
-          echo "::add-path::$(pwd)\vcpkg\installed\x64-windows\bin"
-          echo "::add-path::$(pwd)\vcpkg\installed\x64-windows\lib"
-          echo "::add-path::$(pwd)\vcpkg\installed\x64-windows\include"
+          echo "vcpkg\installed\x64-windows\bin" >> $GITHUB_PATH
+          echo "vcpkg\installed\x64-windows\lib" >> $GITHUB_PATH
+          echo "vcpkg\installed\x64-windows\include" >> $GITHUB_PATH
       - name: Test
-        run: cargo test --package web5
+        run: cargo test --package web5 --features x86_64_pc_windows_msvc
 
   build_aarch64_apple_darwin:
     runs-on: macos-latest
