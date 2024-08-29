@@ -20,7 +20,7 @@ impl VerifiableCredential {
     pub fn create(
         json_serialized_issuer: String,
         json_serialized_credential_subject: String,
-        options: VerifiableCredentialCreateOptions,
+        options: Option<VerifiableCredentialCreateOptions>,
     ) -> Result<Self> {
         let issuer = Issuer::from_json_string(&json_serialized_issuer)?;
         let credential_subject =

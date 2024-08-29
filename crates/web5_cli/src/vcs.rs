@@ -71,10 +71,10 @@ impl Commands {
                         id: credential_subject_id.to_string(),
                         ..Default::default()
                     },
-                    VerifiableCredentialCreateOptions {
+                    Some(VerifiableCredentialCreateOptions {
                         expiration_date,
                         ..Default::default()
-                    },
+                    }),
                 )
                 .unwrap();
 

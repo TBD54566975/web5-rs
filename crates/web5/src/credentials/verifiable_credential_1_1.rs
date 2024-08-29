@@ -87,7 +87,6 @@ mod tests {
     use super::*;
 
     mod from_vc_jwt {
-
         use super::*;
         use crate::{credentials::CredentialError, errors::Web5Error};
         use crate::{

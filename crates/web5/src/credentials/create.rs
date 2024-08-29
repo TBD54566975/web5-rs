@@ -20,7 +20,7 @@ pub fn create_vc(
     options: Option<VerifiableCredentialCreateOptions>,
 ) -> Result<VerifiableCredential> {
     let options = options.unwrap_or_default();
-  
+
     validate_issuer(&issuer)?;
     validate_credential_subject(&credential_subject)?;
 
