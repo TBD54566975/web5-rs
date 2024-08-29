@@ -1462,7 +1462,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_resolve() != 11404.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_create() != 55354.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_create() != 31236.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_from_vc_jwt() != 8044.toShort()) {
@@ -5362,11 +5362,11 @@ open class VerifiableCredential: Disposable, AutoCloseable, VerifiableCredential
     
     companion object {
         
-    @Throws(Web5Exception::class) fun `create`(`jsonSerializedIssuer`: kotlin.String, `jsonSerializedCredentialSubject`: kotlin.String, `options`: VerifiableCredentialCreateOptionsData): VerifiableCredential {
+    @Throws(Web5Exception::class) fun `create`(`jsonSerializedIssuer`: kotlin.String, `jsonSerializedCredentialSubject`: kotlin.String, `options`: VerifiableCredentialCreateOptionsData?): VerifiableCredential {
             return FfiConverterTypeVerifiableCredential.lift(
     uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablecredential_create(
-        FfiConverterString.lower(`jsonSerializedIssuer`),FfiConverterString.lower(`jsonSerializedCredentialSubject`),FfiConverterTypeVerifiableCredentialCreateOptionsData.lower(`options`),_status)
+        FfiConverterString.lower(`jsonSerializedIssuer`),FfiConverterString.lower(`jsonSerializedCredentialSubject`),FfiConverterOptionalTypeVerifiableCredentialCreateOptionsData.lower(`options`),_status)
 }
     )
     }
@@ -6734,6 +6734,35 @@ public object FfiConverterOptionalTypeDocumentMetadataData: FfiConverterRustBuff
         } else {
             buf.put(1)
             FfiConverterTypeDocumentMetadataData.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeVerifiableCredentialCreateOptionsData: FfiConverterRustBuffer<VerifiableCredentialCreateOptionsData?> {
+    override fun read(buf: ByteBuffer): VerifiableCredentialCreateOptionsData? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeVerifiableCredentialCreateOptionsData.read(buf)
+    }
+
+    override fun allocationSize(value: VerifiableCredentialCreateOptionsData?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeVerifiableCredentialCreateOptionsData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: VerifiableCredentialCreateOptionsData?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeVerifiableCredentialCreateOptionsData.write(value, buf)
         }
     }
 }

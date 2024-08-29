@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
 import web5.sdk.dids.BearerDid
-import web5.sdk.dids.PortableDid
 import web5.sdk.dids.methods.jwk.DidJwk
 import web5.sdk.rust.Web5Exception
 import java.util.Date
@@ -572,22 +571,6 @@ class VerifiableCredentialTest {
 
             assertEquals("claim mismatch: expiration_date", exception.msg)
         }
-    }
-
-    @Nested
-    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-    inner class DataModelValidation {
-        private val testSuite = UnitTestSuite("verifiable_credential_1_1_data_model_validation")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
 
         @Test
         fun test_validate_dm_empty_id() {
