@@ -8,7 +8,7 @@ use crate::{
 use josekit::{jws::JwsHeader, jwt::JwtPayload};
 
 use super::{
-    jose_kit::JoseSigner, jwt_payload_vc::JwtPayloadVerifiableCredential,
+    josekit::JoseSigner, jwt_payload_vc::JwtPayloadVerifiableCredential,
     verifiable_credential_1_1::VerifiableCredential,
 };
 

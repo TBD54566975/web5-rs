@@ -3,7 +3,7 @@ mod credential_subject;
 mod data_model_validation;
 mod decode;
 mod issuer;
-mod jose_kit;
+mod josekit;
 mod jwt_payload_vc;
 pub mod presentation_definition;
 mod sign;
