@@ -36,15 +36,7 @@ COPY bindings/web5_uniffi ./bindings/web5_uniffi
 COPY crates/web5 ./crates/web5
 COPY crates/web5_cli ./crates/web5_cli
 
-# Build the static lib (override the lib type)
-RUN sed -i 's/crate-type = \["cdylib"\]/crate-type = \["staticlib"\]/' bindings/web5_uniffi/Cargo.toml
-
-RUN cargo build --release --package web5_uniffi
-
-# Compile as a dynamic lib (.so) from our static lib (.a) while keeping dependencies self-contained
-RUN gcc -shared -o target/release/libweb5_uniffi.so -Wl,--whole-archive \
-    target/release/libweb5_uniffi.a -Wl,--no-whole-archive -static-libgcc \
-    -L/usr/lib -lssl -lcrypto -Wl,-Bdynamic -fPIC
+RUN cargo build --release --package web5_cli
 
 # Set the entrypoint, so that we can `docker cp` the build output
 CMD tail -f /dev/null
