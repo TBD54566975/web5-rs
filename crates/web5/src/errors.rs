@@ -1,3 +1,6 @@
+use crate::{
+    credentials::CredentialError, dids::resolution::resolution_metadata::ResolutionMetadataError,
+};
 use base64::DecodeError;
 use serde_json::Error as SerdeJsonError;
 use std::sync::PoisonError;
@@ -22,6 +25,11 @@ pub enum Web5Error {
     Mutex(String),
     #[error("network error {0}")]
     Network(String),
+
+    #[error(transparent)]
+    Resolution(#[from] ResolutionMetadataError),
+    #[error(transparent)]
+    CredentialError(#[from] CredentialError),
 }
 
 impl From<DecodeError> for Web5Error {

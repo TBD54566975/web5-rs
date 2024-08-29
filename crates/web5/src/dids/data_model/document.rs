@@ -60,6 +60,7 @@ impl Document {
                 return Ok(vm.clone());
             }
         }
+
         Err(Web5Error::NotFound(
             "verification method not found".to_string(),
         ))

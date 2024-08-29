@@ -19,11 +19,6 @@ pub struct BearerDid {
     pub key_manager: Arc<dyn KeyManager>,
 }
 
-#[derive(Default)]
-pub struct BearerDidGetSignerOptions {
-    pub verification_method_id: Option<String>,
-}
-
 impl BearerDid {
     pub fn from_portable_did(portable_did: PortableDid) -> Result<Self> {
         let did = Did::parse(&portable_did.did_uri)?;
@@ -40,18 +35,17 @@ impl BearerDid {
         })
     }
 
-    pub fn get_signer(&self, options: BearerDidGetSignerOptions) -> Result<Arc<dyn Signer>> {
-        let verification_method_id = options.verification_method_id.unwrap_or_default();
+    pub fn get_signer(&self, verification_method_id: &str) -> Result<Arc<dyn Signer>> {
         if verification_method_id.is_empty() {
             return Err(Web5Error::Parameter(
-                "no option satisfies query requirements".to_string(),
+                "verification_method_id cannot be empty".to_string(),
             ));
         }
 
         let public_jwk = self
             .document
             .find_verification_method(FindVerificationMethodOptions {
-                verification_method_id: Some(verification_method_id),
+                verification_method_id: Some(verification_method_id.to_string()),
             })?
             .public_key_jwk;
         self.key_manager.get_signer(public_jwk)
@@ -136,17 +130,15 @@ mod tests {
         }
 
         #[test]
-        fn test_query_requirements_not_satisfied() {
+        fn test_verification_method_id_empty() {
             TEST_SUITE.include(test_name!());
 
             let bearer_did = DidJwk::create(None).unwrap();
 
-            let result = bearer_did.get_signer(BearerDidGetSignerOptions {
-                ..Default::default()
-            });
+            let result = bearer_did.get_signer("");
             assert!(result.is_err());
             if let Err(Web5Error::Parameter(msg)) = result {
-                assert_eq!(msg, "no option satisfies query requirements".to_string());
+                assert_eq!(msg, "verification_method_id cannot be empty".to_string());
             } else {
                 panic!("Expected Web5Error::Parameter, got something else");
             }
@@ -158,10 +150,7 @@ mod tests {
 
             let bearer_did = DidJwk::create(None).unwrap();
 
-            let verification_method_id = "something not valid".to_string();
-            let result = bearer_did.get_signer(BearerDidGetSignerOptions {
-                verification_method_id: Some(verification_method_id),
-            });
+            let result = bearer_did.get_signer("something invalid");
             assert!(result.is_err());
             if let Err(Web5Error::NotFound(msg)) = result {
                 assert_eq!(msg, "verification method not found".to_string());
@@ -176,9 +165,7 @@ mod tests {
 
             let bearer_did = DidJwk::create(None).unwrap();
 
-            let result = bearer_did.get_signer(BearerDidGetSignerOptions {
-                verification_method_id: Some(bearer_did.document.verification_method[0].id.clone()),
-            });
+            let result = bearer_did.get_signer(&bearer_did.document.verification_method[0].id);
             assert!(result.is_ok());
         }
     }

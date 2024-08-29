@@ -227,17 +227,13 @@ dictionary BearerDidData {
   KeyManager key_manager;
 };
 
-dictionary BearerDidGetSignerOptionsData {
-  string? verification_method_id;
-};
-
 interface BearerDid {
   constructor(DidData did, DocumentData document, KeyManager key_manager);
   [Throws=Web5Error, Name=from_portable_did]
   constructor(PortableDid portable_did);
   BearerDidData get_data();
   [Throws=Web5Error]
-  Signer get_signer(BearerDidGetSignerOptionsData options);
+  Signer get_signer(string verification_method_id);
   [Throws=Web5Error]
   PortableDid to_portable_did(KeyExporter key_exporter);
 };
@@ -271,6 +267,10 @@ interface VerifiableCredential {
     VerifiableCredentialCreateOptionsData? options
   );
   VerifiableCredentialData get_data();
+  [Throws=Web5Error, Name=from_vc_jwt]
+  constructor(string vc_jwt, boolean verify);
+  [Throws=Web5Error]
+  string sign(BearerDid bearer_did, string? verification_method_id);
 };
 
 dictionary VerifiableCredentialData {

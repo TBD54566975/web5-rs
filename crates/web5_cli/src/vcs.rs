@@ -2,8 +2,9 @@ use chrono::{DateTime, Utc};
 use clap::Subcommand;
 use std::time::SystemTime;
 use web5::{
-    credentials::verifiable_credential_1_1::{
-        CredentialSubject, Issuer, VerifiableCredential, VerifiableCredentialCreateOptions,
+    credentials::{
+        verifiable_credential_1_1::{VerifiableCredential, VerifiableCredentialCreateOptions},
+        CredentialSubject, Issuer,
     },
     dids::{bearer_did::BearerDid, portable_did::PortableDid},
     json::{FromJson, ToJson},
@@ -90,7 +91,7 @@ impl Commands {
 
                 if let Some(portable_did) = portable_did {
                     let bearer_did = BearerDid::from_portable_did(portable_did).unwrap();
-                    let vc_jwt = vc.sign(&bearer_did).unwrap();
+                    let vc_jwt = vc.sign(&bearer_did, None).unwrap();
                     println!("\n{}", vc_jwt);
                 }
             }
@@ -98,13 +99,12 @@ impl Commands {
                 vc_jwt,
                 no_indent,
                 json_escape,
-            } => match VerifiableCredential::verify(vc_jwt) {
+            } => match VerifiableCredential::from_vc_jwt(vc_jwt, true) {
                 Err(e) => {
                     println!("\n❌ Verfication failed\n");
                     println!("{:?} {}", e, e);
                 }
-                Ok(_) => {
-                    let vc = VerifiableCredential::verify(vc_jwt).unwrap();
+                Ok(vc) => {
                     println!("\n✅ Verfied\n");
 
                     let mut output_str = match no_indent {

@@ -1,8 +1,13 @@
 package web5.sdk.vc
 
 import com.fasterxml.jackson.annotation.JsonValue
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import web5.sdk.Json
-import java.time.Instant
+import web5.sdk.dids.BearerDid
 import java.util.Date
 import web5.sdk.rust.VerifiableCredential as RustCoreVerifiableCredential
 import web5.sdk.rust.VerifiableCredentialCreateOptionsData as RustCoreVerifiableCredentialCreateOptions
@@ -59,9 +64,33 @@ class VerifiableCredential private constructor(
                 rustCoreVerifiableCredential,
             )
         }
+
+        fun fromVcJwt(vcJwt: String, verify: Boolean): VerifiableCredential {
+            val rustCoreVerifiableCredential = RustCoreVerifiableCredential.fromVcJwt(vcJwt, verify)
+            val data = rustCoreVerifiableCredential.getData()
+
+            val issuer = Json.jsonMapper.readValue(data.jsonSerializedIssuer, Issuer::class.java)
+            val credentialSubject = Json.jsonMapper.readValue(data.jsonSerializedCredentialSubject, CredentialSubject::class.java)
+
+            return VerifiableCredential(
+                data.context,
+                data.type,
+                data.id,
+                issuer,
+                credentialSubject,
+                Date.from(data.issuanceDate),
+                data.expirationDate?.let { Date.from(it) },
+                rustCoreVerifiableCredential,
+            )
+        }
+    }
+
+    fun sign(bearerDid: BearerDid, verificationMethodId: String? = null): String {
+        return rustCoreVerifiableCredential.sign(bearerDid.rustCoreBearerDid, verificationMethodId)
     }
 }
 
+@JsonDeserialize(using = IssuerDeserializer::class)
 sealed class Issuer {
     data class StringIssuer(val value: String) : Issuer() {
         @JsonValue
@@ -76,6 +105,25 @@ sealed class Issuer {
         @JsonValue
         fun toJson(): Map<String, Any> {
             return mapOf("id" to id, "name" to name) + additionalProperties
+        }
+    }
+}
+
+class IssuerDeserializer : JsonDeserializer<Issuer>() {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Issuer {
+        val node = p.codec.readTree<JsonNode>(p)
+        return if (node.isTextual) {
+            Issuer.StringIssuer(node.asText())
+        } else {
+            val id = node.get("id").asText()
+            val name = node.get("name").asText()
+            val additionalProperties = mutableMapOf<String, Any>()
+            node.fields().forEachRemaining { (key, value) ->
+                if (key != "id" && key != "name") {
+                    additionalProperties[key] = value
+                }
+            }
+            Issuer.ObjectIssuer(id, name, additionalProperties)
         }
     }
 }
