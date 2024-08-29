@@ -61,7 +61,7 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, macos-12, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -71,8 +71,20 @@ jobs:
         run: rustup toolchain install 1.74.0
       - name: Set Rust 1.74.0 as default
         run: rustup default 1.74.0
+      - name: Test
+        run: cargo test --package web5
+
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
       - name: Install OpenSSL via vcpkg (Windows only)
-        if: matrix.os == 'windows-latest'
         run: |
           git clone https://github.com/Microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
@@ -81,7 +93,7 @@ jobs:
           echo "vcpkg\installed\x64-windows\lib" >> $GITHUB_PATH
           echo "vcpkg\installed\x64-windows\include" >> $GITHUB_PATH
       - name: Test
-        run: cargo test --package web5
+        run: cargo test --package web5 --features x86_64_pc_windows_msvc
 
   build_aarch64_apple_darwin:
     runs-on: macos-latest
