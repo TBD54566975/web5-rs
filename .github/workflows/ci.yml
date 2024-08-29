@@ -227,6 +227,10 @@ jobs:
         with:
           name: x86_64-pc-windows-msvc-dll
           path: bound/kt/src/main/resources/win32-x86-64/
+      # DEBUG!
+      - name: List contents of resources directory
+        run: dir bound/kt/src/main/resources/win32-x86-64
+      # DEBUG!
       - name: Run Maven Tests
         run: |
           cd bound/kt/
