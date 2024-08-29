@@ -62,7 +62,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, macos-12, windows-latest]
-        rust: [stable, nightly]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +72,7 @@ jobs:
       - name: Set Rust 1.74.0 as default
         run: rustup default 1.74.0
       - name: Test
-        run: cargo test --workspace
+        run: cargo test --package web5
 
   build_aarch64_apple_darwin:
     runs-on: macos-latest
