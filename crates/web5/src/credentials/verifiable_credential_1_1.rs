@@ -60,6 +60,9 @@ pub struct VerifiableCredentialCreateOptions {
     pub expiration_date: Option<SystemTime>,
     pub credential_schema: Option<CredentialSchema>,
     pub evidence: Option<Vec<JsonObject>>,
+
+    #[cfg(test)]
+    pub skip_schema_validation: bool,
 }
 
 impl VerifiableCredential {
@@ -99,6 +102,7 @@ mod tests {
     mod from_vc_jwt {
         use super::*;
         use crate::credentials::credential_schema::CREDENTIAL_SCHEMA_TYPE;
+        use crate::dids::methods::did_jwk::DidJwk;
         use crate::json::JsonValue;
         use crate::{credentials::CredentialError, errors::Web5Error};
         use crate::{
@@ -106,6 +110,8 @@ mod tests {
             test_helpers::UnitTestSuite, test_name,
         };
         use lazy_static::lazy_static;
+        use mockito::Server;
+        use uuid::Uuid;
 
         lazy_static! {
             static ref TEST_SUITE: UnitTestSuite =
@@ -719,49 +725,350 @@ mod tests {
         fn test_schema_resolve_non_success() {
             TEST_SUITE.include(test_name!());
 
-            // TODO
+            let mut mock_server = Server::new();
+            let url = mock_server.url();
+
+            let _ = mock_server
+                .mock("GET", "/schemas/email.json")
+                .with_status(500) // here
+                .create();
+
+            let bearer_did = DidJwk::create(None).unwrap();
+            let vc = VerifiableCredential {
+                context: vec![BASE_CONTEXT.to_string()],
+                id: format!("urn:uuid:{}", Uuid::new_v4()),
+                r#type: vec![BASE_TYPE.to_string()],
+                issuer: Issuer::String(bearer_did.did.uri.clone()),
+                credential_subject: CredentialSubject::from(
+                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
+                ),
+                issuance_date: SystemTime::now(),
+                credential_schema: Some(CredentialSchema {
+                    id: format!("{}/schemas/email.json", url),
+                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
+                }),
+                expiration_date: None,
+                evidence: None,
+            };
+            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+
+            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            match result {
+                Err(Web5Error::JsonSchema(err_msg)) => {
+                    assert!(err_msg.contains("non-200 response when resolving json schema"))
+                }
+                _ => panic!(
+                    "expected Web5Error::JsonSchema with specific message but got {:?}",
+                    result
+                ),
+            }
         }
 
         #[test]
         fn test_schema_resolve_invalid_response_body() {
             TEST_SUITE.include(test_name!());
 
-            // TODO
+            let mut mock_server = Server::new();
+            let url = mock_server.url();
+
+            let _ = mock_server
+                .mock("GET", "/schemas/email.json")
+                .with_status(200)
+                .with_header("content-type", "application/json")
+                .with_body("invalid response body") // here
+                .create();
+
+            let bearer_did = DidJwk::create(None).unwrap();
+            let vc = VerifiableCredential {
+                context: vec![BASE_CONTEXT.to_string()],
+                id: format!("urn:uuid:{}", Uuid::new_v4()),
+                r#type: vec![BASE_TYPE.to_string()],
+                issuer: Issuer::String(bearer_did.did.uri.clone()),
+                credential_subject: CredentialSubject::from(
+                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
+                ),
+                issuance_date: SystemTime::now(),
+                credential_schema: Some(CredentialSchema {
+                    id: format!("{}/schemas/email.json", url),
+                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
+                }),
+                expiration_date: None,
+                evidence: None,
+            };
+            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+
+            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            match result {
+                Err(Web5Error::JsonSchema(err_msg)) => {
+                    assert!(err_msg.contains("unable to parse json schema from response body"))
+                }
+                _ => panic!(
+                    "expected Web5Error::JsonSchema with specific message but got {:?}",
+                    result
+                ),
+            }
+        }
+
+        fn mock_json_schema(url: String, schema_override: Option<String>) -> String {
+            let schema = schema_override
+                .unwrap_or_else(|| "https://json-schema.org/draft/2020-12/schema".to_string());
+
+            format!(
+                r###"
+                    {{
+                        "$id": "{url}/schemas/email.json",
+                        "$schema": "{schema}",
+                        "title": "EmailCredential",
+                        "description": "EmailCredential using JsonSchema",
+                        "type": "object",
+                        "properties": {{
+                            "credentialSubject": {{
+                                "type": "object",
+                                "properties": {{
+                                    "emailAddress": {{
+                                        "type": "string",
+                                        "format": "email"
+                                    }}
+                                }},
+                                "required": [
+                                    "emailAddress"
+                                ]
+                            }}
+                        }}
+                    }}"###
+            )
         }
 
         #[test]
         fn test_schema_invalid_json_schema() {
             TEST_SUITE.include(test_name!());
 
-            // TODO
+            let mut mock_server = Server::new();
+            let url = mock_server.url();
+
+            let _ = mock_server
+                .mock("GET", "/schemas/email.json")
+                .with_status(200)
+                .with_header("content-type", "application/json")
+                .with_body(&mock_json_schema(
+                    url.clone(),
+                    Some("this is not a valid $schema".to_string()), // here
+                ))
+                .create();
+
+            let bearer_did = DidJwk::create(None).unwrap();
+            let vc = VerifiableCredential {
+                context: vec![BASE_CONTEXT.to_string()],
+                id: format!("urn:uuid:{}", Uuid::new_v4()),
+                r#type: vec![BASE_TYPE.to_string()],
+                issuer: Issuer::String(bearer_did.did.uri.clone()),
+                credential_subject: CredentialSubject::from(
+                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
+                ),
+                issuance_date: SystemTime::now(),
+                credential_schema: Some(CredentialSchema {
+                    id: format!("{}/schemas/email.json", url),
+                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
+                }),
+                expiration_date: None,
+                evidence: None,
+            };
+            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+
+            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            match result {
+                Err(Web5Error::JsonSchema(err_msg)) => {
+                    assert!(err_msg.contains("unable to compile json schema"))
+                }
+                _ => panic!(
+                    "expected Web5Error::JsonSchema with specific message but got {:?}",
+                    result
+                ),
+            }
         }
 
         #[test]
         fn test_schema_do_not_support_draft04() {
             TEST_SUITE.include(test_name!());
 
-            // TODO
+            let mut mock_server = Server::new();
+            let url = mock_server.url();
+
+            let _ = mock_server
+                .mock("GET", "/schemas/email.json")
+                .with_status(200)
+                .with_header("content-type", "application/json")
+                .with_body(&mock_json_schema(
+                    url.clone(),
+                    Some("http://json-schema.org/draft-04/schema#".to_string()), // here
+                ))
+                .create();
+
+            let bearer_did = DidJwk::create(None).unwrap();
+            let vc = VerifiableCredential {
+                context: vec![BASE_CONTEXT.to_string()],
+                id: format!("urn:uuid:{}", Uuid::new_v4()),
+                r#type: vec![BASE_TYPE.to_string()],
+                issuer: Issuer::String(bearer_did.did.uri.clone()),
+                credential_subject: CredentialSubject::from(
+                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
+                ),
+                issuance_date: SystemTime::now(),
+                credential_schema: Some(CredentialSchema {
+                    id: format!("{}/schemas/email.json", url),
+                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
+                }),
+                expiration_date: None,
+                evidence: None,
+            };
+            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+
+            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            match result {
+                Err(Web5Error::JsonSchema(err_msg)) => {
+                    assert_eq!("draft unsupported Draft4", err_msg)
+                }
+                _ => panic!(
+                    "expected Web5Error::JsonSchema with specific message but got {:?}",
+                    result
+                ),
+            }
         }
 
         #[test]
         fn test_schema_do_not_support_draft06() {
             TEST_SUITE.include(test_name!());
 
-            // TODO
+            let mut mock_server = Server::new();
+            let url = mock_server.url();
+
+            let _ = mock_server
+                .mock("GET", "/schemas/email.json")
+                .with_status(200)
+                .with_header("content-type", "application/json")
+                .with_body(&mock_json_schema(
+                    url.clone(),
+                    Some("http://json-schema.org/draft-06/schema#".to_string()), // here
+                ))
+                .create();
+
+            let bearer_did = DidJwk::create(None).unwrap();
+            let vc = VerifiableCredential {
+                context: vec![BASE_CONTEXT.to_string()],
+                id: format!("urn:uuid:{}", Uuid::new_v4()),
+                r#type: vec![BASE_TYPE.to_string()],
+                issuer: Issuer::String(bearer_did.did.uri.clone()),
+                credential_subject: CredentialSubject::from(
+                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
+                ),
+                issuance_date: SystemTime::now(),
+                credential_schema: Some(CredentialSchema {
+                    id: format!("{}/schemas/email.json", url),
+                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
+                }),
+                expiration_date: None,
+                evidence: None,
+            };
+            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+
+            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            match result {
+                Err(Web5Error::JsonSchema(err_msg)) => {
+                    assert_eq!("draft unsupported Draft6", err_msg)
+                }
+                _ => panic!(
+                    "expected Web5Error::JsonSchema with specific message but got {:?}",
+                    result
+                ),
+            }
         }
 
         #[test]
         fn test_schema_fails_validation() {
             TEST_SUITE.include(test_name!());
 
-            // TODO
+            let mut mock_server = Server::new();
+            let url = mock_server.url();
+
+            let _ = mock_server
+                .mock("GET", "/schemas/email.json")
+                .with_status(200)
+                .with_header("content-type", "application/json")
+                .with_body(&mock_json_schema(url.clone(), None))
+                .create();
+
+            let bearer_did = DidJwk::create(None).unwrap();
+            let vc = VerifiableCredential {
+                context: vec![BASE_CONTEXT.to_string()],
+                id: format!("urn:uuid:{}", Uuid::new_v4()),
+                r#type: vec![BASE_TYPE.to_string()],
+                issuer: Issuer::String(bearer_did.did.uri.clone()),
+                credential_subject: CredentialSubject::from(
+                    // mising emailAddress
+                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
+                ),
+                issuance_date: SystemTime::now(),
+                credential_schema: Some(CredentialSchema {
+                    id: format!("{}/schemas/email.json", url),
+                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
+                }),
+                expiration_date: None,
+                evidence: None,
+            };
+            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+
+            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            match result {
+                Err(Web5Error::JsonSchema(err_msg)) => {
+                    assert!(err_msg.contains("validation errors"))
+                }
+                _ => panic!(
+                    "expected Web5Error::JsonSchema with specific message but got {:?}",
+                    result
+                ),
+            }
         }
 
         #[test]
         fn test_schema_example_from_spec() {
             TEST_SUITE.include(test_name!());
 
-            // TODO
+            let mut mock_server = Server::new();
+            let url = mock_server.url();
+
+            let _ = mock_server
+                .mock("GET", "/schemas/email.json")
+                .with_status(200)
+                .with_header("content-type", "application/json")
+                .with_body(&mock_json_schema(url.clone(), None))
+                .create();
+
+            let bearer_did = DidJwk::create(None).unwrap();
+            let mut additional_properties = JsonObject::new();
+            additional_properties.insert(
+                "emailAddress".to_string(),
+                JsonValue::String("alice@tbd.email".to_string()),
+            );
+            let vc = VerifiableCredential {
+                context: vec![BASE_CONTEXT.to_string()],
+                id: format!("urn:uuid:{}", Uuid::new_v4()),
+                r#type: vec![BASE_TYPE.to_string()],
+                issuer: Issuer::String(bearer_did.did.uri.clone()),
+                credential_subject: CredentialSubject {
+                    id: "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
+                    additional_properties: Some(additional_properties),
+                },
+                issuance_date: SystemTime::now(),
+                credential_schema: Some(CredentialSchema {
+                    id: format!("{}/schemas/email.json", url),
+                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
+                }),
+                expiration_date: None,
+                evidence: None,
+            };
+            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+
+            let _ = VerifiableCredential::from_vc_jwt(&vc_jwt, true).unwrap();
         }
     }
 }
