@@ -1,5 +1,8 @@
 package web5.sdk.vc
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -24,7 +27,7 @@ data class VerifiableCredentialCreateOptions(
     val evidence: List<Map<String, Any>>? = null
 )
 
-class VerifiableCredential private constructor(
+data class VerifiableCredential(
     val context: List<String>,
     val type: List<String>,
     val id: String,
@@ -34,8 +37,23 @@ class VerifiableCredential private constructor(
     val expirationDate: Date? = null,
     val credentialSchema: CredentialSchema? = null,
     val evidence: List<Map<String, Any>>? = null,
-    internal val rustCoreVerifiableCredential: RustCoreVerifiableCredential,
 ) {
+    internal val rustCoreVerifiableCredential: RustCoreVerifiableCredential
+
+    init {
+        rustCoreVerifiableCredential = RustCoreVerifiableCredential(
+            context,
+            type,
+            id,
+            Json.stringify(issuer),
+            Json.stringify(credentialSubject),
+            issuanceDate.toInstant(),
+            expirationDate?.toInstant(),
+            credentialSchema?.let { RustCoreCredentialSchema(it.id, it.type) },
+            evidence?.let { Json.stringify(it) }
+        )
+    }
+
     companion object {
         fun create(
             issuer: Issuer,
@@ -73,7 +91,6 @@ class VerifiableCredential private constructor(
                 data.expirationDate?.let { Date.from(it) },
                 data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
                 evidence,
-                rustCoreVerifiableCredential,
             )
         }
 
@@ -95,7 +112,6 @@ class VerifiableCredential private constructor(
                 data.expirationDate?.let { Date.from(it) },
                 data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
                 evidence,
-                rustCoreVerifiableCredential,
             )
         }
     }
@@ -145,13 +161,22 @@ class IssuerDeserializer : JsonDeserializer<Issuer>() {
 
 data class CredentialSubject(
     val id: String,
-    val additionalProperties: Map<String, Any> = emptyMap()
+    @JsonIgnore
+    val additionalProperties: Map<String, Any> = mutableMapOf()
 ) {
+    @JsonAnyGetter
+    internal fun getAdditionalProperties(): Map<String, Any> {
+        return additionalProperties
+    }
+
+    @JsonAnySetter
+    internal fun setAdditionalProperty(key: String, value: Any) {
+        (additionalProperties as MutableMap)[key] = value
+    }
+
     @JsonValue
     fun toJson(): Map<String, Any> {
-        return mapOf(
-            "id" to id,
-        ) + additionalProperties
+        return mapOf("id" to id) + additionalProperties
     }
 }
 

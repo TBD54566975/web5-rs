@@ -658,14 +658,14 @@ class VerifiableCredentialTest {
     inner class FromVcJwt {
         private val testSuite = UnitTestSuite("verifiable_credential_1_1_from_vc_jwt")
 
-//        @AfterAll
-//        fun verifyAllTestsIncluded() {
-//            if (testSuite.tests.isNotEmpty()) {
-//                println("The following tests were not included or executed:")
-//                testSuite.tests.forEach { println(it) }
-//                fail("Not all tests were executed! ${testSuite.tests}")
-//            }
-//        }
+        @AfterAll
+        fun verifyAllTestsIncluded() {
+            if (testSuite.tests.isNotEmpty()) {
+                println("The following tests were not included or executed:")
+                testSuite.tests.forEach { println(it) }
+                fail("Not all tests were executed! ${testSuite.tests}")
+            }
+        }
 
         @Test
         fun test_missing_kid_jose_header() {
@@ -1142,8 +1142,21 @@ class VerifiableCredentialTest {
             )
 
             val bearerDid = DidJwk.create()
-            val vc = VerifiableCredential
-            val vcJwt = "your-jwt-token-here" // replace with your actual JWT token
+            val vc = VerifiableCredential(
+                context = listOf("https://www.w3.org/2018/credentials/v1"),
+                type = listOf("VerifiableCredential"),
+                id = "urn:uuid:some-uuid",
+                issuer = Issuer.StringIssuer(bearerDid.did.uri),
+                credentialSubject = CredentialSubject(
+                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
+                ),
+                issuanceDate = Date(),
+                credentialSchema = CredentialSchema(
+                    id = url.toString(),
+                    type = "JsonSchema"
+                )
+            )
+            val vcJwt = vc.sign(bearerDid)
 
             val exception = assertThrows<Web5Exception.Exception> {
                 VerifiableCredential.fromVcJwt(vcJwt, true)
@@ -1158,42 +1171,356 @@ class VerifiableCredentialTest {
         fun test_schema_resolve_invalid_response_body() {
             testSuite.include()
 
-            // TODO
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody("invalid response body") // Simulate invalid JSON response
+            )
+
+            val bearerDid = DidJwk.create()
+            val vc = VerifiableCredential(
+                context = listOf("https://www.w3.org/2018/credentials/v1"),
+                type = listOf("VerifiableCredential"),
+                id = "urn:uuid:some-uuid",
+                issuer = Issuer.StringIssuer(bearerDid.did.uri),
+                credentialSubject = CredentialSubject(
+                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
+                ),
+                issuanceDate = Date(),
+                credentialSchema = CredentialSchema(
+                    id = url.toString(),
+                    type = "JsonSchema"
+                )
+            )
+            val vcJwt = vc.sign(bearerDid)
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwt, true)
+            }
+
+            assertTrue(exception.msg.contains("unable to parse json schema from response body"))
+
+            mockWebServer.shutdown()
         }
 
         @Test
         fun test_schema_invalid_json_schema() {
             testSuite.include()
 
-            // TODO
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            val invalidJsonSchema = """
+                {
+                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}schema": "this is not a valid ${"$"}schema",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(invalidJsonSchema)
+            )
+
+            val bearerDid = DidJwk.create()
+            val vc = VerifiableCredential(
+                context = listOf("https://www.w3.org/2018/credentials/v1"),
+                type = listOf("VerifiableCredential"),
+                id = "urn:uuid:some-uuid",
+                issuer = Issuer.StringIssuer(bearerDid.did.uri),
+                credentialSubject = CredentialSubject(
+                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
+                ),
+                issuanceDate = Date(),
+                credentialSchema = CredentialSchema(
+                    id = url.toString(),
+                    type = "JsonSchema"
+                )
+            )
+            val vcJwt = vc.sign(bearerDid)
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwt, true)
+            }
+
+            assertTrue(exception.msg.contains("unable to compile json schema"))
+
+            mockWebServer.shutdown()
         }
 
         @Test
         fun test_schema_do_not_support_draft04() {
             testSuite.include()
 
-            // TODO
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            val draft04Schema = """
+                {
+                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}schema": "http://json-schema.org/draft-04/schema#",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(draft04Schema)
+            )
+
+            val bearerDid = DidJwk.create()
+            val vc = VerifiableCredential(
+                context = listOf("https://www.w3.org/2018/credentials/v1"),
+                type = listOf("VerifiableCredential"),
+                id = "urn:uuid:some-uuid",
+                issuer = Issuer.StringIssuer(bearerDid.did.uri),
+                credentialSubject = CredentialSubject(
+                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
+                ),
+                issuanceDate = Date(),
+                credentialSchema = CredentialSchema(
+                    id = url.toString(),
+                    type = "JsonSchema"
+                )
+            )
+            val vcJwt = vc.sign(bearerDid)
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwt, true)
+            }
+
+            assertEquals("json schema error draft unsupported Draft4", exception.msg)
+
+            mockWebServer.shutdown()
         }
 
         @Test
         fun test_schema_do_not_support_draft06() {
             testSuite.include()
 
-            // TODO
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            val draft06Schema = """
+                {
+                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}schema": "http://json-schema.org/draft-06/schema#",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(draft06Schema)
+            )
+
+            val bearerDid = DidJwk.create()
+            val vc = VerifiableCredential(
+                context = listOf("https://www.w3.org/2018/credentials/v1"),
+                type = listOf("VerifiableCredential"),
+                id = "urn:uuid:some-uuid",
+                issuer = Issuer.StringIssuer(bearerDid.did.uri),
+                credentialSubject = CredentialSubject(
+                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
+                ),
+                issuanceDate = Date(),
+                credentialSchema = CredentialSchema(
+                    id = url.toString(),
+                    type = "JsonSchema"
+                )
+            )
+            val vcJwt = vc.sign(bearerDid)
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwt, true)
+            }
+
+            assertEquals("json schema error draft unsupported Draft6", exception.msg)
+
+            mockWebServer.shutdown()
         }
 
         @Test
         fun test_schema_fails_validation() {
             testSuite.include()
 
-            // TODO
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            val validJsonSchema = """
+                {
+                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}schema": "https://json-schema.org/draft/2020-12/schema",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(validJsonSchema)
+            )
+
+            val bearerDid = DidJwk.create()
+            val vc = VerifiableCredential(
+                context = listOf("https://www.w3.org/2018/credentials/v1"),
+                type = listOf("VerifiableCredential"),
+                id = "urn:uuid:some-uuid",
+                issuer = Issuer.StringIssuer(bearerDid.did.uri),
+                credentialSubject = CredentialSubject(
+                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y" // Missing emailAddress
+                ),
+                issuanceDate = Date(),
+                credentialSchema = CredentialSchema(
+                    id = url.toString(),
+                    type = "JsonSchema"
+                )
+            )
+            val vcJwt = vc.sign(bearerDid)
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwt, true)
+            }
+
+            assertTrue(exception.msg.contains("validation errors"))
+
+            mockWebServer.shutdown()
         }
 
         @Test
         fun test_schema_example_from_spec() {
             testSuite.include()
 
-            // TODO
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            val validJsonSchema = """
+                {
+                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}schema": "https://json-schema.org/draft/2020-12/schema",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(validJsonSchema)
+            )
+
+            val bearerDid = DidJwk.create()
+            val vc = VerifiableCredential(
+                context = listOf("https://www.w3.org/2018/credentials/v1"),
+                type = listOf("VerifiableCredential"),
+                id = "urn:uuid:some-uuid",
+                issuer = Issuer.StringIssuer(bearerDid.did.uri),
+                credentialSubject = CredentialSubject(
+                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y",
+                    additionalProperties = mapOf("emailAddress" to "alice@tbd.email")
+                ),
+                issuanceDate = Date(),
+                credentialSchema = CredentialSchema(
+                    id = url.toString(),
+                    type = "JsonSchema"
+                )
+            )
+            val vcJwt = vc.sign(bearerDid)
+
+            val decodedVc = VerifiableCredential.fromVcJwt(vcJwt, true)
+
+            assertEquals("alice@tbd.email", decodedVc.credentialSubject.additionalProperties["emailAddress"])
+
+            mockWebServer.shutdown()
         }
     }
 
