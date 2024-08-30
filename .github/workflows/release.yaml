@@ -22,7 +22,7 @@ jobs:
           files: web5_cli-aarch64-apple-darwin
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-  build_x86_64_apple_darwin:
+  build_cli_x86_64_apple_darwin:
     runs-on: macos-12
     name: x86_64-apple-darwin
     steps:
