@@ -5731,6 +5731,35 @@ public object FfiConverterTypeBearerDidData: FfiConverterRustBuffer<BearerDidDat
 
 
 
+data class CredentialSchemaData (
+    var `id`: kotlin.String, 
+    var `type`: kotlin.String
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeCredentialSchemaData: FfiConverterRustBuffer<CredentialSchemaData> {
+    override fun read(buf: ByteBuffer): CredentialSchemaData {
+        return CredentialSchemaData(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: CredentialSchemaData) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterString.allocationSize(value.`type`)
+    )
+
+    override fun write(value: CredentialSchemaData, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterString.write(value.`type`, buf)
+    }
+}
+
+
+
 data class DidData (
     var `uri`: kotlin.String, 
     var `url`: kotlin.String, 
@@ -6233,6 +6262,7 @@ data class VerifiableCredentialCreateOptionsData (
     var `type`: List<kotlin.String>?, 
     var `issuanceDate`: java.time.Instant?, 
     var `expirationDate`: java.time.Instant?, 
+    var `credentialSchema`: CredentialSchemaData?, 
     var `jsonSerializedEvidence`: kotlin.String?
 ) {
     
@@ -6247,6 +6277,7 @@ public object FfiConverterTypeVerifiableCredentialCreateOptionsData: FfiConverte
             FfiConverterOptionalSequenceString.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
+            FfiConverterOptionalTypeCredentialSchemaData.read(buf),
             FfiConverterOptionalString.read(buf),
         )
     }
@@ -6257,6 +6288,7 @@ public object FfiConverterTypeVerifiableCredentialCreateOptionsData: FfiConverte
             FfiConverterOptionalSequenceString.allocationSize(value.`type`) +
             FfiConverterOptionalTimestamp.allocationSize(value.`issuanceDate`) +
             FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`) +
+            FfiConverterOptionalTypeCredentialSchemaData.allocationSize(value.`credentialSchema`) +
             FfiConverterOptionalString.allocationSize(value.`jsonSerializedEvidence`)
     )
 
@@ -6266,6 +6298,7 @@ public object FfiConverterTypeVerifiableCredentialCreateOptionsData: FfiConverte
             FfiConverterOptionalSequenceString.write(value.`type`, buf)
             FfiConverterOptionalTimestamp.write(value.`issuanceDate`, buf)
             FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
+            FfiConverterOptionalTypeCredentialSchemaData.write(value.`credentialSchema`, buf)
             FfiConverterOptionalString.write(value.`jsonSerializedEvidence`, buf)
     }
 }
@@ -6280,6 +6313,7 @@ data class VerifiableCredentialData (
     var `jsonSerializedCredentialSubject`: kotlin.String, 
     var `issuanceDate`: java.time.Instant, 
     var `expirationDate`: java.time.Instant?, 
+    var `credentialSchema`: CredentialSchemaData?, 
     var `jsonSerializedEvidence`: kotlin.String?
 ) {
     
@@ -6296,6 +6330,7 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterString.read(buf),
             FfiConverterTimestamp.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
+            FfiConverterOptionalTypeCredentialSchemaData.read(buf),
             FfiConverterOptionalString.read(buf),
         )
     }
@@ -6308,6 +6343,7 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterString.allocationSize(value.`jsonSerializedCredentialSubject`) +
             FfiConverterTimestamp.allocationSize(value.`issuanceDate`) +
             FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`) +
+            FfiConverterOptionalTypeCredentialSchemaData.allocationSize(value.`credentialSchema`) +
             FfiConverterOptionalString.allocationSize(value.`jsonSerializedEvidence`)
     )
 
@@ -6319,6 +6355,7 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
             FfiConverterString.write(value.`jsonSerializedCredentialSubject`, buf)
             FfiConverterTimestamp.write(value.`issuanceDate`, buf)
             FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
+            FfiConverterOptionalTypeCredentialSchemaData.write(value.`credentialSchema`, buf)
             FfiConverterOptionalString.write(value.`jsonSerializedEvidence`, buf)
     }
 }
@@ -6598,6 +6635,35 @@ public object FfiConverterOptionalTypeKeyManager: FfiConverterRustBuffer<KeyMana
         } else {
             buf.put(1)
             FfiConverterTypeKeyManager.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeCredentialSchemaData: FfiConverterRustBuffer<CredentialSchemaData?> {
+    override fun read(buf: ByteBuffer): CredentialSchemaData? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeCredentialSchemaData.read(buf)
+    }
+
+    override fun allocationSize(value: CredentialSchemaData?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeCredentialSchemaData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: CredentialSchemaData?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeCredentialSchemaData.write(value, buf)
         }
     }
 }

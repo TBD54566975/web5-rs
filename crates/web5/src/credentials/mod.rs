@@ -1,4 +1,5 @@
 mod create;
+pub mod credential_schema;
 mod credential_subject;
 mod data_model_validation;
 mod decode;

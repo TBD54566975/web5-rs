@@ -98,6 +98,7 @@ impl From<Web5Error> for InnerWeb5Error {
 
         match variant.as_str() {
             "Json" => InnerWeb5Error::Json(msg),
+            "JsonSchema" => InnerWeb5Error::JsonSchema(msg),
             "Parameter" => InnerWeb5Error::Parameter(msg),
             "DataMember" => InnerWeb5Error::DataMember(msg),
             "NotFound" => InnerWeb5Error::NotFound(msg),

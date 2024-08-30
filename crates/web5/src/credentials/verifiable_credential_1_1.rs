@@ -1,3 +1,5 @@
+use super::credential_schema::validate_credential_schema;
+use super::credential_schema::CredentialSchema;
 use super::data_model_validation::validate_vc_data_model;
 use super::decode::decode;
 use super::CredentialSubject;
@@ -40,6 +42,8 @@ pub struct VerifiableCredential {
         deserialize_with = "deserialize_optional_system_time"
     )]
     pub expiration_date: Option<SystemTime>,
+    #[serde(rename = "credentialSchema", skip_serializing_if = "Option::is_none")]
+    pub credential_schema: Option<CredentialSchema>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub evidence: Option<Vec<JsonObject>>,
 }
@@ -54,6 +58,7 @@ pub struct VerifiableCredentialCreateOptions {
     pub r#type: Option<Vec<String>>,
     pub issuance_date: Option<SystemTime>,
     pub expiration_date: Option<SystemTime>,
+    pub credential_schema: Option<CredentialSchema>,
     pub evidence: Option<Vec<JsonObject>>,
 }
 
@@ -68,13 +73,14 @@ impl VerifiableCredential {
 
     // this function currently only supports Ed25519
     pub fn from_vc_jwt(vc_jwt: &str, verify: bool) -> Result<Self> {
-        let vc = decode(vc_jwt, verify)?;
+        let verifiable_credential = decode(vc_jwt, verify)?;
 
         if verify {
-            validate_vc_data_model(&vc)?;
+            validate_vc_data_model(&verifiable_credential)?;
+            validate_credential_schema(&verifiable_credential)?;
         }
 
-        Ok(vc)
+        Ok(verifiable_credential)
     }
 
     pub fn sign(
@@ -92,6 +98,7 @@ mod tests {
 
     mod from_vc_jwt {
         use super::*;
+        use crate::credentials::credential_schema::CREDENTIAL_SCHEMA_TYPE;
         use crate::json::JsonValue;
         use crate::{credentials::CredentialError, errors::Web5Error};
         use crate::{
@@ -259,6 +266,18 @@ mod tests {
         }
 
         #[test]
+        fn test_can_skip_credential_schema_validation() {
+            TEST_SUITE.include(test_name!());
+
+            // expired would throw an error, but since verify=false it doesn't
+            let vc_jwt_with_invalid_schema = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXlkMjFXVjFwblMySk1iM0JPVEhWTmRYUlNSV2gwTWtWMmJEbExkVkpFTFY5MlVrRnpWMlZwUm01TkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjE1OTY4MDA4LTI1OTEtNGY0MS1hOWI1LWU2YmUxNDU5ZDcxNiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJeWQyMVdWMXBuUzJKTWIzQk9USFZOZFhSU1JXaDBNa1YyYkRsTGRWSkVMVjkyVWtGelYyVnBSbTVOSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxNDo1NTozNS41MTc5NjUrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6ImludmFsaWQgdXJsL3NjaGVtYXMvZW1haWwuanNvbiIsInR5cGUiOiJKc29uU2NoZW1hIn19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUl5ZDIxV1YxcG5TMkpNYjNCT1RIVk5kWFJTUldoME1rVjJiRGxMZFZKRUxWOTJVa0Z6VjJWcFJtNU5JbjAiLCJqdGkiOiJ1cm46dXVpZDoxNTk2ODAwOC0yNTkxLTRmNDEtYTliNS1lNmJlMTQ1OWQ3MTYiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjUwMjk3MzUsImlhdCI6MTcyNTAyOTczNX0.8zNS9RWIpvTlMvAzaI9dNSjKKM1drFig7bKhQeQ6Mv9hWXwazvDhxthy3D25EmITWAPiJfGcMPDqoDobETf8DA"#;
+
+            let vc = VerifiableCredential::from_vc_jwt(vc_jwt_with_invalid_schema, false)
+                .expect("vc_jwt should be valid");
+            assert_eq!("urn:uuid:15968008-2591-4f41-a9b5-e6be1459d716", vc.id)
+        }
+
+        #[test]
         fn test_issuer_string() {
             TEST_SUITE.include(test_name!());
 
@@ -312,6 +331,22 @@ mod tests {
             );
             let expected_evidence = vec![evidence_item];
             assert_eq!(Some(expected_evidence), vc.evidence);
+        }
+
+        #[test]
+        fn test_credential_schema() {
+            TEST_SUITE.include(test_name!());
+
+            let vc_jwt_with_credential_schema = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSTFUMXB2TVd4bU9VcHlOeTFZTkdGWU4yRmxka2N5WVU5MGEwWmxlSFZuYzBwcVZVbEtWVU5UYVVkUkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjNhMDU2NjE1LWNlZDMtNGQ4Zi05ODRhLTUwMzQ2Y2FlNDQ2ZiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJMVQxcHZNV3htT1VweU55MVlOR0ZZTjJGbGRrY3lZVTkwYTBabGVIVm5jMHBxVlVsS1ZVTlRhVWRSSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxNDo1OToyMi4xMDMzODUrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSTFUMXB2TVd4bU9VcHlOeTFZTkdGWU4yRmxka2N5WVU5MGEwWmxlSFZuYzBwcVZVbEtWVU5UYVVkUkluMCIsImp0aSI6InVybjp1dWlkOjNhMDU2NjE1LWNlZDMtNGQ4Zi05ODRhLTUwMzQ2Y2FlNDQ2ZiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTAyOTk2MiwiaWF0IjoxNzI1MDI5OTYyfQ.ZQkusfYLJSpfLVF9OuWrrhw8NdcBnjlalMFZbsfAxJp8i74KH47RkMsVVPadLPuKwbozgcDRCKPsokrl33TuCw"#;
+            let vc = VerifiableCredential::from_vc_jwt(&vc_jwt_with_credential_schema, false)
+                .expect("should be valid vc jwt");
+
+            let credential_schema = CredentialSchema {
+                id: "https://example.com/schemas/email.json".to_string(),
+                r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
+            };
+
+            assert_eq!(Some(credential_schema), vc.credential_schema)
         }
 
         #[test]
@@ -640,6 +675,93 @@ mod tests {
                     result
                 ),
             };
+        }
+
+        #[test]
+        fn test_schema_type_must_be_jsonschema() {
+            TEST_SUITE.include(test_name!());
+
+            let vc_jwt_with_wrong_schema_type = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXhlbTlYY0VWTWN6TnhiV0p5VW5GblRFbzBjbDlCZUhCYVNFSmpjMUZJVGtSaVRGYzBOM1JmVGpkSkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjQ1NGY1NWJmLWYzMjAtNDQyOS1iNmViLTRkMzdlNTMzNDkwYyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJeGVtOVhjRVZNY3pOeGJXSnlVbkZuVEVvMGNsOUJlSEJhU0VKamMxRklUa1JpVEZjME4zUmZUamRKSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxNTowMjo1NC4zNjg1NjMrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vZXhhbXBsZS5jb20iLCJ0eXBlIjoic29tZXRoaW5nIGludmFsaWFkIn19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUl4ZW05WGNFVk1jek54YldKeVVuRm5URW8wY2w5QmVIQmFTRUpqYzFGSVRrUmlURmMwTjNSZlRqZEpJbjAiLCJqdGkiOiJ1cm46dXVpZDo0NTRmNTViZi1mMzIwLTQ0MjktYjZlYi00ZDM3ZTUzMzQ5MGMiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjUwMzAxNzQsImlhdCI6MTcyNTAzMDE3NH0.8gxVx3_Qd1Lvao-y5PZ56XS3lMQvrFtBVMgfNDIdW9eoQkBQMNv79YKIxFCig0LHanzg_vyzX7tBviW6xJUuDw"#;
+
+            let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_wrong_schema_type, true);
+
+            match result {
+                Err(Web5Error::Parameter(err_msg)) => {
+                    assert_eq!(format!("type must be {}", CREDENTIAL_SCHEMA_TYPE), err_msg)
+                }
+                _ => panic!(
+                    "expected Web5Error::Parameter with specific message but got {:?}",
+                    result
+                ),
+            };
+        }
+
+        #[test]
+        fn test_schema_resolve_network_issue() {
+            TEST_SUITE.include(test_name!());
+
+            let vc_jwt_with_invalid_url = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSmZYelYxVEU1bWNVWTRRbTB6ZVhnMmJVRndMVlJJV25sSk5WcDJWQzFmYVVKbExWZDJiMHRuTTFwakluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmRlNDY2N2YxLTMzM2ItNDg4OC1hMDc5LTdkMGU1N2JiZmFlZiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKZlh6VjFURTVtY1VZNFFtMHplWGcyYlVGd0xWUklXbmxKTlZwMlZDMWZhVUpsTFZkMmIwdG5NMXBqSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxNTowNToyMC43NjQ0MDgrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6ImludmFsaWQgdXJsIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSmZYelYxVEU1bWNVWTRRbTB6ZVhnMmJVRndMVlJJV25sSk5WcDJWQzFmYVVKbExWZDJiMHRuTTFwakluMCIsImp0aSI6InVybjp1dWlkOmRlNDY2N2YxLTMzM2ItNDg4OC1hMDc5LTdkMGU1N2JiZmFlZiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTAzMDMyMCwiaWF0IjoxNzI1MDMwMzIwfQ.3sH7qzI7QrQMdkWIvqf7k8Mr2dMGjWBLrv4QB8gEz0t83RSFMtG-fWT-YVkUlo1qMvC4gNjT2Jc0eObCAA7VDQ"#;
+
+            let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_invalid_url, true);
+
+            match result {
+                Err(Web5Error::Network(err_msg)) => {
+                    assert!(err_msg.contains("unable to resolve json schema"))
+                }
+                _ => panic!(
+                    "expected Web5Error::Network with specific message but got {:?}",
+                    result
+                ),
+            };
+        }
+
+        #[test]
+        fn test_schema_resolve_non_success() {
+            TEST_SUITE.include(test_name!());
+
+            // TODO
+        }
+
+        #[test]
+        fn test_schema_resolve_invalid_response_body() {
+            TEST_SUITE.include(test_name!());
+
+            // TODO
+        }
+
+        #[test]
+        fn test_schema_invalid_json_schema() {
+            TEST_SUITE.include(test_name!());
+
+            // TODO
+        }
+
+        #[test]
+        fn test_schema_do_not_support_draft04() {
+            TEST_SUITE.include(test_name!());
+
+            // TODO
+        }
+
+        #[test]
+        fn test_schema_do_not_support_draft06() {
+            TEST_SUITE.include(test_name!());
+
+            // TODO
+        }
+
+        #[test]
+        fn test_schema_fails_validation() {
+            TEST_SUITE.include(test_name!());
+
+            // TODO
+        }
+
+        #[test]
+        fn test_schema_example_from_spec() {
+            TEST_SUITE.include(test_name!());
+
+            // TODO
         }
     }
 }
