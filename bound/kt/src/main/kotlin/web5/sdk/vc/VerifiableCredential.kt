@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.module.kotlin.readValue
 import web5.sdk.Json
 import web5.sdk.dids.BearerDid
 import java.util.Date
@@ -14,10 +15,11 @@ import web5.sdk.rust.VerifiableCredentialCreateOptionsData as RustCoreVerifiable
 
 data class VerifiableCredentialCreateOptions(
     val id: String? = null,
-    var context: List<String>? = null,
-    var type: List<String>? = null,
-    var issuanceDate: Date? = null,
-    var expirationDate: Date? = null
+    val context: List<String>? = null,
+    val type: List<String>? = null,
+    val issuanceDate: Date? = null,
+    val expirationDate: Date? = null,
+    val evidence: List<Map<String, Any>>? = null
 )
 
 class VerifiableCredential private constructor(
@@ -28,6 +30,7 @@ class VerifiableCredential private constructor(
     val credentialSubject: CredentialSubject,
     val issuanceDate: Date,
     val expirationDate: Date? = null,
+    val evidence: List<Map<String, Any>>? = null,
     internal val rustCoreVerifiableCredential: RustCoreVerifiableCredential,
 ) {
     companion object {
@@ -38,6 +41,7 @@ class VerifiableCredential private constructor(
 
             val jsonSerializedIssuer = Json.stringify(issuer)
             val jsonSerializedCredentialSubject = Json.stringify(credentialSubject)
+            val jsonSerializedEvidence = options?.evidence?.let { Json.stringify(it) }
 
             val rustCoreVerifiableCredential = RustCoreVerifiableCredential.create(
                 jsonSerializedIssuer,
@@ -48,10 +52,12 @@ class VerifiableCredential private constructor(
                     options?.type,
                     options?.issuanceDate?.toInstant(),
                     options?.expirationDate?.toInstant(),
+                    jsonSerializedEvidence
                 )
             )
 
             val data = rustCoreVerifiableCredential.getData()
+            val evidence = data.jsonSerializedEvidence?.let { Json.jsonMapper.readValue<List<Map<String, Any>>>(it) }
 
             return VerifiableCredential(
                 data.context,
@@ -61,6 +67,7 @@ class VerifiableCredential private constructor(
                 credentialSubject,
                 Date.from(data.issuanceDate),
                 data.expirationDate?.let { Date.from(it) },
+                evidence,
                 rustCoreVerifiableCredential,
             )
         }
@@ -71,6 +78,7 @@ class VerifiableCredential private constructor(
 
             val issuer = Json.jsonMapper.readValue(data.jsonSerializedIssuer, Issuer::class.java)
             val credentialSubject = Json.jsonMapper.readValue(data.jsonSerializedCredentialSubject, CredentialSubject::class.java)
+            val evidence = data.jsonSerializedEvidence?.let { Json.jsonMapper.readValue<List<Map<String, Any>>>(it) }
 
             return VerifiableCredential(
                 data.context,
@@ -80,6 +88,7 @@ class VerifiableCredential private constructor(
                 credentialSubject,
                 Date.from(data.issuanceDate),
                 data.expirationDate?.let { Date.from(it) },
+                evidence,
                 rustCoreVerifiableCredential,
             )
         }

@@ -26,6 +26,7 @@ pub fn sign_with_signer(
         issuance_date: Some(vc.issuance_date),
         expiration_date: vc.expiration_date,
         credential_subject: Some(vc.credential_subject.clone()),
+        evidence: vc.evidence.clone(),
     };
     payload
         .set_claim("vc", Some(serde_json::to_value(vc_claim)?))

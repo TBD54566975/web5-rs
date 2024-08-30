@@ -12,8 +12,9 @@
       - [`VerifiableCredential`](#verifiablecredential)
         - [`CredentialSubject`](#credentialsubject)
         - [`Issuer`](#issuer)
+        - [`Evidence`](#evidence)
         - [`CredentialStatus`](#credentialstatus)
-        - [`CreateOptions`](#createoptions)
+        - [`VerifiableCredentialCreateOptions`](#verifiablecredentialcreateoptions)
   - [StatusListCredential](#statuslistcredential)
       - [`StatusListCredential`](#statuslistcredential-1)
   - [Presentation Exchange (PEX)](#presentation-exchange-pex)
@@ -90,8 +91,9 @@ CLASS VerifiableCredential
   PUBLIC DATA issuance_date: datetime
   PUBLIC DATA expiration_date: datetime?
   PUBLIC DATA credentialSubject: CredentialSubject
+  PUBLIC DATA evidence: []Evidence?
 
-  CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: CreateOptions?)
+  CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: VerifiableCredentialCreateOptions?)
   CONSTRUCTOR from_vc_jwt(vc_jwt: string, verify: bool)
 
   METHOD sign(bearer_did: BearerDid, verification_method_id: String?): string
@@ -105,6 +107,10 @@ CLASS VerifiableCredential
 
 `Object` or `string`, and if `Object` then at least non-empty `id: string` and `name: string` data members.
 
+##### `Evidence`
+
+`Object` with any data members.
+
 ##### `CredentialStatus`
 
 ```pseudocode!
@@ -116,16 +122,17 @@ CLASS CredentialStatus
   PUBLIC DATA status_list_credential: string
 ```
 
-##### `CreateOptions`
+##### `VerifiableCredentialCreateOptions`
 
 ```psuedocode!
-CLASS CreateOptions
+CLASS VerifiableCredentialCreateOptions
   PUBLIC DATA id: string?
   PUBLIC DATA context: []string?
   PUBLIC DATA type: []string?
   PUBLIC DATA issuance_date: datetime?
   PUBLIC DATA expiration_date: datetime?
   PUBLIC DATA credential_status: CredentialStatus?
+  PUBLIC DATA evidence: []Evidence?
 ```
 
 ## StatusListCredential

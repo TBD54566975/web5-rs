@@ -277,6 +277,16 @@ class VerifiableCredentialTest {
             val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
             assertEquals(expirationDate, vc.expirationDate)
         }
+
+        @Test
+        fun test_evidence_must_be_set_if_supplied() {
+            testSuite.include()
+
+            val evidence = listOf(mapOf("A Key" to "A Value"))
+            val options = VerifiableCredentialCreateOptions(evidence = evidence)
+            val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
+            assertEquals(evidence, vc.evidence)
+        }
     }
 
     @Nested
@@ -440,6 +450,17 @@ class VerifiableCredentialTest {
                 }
                 is Issuer.StringIssuer -> fail("issuer should be object")
             }
+        }
+
+        @Test
+        fun test_evidence() {
+            testSuite.include()
+
+            val vcJwtWithEvidence = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSmljbll0T1VKSGRUVlhNVFV4VkVKVk9GY3hVVkozU1dwSWRXVmlVVGc1TlRCQ2VuRTFjR1ZxV25wSkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjkxYWM1NzBmLTRjMDMtNDIxZi1iZGY4LWQ3Y2YyNzQ1YzVmNSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKaWNuWXRPVUpIZFRWWE1UVXhWRUpWT0ZjeFVWSjNTV3BJZFdWaVVUZzVOVEJDZW5FMWNHVnFXbnBKSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxMDowMToyNC4yNTgzNjYrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiZXZpZGVuY2UiOlt7IkEgS2V5IjoiQSBWYWx1ZSJ9XX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSmljbll0T1VKSGRUVlhNVFV4VkVKVk9GY3hVVkozU1dwSWRXVmlVVGc1TlRCQ2VuRTFjR1ZxV25wSkluMCIsImp0aSI6InVybjp1dWlkOjkxYWM1NzBmLTRjMDMtNDIxZi1iZGY4LWQ3Y2YyNzQ1YzVmNSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTAxMjA4NCwiaWF0IjoxNzI1MDEyMDg0fQ.M7t4Ox08v-rC-naPSfIqlE1KKhZ1nrx_QA2HbuW38AkgxnSZOYEpXEG1UTAzh6mdwKZin9jwoGrj29u24K1ABA"
+            val vc = VerifiableCredential.fromVcJwt(vcJwtWithEvidence, false)
+
+            val expectedEvidence = listOf(mapOf("A Key" to "A Value"))
+            assertEquals(expectedEvidence, vc.evidence)
         }
 
         @Test

@@ -3,12 +3,23 @@ use std::{sync::Arc, time::SystemTime};
 use web5::{
     credentials::{
         verifiable_credential_1_1::{
-            VerifiableCredential as InnerVerifiableCredential, VerifiableCredentialCreateOptions,
+            VerifiableCredential as InnerVerifiableCredential,
+            VerifiableCredentialCreateOptions as InnerVerifiableCredentialCreateOptions,
         },
         CredentialSubject, Issuer,
     },
-    json::FromJson as _,
+    json::{FromJson as _, JsonObject},
 };
+
+#[derive(Default)]
+pub struct VerifiableCredentialCreateOptions {
+    pub id: Option<String>,
+    pub context: Option<Vec<String>>,
+    pub r#type: Option<Vec<String>>,
+    pub issuance_date: Option<SystemTime>,
+    pub expiration_date: Option<SystemTime>,
+    pub json_serialized_evidence: Option<String>,
+}
 
 pub struct VerifiableCredential {
     inner_vc: InnerVerifiableCredential,
@@ -26,7 +37,24 @@ impl VerifiableCredential {
         let credential_subject =
             CredentialSubject::from_json_string(&json_serialized_credential_subject)?;
 
-        let inner_vc = InnerVerifiableCredential::create(issuer, credential_subject, options)?;
+        let options = options.unwrap_or_default();
+        let evidence = match options.json_serialized_evidence {
+            Some(evidence_string) => {
+                Some(serde_json::from_str::<Vec<JsonObject>>(&evidence_string)?)
+            }
+            None => None,
+        };
+        let inner_options = InnerVerifiableCredentialCreateOptions {
+            id: options.id,
+            context: options.context,
+            r#type: options.r#type,
+            issuance_date: options.issuance_date,
+            expiration_date: options.expiration_date,
+            evidence,
+        };
+
+        let inner_vc =
+            InnerVerifiableCredential::create(issuer, credential_subject, Some(inner_options))?;
 
         Ok(Self {
             inner_vc,
@@ -35,8 +63,13 @@ impl VerifiableCredential {
         })
     }
 
-    pub fn get_data(&self) -> VerifiableCredentialData {
-        VerifiableCredentialData {
+    pub fn get_data(&self) -> Result<VerifiableCredentialData> {
+        let json_serialized_evidence = match &self.inner_vc.evidence {
+            Some(e) => Some(serde_json::to_string(e)?),
+            None => None,
+        };
+
+        Ok(VerifiableCredentialData {
             context: self.inner_vc.context.clone(),
             id: self.inner_vc.id.clone(),
             r#type: self.inner_vc.r#type.clone(),
@@ -44,7 +77,8 @@ impl VerifiableCredential {
             json_serialized_credential_subject: self.json_serialized_credential_subject.clone(),
             issuance_date: self.inner_vc.issuance_date,
             expiration_date: self.inner_vc.expiration_date,
-        }
+            json_serialized_evidence,
+        })
     }
 
     pub fn from_vc_jwt(vc_jwt: String, verify: bool) -> Result<Self> {
@@ -79,4 +113,5 @@ pub struct VerifiableCredentialData {
     pub json_serialized_credential_subject: String,
     pub issuance_date: SystemTime,
     pub expiration_date: Option<SystemTime>,
+    pub json_serialized_evidence: Option<String>,
 }

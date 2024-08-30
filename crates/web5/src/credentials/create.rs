@@ -29,6 +29,7 @@ pub fn create_vc(
     let id = options
         .id
         .unwrap_or_else(|| format!("urn:uuid:{}", Uuid::new_v4()));
+    let evidence = options.evidence;
 
     Ok(VerifiableCredential {
         context,
@@ -38,6 +39,7 @@ pub fn create_vc(
         issuance_date: options.issuance_date.unwrap_or_else(SystemTime::now),
         expiration_date: options.expiration_date,
         credential_subject,
+        evidence,
     })
 }
 
@@ -528,5 +530,26 @@ mod tests {
         let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
 
         assert_eq!(vc.expiration_date, Some(expiration_date));
+    }
+
+    #[test]
+    fn test_evidence_must_be_set_if_supplied() {
+        TEST_SUITE.include(test_name!());
+
+        let mut evidence_item = JsonObject::new();
+        evidence_item.insert(
+            "A Key".to_string(),
+            JsonValue::String("A Value".to_string()),
+        );
+        let evidence = vec![evidence_item];
+
+        let options = VerifiableCredentialCreateOptions {
+            evidence: Some(evidence.clone()),
+            ..Default::default()
+        };
+
+        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
+
+        assert_eq!(Some(evidence), vc.evidence);
     }
 }
