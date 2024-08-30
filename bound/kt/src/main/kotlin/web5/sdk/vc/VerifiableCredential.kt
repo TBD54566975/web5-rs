@@ -12,6 +12,7 @@ import web5.sdk.dids.BearerDid
 import java.util.Date
 import web5.sdk.rust.VerifiableCredential as RustCoreVerifiableCredential
 import web5.sdk.rust.VerifiableCredentialCreateOptionsData as RustCoreVerifiableCredentialCreateOptions
+import web5.sdk.rust.CredentialSchemaData as RustCoreCredentialSchema
 
 data class VerifiableCredentialCreateOptions(
     val id: String? = null,
@@ -19,6 +20,7 @@ data class VerifiableCredentialCreateOptions(
     val type: List<String>? = null,
     val issuanceDate: Date? = null,
     val expirationDate: Date? = null,
+    val credentialSchema: CredentialSchema? = null,
     val evidence: List<Map<String, Any>>? = null
 )
 
@@ -30,6 +32,7 @@ class VerifiableCredential private constructor(
     val credentialSubject: CredentialSubject,
     val issuanceDate: Date,
     val expirationDate: Date? = null,
+    val credentialSchema: CredentialSchema? = null,
     val evidence: List<Map<String, Any>>? = null,
     internal val rustCoreVerifiableCredential: RustCoreVerifiableCredential,
 ) {
@@ -52,6 +55,7 @@ class VerifiableCredential private constructor(
                     options?.type,
                     options?.issuanceDate?.toInstant(),
                     options?.expirationDate?.toInstant(),
+                    options?.credentialSchema?.let { RustCoreCredentialSchema(it.id, it.type) },
                     jsonSerializedEvidence
                 )
             )
@@ -67,6 +71,7 @@ class VerifiableCredential private constructor(
                 credentialSubject,
                 Date.from(data.issuanceDate),
                 data.expirationDate?.let { Date.from(it) },
+                data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
                 evidence,
                 rustCoreVerifiableCredential,
             )
@@ -88,6 +93,7 @@ class VerifiableCredential private constructor(
                 credentialSubject,
                 Date.from(data.issuanceDate),
                 data.expirationDate?.let { Date.from(it) },
+                data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
                 evidence,
                 rustCoreVerifiableCredential,
             )
@@ -148,3 +154,8 @@ data class CredentialSubject(
         ) + additionalProperties
     }
 }
+
+data class CredentialSchema(
+    val id: String,
+    val type: String
+)
