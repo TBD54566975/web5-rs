@@ -27,7 +27,7 @@ data class VerifiableCredentialCreateOptions(
     val evidence: List<Map<String, Any>>? = null
 )
 
-class VerifiableCredential private constructor(
+data class VerifiableCredential private constructor(
     val context: List<String>,
     val type: List<String>,
     val id: String,
