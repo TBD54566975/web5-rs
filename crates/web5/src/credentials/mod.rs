@@ -9,7 +9,10 @@ mod jwt_payload_vc;
 pub mod presentation_definition;
 mod sign;
 mod status_list_credential;
-pub use status_list_credential::{StatusListCredential, STATUS_LIST_CREDENTIAL_CONTEXT, STATUS_LIST_CREDENTIAL_TYPE, STATUS_LIST_2021, STATUS_LIST_2021_ENTRY};
+pub use status_list_credential::{
+    StatusListCredential, STATUS_LIST_2021, STATUS_LIST_2021_ENTRY, STATUS_LIST_CREDENTIAL_CONTEXT,
+    STATUS_LIST_CREDENTIAL_TYPE,
+};
 pub mod verifiable_credential_1_1;
 
 pub use credential_schema::CredentialSchema;

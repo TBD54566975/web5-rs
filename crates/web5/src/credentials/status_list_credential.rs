@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::io::{Read, Write};
 
 use super::verifiable_credential_1_1::{VerifiableCredential, VerifiableCredentialCreateOptions};
@@ -34,21 +33,23 @@ impl StatusListCredential {
         let base64_bitstring = Self::bitstring_generation(status_list_indexes)?;
 
         // Construct the properties for the credential subject.
-        let additional_properties = {
-            let mut properties = HashMap::new();
-            properties.insert(
-                "statusPurpose".to_string(),
-                JsonValue::String(status_purpose.clone()),
-            );
-            properties.insert(
-                "type".to_string(),
-                JsonValue::String(STATUS_LIST_2021.to_string()),
-            );
-            properties.insert(
-                "encodedList".to_string(),
-                JsonValue::String(base64_bitstring.clone()),
-            );
-            JsonObject { properties }
+        let additional_properties = JsonObject {
+            properties: [
+                (
+                    "statusPurpose".to_string(),
+                    JsonValue::String(status_purpose),
+                ),
+                (
+                    "type".to_string(),
+                    JsonValue::String(STATUS_LIST_2021.to_string()),
+                ),
+                (
+                    "encodedList".to_string(),
+                    JsonValue::String(base64_bitstring),
+                ),
+            ]
+            .into_iter()
+            .collect(),
         };
 
         let credential_subject = CredentialSubject {
@@ -60,11 +61,7 @@ impl StatusListCredential {
             id: Some(format!("urn:uuid:{}", uuid::Uuid::new_v4())),
             context: Some(vec![STATUS_LIST_CREDENTIAL_CONTEXT.to_string()]),
             r#type: Some(vec![STATUS_LIST_CREDENTIAL_TYPE.to_string()]),
-            issuance_date: None,
-            expiration_date: None,
-            credential_status: None,
-            credential_schema: None,
-            evidence: None,
+            ..Default::default()
         };
 
         let verifiable_credential =
@@ -90,7 +87,6 @@ impl StatusListCredential {
     ///
     ///  let is_disabled = status_list_credential.is_disabled(&credential_to_check)?;
     ///  println!("Credential is disabled: {}", is_disabled);
-    ///
     pub fn is_disabled(&self, credential: &VerifiableCredential) -> Result<bool> {
         let status = credential.credential_status.as_ref().ok_or_else(|| {
             Web5Error::Parameter("no credential status found in credential".to_string())
@@ -105,24 +101,10 @@ impl StatusListCredential {
         }
 
         // Check if the status purpose matches
-        let status_purpose = self
-            .base
-            .credential_subject
-            .additional_properties
-            .as_ref()
-            .and_then(|props| props.properties.get("statusPurpose"))
-            .and_then(|value| {
-                if let JsonValue::String(s) = value {
-                    Some(s.as_str())
-                } else {
-                    None
-                }
-            })
-            .ok_or_else(|| {
-                Web5Error::Parameter(
-                    "no valid statusPurpose found in status list credential".to_string(),
-                )
-            })?;
+        let status_purpose = Self::get_additional_property(
+            &self.base.credential_subject.additional_properties,
+            "statusPurpose",
+        )?;
 
         if status_purpose != status.status_purpose {
             return Err(Web5Error::Parameter("status purpose mismatch".to_string()));
@@ -136,26 +118,10 @@ impl StatusListCredential {
             ))
         })?;
 
-        let encoded_list = match self
-            .base
-            .credential_subject
-            .additional_properties
-            .as_ref()
-            .and_then(|props| props.properties.get("encodedList"))
-            .and_then(|value| {
-                if let JsonValue::String(s) = value {
-                    Some(s.as_str())
-                } else {
-                    None
-                }
-            }) {
-            Some(el) => el,
-            None => {
-                return Err(Web5Error::Parameter(
-                    "invalid or missing encodedList".to_string(),
-                ))
-            }
-        };
+        let encoded_list = Self::get_additional_property(
+            &self.base.credential_subject.additional_properties,
+            "encodedList",
+        )?;
 
         // Check the bit in the encoded list
         Self::get_bit(encoded_list, index)
@@ -181,7 +147,10 @@ impl StatusListCredential {
             })?;
 
             if status_list_entry.status_purpose != *status_purpose {
-                return Err(Web5Error::Parameter("status purpose mismatch".to_string()));
+                return Err(Web5Error::Parameter(format!(
+                    "status purpose mismatch: expected '{}', found '{}'",
+                    status_purpose, status_list_entry.status_purpose
+                )));
             }
 
             let index = status_list_entry
@@ -274,6 +243,21 @@ impl StatusListCredential {
 
         Ok(bit_integer == 1)
     }
+
+    /// Helper function to extract a string property from the additional_properties
+    fn get_additional_property<'a>(props: &'a Option<JsonObject>, key: &str) -> Result<&'a str> {
+        props
+            .as_ref()
+            .and_then(|p| p.properties.get(key))
+            .and_then(|value| {
+                if let JsonValue::String(s) = value {
+                    Some(s.as_str())
+                } else {
+                    None
+                }
+            })
+            .ok_or_else(|| Web5Error::Parameter(format!("no valid {} found", key)))
+    }
 }
 
 #[cfg(test)]
@@ -357,6 +341,7 @@ mod tests {
             .credential_subject
             .additional_properties
             .unwrap();
+
         assert_eq!(
             additional_properties
                 .properties
@@ -452,20 +437,14 @@ mod tests {
         let status_list_credential =
             StatusListCredential::create(issuer(), status_purpose, credentials_to_disable).unwrap();
 
-        let encoded_list = status_list_credential
-            .base
-            .credential_subject
-            .additional_properties
-            .as_ref()
-            .and_then(|props| props.properties.get("encodedList"))
-            .and_then(|value| {
-                if let JsonValue::String(s) = value {
-                    Some(s.as_str())
-                } else {
-                    None
-                }
-            })
-            .unwrap();
+        let encoded_list = StatusListCredential::get_additional_property(
+            &status_list_credential
+                .base
+                .credential_subject
+                .additional_properties,
+            "encodedList",
+        )
+        .unwrap();
 
         // Test various bit positions
         assert_eq!(
@@ -518,20 +497,14 @@ mod tests {
         )
         .unwrap();
 
-        let updated_encoded_list = updated_status_list_credential
-            .base
-            .credential_subject
-            .additional_properties
-            .as_ref()
-            .and_then(|props| props.properties.get("encodedList"))
-            .and_then(|value| {
-                if let JsonValue::String(s) = value {
-                    Some(s.as_str())
-                } else {
-                    None
-                }
-            })
-            .unwrap();
+        let updated_encoded_list = StatusListCredential::get_additional_property(
+            &updated_status_list_credential
+                .base
+                .credential_subject
+                .additional_properties,
+            "encodedList",
+        )
+        .unwrap();
 
         // Test the bits corresponding to the disabled credentials
         assert_eq!(

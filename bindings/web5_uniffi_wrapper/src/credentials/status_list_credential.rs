@@ -3,9 +3,8 @@ use crate::errors::Result;
 use std::sync::Arc;
 use web5::credentials::Issuer;
 use web5::{
-    credentials::status_list_credential::StatusListCredential as InnerStatusListCredential,
     credentials::verifiable_credential_1_1::VerifiableCredential as InnerVerifiableCredential,
-    json::FromJson,
+    credentials::StatusListCredential as InnerStatusListCredential, json::FromJson,
 };
 
 pub struct StatusListCredential(pub InnerStatusListCredential);
