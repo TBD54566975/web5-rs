@@ -1,14 +1,17 @@
 package web5.sdk.dids.methods.web
 
+import web5.sdk.Web5Exception
 import web5.sdk.crypto.keys.KeyManager
 import web5.sdk.crypto.keys.ToInnerKeyManager
+import web5.sdk.crypto.Dsa
+import web5.sdk.crypto.dsaToRustCore
 import web5.sdk.dids.BearerDid
 import web5.sdk.dids.ResolutionResult
 import web5.sdk.dids.Service
 import web5.sdk.dids.VerificationMethod
-import web5.sdk.rust.Dsa
 import web5.sdk.rust.didWebCreate as rustCoreDidWebCreate
 import web5.sdk.rust.didWebResolve as rustCoreDidWebResolve
+import web5.sdk.rust.Web5Exception.Exception as RustCoreException
 
 data class DidWebCreateOptions(
     val keyManager: KeyManager? = null,
@@ -31,18 +34,24 @@ class DidWeb {
          * @param options The set of options to configure creation.
          */
         fun create(domain: String, options: DidWebCreateOptions? = null): BearerDid {
-            val rustCoreOptions = options?.let { opts ->
-                web5.sdk.rust.DidWebCreateOptions(
-                    keyManager = opts.keyManager?.let { ToInnerKeyManager(it) },
-                    dsa = opts.dsa,
-                    service = opts.service?.map { it.toRustCore() },
-                    controller = opts.controller,
-                    alsoKnownAs = opts.alsoKnownAs,
-                    verificationMethod = opts.verificationMethod?.map { it.toRustCore() }
-                )
+            try {
+                val rustCoreOptions = options?.let { opts ->
+                    web5.sdk.rust.DidWebCreateOptions(
+                        keyManager = opts.keyManager?.let { ToInnerKeyManager(it) },
+                        dsa = opts.dsa?.let { dsaToRustCore(it) },
+                        service = opts.service?.map { it.toRustCore() },
+                        controller = opts.controller,
+                        alsoKnownAs = opts.alsoKnownAs,
+                        verificationMethod = opts.verificationMethod?.map { it.toRustCore() }
+                    )
+                }
+                val rustCoreBearerDid = rustCoreDidWebCreate(domain, rustCoreOptions)
+                return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            } catch (e: Exception) {
+                throw e
             }
-            val rustCoreBearerDid = rustCoreDidWebCreate(domain, rustCoreOptions)
-            return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
         }
 
         /**
@@ -53,8 +62,14 @@ class DidWeb {
          */
         @JvmStatic
         fun resolve(uri: String): ResolutionResult {
-            val rustCoreResolutionResult = rustCoreDidWebResolve(uri)
-            return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
+            try {
+                val rustCoreResolutionResult = rustCoreDidWebResolve(uri)
+                return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            } catch (e: Exception) {
+                throw e
+            }
         }
     }
 }

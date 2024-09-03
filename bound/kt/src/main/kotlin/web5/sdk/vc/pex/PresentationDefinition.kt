@@ -2,7 +2,9 @@ package web5.sdk.vc.pex
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import web5.sdk.Json
+import web5.sdk.Web5Exception
 import web5.sdk.rust.PresentationDefinition as RustCorePresentationDefinition
+import web5.sdk.rust.Web5Exception.Exception as RustCoreException
 
 data class PresentationDefinition(
     val id: String,
@@ -16,7 +18,13 @@ data class PresentationDefinition(
     )
 
     fun selectCredentials(vcJwts: List<String>): List<String> {
-        return this.rustCorePresentationDefinition.selectCredentials(vcJwts)
+        try {
+            return this.rustCorePresentationDefinition.selectCredentials(vcJwts)
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        } catch (e: Exception) {
+            throw e
+        }
     }
 }
 

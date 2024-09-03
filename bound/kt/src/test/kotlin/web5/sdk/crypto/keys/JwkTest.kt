@@ -4,7 +4,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
-import web5.sdk.rust.Web5Exception
+import web5.sdk.Web5Exception
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class JwkTest {
@@ -57,11 +57,11 @@ class JwkTest {
             y = "y_value"
         )
 
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             jwk.computeThumbprint()
         }
 
-        assertEquals("data member error kty not supported RSA", exception.msg)
+        assertEquals("data member error kty not supported RSA", exception.message)
     }
 
     @Test
@@ -73,11 +73,11 @@ class JwkTest {
             x = "x_value"
         )
 
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             jwk.computeThumbprint()
         }
 
-        assertEquals("data member error kty cannot be empty", exception.msg)
+        assertEquals("data member error kty cannot be empty", exception.message)
     }
 
     @Test
@@ -89,11 +89,11 @@ class JwkTest {
             x = ""
         )
 
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             jwk.computeThumbprint()
         }
 
-        assertEquals("data member error x cannot be empty", exception.msg)
+        assertEquals("data member error x cannot be empty", exception.message)
     }
 
     @Test
@@ -106,11 +106,11 @@ class JwkTest {
             y = "y_value"
         )
 
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             jwk.computeThumbprint()
         }
 
-        assertEquals("data member error crv cannot be empty", exception.msg)
+        assertEquals("data member error crv cannot be empty", exception.message)
     }
 
     @Test
@@ -122,11 +122,11 @@ class JwkTest {
             x = "x_value"
         )
 
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             jwk.computeThumbprint()
         }
 
-        assertEquals("data member error missing y", exception.msg)
+        assertEquals("data member error missing y", exception.message)
     }
 
     @Test
@@ -139,10 +139,10 @@ class JwkTest {
             y = ""
         )
 
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             jwk.computeThumbprint()
         }
 
-        assertEquals("data member error y cannot be empty", exception.msg)
+        assertEquals("data member error y cannot be empty", exception.message)
     }
 }

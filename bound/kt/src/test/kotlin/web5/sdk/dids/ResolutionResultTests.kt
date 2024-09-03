@@ -8,7 +8,6 @@ import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
 import web5.sdk.dids.methods.jwk.DidJwk
 import web5.sdk.dids.methods.web.DidWeb
-import web5.sdk.dids.ResolutionMetadataError
 
 class ResolutionResultTests {
     @Nested

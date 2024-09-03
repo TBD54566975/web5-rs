@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.Ed25519Generator
-import web5.sdk.rust.Web5Exception
+import web5.sdk.Web5Exception
 
 class InMemoryKeyManagerTest {
   @Nested
@@ -30,11 +30,11 @@ class InMemoryKeyManagerTest {
       val privateJwk = Ed25519Generator.generate()
       val publicJwk = privateJwk.copy(d = null)
 
-      val exception = assertThrows<Web5Exception.Exception> {
+      val exception = assertThrows<Web5Exception> {
         keyManager.importPrivateJwk(publicJwk)
       }
 
-      assertEquals("parameter error private_jwk must be a private key", exception.msg)
+      assertEquals("parameter error private_jwk must be a private key", exception.message)
       assertEquals("Parameter", exception.variant)
     }
 
@@ -72,11 +72,11 @@ class InMemoryKeyManagerTest {
       val privateJwk = Ed25519Generator.generate()
       val keyManager = InMemoryKeyManager(listOf(privateJwk))
 
-      val exception = assertThrows<Web5Exception.Exception> {
+      val exception = assertThrows<Web5Exception> {
         keyManager.getSigner(privateJwk)
       }
 
-      assertEquals("parameter error public_jwk must be a public key", exception.msg)
+      assertEquals("parameter error public_jwk must be a public key", exception.message)
       assertEquals("Parameter", exception.variant)
     }
 
@@ -88,11 +88,11 @@ class InMemoryKeyManagerTest {
       val privateJwk = Ed25519Generator.generate()
       val publicJwk = privateJwk.copy(d = null)
 
-      val exception = assertThrows<Web5Exception.Exception> {
+      val exception = assertThrows<Web5Exception> {
         keyManager.getSigner(publicJwk)
       }
 
-      assertEquals("not found error signer not found for public_jwk with thumbprint ${publicJwk.computeThumbprint()}", exception.msg)
+      assertEquals("not found error signer not found for public_jwk with thumbprint ${publicJwk.computeThumbprint()}", exception.message)
       assertEquals("NotFound", exception.variant)
     }
 

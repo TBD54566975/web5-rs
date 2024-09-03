@@ -1,7 +1,9 @@
 package web5.sdk.dids
 
+import web5.sdk.Web5Exception
 import web5.sdk.crypto.keys.Jwk
 import web5.sdk.rust.PortableDid as RustCorePortableDid
+import web5.sdk.rust.Web5Exception.Exception as RustCoreException
 
 data class PortableDid private constructor(
     val didUri: String,
@@ -13,11 +15,17 @@ data class PortableDid private constructor(
         didUri,
         document,
         privateKeys,
-        RustCorePortableDid(
-            didUri,
-            document.toRustCore(),
-            privateKeys.map { it.rustCoreJwkData }
-        )
+        try {
+            RustCorePortableDid(
+                didUri,
+                document.toRustCore(),
+                privateKeys.map { it.rustCoreJwkData }
+            )
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        } catch (e: Exception) {
+            throw e
+        }
     )
 
     companion object {
@@ -27,8 +35,14 @@ data class PortableDid private constructor(
          * @param json The JSON string.
          */
         fun fromJsonString(json: String): PortableDid {
-            val rustCorePortableDid = RustCorePortableDid.fromJsonString(json)
-            return PortableDid.fromRustCorePortableDid(rustCorePortableDid)
+            try {
+                val rustCorePortableDid = RustCorePortableDid.fromJsonString(json)
+                return fromRustCorePortableDid(rustCorePortableDid)
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            } catch (e: Exception) {
+                throw e
+            }
         }
 
         internal fun fromRustCorePortableDid(rustCorePortableDid: RustCorePortableDid): PortableDid {
@@ -46,6 +60,12 @@ data class PortableDid private constructor(
      * Serializes a PortableDid to a JSON string.
      */
     fun toJsonString(): String {
-        return rustCorePortableDid.toJsonString()
+        try {
+            return rustCorePortableDid.toJsonString()
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        } catch (e: Exception) {
+            throw e
+        }
     }
 }

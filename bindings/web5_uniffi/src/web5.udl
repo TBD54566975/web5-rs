@@ -18,7 +18,7 @@ namespace web5 {
 
 [Error]
 interface Web5Error {
-  Error(string type, string variant, string msg);
+  Error(string variant, string msg);
 };
 
 dictionary JwkData {

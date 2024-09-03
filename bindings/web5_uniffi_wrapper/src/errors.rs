@@ -1,6 +1,5 @@
 use serde_json::Error as SerdeJsonError;
-use std::sync::PoisonError;
-use std::{any::type_name, fmt::Debug};
+use std::fmt::Debug;
 use thiserror::Error;
 use web5::credentials::presentation_definition::PexError;
 use web5::credentials::CredentialError;
@@ -9,38 +8,17 @@ use web5::errors::Web5Error as InnerWeb5Error;
 #[derive(Debug, Error)]
 pub enum Web5Error {
     #[error("{msg}")]
-    Error {
-        r#type: String,
-        variant: String,
-        msg: String,
-    },
+    Error { variant: String, msg: String },
 }
 
 impl Web5Error {
-    pub fn from_poison_error<T>(error: PoisonError<T>, error_type: &str) -> Self {
-        Web5Error::Error {
-            r#type: error_type.to_string(),
-            variant: "PoisonError".to_string(),
-            msg: error.to_string(),
-        }
-    }
-
     fn new<T>(error: T) -> Self
     where
         T: std::error::Error + 'static,
     {
         Self::Error {
-            r#type: type_of(&error).to_string(),
             variant: variant_name(&error),
             msg: error.to_string(),
-        }
-    }
-
-    pub fn r#type(&self) -> String {
-        match self {
-            Web5Error::Error {
-                r#type: error_type, ..
-            } => error_type.clone(),
         }
     }
 
@@ -58,10 +36,6 @@ impl Web5Error {
             Web5Error::Error { msg, .. } => msg.clone(),
         }
     }
-}
-
-fn type_of<T>(_: &T) -> &'static str {
-    type_name::<T>()
 }
 
 fn variant_name<T>(error: &T) -> String

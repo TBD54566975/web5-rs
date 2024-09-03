@@ -1,5 +1,6 @@
 package web5.sdk.dids.methods.dht
 
+import web5.sdk.Web5Exception
 import web5.sdk.crypto.keys.KeyManager
 import web5.sdk.crypto.keys.ToInnerKeyManager
 import web5.sdk.dids.BearerDid
@@ -7,6 +8,7 @@ import web5.sdk.dids.ResolutionResult
 import web5.sdk.dids.Service
 import web5.sdk.dids.VerificationMethod
 import web5.sdk.rust.didDhtResolve as rustCoreDidDhtResolve
+import web5.sdk.rust.Web5Exception.Exception as RustCoreException
 
 data class DidDhtCreateOptions(
     val publish: Boolean? = true,
@@ -29,19 +31,25 @@ class DidDht {
          * @param options The set of options to configure creation.
          */
         fun create(options: DidDhtCreateOptions? = null): BearerDid {
-            val rustCoreOptions = options?.let { opts ->
-                web5.sdk.rust.DidDhtCreateOptions(
-                    opts.publish,
-                    opts.gatewayUrl,
-                    opts.keyManager?.let { ToInnerKeyManager(it) },
-                    opts.service?.map { it.toRustCore() },
-                    opts.controller,
-                    opts.alsoKnownAs,
-                    opts.verificationMethod?.map { it.toRustCore() }
-                )
+            try {
+                val rustCoreOptions = options?.let { opts ->
+                    web5.sdk.rust.DidDhtCreateOptions(
+                        opts.publish,
+                        opts.gatewayUrl,
+                        opts.keyManager?.let { ToInnerKeyManager(it) },
+                        opts.service?.map { it.toRustCore() },
+                        opts.controller,
+                        opts.alsoKnownAs,
+                        opts.verificationMethod?.map { it.toRustCore() }
+                    )
+                }
+                val rustCoreBearerDid = web5.sdk.rust.didDhtCreate(rustCoreOptions)
+                return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            } catch (e: Exception) {
+                throw e
             }
-            val rustCoreBearerDid = web5.sdk.rust.didDhtCreate(rustCoreOptions)
-            return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
         }
 
         /**
@@ -51,7 +59,13 @@ class DidDht {
          * @param gatewayUrl The optional gateway URL to publish to.
          */
         fun publish(bearerDid: BearerDid, gatewayUrl: String? = null) {
-           web5.sdk.rust.didDhtPublish(bearerDid.rustCoreBearerDid, gatewayUrl)
+            try {
+                web5.sdk.rust.didDhtPublish(bearerDid.rustCoreBearerDid, gatewayUrl)
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            } catch (e: Exception) {
+                throw e
+            }
         }
 
         /**
@@ -62,8 +76,14 @@ class DidDht {
          */
         @JvmStatic
         fun resolve(uri: String, gatewayUrl: String? = null): ResolutionResult {
-            val rustCoreResolutionResult = rustCoreDidDhtResolve(uri, gatewayUrl)
-            return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
+            try {
+                val rustCoreResolutionResult = rustCoreDidDhtResolve(uri, gatewayUrl)
+                return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            } catch (e: Exception) {
+                throw e
+            }
         }
     }
 }

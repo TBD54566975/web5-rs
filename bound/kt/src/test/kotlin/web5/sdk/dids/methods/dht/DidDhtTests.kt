@@ -8,12 +8,12 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
+import web5.sdk.Web5Exception
 import web5.sdk.crypto.keys.InMemoryKeyManager
 import web5.sdk.crypto.keys.Jwk
 import web5.sdk.dids.Service
 import web5.sdk.dids.VerificationMethod
 import web5.sdk.dids.ResolutionMetadataError
-import web5.sdk.rust.*
 
 class DidDhtTests {
     @Nested
@@ -230,14 +230,14 @@ class DidDhtTests {
                 )
             )
 
-            val exception = assertThrows<Web5Exception.Exception> {
+            val exception = assertThrows<Web5Exception> {
                 DidDht.publish(
                     bearerDid,
                     gatewayUrl.toString()
                 )
             }
 
-            assertEquals("network error failed to PUT DID to mainline", exception.msg)
+            assertEquals("network error failed to PUT DID to mainline", exception.message)
             assertEquals("Network", exception.variant)
 
             mockWebServer.shutdown()

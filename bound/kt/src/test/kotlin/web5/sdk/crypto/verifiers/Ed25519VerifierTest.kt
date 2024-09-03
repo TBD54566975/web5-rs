@@ -7,7 +7,7 @@ import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.Ed25519Generator
 import web5.sdk.crypto.keys.Jwk
 import web5.sdk.crypto.signers.Ed25519Signer
-import web5.sdk.rust.Web5Exception
+import web5.sdk.Web5Exception
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Ed25519VerifierTest {
@@ -55,11 +55,11 @@ class Ed25519VerifierTest {
         val message = "Test message".toByteArray()
         val invalidSignature = ByteArray(SIGNATURE_LENGTH - 1) // invalid length
 
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             verifier.verify(message, invalidSignature)
         }
 
-        assertEquals("cryptography error provided verification key cannot contain private key material", exception.msg)
+        assertEquals("cryptography error provided verification key cannot contain private key material", exception.message)
         assertEquals("Crypto", exception.variant)
     }
 
@@ -73,11 +73,11 @@ class Ed25519VerifierTest {
         val message = "Test message".toByteArray()
         val invalidSignature = ByteArray(SIGNATURE_LENGTH) // an obviously invalid signature
 
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             verifier.verify(message, invalidSignature)
         }
 
-        assertEquals("cryptography error cryptographic verification failure", exception.msg)
+        assertEquals("cryptography error cryptographic verification failure", exception.message)
         assertEquals("Crypto", exception.variant)
     }
 
@@ -94,11 +94,11 @@ class Ed25519VerifierTest {
         val message = "Test message".toByteArray()
         val signature = signer.sign(message)
 
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             verifier.verify(message, signature)
         }
 
-        assertEquals("cryptography error invalid public key length ${PUBLIC_KEY_LENGTH - 1} must be $PUBLIC_KEY_LENGTH", exception.msg)
+        assertEquals("cryptography error invalid public key length ${PUBLIC_KEY_LENGTH - 1} must be $PUBLIC_KEY_LENGTH", exception.message)
         assertEquals("Crypto", exception.variant)
     }
 
@@ -112,11 +112,11 @@ class Ed25519VerifierTest {
         val message = "Test message".toByteArray()
         val invalidSignature = ByteArray(SIGNATURE_LENGTH - 1) // invalid length
 
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             verifier.verify(message, invalidSignature)
         }
 
-        assertEquals("cryptography error invalid signature length ${SIGNATURE_LENGTH - 1} must be $SIGNATURE_LENGTH", exception.msg)
+        assertEquals("cryptography error invalid signature length ${SIGNATURE_LENGTH - 1} must be $SIGNATURE_LENGTH", exception.message)
         assertEquals("Crypto", exception.variant)
     }
 

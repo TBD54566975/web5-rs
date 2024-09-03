@@ -1,8 +1,10 @@
 package web5.sdk.crypto.keys
 
+import web5.sdk.Web5Exception
 import web5.sdk.crypto.signers.ToOuterSigner
 import web5.sdk.crypto.signers.Signer
 import web5.sdk.rust.InMemoryKeyManager as RustCoreInMemoryKeyManager
+import web5.sdk.rust.Web5Exception.Exception as RustCoreException
 
 /**
  * A class for managing cryptographic keys in-memory.
@@ -25,8 +27,14 @@ class InMemoryKeyManager (privateJwks: List<Jwk>) : KeyManager, KeyExporter {
      * @return Jwk The public key represented as a JWK.
      */
     override fun importPrivateJwk(privateJwk: Jwk): Jwk {
-        val rustCoreJwkData = this.rustCoreInMemoryKeyManager.importPrivateJwk(privateJwk.rustCoreJwkData)
-        return Jwk.fromRustCoreJwkData(rustCoreJwkData)
+        try {
+            val rustCoreJwkData = this.rustCoreInMemoryKeyManager.importPrivateJwk(privateJwk.rustCoreJwkData)
+            return Jwk.fromRustCoreJwkData(rustCoreJwkData)
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
     /**
@@ -36,12 +44,24 @@ class InMemoryKeyManager (privateJwks: List<Jwk>) : KeyManager, KeyExporter {
      * @return Signer The signer for the given public key.
      */
     override fun getSigner(publicJwk: Jwk): Signer {
-        val rustCoreSigner = this.rustCoreInMemoryKeyManager.getSigner(publicJwk.rustCoreJwkData)
-        return ToOuterSigner(rustCoreSigner)
+        try {
+            val rustCoreSigner = this.rustCoreInMemoryKeyManager.getSigner(publicJwk.rustCoreJwkData)
+            return ToOuterSigner(rustCoreSigner)
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
     override fun exportPrivateJwks(): List<Jwk> {
-        val rustCorePrivateJwksData = this.rustCoreInMemoryKeyManager.exportPrivateJwks()
-        return rustCorePrivateJwksData.map { Jwk.fromRustCoreJwkData(it) }
+        try {
+            val rustCorePrivateJwksData = this.rustCoreInMemoryKeyManager.exportPrivateJwks()
+            return rustCorePrivateJwksData.map { Jwk.fromRustCoreJwkData(it) }
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        } catch (e: Exception) {
+            throw e
+        }
     }
 }

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.Ed25519Generator
-import web5.sdk.rust.Web5Exception
+import web5.sdk.Web5Exception
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Ed25519SignerTest {
@@ -45,11 +45,11 @@ class Ed25519SignerTest {
 
         val signer = Ed25519Signer(invalidJwk)
         val message = "Test message".toByteArray()
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             signer.sign(message)
         }
 
-        assertEquals("cryptography error invalid private key length ${SECRET_KEY_LENGTH - 1} must be $SECRET_KEY_LENGTH", exception.msg)
+        assertEquals("cryptography error invalid private key length ${SECRET_KEY_LENGTH - 1} must be $SECRET_KEY_LENGTH", exception.message)
         assertEquals("Crypto", exception.variant)
     }
 
@@ -62,11 +62,11 @@ class Ed25519SignerTest {
 
         val signer = Ed25519Signer(missingKeyJwk)
         val message = "Test message".toByteArray()
-        val exception = assertThrows<Web5Exception.Exception> {
+        val exception = assertThrows<Web5Exception> {
             signer.sign(message)
         }
 
-        assertEquals("cryptography error private key material must be set", exception.msg)
+        assertEquals("cryptography error private key material must be set", exception.message)
         assertEquals("Crypto", exception.variant)
     }
 
