@@ -60,9 +60,6 @@ pub struct VerifiableCredentialCreateOptions {
     pub expiration_date: Option<SystemTime>,
     pub credential_schema: Option<CredentialSchema>,
     pub evidence: Option<Vec<JsonObject>>,
-
-    #[cfg(test)]
-    pub skip_schema_validation: bool,
 }
 
 impl VerifiableCredential {
