@@ -257,6 +257,8 @@ dictionary VerifiableCredentialCreateOptionsData {
   sequence<string>? type;
   timestamp? issuance_date;
   timestamp? expiration_date;
+  CredentialSchemaData? credential_schema;
+  string? json_serialized_evidence;
 };
 
 interface VerifiableCredential {
@@ -266,6 +268,7 @@ interface VerifiableCredential {
     string json_serialized_credential_subject,
     VerifiableCredentialCreateOptionsData? options
   );
+  [Throws=Web5Error]
   VerifiableCredentialData get_data();
   [Throws=Web5Error, Name=from_vc_jwt]
   constructor(string vc_jwt, boolean verify);
@@ -281,4 +284,11 @@ dictionary VerifiableCredentialData {
   string json_serialized_credential_subject;
   timestamp issuance_date;
   timestamp? expiration_date;
+  CredentialSchemaData? credential_schema;
+  string? json_serialized_evidence;
+};
+
+dictionary CredentialSchemaData {
+  string id;
+  string type;
 };

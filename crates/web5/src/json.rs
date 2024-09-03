@@ -31,6 +31,9 @@ pub struct JsonObject {
     pub properties: HashMap<String, JsonValue>,
 }
 
+impl FromJson for JsonObject {}
+impl ToJson for JsonObject {}
+
 impl JsonObject {
     pub fn new() -> Self {
         Self {
