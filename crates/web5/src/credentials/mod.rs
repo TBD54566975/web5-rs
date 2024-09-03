@@ -8,7 +8,8 @@ mod josekit;
 mod jwt_payload_vc;
 pub mod presentation_definition;
 mod sign;
-pub mod status_list_credential;
+mod status_list_credential;
+pub use status_list_credential::{StatusListCredential, STATUS_LIST_CREDENTIAL_CONTEXT, STATUS_LIST_CREDENTIAL_TYPE, STATUS_LIST_2021, STATUS_LIST_2021_ENTRY};
 pub mod verifiable_credential_1_1;
 
 pub use credential_schema::CredentialSchema;
