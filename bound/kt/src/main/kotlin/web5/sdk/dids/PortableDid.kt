@@ -3,7 +3,7 @@ package web5.sdk.dids
 import web5.sdk.crypto.keys.Jwk
 import web5.sdk.rust.PortableDid as RustCorePortableDid
 
-class PortableDid private constructor(
+data class PortableDid private constructor(
     val didUri: String,
     val document: Document,
     val privateKeys: List<Jwk>,

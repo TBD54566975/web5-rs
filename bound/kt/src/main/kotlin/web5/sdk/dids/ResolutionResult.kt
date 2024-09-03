@@ -3,7 +3,7 @@ package web5.sdk.dids
 /**
  * Representation of the result of a DID (Decentralized Identifier) resolution.
  */
-class ResolutionResult(
+data class ResolutionResult(
     val document: Document? = null,
     val documentMetadata: DocumentMetadata? = null,
     val resolutionMetadata: ResolutionMetadata) {
