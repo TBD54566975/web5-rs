@@ -27,7 +27,7 @@ data class VerifiableCredentialCreateOptions(
     val evidence: List<Map<String, Any>>? = null
 )
 
-data class VerifiableCredential(
+class VerifiableCredential private constructor(
     val context: List<String>,
     val type: List<String>,
     val id: String,
@@ -37,23 +37,8 @@ data class VerifiableCredential(
     val expirationDate: Date? = null,
     val credentialSchema: CredentialSchema? = null,
     val evidence: List<Map<String, Any>>? = null,
+    internal val rustCoreVerifiableCredential: RustCoreVerifiableCredential,
 ) {
-    internal val rustCoreVerifiableCredential: RustCoreVerifiableCredential
-
-    init {
-        rustCoreVerifiableCredential = RustCoreVerifiableCredential(
-            context,
-            type,
-            id,
-            Json.stringify(issuer),
-            Json.stringify(credentialSubject),
-            issuanceDate.toInstant(),
-            expirationDate?.toInstant(),
-            credentialSchema?.let { RustCoreCredentialSchema(it.id, it.type) },
-            evidence?.let { Json.stringify(it) }
-        )
-    }
-
     companion object {
         fun create(
             issuer: Issuer,
@@ -91,6 +76,7 @@ data class VerifiableCredential(
                 data.expirationDate?.let { Date.from(it) },
                 data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
                 evidence,
+                rustCoreVerifiableCredential
             )
         }
 
@@ -112,6 +98,7 @@ data class VerifiableCredential(
                 data.expirationDate?.let { Date.from(it) },
                 data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
                 evidence,
+                rustCoreVerifiableCredential
             )
         }
     }

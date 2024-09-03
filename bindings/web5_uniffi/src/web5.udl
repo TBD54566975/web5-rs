@@ -262,18 +262,6 @@ dictionary VerifiableCredentialCreateOptionsData {
 };
 
 interface VerifiableCredential {
-  [Throws=Web5Error]
-  constructor(
-    sequence<string> context,
-    sequence<string> type,
-    string id,
-    string json_serialized_issuer,
-    string json_serialized_credential_subject,
-    timestamp issuance_date,
-    timestamp? expiration_date,
-    CredentialSchemaData? credential_schema,
-    string? json_serialized_evidence
-  );
   [Throws=Web5Error, Name=create]
   constructor(
     string json_serialized_issuer,

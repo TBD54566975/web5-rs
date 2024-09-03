@@ -99,7 +99,6 @@ mod tests {
     mod from_vc_jwt {
         use super::*;
         use crate::credentials::credential_schema::CREDENTIAL_SCHEMA_TYPE;
-        use crate::dids::methods::did_jwk::DidJwk;
         use crate::json::JsonValue;
         use crate::{credentials::CredentialError, errors::Web5Error};
         use crate::{
@@ -107,8 +106,7 @@ mod tests {
             test_helpers::UnitTestSuite, test_name,
         };
         use lazy_static::lazy_static;
-        use mockito::Server;
-        use uuid::Uuid;
+        use mockito::{Server, ServerOpts};
 
         lazy_static! {
             static ref TEST_SUITE: UnitTestSuite =
@@ -751,34 +749,19 @@ mod tests {
         fn test_schema_resolve_non_success() {
             TEST_SUITE.include(test_name!());
 
-            let mut mock_server = Server::new();
-            let url = mock_server.url();
+            let mut mock_server = Server::new_with_opts(ServerOpts {
+                port: 40001,
+                ..Default::default()
+            });
 
             let _ = mock_server
                 .mock("GET", "/schemas/email.json")
                 .with_status(500) // here
                 .create();
 
-            let bearer_did = DidJwk::create(None).unwrap();
-            let vc = VerifiableCredential {
-                context: vec![BASE_CONTEXT.to_string()],
-                id: format!("urn:uuid:{}", Uuid::new_v4()),
-                r#type: vec![BASE_TYPE.to_string()],
-                issuer: Issuer::String(bearer_did.did.uri.clone()),
-                credential_subject: CredentialSubject::from(
-                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
-                ),
-                issuance_date: SystemTime::now(),
-                credential_schema: Some(CredentialSchema {
-                    id: format!("{}/schemas/email.json", url),
-                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
-                }),
-                expiration_date: None,
-                evidence: None,
-            };
-            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+            let vc_jwt_at_port = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSm9jMmhVZEU4M2F5MVNjVE5oVWtWR1lUVTRhUzFoWlZVdGRWaHNUVXB4UkdkallteEhhMTlpTW5OM0luMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmE5Nzk1YTdmLTRmNzktNDU3OC1hYTkxLTcwYmYxM2YxZWVkNiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKb2MyaFVkRTgzYXkxU2NUTmhVa1ZHWVRVNGFTMWhaVlV0ZFZoc1RVcHhSR2RqWW14SGExOWlNbk4zSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0MDowMS4wNDg1MzIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDEvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSm9jMmhVZEU4M2F5MVNjVE5oVWtWR1lUVTRhUzFoWlZVdGRWaHNUVXB4UkdkallteEhhMTlpTW5OM0luMCIsImp0aSI6InVybjp1dWlkOmE5Nzk1YTdmLTRmNzktNDU3OC1hYTkxLTcwYmYxM2YxZWVkNiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODAwMSwiaWF0IjoxNzI1Mzc4MDAxfQ.9739UnhTfGXr2tsbsjun7FQfFuXNtqmzfxhP_okbywVDoh6nsBGk8smLUU_D0VYwtiMBTo1ujDs1QtKPbCZDDA"#;
 
-            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            let result = VerifiableCredential::from_vc_jwt(vc_jwt_at_port, true);
             match result {
                 Err(Web5Error::JsonSchema(err_msg)) => {
                     assert!(err_msg.contains("non-200 response when resolving json schema"))
@@ -794,8 +777,10 @@ mod tests {
         fn test_schema_resolve_invalid_response_body() {
             TEST_SUITE.include(test_name!());
 
-            let mut mock_server = Server::new();
-            let url = mock_server.url();
+            let mut mock_server = Server::new_with_opts(ServerOpts {
+                port: 40002,
+                ..Default::default()
+            });
 
             let _ = mock_server
                 .mock("GET", "/schemas/email.json")
@@ -804,26 +789,9 @@ mod tests {
                 .with_body("invalid response body") // here
                 .create();
 
-            let bearer_did = DidJwk::create(None).unwrap();
-            let vc = VerifiableCredential {
-                context: vec![BASE_CONTEXT.to_string()],
-                id: format!("urn:uuid:{}", Uuid::new_v4()),
-                r#type: vec![BASE_TYPE.to_string()],
-                issuer: Issuer::String(bearer_did.did.uri.clone()),
-                credential_subject: CredentialSubject::from(
-                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
-                ),
-                issuance_date: SystemTime::now(),
-                credential_schema: Some(CredentialSchema {
-                    id: format!("{}/schemas/email.json", url),
-                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
-                }),
-                expiration_date: None,
-                evidence: None,
-            };
-            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+            let vc_jwt_at_port = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXhkek4zU25CUlZIVkNhRUZuV2tSd2JtbHZWME51ZW5kalp6bDBkMFZ4WVZGWldFUTVOblJXUTA1QkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmQ1NmYxMzRjLThjN2QtNDkyOC04OWYwLWQ5NWEzYjllZmU3YiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJeGR6TjNTbkJSVkhWQ2FFRm5Xa1J3Ym1sdlYwTnVlbmRqWnpsMGQwVnhZVkZaV0VRNU5uUldRMDVCSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0Mzo1OC40MTE0NTcrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDIvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXhkek4zU25CUlZIVkNhRUZuV2tSd2JtbHZWME51ZW5kalp6bDBkMFZ4WVZGWldFUTVOblJXUTA1QkluMCIsImp0aSI6InVybjp1dWlkOmQ1NmYxMzRjLThjN2QtNDkyOC04OWYwLWQ5NWEzYjllZmU3YiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODIzOCwiaWF0IjoxNzI1Mzc4MjM4fQ.vYZ5YeXa4ZXaomhVp2obgJwlgjwScFctNAJBqTf2hJOUr1v-jN1C5huK4JL_e16_dRCJd_ysmiOpgFOJD2MOCQ"#;
 
-            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            let result = VerifiableCredential::from_vc_jwt(vc_jwt_at_port, true);
             match result {
                 Err(Web5Error::JsonSchema(err_msg)) => {
                     assert!(err_msg.contains("unable to parse json schema from response body"))
@@ -839,39 +807,24 @@ mod tests {
         fn test_schema_invalid_json_schema() {
             TEST_SUITE.include(test_name!());
 
-            let mut mock_server = Server::new();
-            let url = mock_server.url();
+            let mut mock_server = Server::new_with_opts(ServerOpts {
+                port: 40003,
+                ..Default::default()
+            });
 
             let _ = mock_server
                 .mock("GET", "/schemas/email.json")
                 .with_status(200)
                 .with_header("content-type", "application/json")
                 .with_body(&mock_json_schema(
-                    url.clone(),
+                    "http://localhost:40003/schemas/email.json".to_string(),
                     Some("this is not a valid $schema".to_string()), // here
                 ))
                 .create();
 
-            let bearer_did = DidJwk::create(None).unwrap();
-            let vc = VerifiableCredential {
-                context: vec![BASE_CONTEXT.to_string()],
-                id: format!("urn:uuid:{}", Uuid::new_v4()),
-                r#type: vec![BASE_TYPE.to_string()],
-                issuer: Issuer::String(bearer_did.did.uri.clone()),
-                credential_subject: CredentialSubject::from(
-                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
-                ),
-                issuance_date: SystemTime::now(),
-                credential_schema: Some(CredentialSchema {
-                    id: format!("{}/schemas/email.json", url),
-                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
-                }),
-                expiration_date: None,
-                evidence: None,
-            };
-            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+            let vc_jwt_at_port = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSlRNemRDWVdaR01FTnRla2xmVTJ4WlEyTXlNSHBKZGt4eVprTnFjM1ptTUVWUWFtbDVkV2N5Wmt0WkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjJjZWFmODUxLTBiYzktNDFkYy04NzNmLThhMGMyN2Y0ZDZkOCIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKVE16ZENZV1pHTUVOdGVrbGZVMnhaUTJNeU1IcEpka3h5WmtOcWMzWm1NRVZRYW1sNWRXY3laa3RaSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0NTozMC4zMDY4MDYrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDMvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSlRNemRDWVdaR01FTnRla2xmVTJ4WlEyTXlNSHBKZGt4eVprTnFjM1ptTUVWUWFtbDVkV2N5Wmt0WkluMCIsImp0aSI6InVybjp1dWlkOjJjZWFmODUxLTBiYzktNDFkYy04NzNmLThhMGMyN2Y0ZDZkOCIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODMzMCwiaWF0IjoxNzI1Mzc4MzMwfQ.Drh8iEOdWWeL6l9KdmKMv9qfbBxWln-TW0KNwOJN3lZatyaSkwlBO_1o2FIWj0WIDiD_TP2EestMFazf4XFQDA"#;
 
-            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            let result = VerifiableCredential::from_vc_jwt(vc_jwt_at_port, true);
             match result {
                 Err(Web5Error::JsonSchema(err_msg)) => {
                     assert!(err_msg.contains("unable to compile json schema"))
@@ -887,39 +840,24 @@ mod tests {
         fn test_schema_do_not_support_draft04() {
             TEST_SUITE.include(test_name!());
 
-            let mut mock_server = Server::new();
-            let url = mock_server.url();
+            let mut mock_server = Server::new_with_opts(ServerOpts {
+                port: 40004,
+                ..Default::default()
+            });
 
             let _ = mock_server
                 .mock("GET", "/schemas/email.json")
                 .with_status(200)
                 .with_header("content-type", "application/json")
                 .with_body(&mock_json_schema(
-                    url.clone(),
+                    "http://localhost:40004/schemas/email.json".to_string(),
                     Some("http://json-schema.org/draft-04/schema#".to_string()), // here
                 ))
                 .create();
 
-            let bearer_did = DidJwk::create(None).unwrap();
-            let vc = VerifiableCredential {
-                context: vec![BASE_CONTEXT.to_string()],
-                id: format!("urn:uuid:{}", Uuid::new_v4()),
-                r#type: vec![BASE_TYPE.to_string()],
-                issuer: Issuer::String(bearer_did.did.uri.clone()),
-                credential_subject: CredentialSubject::from(
-                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
-                ),
-                issuance_date: SystemTime::now(),
-                credential_schema: Some(CredentialSchema {
-                    id: format!("{}/schemas/email.json", url),
-                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
-                }),
-                expiration_date: None,
-                evidence: None,
-            };
-            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+            let vc_jwt_at_port = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBNemMwTFVkc1lVSmZiMmxQZG1aR1ZteGtiVWhhVXpNNVpEZEtlalUxUm0xU2R6WkVjbmswVkRjd0luMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmYzNDc3ZDdkLWJiOWUtNGI5Ny1iYjhkLTk4NDMwNjgzN2RmMyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKcE16YzBMVWRzWVVKZmIybFBkbVpHVm14a2JVaGFVek01WkRkS2VqVTFSbTFTZHpaRWNuazBWRGN3SW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0Nzo0MS4wNjgxNjIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDQvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBNemMwTFVkc1lVSmZiMmxQZG1aR1ZteGtiVWhhVXpNNVpEZEtlalUxUm0xU2R6WkVjbmswVkRjd0luMCIsImp0aSI6InVybjp1dWlkOmYzNDc3ZDdkLWJiOWUtNGI5Ny1iYjhkLTk4NDMwNjgzN2RmMyIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODQ2MSwiaWF0IjoxNzI1Mzc4NDYxfQ.X7pZBMqPeBO0oTq1QNtMcSrYcIpDxCavPEoPDiB1A9GOqCohx7KCgOerXaJGSyklAkmNJod7ssmL4DMM-l3uDA"#;
 
-            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            let result = VerifiableCredential::from_vc_jwt(vc_jwt_at_port, true);
             match result {
                 Err(Web5Error::JsonSchema(err_msg)) => {
                     assert_eq!("draft unsupported Draft4", err_msg)
@@ -935,39 +873,24 @@ mod tests {
         fn test_schema_do_not_support_draft06() {
             TEST_SUITE.include(test_name!());
 
-            let mut mock_server = Server::new();
-            let url = mock_server.url();
+            let mut mock_server = Server::new_with_opts(ServerOpts {
+                port: 40005,
+                ..Default::default()
+            });
 
             let _ = mock_server
                 .mock("GET", "/schemas/email.json")
                 .with_status(200)
                 .with_header("content-type", "application/json")
                 .with_body(&mock_json_schema(
-                    url.clone(),
+                    "http://localhost:40005/schemas/email.json".to_string(),
                     Some("http://json-schema.org/draft-06/schema#".to_string()), // here
                 ))
                 .create();
 
-            let bearer_did = DidJwk::create(None).unwrap();
-            let vc = VerifiableCredential {
-                context: vec![BASE_CONTEXT.to_string()],
-                id: format!("urn:uuid:{}", Uuid::new_v4()),
-                r#type: vec![BASE_TYPE.to_string()],
-                issuer: Issuer::String(bearer_did.did.uri.clone()),
-                credential_subject: CredentialSubject::from(
-                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
-                ),
-                issuance_date: SystemTime::now(),
-                credential_schema: Some(CredentialSchema {
-                    id: format!("{}/schemas/email.json", url),
-                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
-                }),
-                expiration_date: None,
-                evidence: None,
-            };
-            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+            let vc_jwt_at_port = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkhSemxDUVU1QlpXUkplR2RpYzJkVlprOWZRWFpPWVZsWmFHMWxZbmhXYWpOZlVuQnBWREp4ZG5WVkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjQ4MGM0ZjQ5LTAyMmEtNDIwMi1hYjFiLTc1ZThjZjQ1NDEyMyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKSFJ6bENRVTVCWldSSmVHZGljMmRWWms5ZlFYWk9ZVmxaYUcxbFluaFdhak5mVW5CcFZESnhkblZWSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0ODo1MC4wNjM4NjIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDUvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkhSemxDUVU1QlpXUkplR2RpYzJkVlprOWZRWFpPWVZsWmFHMWxZbmhXYWpOZlVuQnBWREp4ZG5WVkluMCIsImp0aSI6InVybjp1dWlkOjQ4MGM0ZjQ5LTAyMmEtNDIwMi1hYjFiLTc1ZThjZjQ1NDEyMyIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODUzMCwiaWF0IjoxNzI1Mzc4NTMwfQ.Id6rsvMkqjocv6x5g_s8fnfR74HdXIpIdL3bMR33f1FYPFQ9CZRArMc1ZTh3xL3QfUggY8AUkRraQSAJh_onBA"#;
 
-            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            let result = VerifiableCredential::from_vc_jwt(vc_jwt_at_port, true);
             match result {
                 Err(Web5Error::JsonSchema(err_msg)) => {
                     assert_eq!("draft unsupported Draft6", err_msg)
@@ -983,37 +906,25 @@ mod tests {
         fn test_schema_fails_validation() {
             TEST_SUITE.include(test_name!());
 
-            let mut mock_server = Server::new();
-            let url = mock_server.url();
+            let mut mock_server = Server::new_with_opts(ServerOpts {
+                port: 40006,
+                ..Default::default()
+            });
 
             let _ = mock_server
                 .mock("GET", "/schemas/email.json")
                 .with_status(200)
                 .with_header("content-type", "application/json")
-                .with_body(&mock_json_schema(url.clone(), None))
+                .with_body(&mock_json_schema(
+                    "http://localhost/schemas/email.json".to_string(),
+                    None,
+                ))
                 .create();
 
-            let bearer_did = DidJwk::create(None).unwrap();
-            let vc = VerifiableCredential {
-                context: vec![BASE_CONTEXT.to_string()],
-                id: format!("urn:uuid:{}", Uuid::new_v4()),
-                r#type: vec![BASE_TYPE.to_string()],
-                issuer: Issuer::String(bearer_did.did.uri.clone()),
-                credential_subject: CredentialSubject::from(
-                    // mising emailAddress
-                    "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
-                ),
-                issuance_date: SystemTime::now(),
-                credential_schema: Some(CredentialSchema {
-                    id: format!("{}/schemas/email.json", url),
-                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
-                }),
-                expiration_date: None,
-                evidence: None,
-            };
-            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+            let vc_jwt_at_port_with_invalid_schema = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBlRkpyUVhodk5GTmtVMXAwTW1VMGFWQm5WRTV0T1dnelFYWnJYMU42Wm1WUlNVeFNkbFJHU0RSSkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmY4NThhZGM2LTZhMDQtNDY5ZC04MGJiLWM2MmI1N2MyNWI5NSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKcGVGSnJRWGh2TkZOa1UxcDBNbVUwYVZCblZFNXRPV2d6UVhaclgxTjZabVZSU1V4U2RsUkdTRFJKSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo1MDozOS4yMTM3NzIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDYvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBlRkpyUVhodk5GTmtVMXAwTW1VMGFWQm5WRTV0T1dnelFYWnJYMU42Wm1WUlNVeFNkbFJHU0RSSkluMCIsImp0aSI6InVybjp1dWlkOmY4NThhZGM2LTZhMDQtNDY5ZC04MGJiLWM2MmI1N2MyNWI5NSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODYzOSwiaWF0IjoxNzI1Mzc4NjM5fQ.zxz0OZO1umdlxgRyrwyMJis4t4esE_7Zo6nma4Q8T4josAkw6vnQJFI_cPoZV4usQ1vve5bB5OOiMcf_tca6Cw"#;
 
-            let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+            let result =
+                VerifiableCredential::from_vc_jwt(vc_jwt_at_port_with_invalid_schema, true);
             match result {
                 Err(Web5Error::JsonSchema(err_msg)) => {
                     assert!(err_msg.contains("validation errors"))
@@ -1029,42 +940,24 @@ mod tests {
         fn test_schema_example_from_spec() {
             TEST_SUITE.include(test_name!());
 
-            let mut mock_server = Server::new();
-            let url = mock_server.url();
+            let mut mock_server = Server::new_with_opts(ServerOpts {
+                port: 40007,
+                ..Default::default()
+            });
 
             let _ = mock_server
                 .mock("GET", "/schemas/email.json")
                 .with_status(200)
                 .with_header("content-type", "application/json")
-                .with_body(&mock_json_schema(url.clone(), None))
+                .with_body(&mock_json_schema(
+                    "http://localhost:40007/schemas/email.json".to_string(),
+                    None,
+                ))
                 .create();
 
-            let bearer_did = DidJwk::create(None).unwrap();
-            let mut additional_properties = JsonObject::new();
-            additional_properties.insert(
-                "emailAddress".to_string(),
-                JsonValue::String("alice@tbd.email".to_string()),
-            );
-            let vc = VerifiableCredential {
-                context: vec![BASE_CONTEXT.to_string()],
-                id: format!("urn:uuid:{}", Uuid::new_v4()),
-                r#type: vec![BASE_TYPE.to_string()],
-                issuer: Issuer::String(bearer_did.did.uri.clone()),
-                credential_subject: CredentialSubject {
-                    id: "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y".to_string(),
-                    additional_properties: Some(additional_properties),
-                },
-                issuance_date: SystemTime::now(),
-                credential_schema: Some(CredentialSchema {
-                    id: format!("{}/schemas/email.json", url),
-                    r#type: CREDENTIAL_SCHEMA_TYPE.to_string(),
-                }),
-                expiration_date: None,
-                evidence: None,
-            };
-            let vc_jwt = vc.sign(&bearer_did, None).unwrap();
+            let vc_jwt_at_port = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkZjVm96YVdGVldqWnpUMlZ5VEVGMWEzcEpRbkV6Ym1sNVEzZHVVWEF0WWtkNk1EQlZMVk15YURGakluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjM4OWE2OWYyLWEwOTYtNDc0Ni1hNzU0LTRlNmE0ZThiZDEzYyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKRmNWb3phV0ZWV2paelQyVnlURUYxYTNwSlFuRXpibWw1UTNkdVVYQXRZa2Q2TURCVkxWTXlhREZqSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo1MzoxNy43NjgzNzQrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJlbWFpbEFkZHJlc3MiOiJhbGljZUB0YmQuZW1haWwifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDcvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkZjVm96YVdGVldqWnpUMlZ5VEVGMWEzcEpRbkV6Ym1sNVEzZHVVWEF0WWtkNk1EQlZMVk15YURGakluMCIsImp0aSI6InVybjp1dWlkOjM4OWE2OWYyLWEwOTYtNDc0Ni1hNzU0LTRlNmE0ZThiZDEzYyIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODc5NywiaWF0IjoxNzI1Mzc4Nzk3fQ.AC1OGOJ-MxfRsyNJZEQM4PW_t1eNCiSdTNtEtiPPOnIDGYnDl7JGtVIki9tHdWduQHoanrV0dWDeB5dnTTmZAw"#;
 
-            let _ = VerifiableCredential::from_vc_jwt(&vc_jwt, true).unwrap();
+            let _ = VerifiableCredential::from_vc_jwt(vc_jwt_at_port, true).unwrap();
         }
     }
 }

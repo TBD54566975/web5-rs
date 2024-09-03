@@ -1131,35 +1131,17 @@ class VerifiableCredentialTest {
             testSuite.include()
 
             val mockWebServer = MockWebServer()
-            mockWebServer.start()
-
-            val url = mockWebServer.url("/schemas/email.json")
-
+            mockWebServer.start(40001)
             mockWebServer.enqueue(
                 MockResponse()
                     .setResponseCode(500) // Simulate a server error
                     .addHeader("Content-Type", "application/json")
             )
 
-            val bearerDid = DidJwk.create()
-            val vc = VerifiableCredential(
-                context = listOf("https://www.w3.org/2018/credentials/v1"),
-                type = listOf("VerifiableCredential"),
-                id = "urn:uuid:some-uuid",
-                issuer = Issuer.StringIssuer(bearerDid.did.uri),
-                credentialSubject = CredentialSubject(
-                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
-                ),
-                issuanceDate = Date(),
-                credentialSchema = CredentialSchema(
-                    id = url.toString(),
-                    type = "JsonSchema"
-                )
-            )
-            val vcJwt = vc.sign(bearerDid)
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSm9jMmhVZEU4M2F5MVNjVE5oVWtWR1lUVTRhUzFoWlZVdGRWaHNUVXB4UkdkallteEhhMTlpTW5OM0luMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmE5Nzk1YTdmLTRmNzktNDU3OC1hYTkxLTcwYmYxM2YxZWVkNiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKb2MyaFVkRTgzYXkxU2NUTmhVa1ZHWVRVNGFTMWhaVlV0ZFZoc1RVcHhSR2RqWW14SGExOWlNbk4zSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0MDowMS4wNDg1MzIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDEvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSm9jMmhVZEU4M2F5MVNjVE5oVWtWR1lUVTRhUzFoWlZVdGRWaHNUVXB4UkdkallteEhhMTlpTW5OM0luMCIsImp0aSI6InVybjp1dWlkOmE5Nzk1YTdmLTRmNzktNDU3OC1hYTkxLTcwYmYxM2YxZWVkNiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODAwMSwiaWF0IjoxNzI1Mzc4MDAxfQ.9739UnhTfGXr2tsbsjun7FQfFuXNtqmzfxhP_okbywVDoh6nsBGk8smLUU_D0VYwtiMBTo1ujDs1QtKPbCZDDA"
 
             val exception = assertThrows<Web5Exception.Exception> {
-                VerifiableCredential.fromVcJwt(vcJwt, true)
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
             }
 
             assertTrue(exception.msg.contains("non-200 response when resolving json schema"))
@@ -1172,10 +1154,7 @@ class VerifiableCredentialTest {
             testSuite.include()
 
             val mockWebServer = MockWebServer()
-            mockWebServer.start()
-
-            val url = mockWebServer.url("/schemas/email.json")
-
+            mockWebServer.start(40002)
             mockWebServer.enqueue(
                 MockResponse()
                     .setResponseCode(200)
@@ -1183,25 +1162,10 @@ class VerifiableCredentialTest {
                     .setBody("invalid response body") // Simulate invalid JSON response
             )
 
-            val bearerDid = DidJwk.create()
-            val vc = VerifiableCredential(
-                context = listOf("https://www.w3.org/2018/credentials/v1"),
-                type = listOf("VerifiableCredential"),
-                id = "urn:uuid:some-uuid",
-                issuer = Issuer.StringIssuer(bearerDid.did.uri),
-                credentialSubject = CredentialSubject(
-                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
-                ),
-                issuanceDate = Date(),
-                credentialSchema = CredentialSchema(
-                    id = url.toString(),
-                    type = "JsonSchema"
-                )
-            )
-            val vcJwt = vc.sign(bearerDid)
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXhkek4zU25CUlZIVkNhRUZuV2tSd2JtbHZWME51ZW5kalp6bDBkMFZ4WVZGWldFUTVOblJXUTA1QkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmQ1NmYxMzRjLThjN2QtNDkyOC04OWYwLWQ5NWEzYjllZmU3YiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJeGR6TjNTbkJSVkhWQ2FFRm5Xa1J3Ym1sdlYwTnVlbmRqWnpsMGQwVnhZVkZaV0VRNU5uUldRMDVCSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0Mzo1OC40MTE0NTcrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDIvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXhkek4zU25CUlZIVkNhRUZuV2tSd2JtbHZWME51ZW5kalp6bDBkMFZ4WVZGWldFUTVOblJXUTA1QkluMCIsImp0aSI6InVybjp1dWlkOmQ1NmYxMzRjLThjN2QtNDkyOC04OWYwLWQ5NWEzYjllZmU3YiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODIzOCwiaWF0IjoxNzI1Mzc4MjM4fQ.vYZ5YeXa4ZXaomhVp2obgJwlgjwScFctNAJBqTf2hJOUr1v-jN1C5huK4JL_e16_dRCJd_ysmiOpgFOJD2MOCQ"
 
             val exception = assertThrows<Web5Exception.Exception> {
-                VerifiableCredential.fromVcJwt(vcJwt, true)
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
             }
 
             assertTrue(exception.msg.contains("unable to parse json schema from response body"))
@@ -1214,13 +1178,10 @@ class VerifiableCredentialTest {
             testSuite.include()
 
             val mockWebServer = MockWebServer()
-            mockWebServer.start()
-
-            val url = mockWebServer.url("/schemas/email.json")
-
+            mockWebServer.start(40003)
             val invalidJsonSchema = """
                 {
-                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}id": "http://localhost:40003/schemas/email.json",
                     "${"$"}schema": "this is not a valid ${"$"}schema",
                     "title": "EmailCredential",
                     "type": "object",
@@ -1238,7 +1199,6 @@ class VerifiableCredentialTest {
                     }
                 }
             """.trimIndent()
-
             mockWebServer.enqueue(
                 MockResponse()
                     .setResponseCode(200)
@@ -1246,25 +1206,10 @@ class VerifiableCredentialTest {
                     .setBody(invalidJsonSchema)
             )
 
-            val bearerDid = DidJwk.create()
-            val vc = VerifiableCredential(
-                context = listOf("https://www.w3.org/2018/credentials/v1"),
-                type = listOf("VerifiableCredential"),
-                id = "urn:uuid:some-uuid",
-                issuer = Issuer.StringIssuer(bearerDid.did.uri),
-                credentialSubject = CredentialSubject(
-                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
-                ),
-                issuanceDate = Date(),
-                credentialSchema = CredentialSchema(
-                    id = url.toString(),
-                    type = "JsonSchema"
-                )
-            )
-            val vcJwt = vc.sign(bearerDid)
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSlRNemRDWVdaR01FTnRla2xmVTJ4WlEyTXlNSHBKZGt4eVprTnFjM1ptTUVWUWFtbDVkV2N5Wmt0WkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjJjZWFmODUxLTBiYzktNDFkYy04NzNmLThhMGMyN2Y0ZDZkOCIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKVE16ZENZV1pHTUVOdGVrbGZVMnhaUTJNeU1IcEpka3h5WmtOcWMzWm1NRVZRYW1sNWRXY3laa3RaSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0NTozMC4zMDY4MDYrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDMvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSlRNemRDWVdaR01FTnRla2xmVTJ4WlEyTXlNSHBKZGt4eVprTnFjM1ptTUVWUWFtbDVkV2N5Wmt0WkluMCIsImp0aSI6InVybjp1dWlkOjJjZWFmODUxLTBiYzktNDFkYy04NzNmLThhMGMyN2Y0ZDZkOCIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODMzMCwiaWF0IjoxNzI1Mzc4MzMwfQ.Drh8iEOdWWeL6l9KdmKMv9qfbBxWln-TW0KNwOJN3lZatyaSkwlBO_1o2FIWj0WIDiD_TP2EestMFazf4XFQDA"
 
             val exception = assertThrows<Web5Exception.Exception> {
-                VerifiableCredential.fromVcJwt(vcJwt, true)
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
             }
 
             assertTrue(exception.msg.contains("unable to compile json schema"))
@@ -1277,13 +1222,10 @@ class VerifiableCredentialTest {
             testSuite.include()
 
             val mockWebServer = MockWebServer()
-            mockWebServer.start()
-
-            val url = mockWebServer.url("/schemas/email.json")
-
+            mockWebServer.start(40004)
             val draft04Schema = """
                 {
-                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}id": "http://localhost:40004/schemas/email.json",
                     "${"$"}schema": "http://json-schema.org/draft-04/schema#",
                     "title": "EmailCredential",
                     "type": "object",
@@ -1301,7 +1243,6 @@ class VerifiableCredentialTest {
                     }
                 }
             """.trimIndent()
-
             mockWebServer.enqueue(
                 MockResponse()
                     .setResponseCode(200)
@@ -1309,25 +1250,10 @@ class VerifiableCredentialTest {
                     .setBody(draft04Schema)
             )
 
-            val bearerDid = DidJwk.create()
-            val vc = VerifiableCredential(
-                context = listOf("https://www.w3.org/2018/credentials/v1"),
-                type = listOf("VerifiableCredential"),
-                id = "urn:uuid:some-uuid",
-                issuer = Issuer.StringIssuer(bearerDid.did.uri),
-                credentialSubject = CredentialSubject(
-                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
-                ),
-                issuanceDate = Date(),
-                credentialSchema = CredentialSchema(
-                    id = url.toString(),
-                    type = "JsonSchema"
-                )
-            )
-            val vcJwt = vc.sign(bearerDid)
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBNemMwTFVkc1lVSmZiMmxQZG1aR1ZteGtiVWhhVXpNNVpEZEtlalUxUm0xU2R6WkVjbmswVkRjd0luMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmYzNDc3ZDdkLWJiOWUtNGI5Ny1iYjhkLTk4NDMwNjgzN2RmMyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKcE16YzBMVWRzWVVKZmIybFBkbVpHVm14a2JVaGFVek01WkRkS2VqVTFSbTFTZHpaRWNuazBWRGN3SW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0Nzo0MS4wNjgxNjIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDQvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBNemMwTFVkc1lVSmZiMmxQZG1aR1ZteGtiVWhhVXpNNVpEZEtlalUxUm0xU2R6WkVjbmswVkRjd0luMCIsImp0aSI6InVybjp1dWlkOmYzNDc3ZDdkLWJiOWUtNGI5Ny1iYjhkLTk4NDMwNjgzN2RmMyIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODQ2MSwiaWF0IjoxNzI1Mzc4NDYxfQ.X7pZBMqPeBO0oTq1QNtMcSrYcIpDxCavPEoPDiB1A9GOqCohx7KCgOerXaJGSyklAkmNJod7ssmL4DMM-l3uDA"
 
             val exception = assertThrows<Web5Exception.Exception> {
-                VerifiableCredential.fromVcJwt(vcJwt, true)
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
             }
 
             assertEquals("json schema error draft unsupported Draft4", exception.msg)
@@ -1340,13 +1266,10 @@ class VerifiableCredentialTest {
             testSuite.include()
 
             val mockWebServer = MockWebServer()
-            mockWebServer.start()
-
-            val url = mockWebServer.url("/schemas/email.json")
-
+            mockWebServer.start(40005)
             val draft06Schema = """
                 {
-                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}id": "http://localhost:40005/schemas/email.json",
                     "${"$"}schema": "http://json-schema.org/draft-06/schema#",
                     "title": "EmailCredential",
                     "type": "object",
@@ -1364,7 +1287,6 @@ class VerifiableCredentialTest {
                     }
                 }
             """.trimIndent()
-
             mockWebServer.enqueue(
                 MockResponse()
                     .setResponseCode(200)
@@ -1372,25 +1294,10 @@ class VerifiableCredentialTest {
                     .setBody(draft06Schema)
             )
 
-            val bearerDid = DidJwk.create()
-            val vc = VerifiableCredential(
-                context = listOf("https://www.w3.org/2018/credentials/v1"),
-                type = listOf("VerifiableCredential"),
-                id = "urn:uuid:some-uuid",
-                issuer = Issuer.StringIssuer(bearerDid.did.uri),
-                credentialSubject = CredentialSubject(
-                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
-                ),
-                issuanceDate = Date(),
-                credentialSchema = CredentialSchema(
-                    id = url.toString(),
-                    type = "JsonSchema"
-                )
-            )
-            val vcJwt = vc.sign(bearerDid)
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkhSemxDUVU1QlpXUkplR2RpYzJkVlprOWZRWFpPWVZsWmFHMWxZbmhXYWpOZlVuQnBWREp4ZG5WVkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjQ4MGM0ZjQ5LTAyMmEtNDIwMi1hYjFiLTc1ZThjZjQ1NDEyMyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKSFJ6bENRVTVCWldSSmVHZGljMmRWWms5ZlFYWk9ZVmxaYUcxbFluaFdhak5mVW5CcFZESnhkblZWSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0ODo1MC4wNjM4NjIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDUvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkhSemxDUVU1QlpXUkplR2RpYzJkVlprOWZRWFpPWVZsWmFHMWxZbmhXYWpOZlVuQnBWREp4ZG5WVkluMCIsImp0aSI6InVybjp1dWlkOjQ4MGM0ZjQ5LTAyMmEtNDIwMi1hYjFiLTc1ZThjZjQ1NDEyMyIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODUzMCwiaWF0IjoxNzI1Mzc4NTMwfQ.Id6rsvMkqjocv6x5g_s8fnfR74HdXIpIdL3bMR33f1FYPFQ9CZRArMc1ZTh3xL3QfUggY8AUkRraQSAJh_onBA"
 
             val exception = assertThrows<Web5Exception.Exception> {
-                VerifiableCredential.fromVcJwt(vcJwt, true)
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
             }
 
             assertEquals("json schema error draft unsupported Draft6", exception.msg)
@@ -1403,13 +1310,10 @@ class VerifiableCredentialTest {
             testSuite.include()
 
             val mockWebServer = MockWebServer()
-            mockWebServer.start()
-
-            val url = mockWebServer.url("/schemas/email.json")
-
+            mockWebServer.start(40006)
             val validJsonSchema = """
                 {
-                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}id": "http://localhost:40006/schemas/email.json",
                     "${"$"}schema": "https://json-schema.org/draft/2020-12/schema",
                     "title": "EmailCredential",
                     "type": "object",
@@ -1427,7 +1331,6 @@ class VerifiableCredentialTest {
                     }
                 }
             """.trimIndent()
-
             mockWebServer.enqueue(
                 MockResponse()
                     .setResponseCode(200)
@@ -1435,25 +1338,10 @@ class VerifiableCredentialTest {
                     .setBody(validJsonSchema)
             )
 
-            val bearerDid = DidJwk.create()
-            val vc = VerifiableCredential(
-                context = listOf("https://www.w3.org/2018/credentials/v1"),
-                type = listOf("VerifiableCredential"),
-                id = "urn:uuid:some-uuid",
-                issuer = Issuer.StringIssuer(bearerDid.did.uri),
-                credentialSubject = CredentialSubject(
-                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y" // Missing emailAddress
-                ),
-                issuanceDate = Date(),
-                credentialSchema = CredentialSchema(
-                    id = url.toString(),
-                    type = "JsonSchema"
-                )
-            )
-            val vcJwt = vc.sign(bearerDid)
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBlRkpyUVhodk5GTmtVMXAwTW1VMGFWQm5WRTV0T1dnelFYWnJYMU42Wm1WUlNVeFNkbFJHU0RSSkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmY4NThhZGM2LTZhMDQtNDY5ZC04MGJiLWM2MmI1N2MyNWI5NSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKcGVGSnJRWGh2TkZOa1UxcDBNbVUwYVZCblZFNXRPV2d6UVhaclgxTjZabVZSU1V4U2RsUkdTRFJKSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo1MDozOS4yMTM3NzIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDYvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBlRkpyUVhodk5GTmtVMXAwTW1VMGFWQm5WRTV0T1dnelFYWnJYMU42Wm1WUlNVeFNkbFJHU0RSSkluMCIsImp0aSI6InVybjp1dWlkOmY4NThhZGM2LTZhMDQtNDY5ZC04MGJiLWM2MmI1N2MyNWI5NSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODYzOSwiaWF0IjoxNzI1Mzc4NjM5fQ.zxz0OZO1umdlxgRyrwyMJis4t4esE_7Zo6nma4Q8T4josAkw6vnQJFI_cPoZV4usQ1vve5bB5OOiMcf_tca6Cw"
 
             val exception = assertThrows<Web5Exception.Exception> {
-                VerifiableCredential.fromVcJwt(vcJwt, true)
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
             }
 
             assertTrue(exception.msg.contains("validation errors"))
@@ -1466,13 +1354,10 @@ class VerifiableCredentialTest {
             testSuite.include()
 
             val mockWebServer = MockWebServer()
-            mockWebServer.start()
-
-            val url = mockWebServer.url("/schemas/email.json")
-
+            mockWebServer.start(40007)
             val validJsonSchema = """
                 {
-                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}id": "http://localhost:40007/schemas/email.json",
                     "${"$"}schema": "https://json-schema.org/draft/2020-12/schema",
                     "title": "EmailCredential",
                     "type": "object",
@@ -1490,7 +1375,6 @@ class VerifiableCredentialTest {
                     }
                 }
             """.trimIndent()
-
             mockWebServer.enqueue(
                 MockResponse()
                     .setResponseCode(200)
@@ -1498,30 +1382,15 @@ class VerifiableCredentialTest {
                     .setBody(validJsonSchema)
             )
 
-            val bearerDid = DidJwk.create()
-            val vc = VerifiableCredential(
-                context = listOf("https://www.w3.org/2018/credentials/v1"),
-                type = listOf("VerifiableCredential"),
-                id = "urn:uuid:some-uuid",
-                issuer = Issuer.StringIssuer(bearerDid.did.uri),
-                credentialSubject = CredentialSubject(
-                    id = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y",
-                    additionalProperties = mapOf("emailAddress" to "alice@tbd.email")
-                ),
-                issuanceDate = Date(),
-                credentialSchema = CredentialSchema(
-                    id = url.toString(),
-                    type = "JsonSchema"
-                )
-            )
-            val vcJwt = vc.sign(bearerDid)
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkZjVm96YVdGVldqWnpUMlZ5VEVGMWEzcEpRbkV6Ym1sNVEzZHVVWEF0WWtkNk1EQlZMVk15YURGakluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjM4OWE2OWYyLWEwOTYtNDc0Ni1hNzU0LTRlNmE0ZThiZDEzYyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKRmNWb3phV0ZWV2paelQyVnlURUYxYTNwSlFuRXpibWw1UTNkdVVYQXRZa2Q2TURCVkxWTXlhREZqSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo1MzoxNy43NjgzNzQrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJlbWFpbEFkZHJlc3MiOiJhbGljZUB0YmQuZW1haWwifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDcvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkZjVm96YVdGVldqWnpUMlZ5VEVGMWEzcEpRbkV6Ym1sNVEzZHVVWEF0WWtkNk1EQlZMVk15YURGakluMCIsImp0aSI6InVybjp1dWlkOjM4OWE2OWYyLWEwOTYtNDc0Ni1hNzU0LTRlNmE0ZThiZDEzYyIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODc5NywiaWF0IjoxNzI1Mzc4Nzk3fQ.AC1OGOJ-MxfRsyNJZEQM4PW_t1eNCiSdTNtEtiPPOnIDGYnDl7JGtVIki9tHdWduQHoanrV0dWDeB5dnTTmZAw"
 
-            val decodedVc = VerifiableCredential.fromVcJwt(vcJwt, true)
+            val decodedVc = VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
 
             assertEquals("alice@tbd.email", decodedVc.credentialSubject.additionalProperties["emailAddress"])
 
             mockWebServer.shutdown()
         }
+
     }
 
 

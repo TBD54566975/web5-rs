@@ -29,46 +29,6 @@ pub struct VerifiableCredential {
 }
 
 impl VerifiableCredential {
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        context: Vec<String>,
-        r#type: Vec<String>,
-        id: String,
-        json_serialized_issuer: String,
-        json_serialized_credential_subject: String,
-        issuance_date: SystemTime,
-        expiration_date: Option<SystemTime>,
-        credential_schema: Option<CredentialSchema>,
-        json_serialized_evidence: Option<String>,
-    ) -> Result<Self> {
-        let issuer = Issuer::from_json_string(&json_serialized_issuer)?;
-        let credential_subject =
-            CredentialSubject::from_json_string(&json_serialized_credential_subject)?;
-
-        let evidence = match json_serialized_evidence {
-            Some(evidence_string) => {
-                Some(serde_json::from_str::<Vec<JsonObject>>(&evidence_string)?)
-            }
-            None => None,
-        };
-
-        Ok(Self {
-            inner_vc: InnerVerifiableCredential {
-                context,
-                r#type,
-                id,
-                issuer,
-                credential_subject,
-                issuance_date,
-                expiration_date,
-                credential_schema,
-                evidence,
-            },
-            json_serialized_issuer,
-            json_serialized_credential_subject,
-        })
-    }
-
     pub fn create(
         json_serialized_issuer: String,
         json_serialized_credential_subject: String,
