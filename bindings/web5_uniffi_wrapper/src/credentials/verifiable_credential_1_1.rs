@@ -1,12 +1,29 @@
-use crate::errors::Result;
-use std::time::SystemTime;
+use crate::{dids::bearer_did::BearerDid, errors::Result};
+use std::{sync::Arc, time::SystemTime};
+use web5::credentials::verifiable_credential_1_1::CredentialStatus;
+use web5::credentials::Issuer;
 use web5::{
-    credentials::verifiable_credential_1_1::{
-        CredentialStatus, CredentialSubject, Issuer,
-        VerifiableCredential as InnerVerifiableCredential, VerifiableCredentialCreateOptions,
+    credentials::{
+        verifiable_credential_1_1::{
+            VerifiableCredential as InnerVerifiableCredential,
+            VerifiableCredentialCreateOptions as InnerVerifiableCredentialCreateOptions,
+        },
+        CredentialSchema, CredentialSubject,
     },
-    json::FromJson,
+    json::{FromJson as _, JsonObject},
 };
+
+#[derive(Default)]
+pub struct VerifiableCredentialCreateOptions {
+    pub id: Option<String>,
+    pub context: Option<Vec<String>>,
+    pub r#type: Option<Vec<String>>,
+    pub issuance_date: Option<SystemTime>,
+    pub expiration_date: Option<SystemTime>,
+    pub credential_status: Option<CredentialStatus>,
+    pub credential_schema: Option<CredentialSchema>,
+    pub json_serialized_evidence: Option<String>,
+}
 
 pub struct VerifiableCredential {
     pub inner_vc: InnerVerifiableCredential,
@@ -24,7 +41,26 @@ impl VerifiableCredential {
         let credential_subject =
             CredentialSubject::from_json_string(&json_serialized_credential_subject)?;
 
-        let inner_vc = InnerVerifiableCredential::create(issuer, credential_subject, options)?;
+        let options = options.unwrap_or_default();
+        let evidence = match options.json_serialized_evidence {
+            Some(evidence_string) => {
+                Some(serde_json::from_str::<Vec<JsonObject>>(&evidence_string)?)
+            }
+            None => None,
+        };
+        let inner_options = InnerVerifiableCredentialCreateOptions {
+            id: options.id,
+            context: options.context,
+            r#type: options.r#type,
+            issuance_date: options.issuance_date,
+            expiration_date: options.expiration_date,
+            credential_status: options.credential_status,
+            credential_schema: options.credential_schema,
+            evidence,
+        };
+
+        let inner_vc =
+            InnerVerifiableCredential::create(issuer, credential_subject, Some(inner_options))?;
 
         Ok(Self {
             inner_vc,
@@ -33,8 +69,13 @@ impl VerifiableCredential {
         })
     }
 
-    pub fn get_data(&self) -> VerifiableCredentialData {
-        VerifiableCredentialData {
+    pub fn get_data(&self) -> Result<VerifiableCredentialData> {
+        let json_serialized_evidence = match &self.inner_vc.evidence {
+            Some(e) => Some(serde_json::to_string(e)?),
+            None => None,
+        };
+
+        Ok(VerifiableCredentialData {
             context: self.inner_vc.context.clone(),
             id: self.inner_vc.id.clone(),
             r#type: self.inner_vc.r#type.clone(),
@@ -43,7 +84,31 @@ impl VerifiableCredential {
             issuance_date: self.inner_vc.issuance_date,
             expiration_date: self.inner_vc.expiration_date,
             credential_status: self.inner_vc.credential_status.clone(),
-        }
+            credential_schema: self.inner_vc.credential_schema.clone(),
+            json_serialized_evidence,
+        })
+    }
+
+    pub fn from_vc_jwt(vc_jwt: String, verify: bool) -> Result<Self> {
+        let inner_vc = InnerVerifiableCredential::from_vc_jwt(&vc_jwt, verify)?;
+        let json_serialized_issuer = serde_json::to_string(&inner_vc.issuer)?;
+        let json_serialized_credential_subject =
+            serde_json::to_string(&inner_vc.credential_subject)?;
+
+        Ok(Self {
+            inner_vc,
+            json_serialized_issuer,
+            json_serialized_credential_subject,
+        })
+    }
+
+    pub fn sign(
+        &self,
+        bearer_did: Arc<BearerDid>,
+        verification_method_id: Option<String>,
+    ) -> Result<String> {
+        let vc_jwt = self.inner_vc.sign(&bearer_did.0, verification_method_id)?;
+        Ok(vc_jwt)
     }
 }
 
@@ -57,4 +122,6 @@ pub struct VerifiableCredentialData {
     pub issuance_date: SystemTime,
     pub expiration_date: Option<SystemTime>,
     pub credential_status: Option<CredentialStatus>,
+    pub credential_schema: Option<CredentialSchema>,
+    pub json_serialized_evidence: Option<String>,
 }

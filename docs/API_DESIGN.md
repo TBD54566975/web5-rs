@@ -12,8 +12,9 @@
       - [`VerifiableCredential`](#verifiablecredential)
         - [`CredentialSubject`](#credentialsubject)
         - [`Issuer`](#issuer)
+        - [`Evidence`](#evidence)
         - [`CredentialStatus`](#credentialstatus)
-        - [`CreateOptions`](#createoptions)
+        - [`VerifiableCredentialCreateOptions`](#verifiablecredentialcreateoptions)
   - [StatusListCredential](#statuslistcredential)
       - [`StatusListCredential`](#statuslistcredential-1)
   - [Presentation Exchange (PEX)](#presentation-exchange-pex)
@@ -64,7 +65,6 @@
     - [`DidDht`](#diddht)
       - [`DidDhtCreateOptions`](#diddhtcreateoptions)
   - [`BearerDid`](#bearerdid)
-    - [`BearerDidGetSignerOptions`](#bearerdidgetsigneroptions)
   - [`PortableDid`](#portabledid)
     - [Example: Create a `PortableDid` via the `web5` CLI](#example-create-a-portabledid-via-the-web5-cli)
 
@@ -91,13 +91,12 @@ CLASS VerifiableCredential
   PUBLIC DATA issuance_date: datetime
   PUBLIC DATA expiration_date: datetime?
   PUBLIC DATA credentialSubject: CredentialSubject
+  PUBLIC DATA evidence: []Evidence?
 
-  CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: CreateOptions)
+  CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: VerifiableCredentialCreateOptions?)
+  CONSTRUCTOR from_vc_jwt(vc_jwt: string, verify: bool)
 
-  CONSTRUCTOR(vcjwt: string)
-  CONSTRUCTOR(vcjwt: string, verifier: Verifier)
-  METHOD sign(bearer_did: BearerDid): string
-  METHOD sign_with_signer(key_id: string, signer: Signer): string
+  METHOD sign(bearer_did: BearerDid, verification_method_id: String?): string
 ```
 
 ##### `CredentialSubject`
@@ -107,6 +106,10 @@ CLASS VerifiableCredential
 ##### `Issuer`
 
 `Object` or `string`, and if `Object` then at least non-empty `id: string` and `name: string` data members.
+
+##### `Evidence`
+
+`Object` with any data members.
 
 ##### `CredentialStatus`
 
@@ -119,16 +122,17 @@ CLASS CredentialStatus
   PUBLIC DATA status_list_credential: string
 ```
 
-##### `CreateOptions`
+##### `VerifiableCredentialCreateOptions`
 
 ```psuedocode!
-CLASS CreateOptions
+CLASS VerifiableCredentialCreateOptions
   PUBLIC DATA id: string?
   PUBLIC DATA context: []string?
   PUBLIC DATA type: []string?
   PUBLIC DATA issuance_date: datetime?
   PUBLIC DATA expiration_date: datetime?
   PUBLIC DATA credential_status: CredentialStatus?
+  PUBLIC DATA evidence: []Evidence?
 ```
 
 ## StatusListCredential
@@ -731,14 +735,7 @@ CLASS BearerDid
   CONSTRUCTOR from_portable_did(portable_did: PortableDid)
 
   METHOD to_portable_did(key_exporter: KeyExporter): PortableDid
-  METHOD get_signer(options: BearerDidGetSignerOptions): Signer
-```
-
-### `BearerDidGetSignerOptions`
-
-```pseudocode!
-class BearerDidGetSignerOptions
-  PUBLIC DATA verification_method_id: string?
+  METHOD get_signer(verification_method_id: string): Signer
 ```
 
 ## `PortableDid`

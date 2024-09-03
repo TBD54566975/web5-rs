@@ -6,8 +6,9 @@ import org.junit.jupiter.api.Assertions.*
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StatusListCredentialTest {
     companion object {
-        const val ISSUER_DID_URI = "did:web:example.com"
-        const val SUBJECT_DID_URI = "did:example:123456789abcdefghi"
+        const val ISSUER_DID_URI = "did:web:tbd.website"
+        const val SUBJECT_DID_URI = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y"
+
         val ISSUER = Issuer.StringIssuer(ISSUER_DID_URI)
         val CREDENTIAL_SUBJECT = CredentialSubject(SUBJECT_DID_URI)
     }

@@ -1,14 +1,12 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
 
-use base64::Engine;
-use flate2::{read::GzDecoder, write::GzEncoder, Compression};
-
-use super::verifiable_credential_1_1::{
-    CredentialSubject, Issuer, VerifiableCredential, VerifiableCredentialCreateOptions,
-};
+use super::verifiable_credential_1_1::{VerifiableCredential, VerifiableCredentialCreateOptions};
+use crate::credentials::{CredentialSubject, Issuer};
 use crate::errors::{Result, Web5Error};
 use crate::json::{JsonObject, JsonValue};
+use base64::Engine;
+use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 
 pub const STATUS_LIST_CREDENTIAL_CONTEXT: &str = "https://w3id.org/vc/status-list/2021/v1";
 pub const STATUS_LIST_CREDENTIAL_TYPE: &str = "StatusList2021Credential";
@@ -65,6 +63,8 @@ impl StatusListCredential {
             issuance_date: None,
             expiration_date: None,
             credential_status: None,
+            credential_schema: None,
+            evidence: None,
         };
 
         let verifiable_credential =

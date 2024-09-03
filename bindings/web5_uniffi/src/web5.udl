@@ -227,17 +227,13 @@ dictionary BearerDidData {
   KeyManager key_manager;
 };
 
-dictionary BearerDidGetSignerOptionsData {
-  string? verification_method_id;
-};
-
 interface BearerDid {
   constructor(DidData did, DocumentData document, KeyManager key_manager);
   [Throws=Web5Error, Name=from_portable_did]
   constructor(PortableDid portable_did);
   BearerDidData get_data();
   [Throws=Web5Error]
-  Signer get_signer(BearerDidGetSignerOptionsData options);
+  Signer get_signer(string verification_method_id);
   [Throws=Web5Error]
   PortableDid to_portable_did(KeyExporter key_exporter);
 };
@@ -251,13 +247,9 @@ interface PresentationDefinition {
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
 };
 
-dictionary CredentialStatusData {
-  string id;
-  string type;
-  string status_purpose;
-  string status_list_index;
-  string status_list_credential;
-};
+
+
+
 
 dictionary VerifiableCredentialCreateOptionsData {
   string? id;
@@ -266,6 +258,8 @@ dictionary VerifiableCredentialCreateOptionsData {
   timestamp? issuance_date;
   timestamp? expiration_date;
   CredentialStatusData? credential_status;
+  CredentialSchemaData? credential_schema;
+  string? json_serialized_evidence;
 };
 
 interface VerifiableCredential {
@@ -275,7 +269,12 @@ interface VerifiableCredential {
     string json_serialized_credential_subject,
     VerifiableCredentialCreateOptionsData? options
   );
+  [Throws=Web5Error]
   VerifiableCredentialData get_data();
+  [Throws=Web5Error, Name=from_vc_jwt]
+  constructor(string vc_jwt, boolean verify);
+  [Throws=Web5Error]
+  string sign(BearerDid bearer_did, string? verification_method_id);
 };
 
 dictionary VerifiableCredentialData {
@@ -287,6 +286,21 @@ dictionary VerifiableCredentialData {
   timestamp issuance_date;
   timestamp? expiration_date;
   CredentialStatusData? credential_status;
+  CredentialSchemaData? credential_schema;
+  string? json_serialized_evidence;
+};
+
+dictionary CredentialSchemaData {
+  string id;
+  string type;
+};
+
+dictionary CredentialStatusData {
+  string id;
+  string type;
+  string status_purpose;
+  string status_list_index;
+  string status_list_credential;
 };
 
 interface StatusListCredential {

@@ -8,9 +8,7 @@ use crate::{
 };
 use std::sync::Arc;
 use web5::dids::{
-    bearer_did::{BearerDid as InnerBearerDid, BearerDidGetSignerOptions},
-    data_model::document::Document,
-    did::Did,
+    bearer_did::BearerDid as InnerBearerDid, data_model::document::Document, did::Did,
 };
 
 use super::portable_did::PortableDid;
@@ -48,8 +46,8 @@ impl BearerDid {
         }
     }
 
-    pub fn get_signer(&self, options: BearerDidGetSignerOptions) -> Result<Arc<dyn Signer>> {
-        let signer = self.0.get_signer(options)?;
+    pub fn get_signer(&self, verification_method_id: String) -> Result<Arc<dyn Signer>> {
+        let signer = self.0.get_signer(&verification_method_id)?;
         let outer_signer = ToOuterSigner(signer);
         Ok(Arc::new(outer_signer))
     }

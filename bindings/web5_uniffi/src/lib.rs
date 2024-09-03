@@ -2,7 +2,11 @@ use web5_uniffi_wrapper::{
     credentials::{
         presentation_definition::PresentationDefinition,
         status_list_credential::StatusListCredential,
-        verifiable_credential_1_1::{VerifiableCredential, VerifiableCredentialData},
+        verifiable_credential_1_1::{
+            VerifiableCredential,
+            VerifiableCredentialCreateOptions as VerifiableCredentialCreateOptionsData,
+            VerifiableCredentialData,
+        },
     },
     crypto::{
         dsa::{
@@ -30,13 +34,10 @@ use web5_uniffi_wrapper::{
 };
 
 use web5::{
-    credentials::{
-        verifiable_credential_1_1::CredentialStatus as CredentialStatusData,
-        verifiable_credential_1_1::VerifiableCredentialCreateOptions as VerifiableCredentialCreateOptionsData,
-    },
+    credentials::verifiable_credential_1_1::CredentialStatus as CredentialStatusData,
+    credentials::CredentialSchema as CredentialSchemaData,
     crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{
-        bearer_did::BearerDidGetSignerOptions as BearerDidGetSignerOptionsData,
         data_model::{
             document::Document as DocumentData, service::Service as ServiceData,
             verification_method::VerificationMethod as VerificationMethodData,

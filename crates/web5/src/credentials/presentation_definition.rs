@@ -171,7 +171,7 @@ impl InputDescriptor {
         for vc_jwt in vc_jwts {
             let mut selection_candidate: Map<String, Value> = Map::new();
 
-            let vc = match VerifiableCredential::verify(vc_jwt) {
+            let vc = match VerifiableCredential::from_vc_jwt(vc_jwt, true) {
                 Ok(vc) => vc,
                 Err(_) => {
                     continue;

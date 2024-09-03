@@ -1,17 +1,21 @@
-use std::time::SystemTimeError;
-
-use josekit::JoseError as JosekitError;
-use serde_json::Error as SerdeJsonError;
-
-use crate::errors::Web5Error;
-
-use super::dids::resolution::resolution_metadata::ResolutionMetadataError;
-
+mod create;
+mod credential_schema;
+mod credential_subject;
+mod data_model_validation;
+mod decode;
+mod issuer;
+mod josekit;
+mod jwt_payload_vc;
 pub mod presentation_definition;
+mod sign;
 pub mod status_list_credential;
 pub mod verifiable_credential_1_1;
 
-#[derive(thiserror::Error, Debug)]
+pub use credential_schema::CredentialSchema;
+pub use credential_subject::CredentialSubject;
+pub use issuer::{Issuer, ObjectIssuer};
+
+#[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum CredentialError {
     #[error("missing claim: {0}")]
     MissingClaim(String),
@@ -19,30 +23,10 @@ pub enum CredentialError {
     ClaimMismatch(String),
     #[error("misconfigured expiration date: {0}")]
     MisconfiguredExpirationDate(String),
-    #[error("Credential expired")]
+    #[error("credential expired")]
     CredentialExpired,
-    #[error("VC data model validation error: {0}")]
-    VcDataModelValidationError(String),
-    #[error("invalid timestamp: {0}")]
-    InvalidTimestamp(String),
-    #[error("serde json error {0}")]
-    SerdeJsonError(String),
-    #[error(transparent)]
-    Jose(#[from] JosekitError),
+    #[error("data model validation error: {0}")]
+    DataModelValidationError(String),
     #[error("missing kid jose header")]
     MissingKid,
-    #[error(transparent)]
-    Resolution(#[from] ResolutionMetadataError),
-    #[error(transparent)]
-    Web5Error(#[from] Web5Error),
-    #[error(transparent)]
-    SystemTime(#[from] SystemTimeError),
 }
-
-impl From<SerdeJsonError> for CredentialError {
-    fn from(err: SerdeJsonError) -> Self {
-        CredentialError::SerdeJsonError(err.to_string())
-    }
-}
-
-type Result<T> = std::result::Result<T, CredentialError>;
