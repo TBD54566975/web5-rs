@@ -1,6 +1,8 @@
 package web5.sdk.vc
 
 import com.nimbusds.jose.JWSObject
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
@@ -287,6 +289,368 @@ class VerifiableCredentialTest {
             val vc = VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
             assertEquals(evidence, vc.evidence)
         }
+
+        @Test
+        fun test_schema_type_must_be_jsonschema() {
+            testSuite.include()
+
+            val invalidSchemaType = CredentialSchema(
+                id = "https://example.com/schemas/invalid.json",
+                type = "InvalidSchemaType"
+            )
+
+            val options = VerifiableCredentialCreateOptions(
+                credentialSchema = invalidSchemaType
+            )
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
+            }
+
+            assertEquals("parameter error type must be JsonSchema", exception.msg)
+        }
+
+        @Test
+        fun test_schema_resolve_network_issue() {
+            testSuite.include()
+
+            val invalidUrl = "https://invalid-url.com/schemas/email.json"
+            val schema = CredentialSchema(
+                id = invalidUrl,
+                type = "JsonSchema"
+            )
+
+            val options = VerifiableCredentialCreateOptions(
+                credentialSchema = schema
+            )
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
+            }
+
+            assertTrue(exception.msg.contains("unable to resolve json schema"))
+        }
+
+        @Test
+        fun test_schema_resolve_non_success() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(500) // Simulate a server error
+                    .addHeader("Content-Type", "application/json")
+            )
+
+            val schema = CredentialSchema(
+                id = url.toString(),
+                type = "JsonSchema"
+            )
+
+            val options = VerifiableCredentialCreateOptions(
+                credentialSchema = schema
+            )
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
+            }
+
+            assertTrue(exception.msg.contains("non-200 response when resolving json schema"))
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_resolve_invalid_response_body() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody("invalid response body") // Simulate an invalid JSON response
+            )
+
+            val schema = CredentialSchema(
+                id = url.toString(),
+                type = "JsonSchema"
+            )
+
+            val options = VerifiableCredentialCreateOptions(
+                credentialSchema = schema
+            )
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
+            }
+
+            assertTrue(exception.msg.contains("unable to parse json schema from response body"))
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_invalid_json_schema() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            val invalidJsonSchema = """
+                {
+                    "${"$"}id": "${"$"}url/schemas/email.json",
+                    "${"$"}schema": "this is not a valid ${"$"}schema",
+                    "title": "InvalidEmailCredential",
+                    "type": "object"
+                }
+            """
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(invalidJsonSchema)
+            )
+
+            val schema = CredentialSchema(
+                id = url.toString(),
+                type = "JsonSchema"
+            )
+
+            val options = VerifiableCredentialCreateOptions(
+                credentialSchema = schema
+            )
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
+            }
+
+            assertTrue(exception.msg.contains("unable to compile json schema"))
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_do_not_support_draft04() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            val draft04Schema = """
+                {
+                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}schema": "http://json-schema.org/draft-04/schema#",
+                    "title": "EmailCredential",
+                    "type": "object"
+                }
+            """
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(draft04Schema)
+            )
+
+            val schema = CredentialSchema(
+                id = url.toString(),
+                type = "JsonSchema"
+            )
+
+            val options = VerifiableCredentialCreateOptions(
+                credentialSchema = schema
+            )
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
+            }
+
+            assertEquals("json schema error draft unsupported Draft4", exception.msg)
+
+            mockWebServer.shutdown()
+        }
+
+
+        @Test
+        fun test_schema_do_not_support_draft06() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            val draft06Schema = """
+                {
+                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}schema": "http://json-schema.org/draft-06/schema#",
+                    "title": "EmailCredential",
+                    "type": "object"
+                }
+            """
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(draft06Schema)
+            )
+
+            val schema = CredentialSchema(
+                id = url.toString(),
+                type = "JsonSchema"
+            )
+
+            val options = VerifiableCredentialCreateOptions(
+                credentialSchema = schema
+            )
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
+            }
+
+            assertEquals("json schema error draft unsupported Draft6", exception.msg)
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_fails_validation() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            val validJsonSchema = """
+                {
+                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}schema": "https://json-schema.org/draft/2020-12/schema",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(validJsonSchema)
+            )
+
+            val schema = CredentialSchema(
+                id = url.toString(),
+                type = "JsonSchema"
+            )
+
+            // This credential subject does not match the schema as it does not have "emailAddress"
+            val invalidCredentialSubject = CredentialSubject(
+                id = SUBJECT_DID_URI,
+                additionalProperties = emptyMap() // Missing "emailAddress"
+            )
+
+            val options = VerifiableCredentialCreateOptions(
+                credentialSchema = schema
+            )
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.create(ISSUER, invalidCredentialSubject, options)
+            }
+
+            assertTrue(exception.msg.contains("validation errors"))
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_example_from_spec() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start()
+
+            val url = mockWebServer.url("/schemas/email.json")
+
+            val jsonSchemaFromSpec = """
+                {
+                    "${"$"}id": "$url/schemas/email.json",
+                    "${"$"}schema": "https://json-schema.org/draft/2020-12/schema",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """
+
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(jsonSchemaFromSpec)
+            )
+
+            val schema = CredentialSchema(
+                id = url.toString(),
+                type = "JsonSchema"
+            )
+
+            val additionalProperties = mapOf(
+                "emailAddress" to "alice@example.com"
+            )
+
+            val validCredentialSubject = CredentialSubject(
+                id = SUBJECT_DID_URI,
+                additionalProperties = additionalProperties
+            )
+
+            val options = VerifiableCredentialCreateOptions(
+                credentialSchema = schema
+            )
+
+            val vc = VerifiableCredential.create(ISSUER, validCredentialSubject, options)
+
+            assertEquals(SUBJECT_DID_URI, vc.credentialSubject.id)
+            assertEquals(additionalProperties, vc.credentialSubject.additionalProperties)
+
+            mockWebServer.shutdown()
+        }
     }
 
     @Nested
@@ -414,7 +778,17 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_issuer_string() {
+        fun test_can_skip_credential_schema_validation() {
+            testSuite.include()
+
+            val vcJwtWithInvalidSchema = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXlkMjFXVjFwblMySk1iM0JPVEhWTmRYUlNSV2gwTWtWMmJEbExkVkpFTFY5MlVrRnpWMlZwUm01TkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjE1OTY4MDA4LTI1OTEtNGY0MS1hOWI1LWU2YmUxNDU5ZDcxNiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJeWQyMVdWMXBuUzJKTWIzQk9USFZOZFhSU1JXaDBNa1YyYkRsTGRWSkVMVjkyVWtGelYyVnBSbTVOSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxNDo1NTozNS41MTc5NjUrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6ImludmFsaWQgdXJsL3NjaGVtYXMvZW1haWwuanNvbiIsInR5cGUiOiJKc29uU2NoZW1hIn19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUl5ZDIxV1YxcG5TMkpNYjNCT1RIVk5kWFJTUldoME1rVjJiRGxMZFZKRUxWOTJVa0Z6VjJWcFJtNU5JbjAiLCJqdGkiOiJ1cm46dXVpZDoxNTk2ODAwOC0yNTkxLTRmNDEtYTliNS1lNmJlMTQ1OWQ3MTYiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjUwMjk3MzUsImlhdCI6MTcyNTAyOTczNX0.8zNS9RWIpvTlMvAzaI9dNSjKKM1drFig7bKhQeQ6Mv9hWXwazvDhxthy3D25EmITWAPiJfGcMPDqoDobETf8DA"
+
+            val decodedVc = VerifiableCredential.fromVcJwt(vcJwtWithInvalidSchema, false)
+            assertEquals("urn:uuid:15968008-2591-4f41-a9b5-e6be1459d716", decodedVc.id)
+        }
+
+        @Test
+        fun test_decode_issuer_string() {
             testSuite.include()
 
             val vcJwtWithIssuerAsString = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnlkMmhYU1VOWWNsSjNiMFphUm1SMU0wbHNOaTFCTkdVdGRqazNRbE14UmtaUmFWRTRhV05tV2t0ckluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjc0NTY5ZmIzLWMyZTktNGZiMy1hOThkLWY3NGFjNzVjYTg5NSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKeWQyaFhTVU5ZY2xKM2IwWmFSbVIxTTBsc05pMUJOR1V0ZGprM1FsTXhSa1pSYVZFNGFXTm1Xa3RySW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yOFQxNjozNjoyOS4zNDc4ODArMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnlkMmhYU1VOWWNsSjNiMFphUm1SMU0wbHNOaTFCTkdVdGRqazNRbE14UmtaUmFWRTRhV05tV2t0ckluMCIsImp0aSI6InVybjp1dWlkOjc0NTY5ZmIzLWMyZTktNGZiMy1hOThkLWY3NGFjNzVjYTg5NSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNDg2Mjk4OSwiaWF0IjoxNzI0ODYyOTg5fQ.0DSZ2XbPtjtrtxNKo3tImoByb1-jlQxZQN11lsngaFSe4lhy4mYmaxGAby4wIl-c_cLEkgBULfF3Qa_dlNSTCw"
@@ -433,7 +807,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_issuer_object() {
+        fun test_decode_issuer_object() {
             testSuite.include()
 
             val vcJwtWithIssuerObject = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSTFVazF5YVVNMVZsaHVielpTVkRoTVdWVnJibnBKWm5OamFUUXlZbXhCYVdsTFdrcENaR2huVm5WQkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjcwNWM0MTZiLTU1ODYtNDUzMS1hMmRmLWI3YzdhNTMxMGY5NiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjp7ImlkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJMVVrMXlhVU0xVmxodWJ6WlNWRGhNV1ZWcmJucEpabk5qYVRReVlteEJhV2xMV2twQ1pHaG5WblZCSW4wIiwibmFtZSI6InNvbWUgbmFtZSJ9LCJpc3N1YW5jZURhdGUiOiIyMDI0LTA4LTI4VDE2OjQwOjExLjUwNDIyMCswMDowMCIsImV4cGlyYXRpb25EYXRlIjpudWxsLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSJ9fSwiaXNzIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJMVVrMXlhVU0xVmxodWJ6WlNWRGhNV1ZWcmJucEpabk5qYVRReVlteEJhV2xMV2twQ1pHaG5WblZCSW4wIiwianRpIjoidXJuOnV1aWQ6NzA1YzQxNmItNTU4Ni00NTMxLWEyZGYtYjdjN2E1MzEwZjk2Iiwic3ViIjoiZGlkOmRodDpxZ21tcHlqdzVod25xZmd6bjd3bXJtMzNhZHk4Z2I4ejlpZGVpYjZtOWdqNHlzNndueTh5IiwibmJmIjoxNzI0ODYzMjExLCJpYXQiOjE3MjQ4NjMyMTF9.Mv-wlUcnj0w-OWuoMBCciaQXrAogXL3qqgZnthTRI9f55S5PidYiSapWFxFqc4SzxTVSpe64H2vF7kfGU-QpBw"
@@ -453,7 +827,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_evidence() {
+        fun test_decode_evidence() {
             testSuite.include()
 
             val vcJwtWithEvidence = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSmljbll0T1VKSGRUVlhNVFV4VkVKVk9GY3hVVkozU1dwSWRXVmlVVGc1TlRCQ2VuRTFjR1ZxV25wSkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjkxYWM1NzBmLTRjMDMtNDIxZi1iZGY4LWQ3Y2YyNzQ1YzVmNSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKaWNuWXRPVUpIZFRWWE1UVXhWRUpWT0ZjeFVWSjNTV3BJZFdWaVVUZzVOVEJDZW5FMWNHVnFXbnBKSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxMDowMToyNC4yNTgzNjYrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiZXZpZGVuY2UiOlt7IkEgS2V5IjoiQSBWYWx1ZSJ9XX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSmljbll0T1VKSGRUVlhNVFV4VkVKVk9GY3hVVkozU1dwSWRXVmlVVGc1TlRCQ2VuRTFjR1ZxV25wSkluMCIsImp0aSI6InVybjp1dWlkOjkxYWM1NzBmLTRjMDMtNDIxZi1iZGY4LWQ3Y2YyNzQ1YzVmNSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTAxMjA4NCwiaWF0IjoxNzI1MDEyMDg0fQ.M7t4Ox08v-rC-naPSfIqlE1KKhZ1nrx_QA2HbuW38AkgxnSZOYEpXEG1UTAzh6mdwKZin9jwoGrj29u24K1ABA"
@@ -464,7 +838,23 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_missing_vc_claim() {
+        fun test_decode_credential_schema() {
+            testSuite.include()
+
+            val vcJwtWithCredentialSchema = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSTFUMXB2TVd4bU9VcHlOeTFZTkdGWU4yRmxka2N5WVU5MGEwWmxlSFZuYzBwcVZVbEtWVU5UYVVkUkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjNhMDU2NjE1LWNlZDMtNGQ4Zi05ODRhLTUwMzQ2Y2FlNDQ2ZiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJMVQxcHZNV3htT1VweU55MVlOR0ZZTjJGbGRrY3lZVTkwYTBabGVIVm5jMHBxVlVsS1ZVTlRhVWRSSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxNDo1OToyMi4xMDMzODUrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSTFUMXB2TVd4bU9VcHlOeTFZTkdGWU4yRmxka2N5WVU5MGEwWmxlSFZuYzBwcVZVbEtWVU5UYVVkUkluMCIsImp0aSI6InVybjp1dWlkOjNhMDU2NjE1LWNlZDMtNGQ4Zi05ODRhLTUwMzQ2Y2FlNDQ2ZiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTAyOTk2MiwiaWF0IjoxNzI1MDI5OTYyfQ.ZQkusfYLJSpfLVF9OuWrrhw8NdcBnjlalMFZbsfAxJp8i74KH47RkMsVVPadLPuKwbozgcDRCKPsokrl33TuCw"
+
+            val decodedVc = VerifiableCredential.fromVcJwt(vcJwtWithCredentialSchema, false)
+
+            val expectedSchema = CredentialSchema(
+                id = "https://example.com/schemas/email.json",
+                type = "JsonSchema"
+            )
+
+            assertEquals(expectedSchema, decodedVc.credentialSchema)
+        }
+
+        @Test
+        fun test_decode_missing_vc_claim() {
             testSuite.include()
 
             val vcJwtWithMissingVcClaim = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSlNSbkZSVlVWS1RFOVhlbXh3T1ZaRk1rdEtSalp6UjBwT00yVnpaWHBsY0hSSE0ySTFlbTh4YjAwNEluMCMwIn0.eyJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUpTUm5GUlZVVktURTlYZW14d09WWkZNa3RLUmpaelIwcE9NMlZ6WlhwbGNIUkhNMkkxZW04eGIwMDRJbjAiLCJqdGkiOiJ1cm46dXVpZDozNmU0ZjllNi0yYzdjLTQ0NGMtOTI4OS0zNDhmY2IxNDZlYjYiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjQ4NTA1MjIsImlhdCI6MTcyNDg1MDUyMn0.SqwZC0q9RuHp9hAtFmE6sBYeJ1uHuuq1hyijF0NmW9nksSBqtDpfNroNlitK_Tl-CLWtwbTpK3b3JduTfzGEAw"
@@ -477,7 +867,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_missing_jti_claim() {
+        fun test_decode_missing_jti_claim() {
             testSuite.include()
 
             val vcJwtWithMissingJtiClaim = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSm5jMjlTZGsxUFlXMHliMlJQTlY4NWVqbExlV2xzV1VzM1Yzb3RZa1owWW5wdlVrWm1iVTlUTVRJNEluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjEwODM2MzgwLWI2MmMtNGVmZC04YmU0LTZhNzJiMDZjYWI4NyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKbmMyOVNkazFQWVcweWIyUlBOVjg1ZWpsTGVXbHNXVXMzVjNvdFlrWjBZbnB2VWtabWJVOVRNVEk0SW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yOFQxMzoxMDo1NS4yMDYwOTIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSm5jMjlTZGsxUFlXMHliMlJQTlY4NWVqbExlV2xzV1VzM1Yzb3RZa1owWW5wdlVrWm1iVTlUTVRJNEluMCIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNDg1MDY1NSwiaWF0IjoxNzI0ODUwNjU1fQ.1XDmdvB1GDsCHw9Qwp0HA5r8W-JnZB4lz9Yqo0C2V_EEe-uk88bQSl8P9HV8ViNyBC_YaYatLiPTD4jBZY77DA"
@@ -490,7 +880,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_missing_issuer_claim() {
+        fun test_decode_missing_issuer_claim() {
             testSuite.include()
 
             val vcJwtWithMissingIssuerClaim = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnpjamREVWtVek1HbzNjVVU0Y2taVVJYQXdSbFJzYnpKVVVXVmlZa1ZHTVVvelJHaHRTVWhaVTNFd0luMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjRjYzU0NWU0LWI5ZDgtNDdkNS04Zjk0LTA4MmM0ZGViNzAyZCIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKemNqZERVa1V6TUdvM2NVVTRja1pVUlhBd1JsUnNiekpVVVdWaVlrVkdNVW96UkdodFNVaFpVM0V3SW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yOFQxMzoxMTo1Mi4zMjg4MTMrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImp0aSI6InVybjp1dWlkOjRjYzU0NWU0LWI5ZDgtNDdkNS04Zjk0LTA4MmM0ZGViNzAyZCIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNDg1MDcxMiwiaWF0IjoxNzI0ODUwNzEyfQ.hwR6edt6ItlN0HHkDcxzhE3N5hLk-5-VYDLrqkalUoTKB41vsfaPvGnt_UQK3EAuekQgrTQ0SuCq-6ut0EdlBw"
@@ -503,7 +893,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_missing_subject_claim() {
+        fun test_decode_missing_subject_claim() {
             testSuite.include()
 
             val vcJwtWithMissingSubjectClaim = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSldiRFprTjFFMWRXOTNSMVk1TWxsRlVWSkxOMnROWkdRM1lYcFJiMGxsU0hac1FXaFNSMVJmTlRJMEluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjBmYTE0MTgxLTllMWYtNDk0ZC05ZmVmLWMwYjgxZDE1ZGJiYiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKV2JEWmtOMUUxZFc5M1IxWTVNbGxGVVZKTE4ydE5aR1EzWVhwUmIwbGxTSFpzUVdoU1IxUmZOVEkwSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yOFQxMzoxMjo0NS40NTg4MjYrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSldiRFprTjFFMWRXOTNSMVk1TWxsRlVWSkxOMnROWkdRM1lYcFJiMGxsU0hac1FXaFNSMVJmTlRJMEluMCIsImp0aSI6InVybjp1dWlkOjBmYTE0MTgxLTllMWYtNDk0ZC05ZmVmLWMwYjgxZDE1ZGJiYiIsIm5iZiI6MTcyNDg1MDc2NSwiaWF0IjoxNzI0ODUwNzY1fQ.61IFQhdASbbcYKUzMfhO7WPmikBd8AoE468FTlqRysxXck7kNa3bAAow3jK2uhYrIWLyRu3kuBp7JyYhLavjBw"
@@ -516,7 +906,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_missing_nbf_claim() {
+        fun test_decode_missing_nbf_claim() {
             testSuite.include()
 
             val vcJwtWithMissingNbfClaim = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXdOR1ZzZGxGdlJWbDBZbEJIT0RsWlVtaGpTR2RJT1cwMlMzSjZiRVkyUWpGUldrZGxOR2RGUjJKakluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjk3OGZhZTIxLTVmMDYtNDBmNy1iZTJmLTM4MzRmZGMwZDY0NSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJd05HVnNkbEZ2UlZsMFlsQkhPRGxaVW1oalNHZElPVzAyUzNKNmJFWTJRakZSV2tkbE5HZEZSMkpqSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yOFQxMzoxMzoyNi4zMzQzNjYrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXdOR1ZzZGxGdlJWbDBZbEJIT0RsWlVtaGpTR2RJT1cwMlMzSjZiRVkyUWpGUldrZGxOR2RGUjJKakluMCIsImp0aSI6InVybjp1dWlkOjk3OGZhZTIxLTVmMDYtNDBmNy1iZTJmLTM4MzRmZGMwZDY0NSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsImlhdCI6MTcyNDg1MDgwNn0.ZXfuZmvddH1nvmub8WDpQ2UEOhuiLaN6WL2q3XDhn0eouM_bNVa7vmCUCUZc3sfJ1YCtnAGCJOlJxSGnD3tOCw"
@@ -529,7 +919,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_claim_mismatch_id() {
+        fun test_decode_claim_mismatch_id() {
             testSuite.include()
 
             val vcJwtWithMismatchId = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnZTWHBSUjJkTmNGTlNPSEpRWTNkd1IxZEJTRnBaV0hwUFdYRlRiMFkyTWtoM09HTlJRamRJUzIxM0luMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InNvbWV0aGluZyBpbnZhbGlkIiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJpc3N1ZXIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUp2U1hwUlIyZE5jRk5TT0hKUVkzZHdSMWRCU0ZwWldIcFBXWEZUYjBZMk1raDNPR05SUWpkSVMyMTNJbjAiLCJpc3N1YW5jZURhdGUiOiIyMDI0LTA4LTI4VDEzOjE2OjAwLjcyMjgxOSswMDowMCIsImV4cGlyYXRpb25EYXRlIjpudWxsLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSJ9fSwiaXNzIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKdlNYcFJSMmROY0ZOU09ISlFZM2R3UjFkQlNGcFpXSHBQV1hGVGIwWTJNa2gzT0dOUlFqZElTMjEzSW4wIiwianRpIjoidXJuOnV1aWQ6ZGFkM2Y2MjktMzFiMS00NDcxLWFhYTMtMWE4MGZjN2I1YmU2Iiwic3ViIjoiZGlkOmRodDpxZ21tcHlqdzVod25xZmd6bjd3bXJtMzNhZHk4Z2I4ejlpZGVpYjZtOWdqNHlzNndueTh5IiwibmJmIjoxNzI0ODUwOTYwLCJpYXQiOjE3MjQ4NTA5NjB9.P8-Z3KsMxIk7-Dz9a5odVhbGJZtWsWp4mDVYLlVxuZTNJl-Km-j2S1KusTjRTDkg1DqQoiVvp2Is0kr5WoAFBA"
@@ -542,7 +932,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_claim_mismatch_issuer() {
+        fun test_decode_claim_mismatch_issuer() {
             testSuite.include()
 
             val vcJwtWithMismatchIssuer = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXpWRVZsYWs0emIzSXpUbXR4WkZWVllYQjZaMVZ5TFcxblZFTkNkWEZRWVZkT1JWcE9lRXcwWkhRd0luMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjJiNzQzNWY0LWU0YjctNGQyZC1iN2M2LTVkOTE5ODRlNDlhOCIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoic29tZXRoaW5nIGludmFsaWQiLCJpc3N1YW5jZURhdGUiOiIyMDI0LTA4LTI4VDEzOjE3OjQ1LjI4ODk2NiswMDowMCIsImV4cGlyYXRpb25EYXRlIjpudWxsLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSJ9fSwiaXNzIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJelZFVmxhazR6YjNJelRtdHhaRlZWWVhCNloxVnlMVzFuVkVOQ2RYRlFZVmRPUlZwT2VFdzBaSFF3SW4wIiwianRpIjoidXJuOnV1aWQ6MmI3NDM1ZjQtZTRiNy00ZDJkLWI3YzYtNWQ5MTk4NGU0OWE4Iiwic3ViIjoiZGlkOmRodDpxZ21tcHlqdzVod25xZmd6bjd3bXJtMzNhZHk4Z2I4ejlpZGVpYjZtOWdqNHlzNndueTh5IiwibmJmIjoxNzI0ODUxMDY1LCJpYXQiOjE3MjQ4NTEwNjV9.x0UY38J4lEwmrXR4qrzhnk58btjZfMf8DVhdgBoj9M0JOgJqCDFCzwcS5weVCpNAv3gN72Qo32RH9Tx0eYyoDA"
@@ -555,7 +945,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_claim_mismatch_subject() {
+        fun test_decode_claim_mismatch_subject() {
             testSuite.include()
 
             val vcJwtWithMismatchSubject = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXdVRmh0UkVNMlNIWnVia1E0Vmw5QkxWbDVSelZ1TWtSa2IxQkdTVFkxY2tkb2MwVTVZWFZsWW5CckluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjAwNDJiYTQ4LWU0ZGYtNGVhMS04ZmJjLWJjYmI4ODY3ZjFhMCIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJd1VGaHRSRU0yU0hadWJrUTRWbDlCTFZsNVJ6VnVNa1JrYjFCR1NUWTFja2RvYzBVNVlYVmxZbkJySW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yOFQxMzoxOToxMC4xNjM0ODkrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJzb21ldGhpbmcgaW52YWxpZCJ9fSwiaXNzIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJd1VGaHRSRU0yU0hadWJrUTRWbDlCTFZsNVJ6VnVNa1JrYjFCR1NUWTFja2RvYzBVNVlYVmxZbkJySW4wIiwianRpIjoidXJuOnV1aWQ6MDA0MmJhNDgtZTRkZi00ZWExLThmYmMtYmNiYjg4NjdmMWEwIiwic3ViIjoiZGlkOmRodDpxZ21tcHlqdzVod25xZmd6bjd3bXJtMzNhZHk4Z2I4ejlpZGVpYjZtOWdqNHlzNndueTh5IiwibmJmIjoxNzI0ODUxMTUwLCJpYXQiOjE3MjQ4NTExNTB9.bAm9kKJX2-Rcw679VS7cUPbqg9awuq5Lwu9wiZoGcE0TCSc59rQTIP4nvxlP22o3V-VVs_DbfpJU-qB4duDSCA"
@@ -568,7 +958,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_claim_misconfigured_exp() {
+        fun test_decode_claim_misconfigured_exp() {
             testSuite.include()
 
             val vcJwtWithMisconfiguredExp = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnJkWFI2V21WM01EVTBMVlUwUVRBM2FsYzJZbkkxUlV4NU1UQlpOSGxPVTFCaVkyOTNXakJ3TjJWakluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjYxZjgwM2I4LWUxMDQtNDdhOC04YWE1LTk4YzQ1ZTFiOGUzMSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKcmRYUjZXbVYzTURVMExWVTBRVEEzYWxjMlluSTFSVXg1TVRCWk5IbE9VMUJpWTI5M1dqQndOMlZqSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yOFQxMzoyMzo0My45NDg4MzQrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMjktMDgtMjJUMTM6MjM6NDMuOTQ4NzYwKzAwOjAwIiwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnJkWFI2V21WM01EVTBMVlUwUVRBM2FsYzJZbkkxUlV4NU1UQlpOSGxPVTFCaVkyOTNXakJ3TjJWakluMCIsImp0aSI6InVybjp1dWlkOjYxZjgwM2I4LWUxMDQtNDdhOC04YWE1LTk4YzQ1ZTFiOGUzMSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNDg1MTQyMywiaWF0IjoxNzI0ODUxNDIzfQ.AWYyvLRISXwLH5gAXb5CcwBXNwaRKwacGqstXjnk-xIHx9gmm5xj8zGONvcKE2Xx0t9j3pNHicrhkp5wcOkABQ"
@@ -581,7 +971,7 @@ class VerifiableCredentialTest {
         }
 
         @Test
-        fun test_claim_mismatch_exp() {
+        fun test_decode_claim_mismatch_exp() {
             testSuite.include()
 
             val vcJwtWithMismatchExp = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSk1lWEJmUjJVelVEZGtjbVZhYTJSV1VsTnJZbmROVldkcVkxUTRhMHd6VUVVMk1Hc3pZMGgzVTJ0ckluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjRhMjA2YmMzLWZmOTYtNDMwNS1iMzM4LTJiZGQ1ODRiYzkyOSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKTWVYQmZSMlV6VURka2NtVmFhMlJXVWxOclluZE5WV2RxWTFRNGEwd3pVRVUyTUdzelkwaDNVMnRySW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yOFQxMzoyNzozMy40Mjg1NjMrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMjktMDgtMjJUMTM6Mjc6MzMuNDI4NDgyKzAwOjAwIiwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSk1lWEJmUjJVelVEZGtjbVZhYTJSV1VsTnJZbmROVldkcVkxUTRhMHd6VUVVMk1Hc3pZMGgzVTJ0ckluMCIsImp0aSI6InVybjp1dWlkOjRhMjA2YmMzLWZmOTYtNDMwNS1iMzM4LTJiZGQ1ODRiYzkyOSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNDg1MTY1MywiaWF0IjoxNzI0ODUxNjUzLCJleHAiOjE4ODUxMjM2NTN9.lAaTG8RhL2D92iNI6psZrv1uhtHYAO0m0AacGIQrW0XIThg-Livef36_CN9t4Lz2Ta5US2Be2VP6D3lCA-z1DQ"
@@ -709,6 +1099,298 @@ class VerifiableCredentialTest {
 
             assertEquals("data model validation error: credential expired", exception.msg)
         }
+
+        @Test
+        fun test_schema_type_must_be_jsonschema() {
+            testSuite.include()
+
+            val vcJwtWithWrongSchemaType = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXhlbTlYY0VWTWN6TnhiV0p5VW5GblRFbzBjbDlCZUhCYVNFSmpjMUZJVGtSaVRGYzBOM1JmVGpkSkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjQ1NGY1NWJmLWYzMjAtNDQyOS1iNmViLTRkMzdlNTMzNDkwYyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJeGVtOVhjRVZNY3pOeGJXSnlVbkZuVEVvMGNsOUJlSEJhU0VKamMxRklUa1JpVEZjME4zUmZUamRKSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxNTowMjo1NC4zNjg1NjMrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vZXhhbXBsZS5jb20iLCJ0eXBlIjoic29tZXRoaW5nIGludmFsaWFkIn19LCJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUl4ZW05WGNFVk1jek54YldKeVVuRm5URW8wY2w5QmVIQmFTRUpqYzFGSVRrUmlURmMwTjNSZlRqZEpJbjAiLCJqdGkiOiJ1cm46dXVpZDo0NTRmNTViZi1mMzIwLTQ0MjktYjZlYi00ZDM3ZTUzMzQ5MGMiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjUwMzAxNzQsImlhdCI6MTcyNTAzMDE3NH0.8gxVx3_Qd1Lvao-y5PZ56XS3lMQvrFtBVMgfNDIdW9eoQkBQMNv79YKIxFCig0LHanzg_vyzX7tBviW6xJUuDw"
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwtWithWrongSchemaType, true)
+            }
+
+            assertEquals("parameter error type must be JsonSchema", exception.msg)
+        }
+
+        @Test
+        fun test_schema_resolve_network_issue() {
+            testSuite.include()
+
+            val vcJwtWithInvalidUrl = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSmZYelYxVEU1bWNVWTRRbTB6ZVhnMmJVRndMVlJJV25sSk5WcDJWQzFmYVVKbExWZDJiMHRuTTFwakluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmRlNDY2N2YxLTMzM2ItNDg4OC1hMDc5LTdkMGU1N2JiZmFlZiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKZlh6VjFURTVtY1VZNFFtMHplWGcyYlVGd0xWUklXbmxKTlZwMlZDMWZhVUpsTFZkMmIwdG5NMXBqSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxNTowNToyMC43NjQ0MDgrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6ImludmFsaWQgdXJsIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSmZYelYxVEU1bWNVWTRRbTB6ZVhnMmJVRndMVlJJV25sSk5WcDJWQzFmYVVKbExWZDJiMHRuTTFwakluMCIsImp0aSI6InVybjp1dWlkOmRlNDY2N2YxLTMzM2ItNDg4OC1hMDc5LTdkMGU1N2JiZmFlZiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTAzMDMyMCwiaWF0IjoxNzI1MDMwMzIwfQ.3sH7qzI7QrQMdkWIvqf7k8Mr2dMGjWBLrv4QB8gEz0t83RSFMtG-fWT-YVkUlo1qMvC4gNjT2Jc0eObCAA7VDQ"
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwtWithInvalidUrl, true)
+            }
+
+            assertTrue(exception.msg.contains("unable to resolve json schema"))
+        }
+
+        @Test
+        fun test_schema_resolve_non_success() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start(40001)
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(500) // Simulate a server error
+                    .addHeader("Content-Type", "application/json")
+            )
+
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSm9jMmhVZEU4M2F5MVNjVE5oVWtWR1lUVTRhUzFoWlZVdGRWaHNUVXB4UkdkallteEhhMTlpTW5OM0luMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmE5Nzk1YTdmLTRmNzktNDU3OC1hYTkxLTcwYmYxM2YxZWVkNiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKb2MyaFVkRTgzYXkxU2NUTmhVa1ZHWVRVNGFTMWhaVlV0ZFZoc1RVcHhSR2RqWW14SGExOWlNbk4zSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0MDowMS4wNDg1MzIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDEvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSm9jMmhVZEU4M2F5MVNjVE5oVWtWR1lUVTRhUzFoWlZVdGRWaHNUVXB4UkdkallteEhhMTlpTW5OM0luMCIsImp0aSI6InVybjp1dWlkOmE5Nzk1YTdmLTRmNzktNDU3OC1hYTkxLTcwYmYxM2YxZWVkNiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODAwMSwiaWF0IjoxNzI1Mzc4MDAxfQ.9739UnhTfGXr2tsbsjun7FQfFuXNtqmzfxhP_okbywVDoh6nsBGk8smLUU_D0VYwtiMBTo1ujDs1QtKPbCZDDA"
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
+            }
+
+            assertTrue(exception.msg.contains("non-200 response when resolving json schema"))
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_resolve_invalid_response_body() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start(40002)
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody("invalid response body") // Simulate invalid JSON response
+            )
+
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXhkek4zU25CUlZIVkNhRUZuV2tSd2JtbHZWME51ZW5kalp6bDBkMFZ4WVZGWldFUTVOblJXUTA1QkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmQ1NmYxMzRjLThjN2QtNDkyOC04OWYwLWQ5NWEzYjllZmU3YiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lJeGR6TjNTbkJSVkhWQ2FFRm5Xa1J3Ym1sdlYwTnVlbmRqWnpsMGQwVnhZVkZaV0VRNU5uUldRMDVCSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0Mzo1OC40MTE0NTcrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDIvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSXhkek4zU25CUlZIVkNhRUZuV2tSd2JtbHZWME51ZW5kalp6bDBkMFZ4WVZGWldFUTVOblJXUTA1QkluMCIsImp0aSI6InVybjp1dWlkOmQ1NmYxMzRjLThjN2QtNDkyOC04OWYwLWQ5NWEzYjllZmU3YiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODIzOCwiaWF0IjoxNzI1Mzc4MjM4fQ.vYZ5YeXa4ZXaomhVp2obgJwlgjwScFctNAJBqTf2hJOUr1v-jN1C5huK4JL_e16_dRCJd_ysmiOpgFOJD2MOCQ"
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
+            }
+
+            assertTrue(exception.msg.contains("unable to parse json schema from response body"))
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_invalid_json_schema() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start(40003)
+            val invalidJsonSchema = """
+                {
+                    "${"$"}id": "http://localhost:40003/schemas/email.json",
+                    "${"$"}schema": "this is not a valid ${"$"}schema",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """.trimIndent()
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(invalidJsonSchema)
+            )
+
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSlRNemRDWVdaR01FTnRla2xmVTJ4WlEyTXlNSHBKZGt4eVprTnFjM1ptTUVWUWFtbDVkV2N5Wmt0WkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjJjZWFmODUxLTBiYzktNDFkYy04NzNmLThhMGMyN2Y0ZDZkOCIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKVE16ZENZV1pHTUVOdGVrbGZVMnhaUTJNeU1IcEpka3h5WmtOcWMzWm1NRVZRYW1sNWRXY3laa3RaSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0NTozMC4zMDY4MDYrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDMvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSlRNemRDWVdaR01FTnRla2xmVTJ4WlEyTXlNSHBKZGt4eVprTnFjM1ptTUVWUWFtbDVkV2N5Wmt0WkluMCIsImp0aSI6InVybjp1dWlkOjJjZWFmODUxLTBiYzktNDFkYy04NzNmLThhMGMyN2Y0ZDZkOCIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODMzMCwiaWF0IjoxNzI1Mzc4MzMwfQ.Drh8iEOdWWeL6l9KdmKMv9qfbBxWln-TW0KNwOJN3lZatyaSkwlBO_1o2FIWj0WIDiD_TP2EestMFazf4XFQDA"
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
+            }
+
+            assertTrue(exception.msg.contains("unable to compile json schema"))
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_do_not_support_draft04() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start(40004)
+            val draft04Schema = """
+                {
+                    "${"$"}id": "http://localhost:40004/schemas/email.json",
+                    "${"$"}schema": "http://json-schema.org/draft-04/schema#",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """.trimIndent()
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(draft04Schema)
+            )
+
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBNemMwTFVkc1lVSmZiMmxQZG1aR1ZteGtiVWhhVXpNNVpEZEtlalUxUm0xU2R6WkVjbmswVkRjd0luMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmYzNDc3ZDdkLWJiOWUtNGI5Ny1iYjhkLTk4NDMwNjgzN2RmMyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKcE16YzBMVWRzWVVKZmIybFBkbVpHVm14a2JVaGFVek01WkRkS2VqVTFSbTFTZHpaRWNuazBWRGN3SW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0Nzo0MS4wNjgxNjIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDQvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBNemMwTFVkc1lVSmZiMmxQZG1aR1ZteGtiVWhhVXpNNVpEZEtlalUxUm0xU2R6WkVjbmswVkRjd0luMCIsImp0aSI6InVybjp1dWlkOmYzNDc3ZDdkLWJiOWUtNGI5Ny1iYjhkLTk4NDMwNjgzN2RmMyIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODQ2MSwiaWF0IjoxNzI1Mzc4NDYxfQ.X7pZBMqPeBO0oTq1QNtMcSrYcIpDxCavPEoPDiB1A9GOqCohx7KCgOerXaJGSyklAkmNJod7ssmL4DMM-l3uDA"
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
+            }
+
+            assertEquals("json schema error draft unsupported Draft4", exception.msg)
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_do_not_support_draft06() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start(40005)
+            val draft06Schema = """
+                {
+                    "${"$"}id": "http://localhost:40005/schemas/email.json",
+                    "${"$"}schema": "http://json-schema.org/draft-06/schema#",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """.trimIndent()
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(draft06Schema)
+            )
+
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkhSemxDUVU1QlpXUkplR2RpYzJkVlprOWZRWFpPWVZsWmFHMWxZbmhXYWpOZlVuQnBWREp4ZG5WVkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjQ4MGM0ZjQ5LTAyMmEtNDIwMi1hYjFiLTc1ZThjZjQ1NDEyMyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKSFJ6bENRVTVCWldSSmVHZGljMmRWWms5ZlFYWk9ZVmxaYUcxbFluaFdhak5mVW5CcFZESnhkblZWSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo0ODo1MC4wNjM4NjIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDUvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkhSemxDUVU1QlpXUkplR2RpYzJkVlprOWZRWFpPWVZsWmFHMWxZbmhXYWpOZlVuQnBWREp4ZG5WVkluMCIsImp0aSI6InVybjp1dWlkOjQ4MGM0ZjQ5LTAyMmEtNDIwMi1hYjFiLTc1ZThjZjQ1NDEyMyIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODUzMCwiaWF0IjoxNzI1Mzc4NTMwfQ.Id6rsvMkqjocv6x5g_s8fnfR74HdXIpIdL3bMR33f1FYPFQ9CZRArMc1ZTh3xL3QfUggY8AUkRraQSAJh_onBA"
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
+            }
+
+            assertEquals("json schema error draft unsupported Draft6", exception.msg)
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_fails_validation() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start(40006)
+            val validJsonSchema = """
+                {
+                    "${"$"}id": "http://localhost:40006/schemas/email.json",
+                    "${"$"}schema": "https://json-schema.org/draft/2020-12/schema",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """.trimIndent()
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(validJsonSchema)
+            )
+
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBlRkpyUVhodk5GTmtVMXAwTW1VMGFWQm5WRTV0T1dnelFYWnJYMU42Wm1WUlNVeFNkbFJHU0RSSkluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmY4NThhZGM2LTZhMDQtNDY5ZC04MGJiLWM2MmI1N2MyNWI5NSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKcGVGSnJRWGh2TkZOa1UxcDBNbVUwYVZCblZFNXRPV2d6UVhaclgxTjZabVZSU1V4U2RsUkdTRFJKSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo1MDozOS4yMTM3NzIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDYvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSnBlRkpyUVhodk5GTmtVMXAwTW1VMGFWQm5WRTV0T1dnelFYWnJYMU42Wm1WUlNVeFNkbFJHU0RSSkluMCIsImp0aSI6InVybjp1dWlkOmY4NThhZGM2LTZhMDQtNDY5ZC04MGJiLWM2MmI1N2MyNWI5NSIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODYzOSwiaWF0IjoxNzI1Mzc4NjM5fQ.zxz0OZO1umdlxgRyrwyMJis4t4esE_7Zo6nma4Q8T4josAkw6vnQJFI_cPoZV4usQ1vve5bB5OOiMcf_tca6Cw"
+
+            val exception = assertThrows<Web5Exception.Exception> {
+                VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
+            }
+
+            assertTrue(exception.msg.contains("validation errors"))
+
+            mockWebServer.shutdown()
+        }
+
+        @Test
+        fun test_schema_example_from_spec() {
+            testSuite.include()
+
+            val mockWebServer = MockWebServer()
+            mockWebServer.start(40007)
+            val validJsonSchema = """
+                {
+                    "${"$"}id": "http://localhost:40007/schemas/email.json",
+                    "${"$"}schema": "https://json-schema.org/draft/2020-12/schema",
+                    "title": "EmailCredential",
+                    "type": "object",
+                    "properties": {
+                        "credentialSubject": {
+                            "type": "object",
+                            "properties": {
+                                "emailAddress": {
+                                    "type": "string",
+                                    "format": "email"
+                                }
+                            },
+                            "required": ["emailAddress"]
+                        }
+                    }
+                }
+            """.trimIndent()
+            mockWebServer.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
+                    .setBody(validJsonSchema)
+            )
+
+            val vcJwtAtPort = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkZjVm96YVdGVldqWnpUMlZ5VEVGMWEzcEpRbkV6Ym1sNVEzZHVVWEF0WWtkNk1EQlZMVk15YURGakluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjM4OWE2OWYyLWEwOTYtNDc0Ni1hNzU0LTRlNmE0ZThiZDEzYyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKRmNWb3phV0ZWV2paelQyVnlURUYxYTNwSlFuRXpibWw1UTNkdVVYQXRZa2Q2TURCVkxWTXlhREZqSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0wM1QxNTo1MzoxNy43NjgzNzQrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJlbWFpbEFkZHJlc3MiOiJhbGljZUB0YmQuZW1haWwifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NDAwMDcvc2NoZW1hcy9lbWFpbC5qc29uIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkZjVm96YVdGVldqWnpUMlZ5VEVGMWEzcEpRbkV6Ym1sNVEzZHVVWEF0WWtkNk1EQlZMVk15YURGakluMCIsImp0aSI6InVybjp1dWlkOjM4OWE2OWYyLWEwOTYtNDc0Ni1hNzU0LTRlNmE0ZThiZDEzYyIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTM3ODc5NywiaWF0IjoxNzI1Mzc4Nzk3fQ.AC1OGOJ-MxfRsyNJZEQM4PW_t1eNCiSdTNtEtiPPOnIDGYnDl7JGtVIki9tHdWduQHoanrV0dWDeB5dnTTmZAw"
+
+            val decodedVc = VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
+
+            assertEquals("alice@tbd.email", decodedVc.credentialSubject.additionalProperties["emailAddress"])
+
+            mockWebServer.shutdown()
+        }
+
     }
 
 

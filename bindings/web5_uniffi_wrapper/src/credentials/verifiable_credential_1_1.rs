@@ -6,7 +6,7 @@ use web5::{
             VerifiableCredential as InnerVerifiableCredential,
             VerifiableCredentialCreateOptions as InnerVerifiableCredentialCreateOptions,
         },
-        CredentialSubject, Issuer,
+        CredentialSchema, CredentialSubject, Issuer,
     },
     json::{FromJson as _, JsonObject},
 };
@@ -18,6 +18,7 @@ pub struct VerifiableCredentialCreateOptions {
     pub r#type: Option<Vec<String>>,
     pub issuance_date: Option<SystemTime>,
     pub expiration_date: Option<SystemTime>,
+    pub credential_schema: Option<CredentialSchema>,
     pub json_serialized_evidence: Option<String>,
 }
 
@@ -50,6 +51,7 @@ impl VerifiableCredential {
             r#type: options.r#type,
             issuance_date: options.issuance_date,
             expiration_date: options.expiration_date,
+            credential_schema: options.credential_schema,
             evidence,
         };
 
@@ -77,6 +79,7 @@ impl VerifiableCredential {
             json_serialized_credential_subject: self.json_serialized_credential_subject.clone(),
             issuance_date: self.inner_vc.issuance_date,
             expiration_date: self.inner_vc.expiration_date,
+            credential_schema: self.inner_vc.credential_schema.clone(),
             json_serialized_evidence,
         })
     }
@@ -113,5 +116,6 @@ pub struct VerifiableCredentialData {
     pub json_serialized_credential_subject: String,
     pub issuance_date: SystemTime,
     pub expiration_date: Option<SystemTime>,
+    pub credential_schema: Option<CredentialSchema>,
     pub json_serialized_evidence: Option<String>,
 }

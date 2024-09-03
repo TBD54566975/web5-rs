@@ -11,6 +11,8 @@ pub enum Web5Error {
     Unknown(String),
     #[error("json error {0}")]
     Json(String),
+    #[error("json schema error {0}")]
+    JsonSchema(String),
     #[error("parameter error {0}")]
     Parameter(String),
     #[error("data member error {0}")]

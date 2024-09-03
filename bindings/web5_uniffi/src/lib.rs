@@ -33,6 +33,7 @@ use web5_uniffi_wrapper::{
 };
 
 use web5::{
+    credentials::CredentialSchema as CredentialSchemaData,
     crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{
         data_model::{

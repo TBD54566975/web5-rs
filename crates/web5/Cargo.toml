@@ -14,7 +14,7 @@ chrono = { workspace = true }
 ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
 josekit = { version = "0.8.6", features = ["vendored"] }
 jsonpath-rust = "0.5.1"
-jsonschema = { version = "0.18.0", default-features = false }
+jsonschema = { version = "0.18.0", features = ["draft201909", "draft202012"] }
 k256 = { version = "0.13.3", features = ["ecdsa", "jwk"] }
 tokio = "1.38.0"
 rand = { workspace = true }

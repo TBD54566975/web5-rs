@@ -257,6 +257,7 @@ dictionary VerifiableCredentialCreateOptionsData {
   sequence<string>? type;
   timestamp? issuance_date;
   timestamp? expiration_date;
+  CredentialSchemaData? credential_schema;
   string? json_serialized_evidence;
 };
 
@@ -283,5 +284,11 @@ dictionary VerifiableCredentialData {
   string json_serialized_credential_subject;
   timestamp issuance_date;
   timestamp? expiration_date;
+  CredentialSchemaData? credential_schema;
   string? json_serialized_evidence;
+};
+
+dictionary CredentialSchemaData {
+  string id;
+  string type;
 };
