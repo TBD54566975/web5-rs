@@ -911,6 +911,8 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1069,6 +1071,8 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_uniffi_fn_free_statuslistcredential(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_web5_uniffi_fn_constructor_statuslistcredential_create(`jsonSerializedIssuer`: RustBuffer.ByValue,`statusPurpose`: RustBuffer.ByValue,`disabledCredentials`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_uniffi_fn_method_statuslistcredential_get_base(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_method_statuslistcredential_is_disabled(`ptr`: Pointer,`credential`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
@@ -1282,6 +1286,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_signer_sign(
     ): Short
+    fun uniffi_web5_uniffi_checksum_method_statuslistcredential_get_base(
+    ): Short
     fun uniffi_web5_uniffi_checksum_method_statuslistcredential_is_disabled(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_verifiablecredential_get_data(
@@ -1430,6 +1436,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_signer_sign() != 5738.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_method_statuslistcredential_get_base() != 15197.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_statuslistcredential_is_disabled() != 23900.toShort()) {
@@ -5268,6 +5277,8 @@ public object FfiConverterTypeSigner: FfiConverter<Signer, Pointer> {
 
 public interface StatusListCredentialInterface {
     
+    fun `getBase`(): VerifiableCredential
+    
     fun `isDisabled`(`credential`: VerifiableCredential): kotlin.Boolean
     
     companion object
@@ -5353,6 +5364,19 @@ open class StatusListCredential: Disposable, AutoCloseable, StatusListCredential
             UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_statuslistcredential(pointer!!, status)
         }
     }
+
+    
+    @Throws(Web5Exception::class)override fun `getBase`(): VerifiableCredential {
+            return FfiConverterTypeVerifiableCredential.lift(
+    callWithPointer {
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_statuslistcredential_get_base(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
     @Throws(Web5Exception::class)override fun `isDisabled`(`credential`: VerifiableCredential): kotlin.Boolean {

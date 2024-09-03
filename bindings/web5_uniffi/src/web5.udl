@@ -312,5 +312,7 @@ interface StatusListCredential {
   );
 
   [Throws=Web5Error]
+  VerifiableCredential get_base();
+  [Throws=Web5Error]
   boolean is_disabled(VerifiableCredential credential);
 };

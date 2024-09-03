@@ -2,6 +2,7 @@ use crate::{dids::bearer_did::BearerDid, errors::Result};
 use std::{sync::Arc, time::SystemTime};
 use web5::credentials::verifiable_credential_1_1::CredentialStatus;
 use web5::credentials::Issuer;
+use web5::json::ToJson;
 use web5::{
     credentials::{
         verifiable_credential_1_1::{
@@ -109,6 +110,16 @@ impl VerifiableCredential {
     ) -> Result<String> {
         let vc_jwt = self.inner_vc.sign(&bearer_did.0, verification_method_id)?;
         Ok(vc_jwt)
+    }
+
+    pub(crate) fn from_inner(inner_vc: &InnerVerifiableCredential) -> Result<Self> {
+        let json_serialized_issuer = inner_vc.issuer.to_json_string()?;
+        let json_serialized_credential_subject = inner_vc.credential_subject.to_json_string()?;
+        Ok(Self {
+            inner_vc: inner_vc.clone(),
+            json_serialized_issuer,
+            json_serialized_credential_subject,
+        })
     }
 }
 

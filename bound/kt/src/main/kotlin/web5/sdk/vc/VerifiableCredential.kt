@@ -51,6 +51,28 @@ data class VerifiableCredential private constructor(
     internal val rustCoreVerifiableCredential: RustCoreVerifiableCredential,
 ) {
     companion object {
+        internal fun fromRustCore(rustCoreVerifiableCredential: RustCoreVerifiableCredential): VerifiableCredential {
+            val data = rustCoreVerifiableCredential.getData()
+
+            val issuer = Json.jsonMapper.readValue(data.jsonSerializedIssuer, Issuer::class.java)
+            val credentialSubject = Json.jsonMapper.readValue(data.jsonSerializedCredentialSubject, CredentialSubject::class.java)
+            val evidence = data.jsonSerializedEvidence?.let { Json.jsonMapper.readValue<List<Map<String, Any>>>(it) }
+
+            return VerifiableCredential(
+                data.context,
+                data.type,
+                data.id,
+                issuer,
+                credentialSubject,
+                Date.from(data.issuanceDate),
+                data.expirationDate?.let { Date.from(it) },
+                data.credentialStatus?.let { CredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
+                data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
+                evidence,
+                rustCoreVerifiableCredential
+            )
+        }
+
         fun create(
             issuer: Issuer,
             credentialSubject: CredentialSubject,

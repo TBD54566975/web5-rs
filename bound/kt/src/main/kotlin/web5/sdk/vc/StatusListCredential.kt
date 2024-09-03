@@ -4,6 +4,7 @@ import web5.sdk.Json
 import web5.sdk.rust.StatusListCredential as RustCoreStatusListCredential
 
 data class StatusListCredential(
+    val base: VerifiableCredential,
     internal val rustCoreStatusListCredential: RustCoreStatusListCredential
 ) {
     companion object {
@@ -17,7 +18,9 @@ data class StatusListCredential(
 
             val rustCoreStatusListCredential = RustCoreStatusListCredential.create(jsonSerializedIssuer, statusPurpose, rustCoreCredentials)
 
-            return StatusListCredential(rustCoreStatusListCredential)
+            val baseVerifiableCredential = VerifiableCredential.fromRustCore(rustCoreStatusListCredential.getBase())
+
+            return StatusListCredential(baseVerifiableCredential, rustCoreStatusListCredential)
         }
     }
 
