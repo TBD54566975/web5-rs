@@ -237,7 +237,7 @@ impl StatusListCredential {
             ))
         })?;
 
-        Ok(base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(&compressed))
+        Ok(base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(compressed))
     }
 
     /// Retrieves the value of a specific bit from a compressed base64 URL-encoded bitstring
