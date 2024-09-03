@@ -60,16 +60,6 @@ data class VerifiableCredential private constructor(
             val jsonSerializedCredentialSubject = Json.stringify(credentialSubject)
             val jsonSerializedEvidence = options?.evidence?.let { Json.stringify(it) }
 
-//            val rustCoreCredentialStatus = options?.credentialStatus?.let {
-//                RustCoreCredentialStatus(
-//                    id = it.id,
-//                    type = it.type,
-//                    statusPurpose = it.statusPurpose,
-//                    statusListIndex = it.statusListIndex,
-//                    statusListCredential = it.statusListCredential
-//                )
-//            }
-
             val rustCoreVerifiableCredential = RustCoreVerifiableCredential.create(
                 jsonSerializedIssuer,
                 jsonSerializedCredentialSubject,
