@@ -1,8 +1,8 @@
 use web5_uniffi_wrapper::{
     credentials::{
         presentation_definition::PresentationDefinition,
+        status_list_credential::StatusListCredential,
         verifiable_credential_1_1::{VerifiableCredential, VerifiableCredentialData},
-        status_list_credential::{StatusListCredential}
     },
     crypto::{
         dsa::{

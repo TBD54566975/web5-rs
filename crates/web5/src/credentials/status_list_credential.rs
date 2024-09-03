@@ -92,16 +92,22 @@ impl StatusListCredential {
     ///  println!("Credential is disabled: {}", is_disabled);
     ///
     pub fn is_disabled(&self, credential: &VerifiableCredential) -> Result<bool> {
-        let status = credential.credential_status.as_ref()
-            .ok_or_else(|| Web5Error::Parameter("no credential status found in credential".to_string()))?;
+        let status = credential.credential_status.as_ref().ok_or_else(|| {
+            Web5Error::Parameter("no credential status found in credential".to_string())
+        })?;
 
         // Check if the status type matches
         if status.r#type != STATUS_LIST_2021_ENTRY {
-            return Err(Web5Error::Parameter(format!("unsupported status type: {}", status.r#type)));
+            return Err(Web5Error::Parameter(format!(
+                "unsupported status type: {}",
+                status.r#type
+            )));
         }
 
         // Check if the status purpose matches
-        let status_purpose = self.base.credential_subject
+        let status_purpose = self
+            .base
+            .credential_subject
             .additional_properties
             .as_ref()
             .and_then(|props| props.properties.get("statusPurpose"))
@@ -112,17 +118,27 @@ impl StatusListCredential {
                     None
                 }
             })
-            .ok_or_else(|| Web5Error::Parameter("no valid statusPurpose found in status list credential".to_string()))?;
+            .ok_or_else(|| {
+                Web5Error::Parameter(
+                    "no valid statusPurpose found in status list credential".to_string(),
+                )
+            })?;
 
         if status_purpose != status.status_purpose {
             return Err(Web5Error::Parameter("status purpose mismatch".to_string()));
         }
 
         // Get the bit index
-        let index = status.status_list_index.parse::<usize>()
-            .map_err(|_| Web5Error::Parameter(format!("invalid status list index: {}", status.status_list_index)))?;
+        let index = status.status_list_index.parse::<usize>().map_err(|_| {
+            Web5Error::Parameter(format!(
+                "invalid status list index: {}",
+                status.status_list_index
+            ))
+        })?;
 
-        let encoded_list = match self.base.credential_subject
+        let encoded_list = match self
+            .base
+            .credential_subject
             .additional_properties
             .as_ref()
             .and_then(|props| props.properties.get("encodedList"))
@@ -134,11 +150,15 @@ impl StatusListCredential {
                 }
             }) {
             Some(el) => el,
-            None => return Err(Web5Error::Parameter("invalid or missing encodedList".to_string())),
+            None => {
+                return Err(Web5Error::Parameter(
+                    "invalid or missing encodedList".to_string(),
+                ))
+            }
         };
 
         // Check the bit in the encoded list
-        Self::get_bit(&encoded_list, index)
+        Self::get_bit(encoded_list, index)
     }
 
     /// Extracts status list indexes from a vector of verifiable credentials that match the specified status purpose.
@@ -432,7 +452,9 @@ mod tests {
         let status_list_credential =
             StatusListCredential::create(issuer(), status_purpose, credentials_to_disable).unwrap();
 
-        let encoded_list = status_list_credential.base.credential_subject
+        let encoded_list = status_list_credential
+            .base
+            .credential_subject
             .additional_properties
             .as_ref()
             .and_then(|props| props.properties.get("encodedList"))
@@ -442,7 +464,8 @@ mod tests {
                 } else {
                     None
                 }
-            }).unwrap();
+            })
+            .unwrap();
 
         // Test various bit positions
         assert_eq!(
@@ -495,7 +518,9 @@ mod tests {
         )
         .unwrap();
 
-        let updated_encoded_list = updated_status_list_credential.base.credential_subject
+        let updated_encoded_list = updated_status_list_credential
+            .base
+            .credential_subject
             .additional_properties
             .as_ref()
             .and_then(|props| props.properties.get("encodedList"))
@@ -505,7 +530,8 @@ mod tests {
                 } else {
                     None
                 }
-            }).unwrap();
+            })
+            .unwrap();
 
         // Test the bits corresponding to the disabled credentials
         assert_eq!(
