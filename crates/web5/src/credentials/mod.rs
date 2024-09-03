@@ -1,5 +1,5 @@
 mod create;
-pub mod credential_schema;
+mod credential_schema;
 mod credential_subject;
 mod data_model_validation;
 mod decode;
@@ -10,6 +10,7 @@ pub mod presentation_definition;
 mod sign;
 pub mod verifiable_credential_1_1;
 
+pub use credential_schema::CredentialSchema;
 pub use credential_subject::CredentialSubject;
 pub use issuer::{Issuer, ObjectIssuer};
 
