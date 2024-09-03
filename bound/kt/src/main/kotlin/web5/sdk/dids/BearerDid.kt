@@ -16,7 +16,7 @@ import web5.sdk.rust.BearerDid as RustCoreBearerDid
  * @property document The DID document associated with this instance.
  * @property keyManager The KeyManager associated with this instance.
  */
-class BearerDid private constructor(
+data class BearerDid private constructor(
     val did: Did,
     val document: Document,
     val keyManager: KeyManager,
