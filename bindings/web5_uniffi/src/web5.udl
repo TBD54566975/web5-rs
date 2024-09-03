@@ -251,8 +251,6 @@ interface PresentationDefinition {
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
 };
 
-
-
 dictionary CredentialStatusData {
   string id;
   string type;
@@ -289,4 +287,16 @@ dictionary VerifiableCredentialData {
   timestamp issuance_date;
   timestamp? expiration_date;
   CredentialStatusData? credential_status;
+};
+
+interface StatusListCredential {
+  [Throws=Web5Error, Name=create]
+  constructor(
+    string json_serialized_issuer,
+    string status_purpose,
+    sequence<VerifiableCredential>? disabled_credentials
+  );
+
+  [Throws=Web5Error]
+  boolean is_disabled(VerifiableCredential credential);
 };

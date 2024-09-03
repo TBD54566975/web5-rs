@@ -136,13 +136,11 @@ CLASS CreateOptions
 #### `StatusListCredential`
 
 ```pseudocode!
-CLASS StatusListCredential IMPLEMENTS VerifiableCredential
-  PUBLIC DATA status_purpose: string
-  PUBLIC DATA credentials_to_disable: []VerifiableCredential
+CLASS StatusListCredential
+  PUBLIC DATA base: VerifiableCredential
   
-  CONSTRUCTOR create(issuer: Issuer, status_purpose: string, credentials_to_disable: []VerifiableCredential, options: CreateOptions?)
+  CONSTRUCTOR create(issuer: Issuer, status_purpose: string, disabled_credentials: []VerifiableCredential)
   
-  METHOD update_credentials_to_disable(credentials_to_disable: []VerifiableCredential): StatusListCredential
   METHOD is_disabled(credential VerifiableCredential): bool
 ```
 

@@ -9,7 +9,7 @@ use web5::{
 };
 
 pub struct VerifiableCredential {
-    inner_vc: InnerVerifiableCredential,
+    pub inner_vc: InnerVerifiableCredential,
     json_serialized_issuer: String,
     json_serialized_credential_subject: String,
 }

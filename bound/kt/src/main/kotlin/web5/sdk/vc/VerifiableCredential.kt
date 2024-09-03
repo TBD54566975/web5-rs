@@ -2,17 +2,29 @@ package web5.sdk.vc
 
 import com.fasterxml.jackson.annotation.JsonValue
 import web5.sdk.Json
+
 import java.time.Instant
-import java.util.Date
+import java.util.*
+
+import web5.sdk.rust.CredentialStatusData as RustCoreCredentialStatus
 import web5.sdk.rust.VerifiableCredential as RustCoreVerifiableCredential
 import web5.sdk.rust.VerifiableCredentialCreateOptionsData as RustCoreVerifiableCredentialCreateOptions
+
+data class CredentialStatus(
+    var id: String,
+    var type: String,
+    var statusPurpose: String,
+    var statusListIndex: String,
+    var statusListCredential: String
+)
 
 data class VerifiableCredentialCreateOptions(
     val id: String? = null,
     var context: List<String>? = null,
     var type: List<String>? = null,
     var issuanceDate: Date? = null,
-    var expirationDate: Date? = null
+    var expirationDate: Date? = null,
+    var credentialStatus: CredentialStatus? = null
 )
 
 class VerifiableCredential private constructor(
@@ -34,6 +46,16 @@ class VerifiableCredential private constructor(
             val jsonSerializedIssuer = Json.stringify(issuer)
             val jsonSerializedCredentialSubject = Json.stringify(credentialSubject)
 
+            val rustCoreCredentialStatus = options?.credentialStatus?.let {
+                RustCoreCredentialStatus(
+                    id = it.id,
+                    type = it.type,
+                    statusPurpose = it.statusPurpose,
+                    statusListIndex = it.statusListIndex,
+                    statusListCredential = it.statusListCredential
+                )
+            }
+
             val rustCoreVerifiableCredential = RustCoreVerifiableCredential.create(
                 jsonSerializedIssuer,
                 jsonSerializedCredentialSubject,
@@ -43,6 +65,7 @@ class VerifiableCredential private constructor(
                     options?.type,
                     options?.issuanceDate?.toInstant(),
                     options?.expirationDate?.toInstant(),
+                    rustCoreCredentialStatus
                 )
             )
 

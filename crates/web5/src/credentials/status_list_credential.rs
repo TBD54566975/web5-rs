@@ -14,19 +14,20 @@ pub const STATUS_LIST_CREDENTIAL_CONTEXT: &str = "https://w3id.org/vc/status-lis
 pub const STATUS_LIST_CREDENTIAL_TYPE: &str = "StatusList2021Credential";
 pub const STATUS_LIST_2021: &str = "StatusList2021";
 
+pub const STATUS_LIST_2021_ENTRY: &str = "StatusList2021Entry";
+
 pub struct StatusListCredential {
-    base: VerifiableCredential,
-    encoded_list: String,
+    pub base: VerifiableCredential,
 }
 
 impl StatusListCredential {
     pub fn create(
         issuer: Issuer,
         status_purpose: String,
-        credentials_to_disable: Option<Vec<VerifiableCredential>>,
+        disabled_credentials: Option<Vec<VerifiableCredential>>,
     ) -> Result<Self> {
         // Determine the status list indexes based on the provided credentials to disable.
-        let status_list_indexes = match credentials_to_disable {
+        let status_list_indexes = match disabled_credentials {
             Some(credentials) => Self::get_status_list_indexes(&status_purpose, credentials)?,
             None => Vec::new(),
         };
@@ -71,56 +72,7 @@ impl StatusListCredential {
 
         Ok(Self {
             base: verifiable_credential,
-            encoded_list: base64_bitstring,
         })
-    }
-
-    /// Updates the `encoded_list` by adding the provided credentials to the disable list
-    ///
-    /// # Arguments
-    /// * `credentials_to_disable` - A vector of `VerifiableCredential` objects to be disabled.
-    ///
-    /// # Returns
-    /// A `Result` containing the updated `StatusListCredential`, or an error if there was an issue.
-    pub fn update_credentials_to_disable(
-        &mut self,
-        credentials_to_disable: Vec<VerifiableCredential>,
-    ) -> Result<()> {
-        // Retrieve the statusPurpose from the existing credential subject
-        let status_purpose = self
-            .base
-            .credential_subject
-            .additional_properties
-            .as_ref()
-            .and_then(|props| props.properties.get("statusPurpose"))
-            .and_then(|value| match value {
-                JsonValue::String(s) => Some(s.clone()),
-                _ => None,
-            })
-            .ok_or_else(|| {
-                Web5Error::Parameter("no statusPurpose found in status list credential".to_string())
-            })?;
-
-        // Determine the status list indexes based on the provided credentials to disable.
-        let status_list_indexes =
-            Self::get_status_list_indexes(&status_purpose, credentials_to_disable)?;
-
-        // Generate the base64 bitstring from the status list indexes.
-        let base64_bitstring = Self::bitstring_generation(status_list_indexes)?;
-
-        // Update the encodedList property in the additional_properties
-        if let Some(additional_properties) = &mut self.base.credential_subject.additional_properties
-        {
-            additional_properties.properties.insert(
-                "encodedList".to_string(),
-                JsonValue::String(base64_bitstring.clone()),
-            );
-        }
-
-        // Update the encoded_list in the StatusListCredential struct
-        self.encoded_list = base64_bitstring;
-
-        Ok(())
     }
 
     /// Checks if a given credential is disabled according to this Status List Credential.
@@ -140,57 +92,53 @@ impl StatusListCredential {
     ///  println!("Credential is disabled: {}", is_disabled);
     ///
     pub fn is_disabled(&self, credential: &VerifiableCredential) -> Result<bool> {
-        let status = credential.credential_status.as_ref().ok_or_else(|| {
-            Web5Error::Parameter("no credential status found in credential".to_string())
-        })?;
+        let status = credential.credential_status.as_ref()
+            .ok_or_else(|| Web5Error::Parameter("no credential status found in credential".to_string()))?;
 
         // Check if the status type matches
-        if status.r#type != STATUS_LIST_2021 {
-            return Err(Web5Error::Parameter(format!(
-                "unsupported status type: {}",
-                status.r#type
-            )));
+        if status.r#type != STATUS_LIST_2021_ENTRY {
+            return Err(Web5Error::Parameter(format!("unsupported status type: {}", status.r#type)));
         }
 
         // Check if the status purpose matches
-        let credential_subject = self
-            .base
-            .credential_subject
+        let status_purpose = self.base.credential_subject
             .additional_properties
             .as_ref()
-            .ok_or_else(|| {
-                Web5Error::Parameter(
-                    "no additional properties found in status list credential".to_string(),
-                )
-            })?;
+            .and_then(|props| props.properties.get("statusPurpose"))
+            .and_then(|value| {
+                if let JsonValue::String(s) = value {
+                    Some(s.as_str())
+                } else {
+                    None
+                }
+            })
+            .ok_or_else(|| Web5Error::Parameter("no valid statusPurpose found in status list credential".to_string()))?;
 
-        let status_purpose = credential_subject
-            .properties
-            .get("statusPurpose")
-            .ok_or_else(|| {
-                Web5Error::Parameter("no statusPurpose found in status list credential".to_string())
-            })?;
-
-        if let JsonValue::String(purpose) = status_purpose {
-            if *purpose != status.status_purpose {
-                return Err(Web5Error::Parameter("status purpose mismatch".to_string()));
-            }
-        } else {
-            return Err(Web5Error::Parameter(
-                "invalid statusPurpose format".to_string(),
-            ));
+        if status_purpose != status.status_purpose {
+            return Err(Web5Error::Parameter("status purpose mismatch".to_string()));
         }
 
         // Get the bit index
-        let index = status.status_list_index.parse::<usize>().map_err(|_| {
-            Web5Error::Parameter(format!(
-                "invalid status list index: {}",
-                status.status_list_index
-            ))
-        })?;
+        let index = status.status_list_index.parse::<usize>()
+            .map_err(|_| Web5Error::Parameter(format!("invalid status list index: {}", status.status_list_index)))?;
+
+        let encoded_list = match self.base.credential_subject
+            .additional_properties
+            .as_ref()
+            .and_then(|props| props.properties.get("encodedList"))
+            .and_then(|value| {
+                if let JsonValue::String(s) = value {
+                    Some(s.as_str())
+                } else {
+                    None
+                }
+            }) {
+            Some(el) => el,
+            None => return Err(Web5Error::Parameter("invalid or missing encodedList".to_string())),
+        };
 
         // Check the bit in the encoded list
-        Self::get_bit(&self.encoded_list, index)
+        Self::get_bit(&encoded_list, index)
     }
 
     /// Extracts status list indexes from a vector of verifiable credentials that match the specified status purpose.
@@ -329,7 +277,7 @@ mod tests {
     fn create_test_credential(index: &str, purpose: &str) -> VerifiableCredential {
         let credential_status = CredentialStatus {
             id: format!("https://example.com/status/{}", index),
-            r#type: STATUS_LIST_2021.to_string(),
+            r#type: STATUS_LIST_2021_ENTRY.to_string(),
             status_purpose: purpose.to_string(),
             status_list_index: index.to_string(),
             status_list_credential: "https://example.com/status/1".to_string(),
@@ -478,75 +426,23 @@ mod tests {
     }
 
     #[test]
-    fn test_update_credentials_to_disable() {
-        let status_purpose = "revocation".to_string();
-
-        // Step 1: Create an initial StatusListCredential without any disabled credentials
-        let mut status_list_credential =
-            StatusListCredential::create(issuer(), status_purpose.clone(), None).unwrap();
-
-        // Verify initial state: No bits should be set in the encoded list
-        assert_eq!(
-            StatusListCredential::get_bit(&status_list_credential.encoded_list, 3).unwrap(),
-            false
-        );
-        assert_eq!(
-            StatusListCredential::get_bit(&status_list_credential.encoded_list, 1023).unwrap(),
-            false
-        );
-
-        // Step 2: Create test credentials to disable
-        let credentials_to_disable = vec![
-            create_test_credential("3", &status_purpose),
-            create_test_credential("1023", &status_purpose),
-        ];
-
-        // Step 3: Update the StatusListCredential with these credentials
-        status_list_credential
-            .update_credentials_to_disable(credentials_to_disable)
-            .unwrap();
-
-        // Step 4: Verify the encoded list is updated correctly
-        assert_eq!(
-            StatusListCredential::get_bit(&status_list_credential.encoded_list, 3).unwrap(),
-            true
-        );
-        assert_eq!(
-            StatusListCredential::get_bit(&status_list_credential.encoded_list, 1023).unwrap(),
-            true
-        );
-
-        // Step 5: Verify other bits remain unset
-        assert_eq!(
-            StatusListCredential::get_bit(&status_list_credential.encoded_list, 0).unwrap(),
-            false
-        );
-        assert_eq!(
-            StatusListCredential::get_bit(&status_list_credential.encoded_list, 1000).unwrap(),
-            false
-        );
-
-        // Step 6: Verify that the base additional properties got updated
-        let additional_properties = status_list_credential
-            .base
-            .credential_subject
-            .additional_properties
-            .as_ref()
-            .unwrap();
-        assert_eq!(
-            additional_properties.properties.get("encodedList").unwrap(),
-            &JsonValue::String(status_list_credential.encoded_list.clone())
-        );
-    }
-
-    #[test]
     fn test_full_flow() {
         let status_purpose = "revocation".to_string();
         let credentials_to_disable = None;
         let status_list_credential =
             StatusListCredential::create(issuer(), status_purpose, credentials_to_disable).unwrap();
 
-        let encoded_list = &status_list_credential.encoded_list;
+        let encoded_list = status_list_credential.base.credential_subject
+            .additional_properties
+            .as_ref()
+            .and_then(|props| props.properties.get("encodedList"))
+            .and_then(|value| {
+                if let JsonValue::String(s) = value {
+                    Some(s.as_str())
+                } else {
+                    None
+                }
+            }).unwrap();
 
         // Test various bit positions
         assert_eq!(
@@ -565,7 +461,7 @@ mod tests {
         let vc1_options = Some(VerifiableCredentialCreateOptions {
             credential_status: Some(CredentialStatus {
                 id: "https://example.com/status/1".to_string(),
-                r#type: STATUS_LIST_2021.to_string(),
+                r#type: STATUS_LIST_2021_ENTRY.to_string(),
                 status_purpose: "revocation".to_string(),
                 status_list_index: "3".to_string(),
                 status_list_credential: "https://example.com/status/1".to_string(),
@@ -579,7 +475,7 @@ mod tests {
         let vc2_options = Some(VerifiableCredentialCreateOptions {
             credential_status: Some(CredentialStatus {
                 id: "https://example.com/status/2".to_string(),
-                r#type: STATUS_LIST_2021.to_string(),
+                r#type: STATUS_LIST_2021_ENTRY.to_string(),
                 status_purpose: "revocation".to_string(),
                 status_list_index: "1023".to_string(),
                 status_list_credential: "https://example.com/status/1".to_string(),
@@ -598,7 +494,18 @@ mod tests {
             credentials_to_disable,
         )
         .unwrap();
-        let updated_encoded_list = &updated_status_list_credential.encoded_list;
+
+        let updated_encoded_list = updated_status_list_credential.base.credential_subject
+            .additional_properties
+            .as_ref()
+            .and_then(|props| props.properties.get("encodedList"))
+            .and_then(|value| {
+                if let JsonValue::String(s) = value {
+                    Some(s.as_str())
+                } else {
+                    None
+                }
+            }).unwrap();
 
         // Test the bits corresponding to the disabled credentials
         assert_eq!(
