@@ -31,6 +31,13 @@ import java.nio.charset.CodingErrorAction
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.resume
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -1054,8 +1061,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_web5_uniffi_fn_free_resolutionresult(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_constructor_resolutionresult_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
+    fun uniffi_web5_uniffi_fn_constructor_resolutionresult_resolve(`uri`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_web5_uniffi_fn_method_resolutionresult_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_signer(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1096,20 +1103,20 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_uniffi_fn_method_verifier_verify(`ptr`: Pointer,`message`: RustBuffer.ByValue,`signature`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_web5_uniffi_fn_func_did_dht_create(`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_web5_uniffi_fn_func_did_dht_publish(`bearerDid`: Pointer,`gatewayUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_web5_uniffi_fn_func_did_dht_resolve(`uri`: RustBuffer.ByValue,`gatewayUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
+    fun uniffi_web5_uniffi_fn_func_did_dht_create(`options`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_web5_uniffi_fn_func_did_dht_publish(`bearerDid`: Pointer,`gatewayUrl`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_web5_uniffi_fn_func_did_dht_resolve(`uri`: RustBuffer.ByValue,`gatewayUrl`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_web5_uniffi_fn_func_did_jwk_create(`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_func_did_jwk_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_web5_uniffi_fn_func_did_web_create(`domain`: RustBuffer.ByValue,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_web5_uniffi_fn_func_did_web_resolve(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
+    fun uniffi_web5_uniffi_fn_func_did_web_resolve(`uri`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_web5_uniffi_fn_func_ed25519_generator_generate(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_web5_uniffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -1345,13 +1352,13 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_create() != 3925.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_create() != 21500.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_publish() != 17158.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_publish() != 65468.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_resolve() != 56140.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_resolve() != 53678.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_func_did_jwk_create() != 64914.toShort()) {
@@ -1363,7 +1370,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_func_did_web_create() != 8722.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_did_web_resolve() != 15538.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_web_resolve() != 12546.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_func_ed25519_generator_generate() != 57849.toShort()) {
@@ -1489,7 +1496,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 13282.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_resolve() != 11404.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_resolve() != 45251.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_statuslistcredential_create() != 49374.toShort()) {
@@ -1504,6 +1511,46 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
 }
 
 // Async support
+// Async return type handlers
+
+internal const val UNIFFI_RUST_FUTURE_POLL_READY = 0.toByte()
+internal const val UNIFFI_RUST_FUTURE_POLL_MAYBE_READY = 1.toByte()
+
+internal val uniffiContinuationHandleMap = UniffiHandleMap<CancellableContinuation<Byte>>()
+
+// FFI type for Rust future continuations
+internal object uniffiRustFutureContinuationCallbackImpl: UniffiRustFutureContinuationCallback {
+    override fun callback(data: Long, pollResult: Byte) {
+        uniffiContinuationHandleMap.remove(data).resume(pollResult)
+    }
+}
+
+internal suspend fun<T, F, E: Exception> uniffiRustCallAsync(
+    rustFuture: Long,
+    pollFunc: (Long, UniffiRustFutureContinuationCallback, Long) -> Unit,
+    completeFunc: (Long, UniffiRustCallStatus) -> F,
+    freeFunc: (Long) -> Unit,
+    liftFunc: (F) -> T,
+    errorHandler: UniffiRustCallStatusErrorHandler<E>
+): T {
+    try {
+        do {
+            val pollResult = suspendCancellableCoroutine<Byte> { continuation ->
+                pollFunc(
+                    rustFuture,
+                    uniffiRustFutureContinuationCallbackImpl,
+                    uniffiContinuationHandleMap.insert(continuation)
+                )
+            }
+        } while (pollResult != UNIFFI_RUST_FUTURE_POLL_READY);
+
+        return liftFunc(
+            uniffiRustCallWithError(errorHandler, { status -> completeFunc(rustFuture, status) })
+        )
+    } finally {
+        freeFunc(rustFuture)
+    }
+}
 
 // Public interface members begin here.
 
@@ -4863,15 +4910,20 @@ open class ResolutionResult: Disposable, AutoCloseable, ResolutionResultInterfac
 
     
     companion object {
-         fun `resolve`(`uri`: kotlin.String): ResolutionResult {
-            return FfiConverterTypeResolutionResult.lift(
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_resolutionresult_resolve(
-        FfiConverterString.lower(`uri`),_status)
-}
+        
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+     suspend fun `resolve`(`uri`: kotlin.String) : ResolutionResult {
+        return uniffiRustCallAsync(
+        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_resolutionresult_resolve(FfiConverterString.lower(`uri`),),
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeResolutionResult.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
-    
 
         
     }
@@ -7570,33 +7622,58 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
         }
     }
 }
-    @Throws(Web5Exception::class) fun `didDhtCreate`(`options`: DidDhtCreateOptions?): BearerDid {
-            return FfiConverterTypeBearerDid.lift(
-    uniffiRustCallWithError(Web5Exception) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_create(
-        FfiConverterOptionalTypeDidDhtCreateOptions.lower(`options`),_status)
-}
-    )
-    }
-    
 
-    @Throws(Web5Exception::class) fun `didDhtPublish`(`bearerDid`: BearerDid, `gatewayUrl`: kotlin.String?)
-        = 
-    uniffiRustCallWithError(Web5Exception) { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_publish(
-        FfiConverterTypeBearerDid.lower(`bearerDid`),FfiConverterOptionalString.lower(`gatewayUrl`),_status)
-}
-    
-    
- fun `didDhtResolve`(`uri`: kotlin.String, `gatewayUrl`: kotlin.String?): ResolutionResult {
-            return FfiConverterTypeResolutionResult.lift(
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_resolve(
-        FfiConverterString.lower(`uri`),FfiConverterOptionalString.lower(`gatewayUrl`),_status)
-}
+
+
+
+
+
+
+
+    @Throws(Web5Exception::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+     suspend fun `didDhtCreate`(`options`: DidDhtCreateOptions?) : BearerDid {
+        return uniffiRustCallAsync(
+        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_create(FfiConverterOptionalTypeDidDhtCreateOptions.lower(`options`),),
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeBearerDid.lift(it) },
+        // Error FFI converter
+        Web5Exception.ErrorHandler,
     )
     }
-    
+
+    @Throws(Web5Exception::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+     suspend fun `didDhtPublish`(`bearerDid`: BearerDid, `gatewayUrl`: kotlin.String?) {
+        return uniffiRustCallAsync(
+        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_publish(FfiConverterTypeBearerDid.lower(`bearerDid`),FfiConverterOptionalString.lower(`gatewayUrl`),),
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        Web5Exception.ErrorHandler,
+    )
+    }
+
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+     suspend fun `didDhtResolve`(`uri`: kotlin.String, `gatewayUrl`: kotlin.String?) : ResolutionResult {
+        return uniffiRustCallAsync(
+        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_resolve(FfiConverterString.lower(`uri`),FfiConverterOptionalString.lower(`gatewayUrl`),),
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeResolutionResult.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
+    }
 
     @Throws(Web5Exception::class) fun `didJwkCreate`(`options`: DidJwkCreateOptions?): BearerDid {
             return FfiConverterTypeBearerDid.lift(
@@ -7626,15 +7703,20 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
     )
     }
     
- fun `didWebResolve`(`uri`: kotlin.String): ResolutionResult {
-            return FfiConverterTypeResolutionResult.lift(
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_web_resolve(
-        FfiConverterString.lower(`uri`),_status)
-}
+
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+     suspend fun `didWebResolve`(`uri`: kotlin.String) : ResolutionResult {
+        return uniffiRustCallAsync(
+        UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_web_resolve(FfiConverterString.lower(`uri`),),
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_web5_uniffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeResolutionResult.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
-    
  fun `ed25519GeneratorGenerate`(): JwkData {
             return FfiConverterTypeJwkData.lift(
     uniffiRustCall() { _status ->

@@ -135,7 +135,9 @@ impl DidWeb {
     }
 
     /// Resolves a did:web and returns a Result
-    async fn resolve_result(uri: &str) ->  std::result::Result<ResolutionResult, ResolutionMetadataError> {
+    async fn resolve_result(
+        uri: &str,
+    ) -> std::result::Result<ResolutionResult, ResolutionMetadataError> {
         let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
         Resolver::new(did)?.await
     }

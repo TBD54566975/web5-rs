@@ -13,3 +13,4 @@ serde_json = { workspace = true }
 web5 = { path = "../web5" }
 url = "2.5.2"
 uuid = { workspace = true }
+tokio = { version = "1.38.0", features = ["rt-multi-thread"] }

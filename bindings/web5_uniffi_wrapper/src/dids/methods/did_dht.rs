@@ -9,8 +9,8 @@ use web5::dids::{
     methods::did_dht::{DidDht as InnerDidDht, DidDhtCreateOptions as InnerDidDhtCreateOptions},
 };
 
-pub fn did_dht_resolve(uri: &str, gateway_url: Option<String>) -> Arc<ResolutionResult> {
-    let resolution_result = InnerDidDht::resolve(uri, gateway_url);
+pub async fn did_dht_resolve(uri: &str, gateway_url: Option<String>) -> Arc<ResolutionResult> {
+    let resolution_result = InnerDidDht::resolve(uri, gateway_url).await;
     Arc::new(ResolutionResult(resolution_result))
 }
 
@@ -25,7 +25,7 @@ pub struct DidDhtCreateOptions {
     pub verification_method: Option<Vec<VerificationMethod>>,
 }
 
-pub fn did_dht_create(options: Option<DidDhtCreateOptions>) -> Result<Arc<BearerDid>> {
+pub async fn did_dht_create(options: Option<DidDhtCreateOptions>) -> Result<Arc<BearerDid>> {
     let inner_options = options.map(|o| InnerDidDhtCreateOptions {
         publish: o.publish,
         gateway_url: o.gateway_url,
@@ -39,10 +39,13 @@ pub fn did_dht_create(options: Option<DidDhtCreateOptions>) -> Result<Arc<Bearer
         verification_method: o.verification_method,
     });
 
-    let inner_bearer_did = InnerDidDht::create(inner_options)?;
+    let inner_bearer_did = InnerDidDht::create(inner_options).await?;
     Ok(Arc::new(BearerDid(inner_bearer_did)))
 }
 
-pub fn did_dht_publish(bearer_did: Arc<BearerDid>, gateway_url: Option<String>) -> Result<()> {
-    Ok(InnerDidDht::publish(bearer_did.0.clone(), gateway_url)?)
+pub async fn did_dht_publish(
+    bearer_did: Arc<BearerDid>,
+    gateway_url: Option<String>,
+) -> Result<()> {
+    Ok(InnerDidDht::publish(bearer_did.0.clone(), gateway_url).await?)
 }

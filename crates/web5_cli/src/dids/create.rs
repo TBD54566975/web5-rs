@@ -112,12 +112,14 @@ impl Commands {
                 let key_manager = InMemoryKeyManager::new();
                 key_manager.import_private_jwk(private_jwk.clone()).unwrap();
 
-                let bearer_did = DidDht::create(Some(DidDhtCreateOptions {
-                    publish: Some(!no_publish),
-                    key_manager: Some(Arc::new(key_manager)),
-                    ..Default::default()
-                }))
-                .unwrap();
+                let rt = tokio::runtime::Runtime::new().unwrap();
+                let bearer_did = rt
+                    .block_on(DidDht::create(Some(DidDhtCreateOptions {
+                        publish: Some(!no_publish),
+                        key_manager: Some(Arc::new(key_manager)),
+                        ..Default::default()
+                    })))
+                    .unwrap();
 
                 let portable_did = PortableDid {
                     did_uri: bearer_did.did.uri,

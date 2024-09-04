@@ -5,13 +5,13 @@ use crate::dids::{
         resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
     },
 };
+use hyper::{Client, Request};
+use serde_json;
 use std::{
     future::{Future, IntoFuture},
     pin::Pin,
 };
 use url::Url;
-use hyper::{Client, Request};
-use serde_json;
 
 // PORT_SEP is the : character that separates the domain from the port in a URI.
 const PORT_SEP: &str = "%3A";
@@ -50,13 +50,21 @@ impl Resolver {
 
     async fn resolve(url: String) -> Result<ResolutionResult, ResolutionMetadataError> {
         let client = Client::new();
-        let req = Request::get(url).body(hyper::Body::empty()).map_err(|_| ResolutionMetadataError::InternalError)?;
+        let req = Request::get(url)
+            .body(hyper::Body::empty())
+            .map_err(|_| ResolutionMetadataError::InternalError)?;
 
-        let response = client.request(req).await.map_err(|_| ResolutionMetadataError::InternalError)?;
+        let response = client
+            .request(req)
+            .await
+            .map_err(|_| ResolutionMetadataError::InternalError)?;
 
         if response.status().is_success() {
-            let body_bytes = hyper::body::to_bytes(response.into_body()).await.map_err(|_| ResolutionMetadataError::RepresentationNotSupported)?;
-            let did_document: Document = serde_json::from_slice(&body_bytes).map_err(|_| ResolutionMetadataError::RepresentationNotSupported)?;
+            let body_bytes = hyper::body::to_bytes(response.into_body())
+                .await
+                .map_err(|_| ResolutionMetadataError::RepresentationNotSupported)?;
+            let did_document: Document = serde_json::from_slice(&body_bytes)
+                .map_err(|_| ResolutionMetadataError::RepresentationNotSupported)?;
 
             Ok(ResolutionResult {
                 document: Some(did_document),

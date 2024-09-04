@@ -14,8 +14,8 @@ use web5::{
     },
 };
 
-pub fn did_web_resolve(uri: &str) -> Arc<ResolutionResult> {
-    let resolution_result = InnerDidWeb::resolve(uri);
+pub async fn did_web_resolve(uri: &str) -> Arc<ResolutionResult> {
+    let resolution_result = InnerDidWeb::resolve(uri).await;
     Arc::new(ResolutionResult(resolution_result))
 }
 

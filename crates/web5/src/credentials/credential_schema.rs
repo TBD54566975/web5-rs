@@ -27,10 +27,10 @@ pub(crate) fn validate_credential_schema(
     }
 
     let url = &credential_schema.id;
-    let schema_json = tokio::runtime::Runtime::new().unwrap().block_on(async {
-        fetch_schema(url).await
-    })?;
-    
+    let schema_json = tokio::runtime::Runtime::new()
+        .unwrap()
+        .block_on(async { fetch_schema(url).await })?;
+
     let compiled_schema = JSONSchema::options().compile(&schema_json).map_err(|err| {
         Web5Error::JsonSchema(format!("unable to compile json schema {} {}", url, err))
     })?;
@@ -60,10 +60,10 @@ pub(crate) fn validate_credential_schema(
 
 async fn fetch_schema(url: &str) -> Result<serde_json::Value> {
     let client = hyper::Client::new();
-    let uri = url.parse::<hyper::Uri>().map_err(|err| {
-        Web5Error::Network(format!("invalid URL {} {}", url, err))
-    })?;
-    
+    let uri = url
+        .parse::<hyper::Uri>()
+        .map_err(|err| Web5Error::Network(format!("invalid URL {} {}", url, err)))?;
+
     let response = client.get(uri).await.map_err(|err| {
         Web5Error::Network(format!("unable to resolve json schema {} {}", url, err))
     })?;
@@ -75,20 +75,19 @@ async fn fetch_schema(url: &str) -> Result<serde_json::Value> {
             response.status()
         )));
     }
-    
-    let body_bytes = hyper::body::to_bytes(response.into_body()).await.map_err(|err| {
-        Web5Error::JsonSchema(format!(
-            "unable to read response body {} {}",
-            url, err
-        ))
-    })?;
-    
+
+    let body_bytes = hyper::body::to_bytes(response.into_body())
+        .await
+        .map_err(|err| {
+            Web5Error::JsonSchema(format!("unable to read response body {} {}", url, err))
+        })?;
+
     let schema_json: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|err| {
         Web5Error::JsonSchema(format!(
             "unable to parse json schema from response body {} {}",
             url, err
         ))
     })?;
-    
+
     Ok(schema_json)
 }
