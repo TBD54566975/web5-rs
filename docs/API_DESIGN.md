@@ -17,6 +17,9 @@
         - [`VerifiableCredentialCreateOptions`](#verifiablecredentialcreateoptions)
   - [StatusListCredential](#statuslistcredential)
       - [`StatusListCredential`](#statuslistcredential-1)
+  - [VerifiablePresentation](#verifiablepresentation)
+      - [`VerifiablePresentation`](#verifiablepresentation-1)
+      - [`VerifiablePresentationCreateOptions`](#verifiablepresentationcreateoptions)
   - [Presentation Exchange (PEX)](#presentation-exchange-pex)
     - [`PresentationDefinition`](#presentationdefinition)
     - [`InputDescriptor`](#inputdescriptor)
@@ -88,9 +91,11 @@ CLASS VerifiableCredential
   PUBLIC DATA id: string
   PUBLIC DATA type: []string
   PUBLIC DATA issuer: Issuer
+  PUBLIC DATA credentialSubject: CredentialSubject
   PUBLIC DATA issuance_date: datetime
   PUBLIC DATA expiration_date: datetime?
-  PUBLIC DATA credentialSubject: CredentialSubject
+  PUBLIC DATA credential_status: CredentialStatus?
+  PUBLIC DATA credential_schema: CredentialSchema?
   PUBLIC DATA evidence: []Evidence?
 
   CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: VerifiableCredentialCreateOptions?)
@@ -146,6 +151,37 @@ CLASS StatusListCredential
   CONSTRUCTOR create(issuer: Issuer, status_purpose: string, disabled_credentials: []VerifiableCredential)
   
   METHOD is_disabled(credential VerifiableCredential): bool
+```
+
+## VerifiablePresentation
+
+#### `VerifiablePresentation`
+
+```pseudocode!
+CLASS VerifiablePresentation
+  PUBLIC DATA @context: []string
+  PUBLIC DATA id: string
+  PUBLIC DATA type: []string
+  PUBLIC DATA holder: string
+  PUBLIC DATA issuance_date: datetime
+  PUBLIC DATA expiration_date: datetime?
+  PUBLIC DATA verifiable_credential: []string
+
+  CONSTRUCTOR create(holder: string, vc_jwts: []string, options: VerifiablePresentationCreateOptions?)
+  CONSTRUCTOR from_vp_jwt(vp_jwt: string, verify: bool)
+
+  METHOD sign(bearer_did: BearerDid, verification_method_id: String?): string
+```
+
+#### `VerifiablePresentationCreateOptions`
+
+```pseudocode!
+CLASS VerifiablePresentationCreateOptions
+  PUBLIC DATA id: string?
+  PUBLIC DATA context: []string?
+  PUBLIC DATA type: []string?
+  PUBLIC DATA issuance_date: datetime?
+  PUBLIC DATA expiration_date: datetime?
 ```
 
 ## Presentation Exchange (PEX)

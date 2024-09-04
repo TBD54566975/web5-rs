@@ -31,11 +31,6 @@ impl VerifiablePresentation {
             expiration_date: options.expiration_date,
         };
 
-        // Convert Vec<Arc<String>> to Vec<String>
-        // let vc_jwts_unwrapped: Vec<String> = vc_jwts.into_iter()
-        //     .map(|arc_string| arc_string.as_ref().clone())  // Convert Arc<String> to String
-        //     .collect();
-
         let inner_vp = InnerVerifiablePresentation::create(
             holder,
             vc_jwts,
@@ -60,7 +55,7 @@ impl VerifiablePresentation {
     }
 
     pub fn from_vp_jwt(vp_jwt: String, verify: bool) -> Result<Self> {
-        let inner_vp = InnerVerifiablePresentation::from_vc_jwt(&vp_jwt, verify)?;
+        let inner_vp = InnerVerifiablePresentation::from_vp_jwt(&vp_jwt, verify)?;
 
         Ok(Self {
             inner_vp,

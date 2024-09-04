@@ -120,7 +120,7 @@ impl VerifiablePresentation {
         Ok(verifiable_presentation)
     }
 
-    pub fn from_vc_jwt(vp_jwt: &str, verify: bool) -> Result<Self> {
+    pub fn from_vp_jwt(vp_jwt: &str, verify: bool) -> Result<Self> {
         let verifiable_presentation = decode_vp_jwt(vp_jwt, verify)?;
 
         if verify {
@@ -408,7 +408,7 @@ mod tests {
 
     #[test]
     fn test_create_verifiable_presentation() {
-        let (vc_issuer_did, vc_issuer_uri, holder, holder_uri) = setup_vc_issuer_and_holder();
+        let (vc_issuer_did, vc_issuer_uri, _holder, holder_uri) = setup_vc_issuer_and_holder();
 
         let vc = create_verifiable_credential(&vc_issuer_uri);
 
@@ -434,7 +434,7 @@ mod tests {
 
     #[test]
     fn test_verifiable_presentation_expiration() {
-        let (vc_issuer_did, vc_issuer_uri, holder, holder_uri) = setup_vc_issuer_and_holder();
+        let (vc_issuer_did, vc_issuer_uri, _holder, holder_uri) = setup_vc_issuer_and_holder();
 
         let vc = create_verifiable_credential(&vc_issuer_uri);
 
@@ -478,7 +478,7 @@ mod tests {
         let vp_jwt = vp.sign(&holder, None).expect("Failed to sign Verifiable Presentation");
 
         // Decode the signed Verifiable Presentation JWT
-        let decoded_vp = VerifiablePresentation::from_vc_jwt(&vp_jwt, true)
+        let decoded_vp = VerifiablePresentation::from_vp_jwt(&vp_jwt, true)
             .expect("Failed to decode signed Verifiable Presentation JWT");
 
         // Verify that the decoded Verifiable Presentation matches the original
