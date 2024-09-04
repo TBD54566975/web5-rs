@@ -148,6 +148,7 @@ pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredenti
         issuer: vc_issuer,
         issuance_date: nbf,
         expiration_date: exp,
+        credential_status: vc_payload.credential_status,
         credential_subject: vc_credential_subject,
         credential_schema: vc_payload.credential_schema,
         evidence: vc_payload.evidence,

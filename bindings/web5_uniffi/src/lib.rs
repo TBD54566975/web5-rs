@@ -1,6 +1,7 @@
 use web5_uniffi_wrapper::{
     credentials::{
         presentation_definition::PresentationDefinition,
+        status_list_credential::StatusListCredential,
         verifiable_credential_1_1::{
             VerifiableCredential,
             VerifiableCredentialCreateOptions as VerifiableCredentialCreateOptionsData,
@@ -33,6 +34,7 @@ use web5_uniffi_wrapper::{
 };
 
 use web5::{
+    credentials::verifiable_credential_1_1::CredentialStatus as CredentialStatusData,
     credentials::CredentialSchema as CredentialSchemaData,
     crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{

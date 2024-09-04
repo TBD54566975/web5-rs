@@ -257,6 +257,7 @@ dictionary VerifiableCredentialCreateOptionsData {
   sequence<string>? type;
   timestamp? issuance_date;
   timestamp? expiration_date;
+  CredentialStatusData? credential_status;
   CredentialSchemaData? credential_schema;
   string? json_serialized_evidence;
 };
@@ -284,6 +285,7 @@ dictionary VerifiableCredentialData {
   string json_serialized_credential_subject;
   timestamp issuance_date;
   timestamp? expiration_date;
+  CredentialStatusData? credential_status;
   CredentialSchemaData? credential_schema;
   string? json_serialized_evidence;
 };
@@ -291,4 +293,26 @@ dictionary VerifiableCredentialData {
 dictionary CredentialSchemaData {
   string id;
   string type;
+};
+
+dictionary CredentialStatusData {
+  string id;
+  string type;
+  string status_purpose;
+  string status_list_index;
+  string status_list_credential;
+};
+
+interface StatusListCredential {
+  [Throws=Web5Error, Name=create]
+  constructor(
+    string json_serialized_issuer,
+    string status_purpose,
+    sequence<VerifiableCredential>? disabled_credentials
+  );
+
+  [Throws=Web5Error]
+  VerifiableCredential get_base();
+  [Throws=Web5Error]
+  boolean is_disabled(VerifiableCredential credential);
 };

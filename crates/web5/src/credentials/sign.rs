@@ -25,6 +25,7 @@ pub fn sign_with_signer(
         issuer: Some(vc.issuer.clone()),
         issuance_date: Some(vc.issuance_date),
         expiration_date: vc.expiration_date,
+        credential_status: vc.credential_status.clone(),
         credential_subject: Some(vc.credential_subject.clone()),
         credential_schema: vc.credential_schema.clone(),
         evidence: vc.evidence.clone(),

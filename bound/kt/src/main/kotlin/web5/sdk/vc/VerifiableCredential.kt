@@ -13,9 +13,18 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import web5.sdk.Json
 import web5.sdk.dids.BearerDid
 import java.util.Date
+import web5.sdk.rust.CredentialStatusData as RustCoreCredentialStatus
 import web5.sdk.rust.VerifiableCredential as RustCoreVerifiableCredential
 import web5.sdk.rust.VerifiableCredentialCreateOptionsData as RustCoreVerifiableCredentialCreateOptions
 import web5.sdk.rust.CredentialSchemaData as RustCoreCredentialSchema
+
+data class CredentialStatus(
+    var id: String,
+    var type: String,
+    var statusPurpose: String,
+    var statusListIndex: String,
+    var statusListCredential: String
+)
 
 data class VerifiableCredentialCreateOptions(
     val id: String? = null,
@@ -23,6 +32,7 @@ data class VerifiableCredentialCreateOptions(
     val type: List<String>? = null,
     val issuanceDate: Date? = null,
     val expirationDate: Date? = null,
+    var credentialStatus: CredentialStatus? = null,
     val credentialSchema: CredentialSchema? = null,
     val evidence: List<Map<String, Any>>? = null
 )
@@ -35,11 +45,34 @@ data class VerifiableCredential private constructor(
     val credentialSubject: CredentialSubject,
     val issuanceDate: Date,
     val expirationDate: Date? = null,
+    val credentialStatus: CredentialStatus? = null,
     val credentialSchema: CredentialSchema? = null,
     val evidence: List<Map<String, Any>>? = null,
     internal val rustCoreVerifiableCredential: RustCoreVerifiableCredential,
 ) {
     companion object {
+        internal fun fromRustCore(rustCoreVerifiableCredential: RustCoreVerifiableCredential): VerifiableCredential {
+            val data = rustCoreVerifiableCredential.getData()
+
+            val issuer = Json.jsonMapper.readValue(data.jsonSerializedIssuer, Issuer::class.java)
+            val credentialSubject = Json.jsonMapper.readValue(data.jsonSerializedCredentialSubject, CredentialSubject::class.java)
+            val evidence = data.jsonSerializedEvidence?.let { Json.jsonMapper.readValue<List<Map<String, Any>>>(it) }
+
+            return VerifiableCredential(
+                data.context,
+                data.type,
+                data.id,
+                issuer,
+                credentialSubject,
+                Date.from(data.issuanceDate),
+                data.expirationDate?.let { Date.from(it) },
+                data.credentialStatus?.let { CredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
+                data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
+                evidence,
+                rustCoreVerifiableCredential
+            )
+        }
+
         fun create(
             issuer: Issuer,
             credentialSubject: CredentialSubject,
@@ -58,6 +91,7 @@ data class VerifiableCredential private constructor(
                     options?.type,
                     options?.issuanceDate?.toInstant(),
                     options?.expirationDate?.toInstant(),
+                    options?.credentialStatus?.let { RustCoreCredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
                     options?.credentialSchema?.let { RustCoreCredentialSchema(it.id, it.type) },
                     jsonSerializedEvidence
                 )
@@ -74,6 +108,7 @@ data class VerifiableCredential private constructor(
                 credentialSubject,
                 Date.from(data.issuanceDate),
                 data.expirationDate?.let { Date.from(it) },
+                data.credentialStatus?.let { CredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
                 data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
                 evidence,
                 rustCoreVerifiableCredential
@@ -96,6 +131,7 @@ data class VerifiableCredential private constructor(
                 credentialSubject,
                 Date.from(data.issuanceDate),
                 data.expirationDate?.let { Date.from(it) },
+                data.credentialStatus?.let { CredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
                 data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
                 evidence,
                 rustCoreVerifiableCredential

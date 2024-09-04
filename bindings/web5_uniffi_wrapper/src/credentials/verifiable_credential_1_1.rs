@@ -1,12 +1,15 @@
 use crate::{dids::bearer_did::BearerDid, errors::Result};
 use std::{sync::Arc, time::SystemTime};
+use web5::credentials::verifiable_credential_1_1::CredentialStatus;
+use web5::credentials::Issuer;
+use web5::json::ToJson;
 use web5::{
     credentials::{
         verifiable_credential_1_1::{
             VerifiableCredential as InnerVerifiableCredential,
             VerifiableCredentialCreateOptions as InnerVerifiableCredentialCreateOptions,
         },
-        CredentialSchema, CredentialSubject, Issuer,
+        CredentialSchema, CredentialSubject,
     },
     json::{FromJson as _, JsonObject},
 };
@@ -18,12 +21,13 @@ pub struct VerifiableCredentialCreateOptions {
     pub r#type: Option<Vec<String>>,
     pub issuance_date: Option<SystemTime>,
     pub expiration_date: Option<SystemTime>,
+    pub credential_status: Option<CredentialStatus>,
     pub credential_schema: Option<CredentialSchema>,
     pub json_serialized_evidence: Option<String>,
 }
 
 pub struct VerifiableCredential {
-    inner_vc: InnerVerifiableCredential,
+    pub inner_vc: InnerVerifiableCredential,
     json_serialized_issuer: String,
     json_serialized_credential_subject: String,
 }
@@ -51,6 +55,7 @@ impl VerifiableCredential {
             r#type: options.r#type,
             issuance_date: options.issuance_date,
             expiration_date: options.expiration_date,
+            credential_status: options.credential_status,
             credential_schema: options.credential_schema,
             evidence,
         };
@@ -79,6 +84,7 @@ impl VerifiableCredential {
             json_serialized_credential_subject: self.json_serialized_credential_subject.clone(),
             issuance_date: self.inner_vc.issuance_date,
             expiration_date: self.inner_vc.expiration_date,
+            credential_status: self.inner_vc.credential_status.clone(),
             credential_schema: self.inner_vc.credential_schema.clone(),
             json_serialized_evidence,
         })
@@ -105,6 +111,16 @@ impl VerifiableCredential {
         let vc_jwt = self.inner_vc.sign(&bearer_did.0, verification_method_id)?;
         Ok(vc_jwt)
     }
+
+    pub(crate) fn from_inner(inner_vc: &InnerVerifiableCredential) -> Result<Self> {
+        let json_serialized_issuer = inner_vc.issuer.to_json_string()?;
+        let json_serialized_credential_subject = inner_vc.credential_subject.to_json_string()?;
+        Ok(Self {
+            inner_vc: inner_vc.clone(),
+            json_serialized_issuer,
+            json_serialized_credential_subject,
+        })
+    }
 }
 
 #[derive(Clone)]
@@ -116,6 +132,7 @@ pub struct VerifiableCredentialData {
     pub json_serialized_credential_subject: String,
     pub issuance_date: SystemTime,
     pub expiration_date: Option<SystemTime>,
+    pub credential_status: Option<CredentialStatus>,
     pub credential_schema: Option<CredentialSchema>,
     pub json_serialized_evidence: Option<String>,
 }

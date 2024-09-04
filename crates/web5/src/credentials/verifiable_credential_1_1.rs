@@ -42,6 +42,8 @@ pub struct VerifiableCredential {
         deserialize_with = "deserialize_optional_system_time"
     )]
     pub expiration_date: Option<SystemTime>,
+    #[serde(rename = "credentialStatus")]
+    pub credential_status: Option<CredentialStatus>,
     #[serde(rename = "credentialSchema", skip_serializing_if = "Option::is_none")]
     pub credential_schema: Option<CredentialSchema>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,8 +60,22 @@ pub struct VerifiableCredentialCreateOptions {
     pub r#type: Option<Vec<String>>,
     pub issuance_date: Option<SystemTime>,
     pub expiration_date: Option<SystemTime>,
+    pub credential_status: Option<CredentialStatus>,
     pub credential_schema: Option<CredentialSchema>,
     pub evidence: Option<Vec<JsonObject>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+pub struct CredentialStatus {
+    pub id: String,
+    #[serde(rename = "type")]
+    pub r#type: String,
+    #[serde(rename = "statusPurpose")]
+    pub status_purpose: String,
+    #[serde(rename = "statusListIndex")]
+    pub status_list_index: String,
+    #[serde(rename = "statusListCredential")]
+    pub status_list_credential: String,
 }
 
 impl VerifiableCredential {
@@ -267,9 +283,9 @@ mod tests {
             let vc = VerifiableCredential::from_vc_jwt(vc_jwt_valid, true)
                 .expect("vc_jwt should be valid");
             assert_eq!(
-              "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJHVzZFTDlITTltdHlycGlYdFFUMGpxZk52aWNnQTlBVDg0MHY1Y08yb1RrIn0#0", 
-              vc.issuer.to_string()
-          );
+                "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJHVzZFTDlITTltdHlycGlYdFFUMGpxZk52aWNnQTlBVDg0MHY1Y08yb1RrIn0#0",
+                vc.issuer.to_string()
+            );
         }
 
         #[test]
@@ -318,9 +334,9 @@ mod tests {
             match vc.issuer {
                 Issuer::String(issuer) => {
                     assert_eq!(
-                      "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJyd2hXSUNYclJ3b0ZaRmR1M0lsNi1BNGUtdjk3QlMxRkZRaVE4aWNmWktrIn0",
-                      issuer
-                  )
+                        "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJyd2hXSUNYclJ3b0ZaRmR1M0lsNi1BNGUtdjk3QlMxRkZRaVE4aWNmWktrIn0",
+                        issuer
+                    )
                 }
                 Issuer::Object(_) => panic!("issuer should be string"),
             }
@@ -338,9 +354,9 @@ mod tests {
                 Issuer::String(_) => panic!("issuer should be object"),
                 Issuer::Object(issuer) => {
                     assert_eq!(
-                      "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiI1Uk1yaUM1VlhubzZSVDhMWVVrbnpJZnNjaTQyYmxBaWlLWkpCZGhnVnVBIn0",
-                      issuer.id
-                  );
+                        "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiI1Uk1yaUM1VlhubzZSVDhMWVVrbnpJZnNjaTQyYmxBaWlLWkpCZGhnVnVBIn0",
+                        issuer.id
+                    );
                     assert_eq!("some name", issuer.name)
                 }
             }

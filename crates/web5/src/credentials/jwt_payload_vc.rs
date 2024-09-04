@@ -1,6 +1,7 @@
 use super::{
     credential_schema::CredentialSchema, credential_subject::CredentialSubject, issuer::Issuer,
 };
+use crate::credentials::verifiable_credential_1_1::CredentialStatus;
 use crate::{
     json::JsonObject,
     rfc3339::{deserialize_optional_system_time, serialize_optional_system_time},
@@ -30,6 +31,8 @@ pub struct JwtPayloadVerifiableCredential {
         deserialize_with = "deserialize_optional_system_time"
     )]
     pub expiration_date: Option<SystemTime>,
+    #[serde(rename = "credentialStatus")]
+    pub credential_status: Option<CredentialStatus>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "credentialSubject")]
     pub credential_subject: Option<CredentialSubject>,
     #[serde(rename = "credentialSchema", skip_serializing_if = "Option::is_none")]

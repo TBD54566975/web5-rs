@@ -36,6 +36,7 @@ pub fn create_vc(
         issuer,
         issuance_date: options.issuance_date.unwrap_or_else(SystemTime::now),
         expiration_date: options.expiration_date,
+        credential_status: options.credential_status,
         credential_subject,
         credential_schema: options.credential_schema,
         evidence: options.evidence,
@@ -73,9 +74,11 @@ fn validate_credential_subject(credential_subject: &CredentialSubject) -> Result
         return Err(Web5Error::Parameter("subject id must not be empty".into()));
     }
 
-    if Did::parse(&credential_subject.to_string()).is_err() {
+    if Did::parse(&credential_subject.to_string()).is_err()
+        && !credential_subject.to_string().starts_with("urn:uuid:")
+    {
         return Err(Web5Error::Parameter(
-            "credential subject must be a valid DID URI".into(),
+            "credential subject must be a valid DID URI or start with 'urn:uuid:'".into(),
         ));
     }
 
@@ -379,7 +382,10 @@ mod tests {
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
-                assert_eq!(err_msg, "credential subject must be a valid DID URI")
+                assert_eq!(
+                    err_msg,
+                    "credential subject must be a valid DID URI or start with 'urn:uuid:'"
+                )
             }
             _ => panic!("Expected Web5Error::Parameter, but got: {:?}", result),
         };
