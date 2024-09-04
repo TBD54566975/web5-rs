@@ -7,6 +7,11 @@ use web5_uniffi_wrapper::{
             VerifiableCredentialCreateOptions as VerifiableCredentialCreateOptionsData,
             VerifiableCredentialData,
         },
+        verifiable_presentation_1_1::{
+            VerifiablePresentation,
+            VerifiablePresentationCreateOptions as VerifiablePresentationCreateOptionsData,
+            VerifiablePresentationData
+        }
     },
     crypto::{
         dsa::{

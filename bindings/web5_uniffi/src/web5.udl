@@ -316,3 +316,39 @@ interface StatusListCredential {
   [Throws=Web5Error]
   boolean is_disabled(VerifiableCredential credential);
 };
+
+dictionary VerifiablePresentationCreateOptionsData {
+  string? id;
+  sequence<string>? context;
+  sequence<string>? type;
+  timestamp? issuance_date;
+  timestamp? expiration_date;
+};
+
+interface VerifiablePresentation {
+  [Throws=Web5Error, Name=create]
+  constructor(
+    string holder,
+    sequence<string> vc_jwts,
+    VerifiablePresentationCreateOptionsData? options
+  );
+
+  [Throws=Web5Error]
+  VerifiablePresentationData get_data();
+
+  [Throws=Web5Error, Name=from_vp_jwt]
+  constructor(string vp_jwt, boolean verify);
+
+  [Throws=Web5Error]
+  string sign(BearerDid bearer_did, string? verification_method_id);
+};
+
+dictionary VerifiablePresentationData {
+  sequence<string> context;
+  string id;
+  sequence<string> type;
+  string holder;
+  timestamp issuance_date;
+  timestamp? expiration_date;
+  sequence<string> verifiable_credential;
+};
