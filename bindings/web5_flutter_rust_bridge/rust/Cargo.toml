@@ -1,0 +1,20 @@
+[package]
+name = "rust_lib_web5_flutter_rust_bridge"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+flutter_rust_bridge = "=2.3.0"
+web5 = { path = "../../../crates/web5" }
+
+[dependencies.openssl]
+version = "0.10"
+optional = true
+features = ["vendored"]
+
+[features]
+default = ["openssl"]
+x86_64_apple_darwin = ["openssl"] 

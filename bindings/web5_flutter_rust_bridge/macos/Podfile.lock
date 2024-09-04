@@ -1,0 +1,22 @@
+PODS:
+  - FlutterMacOS (1.0.0)
+  - rust_lib_web5_flutter_rust_bridge (0.0.1):
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - rust_lib_web5_flutter_rust_bridge (from `Flutter/ephemeral/.symlinks/plugins/rust_lib_web5_flutter_rust_bridge/macos`)
+
+EXTERNAL SOURCES:
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+  rust_lib_web5_flutter_rust_bridge:
+    :path: Flutter/ephemeral/.symlinks/plugins/rust_lib_web5_flutter_rust_bridge/macos
+
+SPEC CHECKSUMS:
+  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
+  rust_lib_web5_flutter_rust_bridge: 036b454a79b3fac66dc51f91159b2e6c08cad89c
+
+PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
+
+COCOAPODS: 1.15.2
