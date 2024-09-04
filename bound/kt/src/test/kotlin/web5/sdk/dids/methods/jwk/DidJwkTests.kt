@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.keys.InMemoryKeyManager
+import web5.sdk.crypto.Dsa
 import web5.sdk.dids.ResolutionMetadataError
-import web5.sdk.rust.Dsa
 
 class DidJwkTests {
     @Nested

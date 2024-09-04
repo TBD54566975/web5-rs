@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertEquals
-import web5.sdk.rust.Web5Exception
+import web5.sdk.Web5Exception
 
 class PortableDidTest {
     @Test

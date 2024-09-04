@@ -1,5 +1,6 @@
 package web5.sdk.dids
 
+import web5.sdk.Web5Exception
 import web5.sdk.crypto.keys.*
 import web5.sdk.crypto.keys.ToInnerKeyExporter
 import web5.sdk.crypto.keys.ToInnerKeyManager
@@ -7,6 +8,7 @@ import web5.sdk.crypto.keys.ToOuterKeyManager
 import web5.sdk.crypto.signers.Signer
 import web5.sdk.crypto.signers.ToOuterSigner
 import web5.sdk.rust.BearerDid as RustCoreBearerDid
+import web5.sdk.rust.Web5Exception.Exception as RustCoreException
 
 /**
  * Represents a Decentralized Identifier (DID) along with its DID document, key manager, metadata,
@@ -26,11 +28,15 @@ data class BearerDid private constructor(
         did,
         document,
         keyManager,
-        RustCoreBearerDid(
-            did.toRustCoreDidData(),
-            document.toRustCore(),
-            ToInnerKeyManager(keyManager)
-        )
+        try {
+            RustCoreBearerDid(
+                did.toRustCoreDidData(),
+                document.toRustCore(),
+                ToInnerKeyManager(keyManager)
+            )
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        }
     )
 
     companion object {
@@ -40,8 +46,12 @@ data class BearerDid private constructor(
          * @param portableDid The PortableDid.
          */
         fun fromPortableDid(portableDid: PortableDid): BearerDid {
-            val rustCoreBearerDid = RustCoreBearerDid.fromPortableDid(portableDid.rustCorePortableDid)
-            return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
+            try {
+                val rustCoreBearerDid = RustCoreBearerDid.fromPortableDid(portableDid.rustCorePortableDid)
+                return fromRustCoreBearerDid(rustCoreBearerDid)
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            }
         }
 
         internal fun fromRustCoreBearerDid(rustCoreBearerDid: RustCoreBearerDid): BearerDid {
@@ -60,17 +70,24 @@ data class BearerDid private constructor(
      * @return Signer The signer for the DID.
      */
     fun getSigner(verificationMethodId: String): Signer {
-        val rustCoreSigner = rustCoreBearerDid.getSigner(verificationMethodId)
-
-        return ToOuterSigner(rustCoreSigner)
+        try {
+            val rustCoreSigner = rustCoreBearerDid.getSigner(verificationMethodId)
+            return ToOuterSigner(rustCoreSigner)
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        }
     }
 
     /**
      * Returns the BearerDid represented as a PortableDid
      */
     fun toPortableDid(keyExporter: KeyExporter): PortableDid {
-        val innerKeyExporter = ToInnerKeyExporter(keyExporter)
-        val rustCorePortableDid = rustCoreBearerDid.toPortableDid(innerKeyExporter)
-        return PortableDid.fromRustCorePortableDid(rustCorePortableDid)
+        try {
+            val innerKeyExporter = ToInnerKeyExporter(keyExporter)
+            val rustCorePortableDid = rustCoreBearerDid.toPortableDid(innerKeyExporter)
+            return PortableDid.fromRustCorePortableDid(rustCorePortableDid)
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        }
     }
 }

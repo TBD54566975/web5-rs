@@ -6807,14 +6807,12 @@ sealed class Web5Exception: Exception() {
     
     class Exception(
         
-        val `type`: kotlin.String, 
-        
         val `variant`: kotlin.String, 
         
         val `msg`: kotlin.String
         ) : Web5Exception() {
         override val message
-            get() = "type=${ `type` }, variant=${ `variant` }, msg=${ `msg` }"
+            get() = "variant=${ `variant` }, msg=${ `msg` }"
     }
     
 
@@ -6833,7 +6831,6 @@ public object FfiConverterTypeWeb5Error : FfiConverterRustBuffer<Web5Exception> 
             1 -> Web5Exception.Exception(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
-                FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
@@ -6844,7 +6841,6 @@ public object FfiConverterTypeWeb5Error : FfiConverterRustBuffer<Web5Exception> 
             is Web5Exception.Exception -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
-                + FfiConverterString.allocationSize(value.`type`)
                 + FfiConverterString.allocationSize(value.`variant`)
                 + FfiConverterString.allocationSize(value.`msg`)
             )
@@ -6855,7 +6851,6 @@ public object FfiConverterTypeWeb5Error : FfiConverterRustBuffer<Web5Exception> 
         when(value) {
             is Web5Exception.Exception -> {
                 buf.putInt(1)
-                FfiConverterString.write(value.`type`, buf)
                 FfiConverterString.write(value.`variant`, buf)
                 FfiConverterString.write(value.`msg`, buf)
                 Unit

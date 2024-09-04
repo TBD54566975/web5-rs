@@ -10,13 +10,15 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.module.kotlin.readValue
-import web5.sdk.Json
-import web5.sdk.dids.BearerDid
 import java.util.Date
 import web5.sdk.rust.CredentialStatusData as RustCoreCredentialStatus
+import web5.sdk.Json
+import web5.sdk.Web5Exception
+import web5.sdk.dids.BearerDid
 import web5.sdk.rust.VerifiableCredential as RustCoreVerifiableCredential
 import web5.sdk.rust.VerifiableCredentialCreateOptionsData as RustCoreVerifiableCredentialCreateOptions
 import web5.sdk.rust.CredentialSchemaData as RustCoreCredentialSchema
+import web5.sdk.rust.Web5Exception.Exception as RustCoreException
 
 data class CredentialStatus(
     var id: String,
@@ -77,70 +79,81 @@ data class VerifiableCredential private constructor(
             issuer: Issuer,
             credentialSubject: CredentialSubject,
             options: VerifiableCredentialCreateOptions? = null): VerifiableCredential {
+            try {
+                val jsonSerializedIssuer = Json.stringify(issuer)
+                val jsonSerializedCredentialSubject = Json.stringify(credentialSubject)
+                val jsonSerializedEvidence = options?.evidence?.let { Json.stringify(it) }
 
-            val jsonSerializedIssuer = Json.stringify(issuer)
-            val jsonSerializedCredentialSubject = Json.stringify(credentialSubject)
-            val jsonSerializedEvidence = options?.evidence?.let { Json.stringify(it) }
-
-            val rustCoreVerifiableCredential = RustCoreVerifiableCredential.create(
-                jsonSerializedIssuer,
-                jsonSerializedCredentialSubject,
-                RustCoreVerifiableCredentialCreateOptions(
-                    options?.id,
-                    options?.context,
-                    options?.type,
-                    options?.issuanceDate?.toInstant(),
-                    options?.expirationDate?.toInstant(),
-                    options?.credentialStatus?.let { RustCoreCredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
-                    options?.credentialSchema?.let { RustCoreCredentialSchema(it.id, it.type) },
-                    jsonSerializedEvidence
+                val rustCoreVerifiableCredential = RustCoreVerifiableCredential.create(
+                    jsonSerializedIssuer,
+                    jsonSerializedCredentialSubject,
+                    RustCoreVerifiableCredentialCreateOptions(
+                        options?.id,
+                        options?.context,
+                        options?.type,
+                        options?.issuanceDate?.toInstant(),
+                        options?.expirationDate?.toInstant(),
+                        options?.credentialStatus?.let { RustCoreCredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
+                        options?.credentialSchema?.let { RustCoreCredentialSchema(it.id, it.type) },
+                        jsonSerializedEvidence
+                    )
                 )
-            )
 
-            val data = rustCoreVerifiableCredential.getData()
-            val evidence = data.jsonSerializedEvidence?.let { Json.jsonMapper.readValue<List<Map<String, Any>>>(it) }
+                val data = rustCoreVerifiableCredential.getData()
+                val evidence = data.jsonSerializedEvidence?.let { Json.jsonMapper.readValue<List<Map<String, Any>>>(it) }
 
-            return VerifiableCredential(
-                data.context,
-                data.type,
-                data.id,
-                issuer,
-                credentialSubject,
-                Date.from(data.issuanceDate),
-                data.expirationDate?.let { Date.from(it) },
-                data.credentialStatus?.let { CredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
-                data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
-                evidence,
-                rustCoreVerifiableCredential
-            )
+                return VerifiableCredential(
+                    data.context,
+                    data.type,
+                    data.id,
+                    issuer,
+                    credentialSubject,
+                    Date.from(data.issuanceDate),
+                    data.expirationDate?.let { Date.from(it) },
+                    data.credentialStatus?.let { CredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
+                    data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
+                    evidence,
+                    rustCoreVerifiableCredential
+                )
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            }
         }
 
         fun fromVcJwt(vcJwt: String, verify: Boolean): VerifiableCredential {
-            val rustCoreVerifiableCredential = RustCoreVerifiableCredential.fromVcJwt(vcJwt, verify)
-            val data = rustCoreVerifiableCredential.getData()
+            try {
+                val rustCoreVerifiableCredential = RustCoreVerifiableCredential.fromVcJwt(vcJwt, verify)
+                val data = rustCoreVerifiableCredential.getData()
 
-            val issuer = Json.jsonMapper.readValue(data.jsonSerializedIssuer, Issuer::class.java)
-            val credentialSubject = Json.jsonMapper.readValue(data.jsonSerializedCredentialSubject, CredentialSubject::class.java)
-            val evidence = data.jsonSerializedEvidence?.let { Json.jsonMapper.readValue<List<Map<String, Any>>>(it) }
+                val issuer = Json.jsonMapper.readValue(data.jsonSerializedIssuer, Issuer::class.java)
+                val credentialSubject = Json.jsonMapper.readValue(data.jsonSerializedCredentialSubject, CredentialSubject::class.java)
+                val evidence = data.jsonSerializedEvidence?.let { Json.jsonMapper.readValue<List<Map<String, Any>>>(it) }
 
-            return VerifiableCredential(
-                data.context,
-                data.type,
-                data.id,
-                issuer,
-                credentialSubject,
-                Date.from(data.issuanceDate),
-                data.expirationDate?.let { Date.from(it) },
-                data.credentialStatus?.let { CredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
-                data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
-                evidence,
-                rustCoreVerifiableCredential
-            )
+                return VerifiableCredential(
+                    data.context,
+                    data.type,
+                    data.id,
+                    issuer,
+                    credentialSubject,
+                    Date.from(data.issuanceDate),
+                    data.expirationDate?.let { Date.from(it) },
+                    data.credentialStatus?.let { CredentialStatus(it.id, it.type, it.statusPurpose, it.statusListIndex, it.statusListCredential) },
+                    data.credentialSchema?.let { CredentialSchema(it.id, it.type) },
+                    evidence,
+                    rustCoreVerifiableCredential
+                )
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            }
         }
     }
 
     fun sign(bearerDid: BearerDid, verificationMethodId: String? = null): String {
-        return rustCoreVerifiableCredential.sign(bearerDid.rustCoreBearerDid, verificationMethodId)
+        try {
+            return rustCoreVerifiableCredential.sign(bearerDid.rustCoreBearerDid, verificationMethodId)
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        }
     }
 }
 

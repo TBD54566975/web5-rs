@@ -1,17 +1,18 @@
 package web5.sdk.dids.methods.web
 
+import web5.sdk.Web5Exception
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
+import web5.sdk.crypto.Dsa
 import web5.sdk.crypto.keys.InMemoryKeyManager
 import web5.sdk.crypto.keys.Jwk
 import web5.sdk.dids.Service
 import web5.sdk.dids.VerificationMethod
 import web5.sdk.dids.ResolutionMetadataError
-import web5.sdk.rust.*
 
 class DidWebTests {
     @Nested
@@ -69,11 +70,11 @@ class DidWebTests {
         fun test_invalid_domain() {
             testSuite.include()
 
-            val exception = assertThrows<Web5Exception.Exception> {
+            val exception = assertThrows<Web5Exception> {
                 DidWeb.create("invalid domain")
             }
 
-            assertTrue(exception.msg.contains("url parse failure") ?: false)
+            assertTrue(exception.message.contains("url parse failure") ?: false)
             assertEquals("Parameter", exception.variant)
         }
 
@@ -89,12 +90,12 @@ class DidWebTests {
                 DidWeb.create("http://127.0.0.1")
             }
 
-            val exception = assertThrows<Web5Exception.Exception> {
+            val exception = assertThrows<Web5Exception> {
                 DidWeb.create("http://example.com")
             }
             assertEquals(
                 "parameter error only https is allowed except for localhost or 127.0.0.1 with http",
-                exception.msg
+                exception.message
             )
             assertEquals("Parameter", exception.variant)
         }
@@ -103,12 +104,12 @@ class DidWebTests {
         fun test_must_be_https() {
             testSuite.include()
 
-            val exception = assertThrows<Web5Exception.Exception> {
+            val exception = assertThrows<Web5Exception> {
                 DidWeb.create("http://example.com")
             }
             assertEquals(
                 "parameter error only https is allowed except for localhost or 127.0.0.1 with http",
-                exception.msg
+                exception.message
             )
             assertEquals("Parameter", exception.variant)
 

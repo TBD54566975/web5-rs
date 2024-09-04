@@ -1,6 +1,8 @@
 package web5.sdk.dids
 
+import web5.sdk.Web5Exception
 import web5.sdk.crypto.keys.Jwk
+import web5.sdk.rust.Web5Exception.Exception as RustCoreException
 
 /**
  * Representation of a [DID Document](https://github.com/TBD54566975/web5-spec/blob/main/spec/did.md).
@@ -20,7 +22,11 @@ data class Document(
 ) {
     companion object {
         fun fromJsonString(json: String): Document {
-            return fromRustCore(web5.sdk.rust.Document.fromJsonString(json).getData())
+            try {
+                return fromRustCore(web5.sdk.rust.Document.fromJsonString(json).getData())
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            }
         }
 
         internal fun fromRustCore(document: web5.sdk.rust.DocumentData): Document {
@@ -41,7 +47,11 @@ data class Document(
     }
 
     fun toJsonString(): String {
-        return web5.sdk.rust.Document(toRustCore()).toJsonString()
+        try {
+            return web5.sdk.rust.Document(toRustCore()).toJsonString()
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        }
     }
 
     internal fun toRustCore(): web5.sdk.rust.DocumentData {

@@ -1,5 +1,8 @@
 package web5.sdk.dids
 
+import web5.sdk.Web5Exception
+import web5.sdk.rust.Web5Exception.Exception as RustCoreException
+
 /**
  * Representation of the result of a DID (Decentralized Identifier) resolution.
  */
@@ -10,8 +13,12 @@ data class ResolutionResult(
 
     companion object {
         fun resolve(uri: String): ResolutionResult {
-            val rustCoreResolutionResult = web5.sdk.rust.ResolutionResult.resolve(uri)
-            return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
+            try {
+                val rustCoreResolutionResult = web5.sdk.rust.ResolutionResult.resolve(uri)
+                return fromRustCoreResolutionResult(rustCoreResolutionResult)
+            } catch (e: RustCoreException) {
+                throw Web5Exception.fromRustCore(e)
+            }
         }
 
         internal fun fromRustCoreResolutionResult(rustCoreResolutionResult: web5.sdk.rust.ResolutionResult): ResolutionResult {

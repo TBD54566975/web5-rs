@@ -7,7 +7,7 @@ import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.keys.InMemoryKeyManager
 import web5.sdk.dids.methods.jwk.DidJwk
 import web5.sdk.dids.methods.jwk.DidJwkCreateOptions
-import web5.sdk.rust.Web5Exception
+import web5.sdk.Web5Exception
 
 class BearerDidTest {
     @Nested
@@ -58,11 +58,11 @@ class BearerDidTest {
 
             val bearerDid = DidJwk.create()
 
-            val exception = assertThrows<Web5Exception.Exception> {
+            val exception = assertThrows<Web5Exception> {
                 bearerDid.getSigner("")
             }
 
-            assertEquals("parameter error verification_method_id cannot be empty", exception.msg)
+            assertEquals("parameter error verification_method_id cannot be empty", exception.message)
             assertEquals("Parameter", exception.variant)
         }
 
@@ -72,11 +72,11 @@ class BearerDidTest {
 
             val bearerDid = DidJwk.create()
 
-            val exception = assertThrows<Web5Exception.Exception> {
+            val exception = assertThrows<Web5Exception> {
                 bearerDid.getSigner("invalid_id")
             }
 
-            assertEquals("not found error verification method not found", exception.msg)
+            assertEquals("not found error verification method not found", exception.message)
             assertEquals("NotFound", exception.variant)
         }
 

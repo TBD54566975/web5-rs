@@ -4,7 +4,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import web5.sdk.UnitTestSuite
-import web5.sdk.rust.Web5Exception
+import web5.sdk.Web5Exception
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DidTest {
@@ -25,11 +25,11 @@ class DidTest {
     testSuite.include()
     val uri = ""
 
-    val exception = assertThrows<Web5Exception.Exception> {
+    val exception = assertThrows<Web5Exception> {
       Did.parse(uri)
     }
 
-    assertEquals("parameter error identifier regex match failure $uri", exception.msg)
+    assertEquals("parameter error identifier regex match failure $uri", exception.message)
   }
 
   @Test
@@ -37,11 +37,11 @@ class DidTest {
     testSuite.include()
     val uri = "did:"
 
-    val exception = assertThrows<Web5Exception.Exception> {
+    val exception = assertThrows<Web5Exception> {
       Did.parse(uri)
     }
 
-    assertEquals("parameter error identifier regex match failure $uri", exception.msg)
+    assertEquals("parameter error identifier regex match failure $uri", exception.message)
   }
 
   @Test
@@ -49,11 +49,11 @@ class DidTest {
     testSuite.include()
     val uri = "did:uport"
 
-    val exception = assertThrows<Web5Exception.Exception> {
+    val exception = assertThrows<Web5Exception> {
       Did.parse(uri)
     }
 
-    assertEquals("parameter error identifier regex match failure $uri", exception.msg)
+    assertEquals("parameter error identifier regex match failure $uri", exception.message)
   }
 
   @Test
@@ -61,11 +61,11 @@ class DidTest {
     testSuite.include()
     val uri = "did:uport:"
 
-    val exception = assertThrows<Web5Exception.Exception> {
+    val exception = assertThrows<Web5Exception> {
       Did.parse(uri)
     }
 
-    assertEquals("parameter error identifier regex match failure $uri", exception.msg)
+    assertEquals("parameter error identifier regex match failure $uri", exception.message)
   }
 
   @Test
@@ -73,11 +73,11 @@ class DidTest {
     testSuite.include()
     val uri = "did:uport:1234_12313***"
 
-    val exception = assertThrows<Web5Exception.Exception> {
+    val exception = assertThrows<Web5Exception> {
       Did.parse(uri)
     }
 
-    assertEquals("parameter error identifier regex match failure $uri", exception.msg)
+    assertEquals("parameter error identifier regex match failure $uri", exception.message)
   }
 
   @Test
@@ -85,11 +85,11 @@ class DidTest {
     testSuite.include()
     val uri = "2nQtiQG6Cgm1GYTBaaKAgr76uY7iSexUkqX"
 
-    val exception = assertThrows<Web5Exception.Exception> {
+    val exception = assertThrows<Web5Exception> {
       Did.parse(uri)
     }
 
-    assertEquals("parameter error identifier regex match failure $uri", exception.msg)
+    assertEquals("parameter error identifier regex match failure $uri", exception.message)
   }
 
   @Test
@@ -97,11 +97,11 @@ class DidTest {
     testSuite.include()
     val uri = "did:method:%12%1"
 
-    val exception = assertThrows<Web5Exception.Exception> {
+    val exception = assertThrows<Web5Exception> {
       Did.parse(uri)
     }
 
-    assertEquals("parameter error identifier regex match failure $uri", exception.msg)
+    assertEquals("parameter error identifier regex match failure $uri", exception.message)
   }
 
   @Test
@@ -109,11 +109,11 @@ class DidTest {
     testSuite.include()
     val uri = "did:method:%1233%Ay"
 
-    val exception = assertThrows<Web5Exception.Exception> {
+    val exception = assertThrows<Web5Exception> {
       Did.parse(uri)
     }
 
-    assertEquals("parameter error identifier regex match failure $uri", exception.msg)
+    assertEquals("parameter error identifier regex match failure $uri", exception.message)
   }
 
   @Test
@@ -121,11 +121,11 @@ class DidTest {
     testSuite.include()
     val uri = "did:CAP:id"
 
-    val exception = assertThrows<Web5Exception.Exception> {
+    val exception = assertThrows<Web5Exception> {
       Did.parse(uri)
     }
 
-    assertEquals("parameter error identifier regex match failure $uri", exception.msg)
+    assertEquals("parameter error identifier regex match failure $uri", exception.message)
   }
 
   @Test
@@ -133,11 +133,11 @@ class DidTest {
     testSuite.include()
     val uri = "did:method:id::anotherid%r9"
 
-    val exception = assertThrows<Web5Exception.Exception> {
+    val exception = assertThrows<Web5Exception> {
       Did.parse(uri)
     }
 
-    assertEquals("parameter error identifier regex match failure $uri", exception.msg)
+    assertEquals("parameter error identifier regex match failure $uri", exception.message)
   }
 
   @Test
