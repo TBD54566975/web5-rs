@@ -117,8 +117,6 @@ data class VerifiableCredential private constructor(
                 )
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
 
@@ -146,8 +144,6 @@ data class VerifiableCredential private constructor(
                 )
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
     }
@@ -157,8 +153,6 @@ data class VerifiableCredential private constructor(
             return rustCoreVerifiableCredential.sign(bearerDid.rustCoreBearerDid, verificationMethodId)
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 }

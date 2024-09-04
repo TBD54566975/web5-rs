@@ -45,8 +45,6 @@ data class Jwk (
             return rustCoreJwk.computeThumbprint()
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 }

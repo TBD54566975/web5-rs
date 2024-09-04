@@ -26,8 +26,6 @@ data class Did (
                 return fromRustCoreDidData(data)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
 

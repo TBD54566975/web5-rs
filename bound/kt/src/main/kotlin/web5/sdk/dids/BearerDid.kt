@@ -36,8 +36,6 @@ data class BearerDid private constructor(
             )
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     )
 
@@ -53,8 +51,6 @@ data class BearerDid private constructor(
                 return fromRustCoreBearerDid(rustCoreBearerDid)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
 
@@ -79,8 +75,6 @@ data class BearerDid private constructor(
             return ToOuterSigner(rustCoreSigner)
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 
@@ -94,8 +88,6 @@ data class BearerDid private constructor(
             return PortableDid.fromRustCorePortableDid(rustCorePortableDid)
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 }

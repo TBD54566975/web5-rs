@@ -38,8 +38,6 @@ class DidJwk {
                 return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
 
@@ -56,8 +54,6 @@ class DidJwk {
                 return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
     }

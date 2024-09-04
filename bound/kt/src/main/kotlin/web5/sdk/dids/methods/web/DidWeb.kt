@@ -49,8 +49,6 @@ class DidWeb {
                 return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
 
@@ -67,8 +65,6 @@ class DidWeb {
                 return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
     }

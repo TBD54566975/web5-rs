@@ -26,8 +26,6 @@ data class Document(
                 return fromRustCore(web5.sdk.rust.Document.fromJsonString(json).getData())
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
 
@@ -53,8 +51,6 @@ data class Document(
             return web5.sdk.rust.Document(toRustCore()).toJsonString()
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 

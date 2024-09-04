@@ -22,8 +22,6 @@ class Ed25519Signer(privateJwk: Jwk) : Signer {
             return rustCoreSigner.sign(payload)
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 }

@@ -32,8 +32,6 @@ class InMemoryKeyManager (privateJwks: List<Jwk>) : KeyManager, KeyExporter {
             return Jwk.fromRustCoreJwkData(rustCoreJwkData)
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 
@@ -49,8 +47,6 @@ class InMemoryKeyManager (privateJwks: List<Jwk>) : KeyManager, KeyExporter {
             return ToOuterSigner(rustCoreSigner)
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 
@@ -60,8 +56,6 @@ class InMemoryKeyManager (privateJwks: List<Jwk>) : KeyManager, KeyExporter {
             return rustCorePrivateJwksData.map { Jwk.fromRustCoreJwkData(it) }
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 }

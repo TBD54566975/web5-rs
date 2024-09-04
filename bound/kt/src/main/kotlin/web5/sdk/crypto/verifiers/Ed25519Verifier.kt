@@ -23,8 +23,6 @@ class Ed25519Verifier(publicJwk: Jwk) : Verifier {
             rustCoreVerifier.verify(message, signature)
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 }

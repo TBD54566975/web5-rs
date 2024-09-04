@@ -18,8 +18,6 @@ data class ResolutionResult(
                 return fromRustCoreResolutionResult(rustCoreResolutionResult)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
 

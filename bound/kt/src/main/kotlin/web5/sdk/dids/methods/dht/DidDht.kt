@@ -47,8 +47,6 @@ class DidDht {
                 return BearerDid.fromRustCoreBearerDid(rustCoreBearerDid)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
 
@@ -63,8 +61,6 @@ class DidDht {
                 web5.sdk.rust.didDhtPublish(bearerDid.rustCoreBearerDid, gatewayUrl)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
 
@@ -81,8 +77,6 @@ class DidDht {
                 return ResolutionResult.fromRustCoreResolutionResult(rustCoreResolutionResult)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
     }

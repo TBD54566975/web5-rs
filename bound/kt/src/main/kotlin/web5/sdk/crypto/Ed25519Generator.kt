@@ -21,8 +21,6 @@ class Ed25519Generator {
                 return Jwk.fromRustCoreJwkData(rustCoreJwkData)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
     }

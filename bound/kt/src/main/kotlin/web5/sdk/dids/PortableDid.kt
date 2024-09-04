@@ -23,8 +23,6 @@ data class PortableDid private constructor(
             )
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     )
 
@@ -40,8 +38,6 @@ data class PortableDid private constructor(
                 return fromRustCorePortableDid(rustCorePortableDid)
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
-            } catch (e: Exception) {
-                throw e
             }
         }
 
@@ -64,8 +60,6 @@ data class PortableDid private constructor(
             return rustCorePortableDid.toJsonString()
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
-        } catch (e: Exception) {
-            throw e
         }
     }
 }
