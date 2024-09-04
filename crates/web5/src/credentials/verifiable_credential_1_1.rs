@@ -42,7 +42,7 @@ pub struct VerifiableCredential {
         deserialize_with = "deserialize_optional_system_time"
     )]
     pub expiration_date: Option<SystemTime>,
-    #[serde(rename = "credentialStatus")]
+    #[serde(rename = "credentialStatus", skip_serializing_if = "Option::is_none")]
     pub credential_status: Option<CredentialStatus>,
     #[serde(rename = "credentialSchema", skip_serializing_if = "Option::is_none")]
     pub credential_schema: Option<CredentialSchema>,

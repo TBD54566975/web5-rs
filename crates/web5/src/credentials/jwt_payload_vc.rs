@@ -31,7 +31,7 @@ pub struct JwtPayloadVerifiableCredential {
         deserialize_with = "deserialize_optional_system_time"
     )]
     pub expiration_date: Option<SystemTime>,
-    #[serde(rename = "credentialStatus")]
+    #[serde(rename = "credentialStatus", skip_serializing_if = "Option::is_none")]
     pub credential_status: Option<CredentialStatus>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "credentialSubject")]
     pub credential_subject: Option<CredentialSubject>,
