@@ -487,11 +487,6 @@ mod tests {
         assert_eq!(decoded_vp.r#type, vp.r#type);
         assert_eq!(decoded_vp.verifiable_credential, vp.verifiable_credential);
 
-        // Check issuance_date with tolerance
-        let duration_difference = decoded_vp.issuance_date
-            .duration_since(vp.issuance_date)
-            .unwrap_or_else(|e| e.duration());
-
         // Validate the signed Verifiable Presentation data model
         validate_vp_data_model(&decoded_vp).expect("Signed Verifiable Presentation data model validation failed");
     }
