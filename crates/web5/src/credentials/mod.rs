@@ -13,6 +13,7 @@ pub use status_list_credential::{
     StatusListCredential, STATUS_LIST_2021, STATUS_LIST_2021_ENTRY, STATUS_LIST_CREDENTIAL_CONTEXT,
     STATUS_LIST_CREDENTIAL_TYPE,
 };
+pub mod verifiable_presentation_1_1;
 pub mod verifiable_credential_1_1;
 
 pub use credential_schema::CredentialSchema;
@@ -20,7 +21,7 @@ pub use credential_subject::CredentialSubject;
 pub use issuer::{Issuer, ObjectIssuer};
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
-pub enum CredentialError {
+pub enum VerificationError {
     #[error("missing claim: {0}")]
     MissingClaim(String),
     #[error("claim mismatch: {0}")]

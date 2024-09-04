@@ -1,5 +1,5 @@
 use crate::{
-    credentials::CredentialError, dids::resolution::resolution_metadata::ResolutionMetadataError,
+    credentials::VerificationError, dids::resolution::resolution_metadata::ResolutionMetadataError,
 };
 use base64::DecodeError;
 use serde_json::Error as SerdeJsonError;
@@ -31,7 +31,7 @@ pub enum Web5Error {
     #[error(transparent)]
     Resolution(#[from] ResolutionMetadataError),
     #[error(transparent)]
-    CredentialError(#[from] CredentialError),
+    CredentialError(#[from] VerificationError),
 }
 
 impl From<DecodeError> for Web5Error {

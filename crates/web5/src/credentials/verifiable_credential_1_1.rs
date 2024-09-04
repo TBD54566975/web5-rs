@@ -116,7 +116,7 @@ mod tests {
         use super::*;
         use crate::credentials::credential_schema::CREDENTIAL_SCHEMA_TYPE;
         use crate::json::JsonValue;
-        use crate::{credentials::CredentialError, errors::Web5Error};
+        use crate::{credentials::VerificationError, errors::Web5Error};
         use crate::{
             dids::resolution::resolution_metadata::ResolutionMetadataError,
             test_helpers::UnitTestSuite, test_name,
@@ -129,7 +129,7 @@ mod tests {
                 UnitTestSuite::new("verifiable_credential_1_1_from_vc_jwt");
         }
 
-        fn assert_credential_error<T>(result: Result<T>, expected_error: CredentialError)
+        fn assert_credential_error<T>(result: Result<T>, expected_error: VerificationError)
         where
             T: std::fmt::Debug,
         {
@@ -190,7 +190,7 @@ mod tests {
 
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_without_kid, true);
 
-            assert_credential_error(result, CredentialError::MissingKid);
+            assert_credential_error(result, VerificationError::MissingKid);
         }
 
         #[test]
@@ -203,7 +203,7 @@ mod tests {
 
             match result {
                 Err(Web5Error::CredentialError(err)) => {
-                    assert_eq!(err, CredentialError::MissingKid)
+                    assert_eq!(err, VerificationError::MissingKid)
                 }
                 _ => panic!("Expected Web5Error::CredentialError, but got: {:?}", result),
             };
@@ -401,7 +401,7 @@ mod tests {
 
             let vc_jwt_with_missing_vc_claim = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSlNSbkZSVlVWS1RFOVhlbXh3T1ZaRk1rdEtSalp6UjBwT00yVnpaWHBsY0hSSE0ySTFlbTh4YjAwNEluMCMwIn0.eyJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUpTUm5GUlZVVktURTlYZW14d09WWkZNa3RLUmpaelIwcE9NMlZ6WlhwbGNIUkhNMkkxZW04eGIwMDRJbjAiLCJqdGkiOiJ1cm46dXVpZDozNmU0ZjllNi0yYzdjLTQ0NGMtOTI4OS0zNDhmY2IxNDZlYjYiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjQ4NTA1MjIsImlhdCI6MTcyNDg1MDUyMn0.SqwZC0q9RuHp9hAtFmE6sBYeJ1uHuuq1hyijF0NmW9nksSBqtDpfNroNlitK_Tl-CLWtwbTpK3b3JduTfzGEAw"#;
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_missing_vc_claim, true);
-            assert_credential_error(result, CredentialError::MissingClaim("vc".to_string()));
+            assert_credential_error(result, VerificationError::MissingClaim("vc".to_string()));
         }
 
         #[test]
@@ -410,7 +410,7 @@ mod tests {
 
             let vc_jwt_with_missing_jti_claim = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSm5jMjlTZGsxUFlXMHliMlJQTlY4NWVqbExlV2xzV1VzM1Yzb3RZa1owWW5wdlVrWm1iVTlUTVRJNEluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjEwODM2MzgwLWI2MmMtNGVmZC04YmU0LTZhNzJiMDZjYWI4NyIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKbmMyOVNkazFQWVcweWIyUlBOVjg1ZWpsTGVXbHNXVXMzVjNvdFlrWjBZbnB2VWtabWJVOVRNVEk0SW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0yOFQxMzoxMDo1NS4yMDYwOTIrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSm5jMjlTZGsxUFlXMHliMlJQTlY4NWVqbExlV2xzV1VzM1Yzb3RZa1owWW5wdlVrWm1iVTlUTVRJNEluMCIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNDg1MDY1NSwiaWF0IjoxNzI0ODUwNjU1fQ.1XDmdvB1GDsCHw9Qwp0HA5r8W-JnZB4lz9Yqo0C2V_EEe-uk88bQSl8P9HV8ViNyBC_YaYatLiPTD4jBZY77DA"#;
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_missing_jti_claim, true);
-            assert_credential_error(result, CredentialError::MissingClaim("jti".to_string()));
+            assert_credential_error(result, VerificationError::MissingClaim("jti".to_string()));
         }
 
         #[test]
@@ -423,7 +423,7 @@ mod tests {
 
             match result {
                 Err(Web5Error::CredentialError(err)) => {
-                    assert_eq!(err, CredentialError::MissingClaim("issuer".to_string()))
+                    assert_eq!(err, VerificationError::MissingClaim("issuer".to_string()))
                 }
                 _ => panic!("Expected Web5Error::CredentialError, but got: {:?}", result),
             };
@@ -439,7 +439,7 @@ mod tests {
 
             match result {
                 Err(Web5Error::CredentialError(err)) => {
-                    assert_eq!(err, CredentialError::MissingClaim("subject".to_string()))
+                    assert_eq!(err, VerificationError::MissingClaim("subject".to_string()))
                 }
                 _ => panic!("Expected Web5Error::CredentialError, but got: {:?}", result),
             };
@@ -455,7 +455,7 @@ mod tests {
 
             match result {
                 Err(Web5Error::CredentialError(err)) => {
-                    assert_eq!(err, CredentialError::MissingClaim("not_before".to_string()))
+                    assert_eq!(err, VerificationError::MissingClaim("not_before".to_string()))
                 }
                 _ => panic!("Expected Web5Error::CredentialError, but got: {:?}", result),
             };
@@ -471,7 +471,7 @@ mod tests {
 
             match result {
                 Err(Web5Error::CredentialError(err)) => {
-                    assert_eq!(err, CredentialError::ClaimMismatch("id".to_string()))
+                    assert_eq!(err, VerificationError::ClaimMismatch("id".to_string()))
                 }
                 _ => panic!("Expected Web5Error::CredentialError, but got: {:?}", result),
             };
@@ -487,7 +487,7 @@ mod tests {
 
             match result {
                 Err(Web5Error::CredentialError(err)) => {
-                    assert_eq!(err, CredentialError::ClaimMismatch("issuer".to_string()))
+                    assert_eq!(err, VerificationError::ClaimMismatch("issuer".to_string()))
                 }
                 _ => panic!("Expected Web5Error::CredentialError, but got: {:?}", result),
             };
@@ -503,7 +503,7 @@ mod tests {
 
             match result {
                 Err(Web5Error::CredentialError(err)) => {
-                    assert_eq!(err, CredentialError::ClaimMismatch("subject".to_string()))
+                    assert_eq!(err, VerificationError::ClaimMismatch("subject".to_string()))
                 }
                 _ => panic!("Expected Web5Error::CredentialError, but got: {:?}", result),
             };
@@ -521,7 +521,7 @@ mod tests {
                 Err(Web5Error::CredentialError(err)) => {
                     assert_eq!(
                         err,
-                        CredentialError::MisconfiguredExpirationDate(
+                        VerificationError::MisconfiguredExpirationDate(
                             "VC has expiration date but no exp in registered claims".to_string()
                         )
                     )
@@ -542,7 +542,7 @@ mod tests {
                 Err(Web5Error::CredentialError(err)) => {
                     assert_eq!(
                         err,
-                        CredentialError::ClaimMismatch("expiration_date".to_string())
+                        VerificationError::ClaimMismatch("expiration_date".to_string())
                     )
                 }
                 _ => panic!("Expected Web5Error::CredentialError, but got: {:?}", result),
@@ -560,7 +560,7 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_empty_id, true);
 
             match result {
-                Err(Web5Error::CredentialError(CredentialError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
                     assert_eq!(msg, "missing id")
                 }
                 _ => panic!(
@@ -579,7 +579,7 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_empty_context, true);
 
             match result {
-                Err(Web5Error::CredentialError(CredentialError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
                     assert_eq!(msg, "missing context")
                 }
                 _ => panic!(
@@ -597,7 +597,7 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_without_base_context, true);
 
             match result {
-                Err(Web5Error::CredentialError(CredentialError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
                     assert_eq!(msg, "missing context")
                 }
                 _ => panic!(
@@ -616,7 +616,7 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_empty_type, true);
 
             match result {
-                Err(Web5Error::CredentialError(CredentialError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
                     assert_eq!(msg, "missing type")
                 }
                 _ => panic!(
@@ -635,7 +635,7 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_without_base_type, true);
 
             match result {
-                Err(Web5Error::CredentialError(CredentialError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
                     assert_eq!(msg, "missing type")
                 }
                 _ => panic!(
@@ -655,7 +655,7 @@ mod tests {
             let result = validate_vc_data_model(&vc);
 
             match result {
-                Err(CredentialError::DataModelValidationError(msg)) => {
+                Err(VerificationError::DataModelValidationError(msg)) => {
                     assert_eq!(msg, "missing issuer")
                 }
                 _ => panic!(
@@ -674,7 +674,7 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_empty_subject, true);
 
             match result {
-                Err(Web5Error::CredentialError(CredentialError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
                     assert_eq!(msg, "missing credential subject")
                 }
                 _ => panic!(
@@ -694,7 +694,7 @@ mod tests {
                 VerifiableCredential::from_vc_jwt(vc_jwt_with_issuance_date_in_future, true);
 
             match result {
-                Err(Web5Error::CredentialError(CredentialError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
                     assert_eq!(msg, "issuance date in future")
                 }
                 _ => panic!(
@@ -713,7 +713,7 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_expired, true);
 
             match result {
-                Err(Web5Error::CredentialError(CredentialError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
                     assert_eq!(msg, "credential expired")
                 }
                 _ => panic!(
