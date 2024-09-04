@@ -643,7 +643,7 @@ mod tests {
 
         match result {
             Err(Web5Error::Network(err_msg)) => {
-                assert!(err_msg.contains("unable to resolve json schema"))
+                assert!(err_msg.contains("invalid URL"))
             }
             _ => panic!(
                 "expected Web5Error::Network with specific message but got {:?}",

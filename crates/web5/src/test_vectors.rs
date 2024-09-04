@@ -117,8 +117,8 @@ mod test_vectors {
             did_resolution_metadata: ResolutionMetadata,
         }
 
-        #[test]
-        fn resolve() {
+        #[tokio::test]
+        async fn resolve() {
             let path = "did_dht/resolve.json";
             let vectors: TestVectorFile<VectorInput, VectorOutput> =
                 TestVectorFile::load_from_path(path);
@@ -146,7 +146,7 @@ mod test_vectors {
                     // };
                 }
 
-                let resolution_result = DidDht::resolve(&vector_input.did_uri, None);
+                let resolution_result = DidDht::resolve(&vector_input.did_uri, None).await;
 
                 let metadata_error = resolution_result.resolution_metadata.error.as_ref();
                 let expected_error = vector_output.did_resolution_metadata.error.as_ref();

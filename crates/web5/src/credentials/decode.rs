@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use tokio::runtime::Runtime;
+
 use crate::{
     crypto::dsa::ed25519::Ed25519Verifier,
     dids::{
@@ -37,7 +39,8 @@ pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredenti
     let jwt_payload = if verify_signature {
         let did = Did::parse(kid)?;
 
-        let resolution_result = ResolutionResult::resolve(&did.uri);
+        let rt = Runtime::new().unwrap();
+        let resolution_result = rt.block_on(ResolutionResult::resolve(&did.uri));
         if let Some(err) = resolution_result.resolution_metadata.error.clone() {
             return Err(err.into());
         }

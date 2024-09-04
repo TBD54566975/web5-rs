@@ -127,61 +127,29 @@ impl DidWeb {
         })
     }
 
-    pub fn resolve(uri: &str) -> ResolutionResult {
-        let rt = match tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-        {
-            Ok(rt) => rt,
-            Err(_) => return ResolutionResult::from(ResolutionMetadataError::InternalError),
-        };
-
-        let result: std::result::Result<ResolutionResult, ResolutionMetadataError> =
-            rt.block_on(async {
-                let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
-                let resolution_result = Resolver::new(did)?.await;
-                Ok(match resolution_result {
-                    Err(e) => ResolutionResult::from(e),
-                    Ok(r) => r,
-                })
-            });
-
-        match result {
+    pub async fn resolve(uri: &str) -> ResolutionResult {
+        match DidWeb::resolve_result(uri).await {
             Ok(resolution_result) => resolution_result,
             Err(e) => ResolutionResult::from(e),
         }
+    }
+
+    /// Resolves a did:web and returns a Result
+    async fn resolve_result(uri: &str) ->  std::result::Result<ResolutionResult, ResolutionMetadataError> {
+        let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
+        Resolver::new(did)?.await
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{test_helpers::UnitTestSuite, test_name};
-    use lazy_static::lazy_static;
 
     mod create {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("did_web_create");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
         #[test]
         fn test_can_specify_key_manager() {
-            TEST_SUITE.include(test_name!());
-
             let key_manager = Arc::new(InMemoryKeyManager::new());
             let result = DidWeb::create(
                 "localhost",
@@ -203,8 +171,6 @@ mod tests {
 
         #[test]
         fn test_can_specify_secp256k1() {
-            TEST_SUITE.include(test_name!());
-
             let result = DidWeb::create(
                 "localhost",
                 Some(DidWebCreateOptions {
@@ -226,8 +192,6 @@ mod tests {
 
         #[test]
         fn test_defaults_to_ed25519() {
-            TEST_SUITE.include(test_name!());
-
             let result = DidWeb::create("localhost", None);
             assert!(result.is_ok());
 
@@ -242,8 +206,6 @@ mod tests {
 
         #[test]
         fn test_invalid_domain() {
-            TEST_SUITE.include(test_name!());
-
             let result = DidWeb::create("invalid domain", None);
             assert!(result.is_err());
 
@@ -256,8 +218,6 @@ mod tests {
 
         #[test]
         fn test_should_allow_http_for_localhost() {
-            TEST_SUITE.include(test_name!());
-
             let result = DidWeb::create("http://localhost", None);
             assert!(result.is_ok());
 
@@ -279,8 +239,6 @@ mod tests {
 
         #[test]
         fn test_must_be_https() {
-            TEST_SUITE.include(test_name!());
-
             let result = DidWeb::create("http://example.com", None);
             assert!(result.is_err());
 
@@ -299,8 +257,6 @@ mod tests {
 
         #[test]
         fn test_should_trim_did_json() {
-            TEST_SUITE.include(test_name!());
-
             let result = DidWeb::create("https://example.com/did.json", None);
             assert!(result.is_ok());
 
@@ -310,8 +266,6 @@ mod tests {
 
         #[test]
         fn test_should_trim_well_known() {
-            TEST_SUITE.include(test_name!());
-
             let result = DidWeb::create("https://example.com/.well-known/did.json", None);
             assert!(result.is_ok());
 
@@ -321,8 +275,6 @@ mod tests {
 
         #[test]
         fn test_should_percent_encode_colons() {
-            TEST_SUITE.include(test_name!());
-
             let result = DidWeb::create("https://example.com:8080", None);
             assert!(result.is_ok());
 
@@ -332,8 +284,6 @@ mod tests {
 
         #[test]
         fn test_should_replace_path_with_colons() {
-            TEST_SUITE.include(test_name!());
-
             let result = DidWeb::create("https://example.com/path/to/resource", None);
             assert!(result.is_ok());
 
@@ -346,8 +296,6 @@ mod tests {
 
         #[test]
         fn test_should_add_optional_verification_methods() {
-            TEST_SUITE.include(test_name!());
-
             let additional_verification_method = VerificationMethod {
                 id: "did:web:example.com#key-1".to_string(),
                 r#type: "JsonWebKey".to_string(),
@@ -375,8 +323,6 @@ mod tests {
 
         #[test]
         fn test_should_add_optional_services() {
-            TEST_SUITE.include(test_name!());
-
             let service = Service {
                 id: "did:web:example.com#service-0".to_string(),
                 r#type: "SomeService".to_string(),
@@ -399,8 +345,6 @@ mod tests {
 
         #[test]
         fn test_should_add_optional_also_known_as() {
-            TEST_SUITE.include(test_name!());
-
             let also_known_as = vec!["https://alias.example.com".to_string()];
 
             let result = DidWeb::create(
@@ -419,8 +363,6 @@ mod tests {
 
         #[test]
         fn test_should_add_optional_controllers() {
-            TEST_SUITE.include(test_name!());
-
             let controllers = vec!["did:web:controller.example.com".to_string()];
 
             let result = DidWeb::create(
@@ -442,38 +384,18 @@ mod tests {
         use super::*;
         use mockito::Server;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("did_web_resolve");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
-        #[test]
-        fn test_invalid_did() {
-            TEST_SUITE.include(test_name!());
-
-            let resolution_result = DidWeb::resolve("something invalid");
+        #[tokio::test]
+        async fn test_invalid_did() {
+            let resolution_result = DidWeb::resolve("something invalid").await;
             assert_eq!(
                 resolution_result.resolution_metadata.error,
                 Some(ResolutionMetadataError::InvalidDid)
             )
         }
 
-        #[test]
-        fn test_create_then_resolve() {
-            TEST_SUITE.include(test_name!());
-
-            let mut mock_server = Server::new();
+        #[tokio::test]
+        async fn test_create_then_resolve() {
+            let mut mock_server = Server::new_async().await;
             let url = mock_server.url();
 
             let result = DidWeb::create(&url, None);
@@ -485,9 +407,10 @@ mod tests {
                 .with_status(200)
                 .with_header("content-type", "application/json")
                 .with_body(serde_json::to_string(&bearer_did.document).unwrap())
-                .create();
+                .create_async()
+                .await;
 
-            let resolution_result = DidWeb::resolve(&bearer_did.did.uri);
+            let resolution_result = DidWeb::resolve(&bearer_did.did.uri).await;
 
             assert_eq!(resolution_result.resolution_metadata.error, None);
             assert!(resolution_result.document.is_some());

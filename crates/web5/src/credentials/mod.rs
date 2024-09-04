@@ -9,15 +9,15 @@ mod jwt_payload_vc;
 pub mod presentation_definition;
 mod sign;
 mod status_list_credential;
-pub use status_list_credential::{
-    StatusListCredential, STATUS_LIST_2021, STATUS_LIST_2021_ENTRY, STATUS_LIST_CREDENTIAL_CONTEXT,
-    STATUS_LIST_CREDENTIAL_TYPE,
-};
 pub mod verifiable_credential_1_1;
 
 pub use credential_schema::CredentialSchema;
 pub use credential_subject::CredentialSubject;
 pub use issuer::{Issuer, ObjectIssuer};
+pub use status_list_credential::{
+    StatusListCredential, STATUS_LIST_2021, STATUS_LIST_2021_ENTRY, STATUS_LIST_CREDENTIAL_CONTEXT,
+    STATUS_LIST_CREDENTIAL_TYPE,
+};
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum CredentialError {
