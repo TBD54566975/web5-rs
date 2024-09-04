@@ -193,27 +193,27 @@ jobs:
       # Package up the native binaries
       #TODO Centralize this block as we re-use it via copy/paste right now
       - name: Download MacOS aarch64 Native Library
-        uses: actions/download-artifact@v4.0.0
+        uses: actions/download-artifact@v4.1.7
         with:
           name: aarch64-apple-darwin-dylib
           path: bound/kt/src/main/resources/
       - name: Download MacOS x86_64 Native Library
-        uses: actions/download-artifact@v4.0.0
+        uses: actions/download-artifact@v4.1.7
         with:
           name: x86_64-apple-darwin-dylib
           path: bound/kt/src/main/resources/
       - name: Download Linux x86_64 GNU Native Library
-        uses: actions/download-artifact@v4.0.0
+        uses: actions/download-artifact@v4.1.7
         with:
           name: x86_64-unknown-linux-gnu-so
           path: bound/kt/src/main/resources/
       - name: Download Linux x86_64 MUSL Native Library
-        uses: actions/download-artifact@v4.0.0
+        uses: actions/download-artifact@v4.1.7
         with:
           name: x86_64-unknown-linux-musl-so
           path: bound/kt/src/main/resources/
       - name: Download Windows x86_64 MSVC Native Library
-        uses: actions/download-artifact@v4.0.0
+        uses: actions/download-artifact@v4.1.7
         with:
           name: x86_64-pc-windows-msvc-dll
           path: bound/kt/src/main/resources/
@@ -268,27 +268,27 @@ jobs:
       # Package up the native binaries
       #TODO Centralize this block as we re-use it via copy/paste right now
       - name: Download MacOS aarch64 Native Library
-        uses: actions/download-artifact@v4.0.0
+        uses: actions/download-artifact@v4.1.7
         with:
           name: aarch64-apple-darwin-dylib
           path: bound/kt/src/main/resources/
       - name: Download MacOS x86_64 Native Library
-        uses: actions/download-artifact@v4.0.0
+        uses: actions/download-artifact@v4.1.7
         with:
           name: x86_64-apple-darwin-dylib
           path: bound/kt/src/main/resources/
       - name: Download Linux x86_64 GNU Native Library
-        uses: actions/download-artifact@v4.0.0
+        uses: actions/download-artifact@v4.1.7
         with:
           name: x86_64-unknown-linux-gnu-so
           path: bound/kt/src/main/resources/
       - name: Download Linux x86_64 MUSL Native Library
-        uses: actions/download-artifact@v4.0.0
+        uses: actions/download-artifact@v4.1.7
         with:
           name: x86_64-unknown-linux-musl-so
           path: bound/kt/src/main/resources/
       - name: Download Windows x86_64 MSVC Native Library
-        uses: actions/download-artifact@v4.0.0
+        uses: actions/download-artifact@v4.1.7
         with:
           name: x86_64-pc-windows-msvc-dll
           path: bound/kt/src/main/resources/
