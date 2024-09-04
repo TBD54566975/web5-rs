@@ -31,15 +31,9 @@ impl VerifiablePresentation {
             expiration_date: options.expiration_date,
         };
 
-        let inner_vp = InnerVerifiablePresentation::create(
-            holder,
-            vc_jwts,
-            Some(inner_options)
-        )?;
+        let inner_vp = InnerVerifiablePresentation::create(holder, vc_jwts, Some(inner_options))?;
 
-        Ok(Self {
-            inner_vp,
-        })
+        Ok(Self { inner_vp })
     }
 
     pub fn get_data(&self) -> Result<VerifiablePresentationData> {
@@ -57,9 +51,7 @@ impl VerifiablePresentation {
     pub fn from_vp_jwt(vp_jwt: String, verify: bool) -> Result<Self> {
         let inner_vp = InnerVerifiablePresentation::from_vp_jwt(&vp_jwt, verify)?;
 
-        Ok(Self {
-            inner_vp,
-        })
+        Ok(Self { inner_vp })
     }
 
     pub fn sign(

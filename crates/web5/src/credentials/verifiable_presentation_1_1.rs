@@ -1,11 +1,5 @@
-use std::sync::Arc;
-use serde::{Deserialize, Serialize};
-use std::time::SystemTime;
-use josekit::jws::JwsHeader;
-use josekit::jwt::JwtPayload;
-use uuid::Uuid;
 use crate::credentials::josekit::{JoseSigner, JoseVerifier, JoseVerifierAlwaysTrue};
-use crate::credentials::verifiable_credential_1_1::{VerifiableCredential};
+use crate::credentials::verifiable_credential_1_1::VerifiableCredential;
 use crate::credentials::VerificationError;
 use crate::crypto::dsa::ed25519::Ed25519Verifier;
 use crate::crypto::dsa::Signer;
@@ -16,9 +10,15 @@ use crate::dids::resolution::resolution_metadata::ResolutionMetadataError;
 use crate::dids::resolution::resolution_result::ResolutionResult;
 use crate::errors::{Result, Web5Error};
 use crate::rfc3339::{
-    deserialize_optional_system_time, serialize_optional_system_time,
-    deserialize_system_time, serialize_system_time,
+    deserialize_optional_system_time, deserialize_system_time, serialize_optional_system_time,
+    serialize_system_time,
 };
+use josekit::jws::JwsHeader;
+use josekit::jwt::JwtPayload;
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use std::time::SystemTime;
+use uuid::Uuid;
 
 pub const BASE_PRESENTATION_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 pub const BASE_PRESENTATION_TYPE: &str = "VerifiablePresentation";
@@ -44,7 +44,7 @@ pub struct VerifiablePresentation {
     )]
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "verifiableCredential")]
-    pub verifiable_credential: Vec<String>
+    pub verifiable_credential: Vec<String>,
 }
 
 #[derive(Default, Clone)]
@@ -107,7 +107,7 @@ impl VerifiablePresentation {
             .id
             .unwrap_or_else(|| format!("urn:uuid:{}", Uuid::new_v4()));
 
-        let verifiable_presentation = VerifiablePresentation{
+        let verifiable_presentation = VerifiablePresentation {
             context,
             id,
             r#type,
@@ -275,7 +275,7 @@ pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiableP
                 kid: kid.to_string(),
             },
         )
-            .map_err(|e| Web5Error::Crypto(format!("vp-jwt failed to decode payload {}", e)))?;
+        .map_err(|e| Web5Error::Crypto(format!("vp-jwt failed to decode payload {}", e)))?;
 
         jwt_payload
     };
@@ -369,19 +369,19 @@ pub fn validate_vp_data_model(
 
     // Verify vc_jwts
     for vc_jwt in vp.verifiable_credential.clone() {
-        VerifiableCredential::from_vc_jwt(&vc_jwt, true)
-            .map_err(|e| VerificationError::DataModelValidationError(format!("invalid vc_jwt: {}", e)))?;
+        VerifiableCredential::from_vc_jwt(&vc_jwt, true).map_err(|e| {
+            VerificationError::DataModelValidationError(format!("invalid vc_jwt: {}", e))
+        })?;
     }
 
     Ok(())
 }
 
-
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::credentials::{CredentialSubject, Issuer};
     use crate::dids::methods::did_jwk::DidJwk;
-    use super::*;
     fn setup_vc_issuer_and_holder() -> (BearerDid, String, BearerDid, String) {
         let vc_issuer_did = DidJwk::create(None).expect("Failed to create VC issuer DID");
         let vc_issuer_uri = vc_issuer_did.did.uri.clone();
@@ -398,12 +398,17 @@ mod tests {
             ..Default::default()
         };
 
-        VerifiableCredential::create(Issuer::String(vc_issuer_uri.to_string()), credential_subject, None)
-            .expect("Failed to create Verifiable Credential")
+        VerifiableCredential::create(
+            Issuer::String(vc_issuer_uri.to_string()),
+            credential_subject,
+            None,
+        )
+        .expect("Failed to create Verifiable Credential")
     }
 
     fn sign_verifiable_credential(vc: &VerifiableCredential, vc_issuer_did: &BearerDid) -> String {
-        vc.sign(vc_issuer_did, None).expect("Failed to sign Verifiable Credential")
+        vc.sign(vc_issuer_did, None)
+            .expect("Failed to sign Verifiable Credential")
     }
 
     #[test]
@@ -414,11 +419,8 @@ mod tests {
 
         let vc_jwt = sign_verifiable_credential(&vc, &vc_issuer_did);
 
-        let vp = VerifiablePresentation::create(
-            holder_uri.clone(),
-            vec![vc_jwt.clone()],
-            None,
-        ).expect("Failed to create Verifiable Presentation");
+        let vp = VerifiablePresentation::create(holder_uri.clone(), vec![vc_jwt.clone()], None)
+            .expect("Failed to create Verifiable Presentation");
 
         assert_eq!(vp.holder, holder_uri);
         assert_eq!(vp.context[0], BASE_PRESENTATION_CONTEXT);
@@ -448,7 +450,8 @@ mod tests {
                 expiration_date: Some(expired_expiration_date),
                 ..Default::default()
             }),
-        ).expect("Failed to create Verifiable Presentation");
+        )
+        .expect("Failed to create Verifiable Presentation");
 
         let validation_result = validate_vp_data_model(&vp);
 
@@ -456,7 +459,9 @@ mod tests {
             Err(VerificationError::DataModelValidationError(msg)) => {
                 assert_eq!(msg, "presentation expired".to_string());
             }
-            _ => panic!("Verifiable Presentation should be considered expired, but it passed validation"),
+            _ => panic!(
+                "Verifiable Presentation should be considered expired, but it passed validation"
+            ),
         }
     }
 
@@ -468,14 +473,13 @@ mod tests {
 
         let vc_jwt = sign_verifiable_credential(&vc, &vc_issuer_did);
 
-        let vp = VerifiablePresentation::create(
-            holder_uri.clone(),
-            vec![vc_jwt.clone()],
-            None,
-        ).expect("Failed to create Verifiable Presentation");
+        let vp = VerifiablePresentation::create(holder_uri.clone(), vec![vc_jwt.clone()], None)
+            .expect("Failed to create Verifiable Presentation");
 
         // Sign the Verifiable Presentation
-        let vp_jwt = vp.sign(&holder, None).expect("Failed to sign Verifiable Presentation");
+        let vp_jwt = vp
+            .sign(&holder, None)
+            .expect("Failed to sign Verifiable Presentation");
 
         // Decode the signed Verifiable Presentation JWT
         let decoded_vp = VerifiablePresentation::from_vp_jwt(&vp_jwt, true)
@@ -488,6 +492,7 @@ mod tests {
         assert_eq!(decoded_vp.verifiable_credential, vp.verifiable_credential);
 
         // Validate the signed Verifiable Presentation data model
-        validate_vp_data_model(&decoded_vp).expect("Signed Verifiable Presentation data model validation failed");
+        validate_vp_data_model(&decoded_vp)
+            .expect("Signed Verifiable Presentation data model validation failed");
     }
 }

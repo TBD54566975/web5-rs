@@ -455,7 +455,10 @@ mod tests {
 
             match result {
                 Err(Web5Error::CredentialError(err)) => {
-                    assert_eq!(err, VerificationError::MissingClaim("not_before".to_string()))
+                    assert_eq!(
+                        err,
+                        VerificationError::MissingClaim("not_before".to_string())
+                    )
                 }
                 _ => panic!("Expected Web5Error::CredentialError, but got: {:?}", result),
             };
@@ -560,7 +563,9 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_empty_id, true);
 
             match result {
-                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(
+                    msg,
+                ))) => {
                     assert_eq!(msg, "missing id")
                 }
                 _ => panic!(
@@ -579,7 +584,9 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_empty_context, true);
 
             match result {
-                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(
+                    msg,
+                ))) => {
                     assert_eq!(msg, "missing context")
                 }
                 _ => panic!(
@@ -597,7 +604,9 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_without_base_context, true);
 
             match result {
-                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(
+                    msg,
+                ))) => {
                     assert_eq!(msg, "missing context")
                 }
                 _ => panic!(
@@ -616,7 +625,9 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_empty_type, true);
 
             match result {
-                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(
+                    msg,
+                ))) => {
                     assert_eq!(msg, "missing type")
                 }
                 _ => panic!(
@@ -635,7 +646,9 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_without_base_type, true);
 
             match result {
-                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(
+                    msg,
+                ))) => {
                     assert_eq!(msg, "missing type")
                 }
                 _ => panic!(
@@ -674,7 +687,9 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_empty_subject, true);
 
             match result {
-                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(
+                    msg,
+                ))) => {
                     assert_eq!(msg, "missing credential subject")
                 }
                 _ => panic!(
@@ -694,7 +709,9 @@ mod tests {
                 VerifiableCredential::from_vc_jwt(vc_jwt_with_issuance_date_in_future, true);
 
             match result {
-                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(
+                    msg,
+                ))) => {
                     assert_eq!(msg, "issuance date in future")
                 }
                 _ => panic!(
@@ -713,7 +730,9 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_expired, true);
 
             match result {
-                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(msg))) => {
+                Err(Web5Error::CredentialError(VerificationError::DataModelValidationError(
+                    msg,
+                ))) => {
                     assert_eq!(msg, "credential expired")
                 }
                 _ => panic!(
