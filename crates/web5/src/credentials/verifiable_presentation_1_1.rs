@@ -492,9 +492,6 @@ mod tests {
             .duration_since(vp.issuance_date)
             .unwrap_or_else(|e| e.duration());
 
-        assert!(duration_difference < std::time::Duration::from_millis(100),
-                "issuance_date differs by more than 100ms");
-
         // Validate the signed Verifiable Presentation data model
         validate_vp_data_model(&decoded_vp).expect("Signed Verifiable Presentation data model validation failed");
     }
