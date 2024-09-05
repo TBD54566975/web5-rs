@@ -10,7 +10,7 @@ where
     S: Serializer,
 {
     let datetime: chrono::DateTime<Utc> = (*time).into();
-    let s = datetime.to_rfc3339();
+    let s = datetime.to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     serializer.serialize_str(&s)
 }
 
