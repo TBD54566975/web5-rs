@@ -668,8 +668,11 @@ mod tests {
             let result = validate_vc_data_model(&vc);
 
             match result {
-                Err(VerificationError::DataModelValidationError(msg)) => {
-                    assert_eq!(msg, "missing issuer")
+                Err(Web5Error::CredentialError(err)) => {
+                    assert_eq!(
+                        err,
+                        VerificationError::DataModelValidationError("missing issuer".to_string())
+                    )
                 }
                 _ => panic!(
                     "Expected CredentialError::DataModelValidationError, but got: {:?}",

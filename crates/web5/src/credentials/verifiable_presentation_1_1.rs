@@ -323,39 +323,38 @@ pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiableP
     Ok(verifiable_presentation)
 }
 
-pub fn validate_vp_data_model(
-    vp: &VerifiablePresentation,
-) -> std::result::Result<(), VerificationError> {
+pub fn validate_vp_data_model(vp: &VerifiablePresentation) -> Result<()> {
     // Required fields ["@context", "id", "type", "holder", "verifiableCredential"]
     if vp.id.is_empty() {
-        return Err(VerificationError::DataModelValidationError(
-            "missing id".to_string(),
-        ));
+        return Err(VerificationError::DataModelValidationError("missing id".to_string()).into());
     }
 
     if vp.context.is_empty() || vp.context[0] != BASE_PRESENTATION_CONTEXT {
         return Err(VerificationError::DataModelValidationError(
             "missing or invalid context".to_string(),
-        ));
+        )
+        .into());
     }
 
     if vp.r#type.is_empty() || vp.r#type[0] != BASE_PRESENTATION_TYPE {
         return Err(VerificationError::DataModelValidationError(
             "missing or invalid type".to_string(),
-        ));
+        )
+        .into());
     }
 
     if vp.holder.is_empty() {
-        return Err(VerificationError::DataModelValidationError(
-            "missing holder".to_string(),
-        ));
+        return Err(
+            VerificationError::DataModelValidationError("missing holder".to_string()).into(),
+        );
     }
 
     let now = SystemTime::now();
     if vp.issuance_date > now {
         return Err(VerificationError::DataModelValidationError(
             "issuance date in future".to_string(),
-        ));
+        )
+        .into());
     }
 
     // Validate expiration date if it exists
@@ -363,7 +362,8 @@ pub fn validate_vp_data_model(
         if expiration_date < &now {
             return Err(VerificationError::DataModelValidationError(
                 "presentation expired".to_string(),
-            ));
+            )
+            .into());
         }
     }
 
@@ -456,8 +456,11 @@ mod tests {
         let validation_result = validate_vp_data_model(&vp);
 
         match validation_result {
-            Err(VerificationError::DataModelValidationError(msg)) => {
-                assert_eq!(msg, "presentation expired".to_string());
+            Err(Web5Error::CredentialError(err)) => {
+                assert_eq!(
+                    err,
+                    VerificationError::DataModelValidationError("presentation expired".to_string())
+                );
             }
             _ => panic!(
                 "Verifiable Presentation should be considered expired, but it passed validation"
