@@ -91,7 +91,7 @@ CLASS VerifiableCredential
   PUBLIC DATA id: string
   PUBLIC DATA type: []string
   PUBLIC DATA issuer: Issuer
-  PUBLIC DATA credentialSubject: CredentialSubject
+  PUBLIC DATA credential_subject: CredentialSubject
   PUBLIC DATA issuance_date: datetime
   PUBLIC DATA expiration_date: datetime?
   PUBLIC DATA credential_status: CredentialStatus?
