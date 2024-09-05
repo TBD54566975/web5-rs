@@ -2,46 +2,46 @@ use std::time::SystemTime;
 
 use super::{
     verifiable_credential_1_1::{VerifiableCredential, BASE_CONTEXT, BASE_TYPE},
-    CredentialError,
+    VerificationError,
 };
 
 pub fn validate_vc_data_model(
     vc: &VerifiableCredential,
-) -> std::result::Result<(), CredentialError> {
+) -> std::result::Result<(), VerificationError> {
     // Required fields ["@context", "id", "type", "issuer", "issuanceDate", "credentialSubject"]
     if vc.id.is_empty() {
-        return Err(CredentialError::DataModelValidationError(
+        return Err(VerificationError::DataModelValidationError(
             "missing id".to_string(),
         ));
     }
 
     if vc.context.is_empty() || vc.context[0] != BASE_CONTEXT {
-        return Err(CredentialError::DataModelValidationError(
+        return Err(VerificationError::DataModelValidationError(
             "missing context".to_string(),
         ));
     }
 
     if vc.r#type.is_empty() || vc.r#type[0] != BASE_TYPE {
-        return Err(CredentialError::DataModelValidationError(
+        return Err(VerificationError::DataModelValidationError(
             "missing type".to_string(),
         ));
     }
 
     if vc.issuer.to_string().is_empty() {
-        return Err(CredentialError::DataModelValidationError(
+        return Err(VerificationError::DataModelValidationError(
             "missing issuer".to_string(),
         ));
     }
 
     if vc.credential_subject.id.is_empty() {
-        return Err(CredentialError::DataModelValidationError(
+        return Err(VerificationError::DataModelValidationError(
             "missing credential subject".to_string(),
         ));
     }
 
     let now = SystemTime::now();
     if vc.issuance_date > now {
-        return Err(CredentialError::DataModelValidationError(
+        return Err(VerificationError::DataModelValidationError(
             "issuance date in future".to_string(),
         ));
     }
@@ -49,7 +49,7 @@ pub fn validate_vc_data_model(
     // Validate expiration date if it exists
     if let Some(expiration_date) = &vc.expiration_date {
         if expiration_date < &now {
-            return Err(CredentialError::DataModelValidationError(
+            return Err(VerificationError::DataModelValidationError(
                 "credential expired".to_string(),
             ));
         }

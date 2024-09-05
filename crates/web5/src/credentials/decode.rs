@@ -18,7 +18,7 @@ use super::{
     josekit::{JoseVerifier, JoseVerifierAlwaysTrue},
     jwt_payload_vc::JwtPayloadVerifiableCredential,
     verifiable_credential_1_1::VerifiableCredential,
-    CredentialError,
+    VerificationError,
 };
 
 pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredential> {
@@ -28,10 +28,10 @@ pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredenti
     let kid = header
         .claim("kid")
         .and_then(serde_json::Value::as_str)
-        .ok_or(CredentialError::MissingKid)?;
+        .ok_or(VerificationError::MissingKid)?;
 
     if kid.is_empty() {
-        return Err(CredentialError::MissingKid.into());
+        return Err(VerificationError::MissingKid.into());
     }
 
     let jwt_payload = if verify_signature {
@@ -75,47 +75,47 @@ pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredenti
 
     let vc_claim = jwt_payload
         .claim("vc")
-        .ok_or(CredentialError::MissingClaim("vc".to_string()))?;
+        .ok_or(VerificationError::MissingClaim("vc".to_string()))?;
     let vc_payload = serde_json::from_value::<JwtPayloadVerifiableCredential>(vc_claim.clone())?;
 
     // registered claims checks
     let jti = jwt_payload
         .jwt_id()
-        .ok_or(CredentialError::MissingClaim("jti".to_string()))?;
+        .ok_or(VerificationError::MissingClaim("jti".to_string()))?;
     let iss = jwt_payload
         .issuer()
-        .ok_or(CredentialError::MissingClaim("issuer".to_string()))?;
+        .ok_or(VerificationError::MissingClaim("issuer".to_string()))?;
     let sub = jwt_payload
         .subject()
-        .ok_or(CredentialError::MissingClaim("subject".to_string()))?;
+        .ok_or(VerificationError::MissingClaim("subject".to_string()))?;
     let nbf = jwt_payload
         .not_before()
-        .ok_or(CredentialError::MissingClaim("not_before".to_string()))?;
+        .ok_or(VerificationError::MissingClaim("not_before".to_string()))?;
     let exp = jwt_payload.expires_at();
 
     if let Some(id) = &vc_payload.id {
         if id != jti {
-            return Err(CredentialError::ClaimMismatch("id".to_string()).into());
+            return Err(VerificationError::ClaimMismatch("id".to_string()).into());
         }
     }
 
     if let Some(issuer) = &vc_payload.issuer {
         let vc_issuer = issuer.to_string();
         if iss != vc_issuer {
-            return Err(CredentialError::ClaimMismatch("issuer".to_string()).into());
+            return Err(VerificationError::ClaimMismatch("issuer".to_string()).into());
         }
     }
 
     if let Some(credential_subject) = &vc_payload.credential_subject {
         if sub != credential_subject.id {
-            return Err(CredentialError::ClaimMismatch("subject".to_string()).into());
+            return Err(VerificationError::ClaimMismatch("subject".to_string()).into());
         }
     }
 
     if let Some(vc_payload_expiration_date) = vc_payload.expiration_date {
         match exp {
             None => {
-                return Err(CredentialError::MisconfiguredExpirationDate(
+                return Err(VerificationError::MisconfiguredExpirationDate(
                     "VC has expiration date but no exp in registered claims".to_string(),
                 )
                 .into());
@@ -127,7 +127,7 @@ pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredenti
 
                 if difference.as_secs() > 0 {
                     return Err(
-                        CredentialError::ClaimMismatch("expiration_date".to_string()).into(),
+                        VerificationError::ClaimMismatch("expiration_date".to_string()).into(),
                     );
                 }
             }

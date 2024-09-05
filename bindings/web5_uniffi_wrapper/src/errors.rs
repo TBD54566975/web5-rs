@@ -2,7 +2,7 @@ use serde_json::Error as SerdeJsonError;
 use std::fmt::Debug;
 use thiserror::Error;
 use web5::credentials::presentation_definition::PexError;
-use web5::credentials::CredentialError;
+use web5::credentials::VerificationError;
 use web5::errors::Web5Error as InnerWeb5Error;
 
 #[derive(Debug, Error)]
@@ -47,8 +47,8 @@ where
     variant_name.to_string()
 }
 
-impl From<CredentialError> for Web5Error {
-    fn from(error: CredentialError) -> Self {
+impl From<VerificationError> for Web5Error {
+    fn from(error: VerificationError) -> Self {
         Web5Error::new(error)
     }
 }

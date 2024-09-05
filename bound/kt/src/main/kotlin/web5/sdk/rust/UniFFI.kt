@@ -913,6 +913,16 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1087,6 +1097,18 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_uniffi_fn_method_verifiablecredential_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_verifiablecredential_sign(`ptr`: Pointer,`bearerDid`: Pointer,`verificationMethodId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_uniffi_fn_clone_verifiablepresentation(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_uniffi_fn_free_verifiablepresentation(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_web5_uniffi_fn_constructor_verifiablepresentation_create(`holder`: RustBuffer.ByValue,`vcJwts`: RustBuffer.ByValue,`options`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_uniffi_fn_constructor_verifiablepresentation_from_vp_jwt(`vpJwt`: RustBuffer.ByValue,`verify`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_web5_uniffi_fn_method_verifiablepresentation_get_data(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_web5_uniffi_fn_method_verifiablepresentation_sign(`ptr`: Pointer,`bearerDid`: Pointer,`verificationMethodId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_clone_verifier(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1294,6 +1316,10 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_verifiablecredential_sign(
     ): Short
+    fun uniffi_web5_uniffi_checksum_method_verifiablepresentation_get_data(
+    ): Short
+    fun uniffi_web5_uniffi_checksum_method_verifiablepresentation_sign(
+    ): Short
     fun uniffi_web5_uniffi_checksum_method_verifier_verify(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_bearerdid_from_portable_did(
@@ -1327,6 +1353,10 @@ internal interface UniffiLib : Library {
     fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_create(
     ): Short
     fun uniffi_web5_uniffi_checksum_constructor_verifiablecredential_from_vc_jwt(
+    ): Short
+    fun uniffi_web5_uniffi_checksum_constructor_verifiablepresentation_create(
+    ): Short
+    fun uniffi_web5_uniffi_checksum_constructor_verifiablepresentation_from_vp_jwt(
     ): Short
     fun ffi_web5_uniffi_uniffi_contract_version(
     ): Int
@@ -1450,6 +1480,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_method_verifiablecredential_sign() != 21705.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_web5_uniffi_checksum_method_verifiablepresentation_get_data() != 41102.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_method_verifiablepresentation_sign() != 52190.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_web5_uniffi_checksum_method_verifier_verify() != 51688.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1499,6 +1535,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablecredential_from_vc_jwt() != 8044.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablepresentation_create() != 14449.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_constructor_verifiablepresentation_from_vp_jwt() != 35213.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -5806,6 +5848,277 @@ public object FfiConverterTypeVerifiableCredential: FfiConverter<VerifiableCrede
 //
 
 
+public interface VerifiablePresentationInterface {
+    
+    fun `getData`(): VerifiablePresentationData
+    
+    fun `sign`(`bearerDid`: BearerDid, `verificationMethodId`: kotlin.String?): kotlin.String
+    
+    companion object
+}
+
+open class VerifiablePresentation: Disposable, AutoCloseable, VerifiablePresentationInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_free_verifiablepresentation(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_verifiablepresentation(pointer!!, status)
+        }
+    }
+
+    
+    @Throws(Web5Exception::class)override fun `getData`(): VerifiablePresentationData {
+            return FfiConverterTypeVerifiablePresentationData.lift(
+    callWithPointer {
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablepresentation_get_data(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    @Throws(Web5Exception::class)override fun `sign`(`bearerDid`: BearerDid, `verificationMethodId`: kotlin.String?): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_verifiablepresentation_sign(
+        it, FfiConverterTypeBearerDid.lower(`bearerDid`),FfiConverterOptionalString.lower(`verificationMethodId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    companion object {
+        
+    @Throws(Web5Exception::class) fun `create`(`holder`: kotlin.String, `vcJwts`: List<kotlin.String>, `options`: VerifiablePresentationCreateOptionsData?): VerifiablePresentation {
+            return FfiConverterTypeVerifiablePresentation.lift(
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablepresentation_create(
+        FfiConverterString.lower(`holder`),FfiConverterSequenceString.lower(`vcJwts`),FfiConverterOptionalTypeVerifiablePresentationCreateOptionsData.lower(`options`),_status)
+}
+    )
+    }
+    
+
+        
+    @Throws(Web5Exception::class) fun `fromVpJwt`(`vpJwt`: kotlin.String, `verify`: kotlin.Boolean): VerifiablePresentation {
+            return FfiConverterTypeVerifiablePresentation.lift(
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_verifiablepresentation_from_vp_jwt(
+        FfiConverterString.lower(`vpJwt`),FfiConverterBoolean.lower(`verify`),_status)
+}
+    )
+    }
+    
+
+        
+    }
+    
+}
+
+public object FfiConverterTypeVerifiablePresentation: FfiConverter<VerifiablePresentation, Pointer> {
+
+    override fun lower(value: VerifiablePresentation): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): VerifiablePresentation {
+        return VerifiablePresentation(value)
+    }
+
+    override fun read(buf: ByteBuffer): VerifiablePresentation {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: VerifiablePresentation) = 8UL
+
+    override fun write(value: VerifiablePresentation, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
 public interface Verifier {
     
     fun `verify`(`message`: kotlin.ByteArray, `signature`: kotlin.ByteArray)
@@ -6704,6 +7017,96 @@ public object FfiConverterTypeVerifiableCredentialData: FfiConverterRustBuffer<V
 
 
 
+data class VerifiablePresentationCreateOptionsData (
+    var `id`: kotlin.String?, 
+    var `context`: List<kotlin.String>?, 
+    var `type`: List<kotlin.String>?, 
+    var `issuanceDate`: java.time.Instant?, 
+    var `expirationDate`: java.time.Instant?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeVerifiablePresentationCreateOptionsData: FfiConverterRustBuffer<VerifiablePresentationCreateOptionsData> {
+    override fun read(buf: ByteBuffer): VerifiablePresentationCreateOptionsData {
+        return VerifiablePresentationCreateOptionsData(
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalTimestamp.read(buf),
+            FfiConverterOptionalTimestamp.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: VerifiablePresentationCreateOptionsData) = (
+            FfiConverterOptionalString.allocationSize(value.`id`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`context`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`type`) +
+            FfiConverterOptionalTimestamp.allocationSize(value.`issuanceDate`) +
+            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`)
+    )
+
+    override fun write(value: VerifiablePresentationCreateOptionsData, buf: ByteBuffer) {
+            FfiConverterOptionalString.write(value.`id`, buf)
+            FfiConverterOptionalSequenceString.write(value.`context`, buf)
+            FfiConverterOptionalSequenceString.write(value.`type`, buf)
+            FfiConverterOptionalTimestamp.write(value.`issuanceDate`, buf)
+            FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
+    }
+}
+
+
+
+data class VerifiablePresentationData (
+    var `context`: List<kotlin.String>, 
+    var `id`: kotlin.String, 
+    var `type`: List<kotlin.String>, 
+    var `holder`: kotlin.String, 
+    var `issuanceDate`: java.time.Instant, 
+    var `expirationDate`: java.time.Instant?, 
+    var `verifiableCredential`: List<kotlin.String>
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeVerifiablePresentationData: FfiConverterRustBuffer<VerifiablePresentationData> {
+    override fun read(buf: ByteBuffer): VerifiablePresentationData {
+        return VerifiablePresentationData(
+            FfiConverterSequenceString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterSequenceString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterTimestamp.read(buf),
+            FfiConverterOptionalTimestamp.read(buf),
+            FfiConverterSequenceString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: VerifiablePresentationData) = (
+            FfiConverterSequenceString.allocationSize(value.`context`) +
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterSequenceString.allocationSize(value.`type`) +
+            FfiConverterString.allocationSize(value.`holder`) +
+            FfiConverterTimestamp.allocationSize(value.`issuanceDate`) +
+            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`) +
+            FfiConverterSequenceString.allocationSize(value.`verifiableCredential`)
+    )
+
+    override fun write(value: VerifiablePresentationData, buf: ByteBuffer) {
+            FfiConverterSequenceString.write(value.`context`, buf)
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterSequenceString.write(value.`type`, buf)
+            FfiConverterString.write(value.`holder`, buf)
+            FfiConverterTimestamp.write(value.`issuanceDate`, buf)
+            FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
+            FfiConverterSequenceString.write(value.`verifiableCredential`, buf)
+    }
+}
+
+
+
 data class VerificationMethodData (
     var `id`: kotlin.String, 
     var `type`: kotlin.String, 
@@ -7204,6 +7607,35 @@ public object FfiConverterOptionalTypeVerifiableCredentialCreateOptionsData: Ffi
         } else {
             buf.put(1)
             FfiConverterTypeVerifiableCredentialCreateOptionsData.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeVerifiablePresentationCreateOptionsData: FfiConverterRustBuffer<VerifiablePresentationCreateOptionsData?> {
+    override fun read(buf: ByteBuffer): VerifiablePresentationCreateOptionsData? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeVerifiablePresentationCreateOptionsData.read(buf)
+    }
+
+    override fun allocationSize(value: VerifiablePresentationCreateOptionsData?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeVerifiablePresentationCreateOptionsData.allocationSize(value)
+        }
+    }
+
+    override fun write(value: VerifiablePresentationCreateOptionsData?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeVerifiablePresentationCreateOptionsData.write(value, buf)
         }
     }
 }
