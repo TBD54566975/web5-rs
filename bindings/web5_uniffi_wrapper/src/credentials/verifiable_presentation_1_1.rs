@@ -1,7 +1,7 @@
 use crate::{dids::bearer_did::BearerDid, errors::Result};
 use std::{sync::Arc, time::SystemTime};
-use web5::credentials::verifiable_presentation_1_1::VerifiablePresentation as InnerVerifiablePresentation;
-use web5::credentials::verifiable_presentation_1_1::VerifiablePresentationCreateOptions as InnerVerifiablePresentationCreateOptions;
+use web5::credentials::VerifiablePresentation as InnerVerifiablePresentation;
+use web5::credentials::VerifiablePresentationCreateOptions as InnerVerifiablePresentationCreateOptions;
 
 #[derive(Default)]
 pub struct VerifiablePresentationCreateOptions {

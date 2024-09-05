@@ -1,15 +1,15 @@
 use crate::{dids::bearer_did::BearerDid, errors::Result};
 use std::{sync::Arc, time::SystemTime};
-use web5::credentials::verifiable_credential_1_1::CredentialStatus;
+use web5::credentials::CredentialStatus;
 use web5::credentials::Issuer;
 use web5::json::ToJson;
 use web5::{
     credentials::{
-        verifiable_credential_1_1::{
+        CredentialSchema, CredentialSubject,
+        {
             VerifiableCredential as InnerVerifiableCredential,
             VerifiableCredentialCreateOptions as InnerVerifiableCredentialCreateOptions,
         },
-        CredentialSchema, CredentialSubject,
     },
     json::{FromJson as _, JsonObject},
 };

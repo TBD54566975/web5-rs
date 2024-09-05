@@ -26,21 +26,6 @@ data class VerifiablePresentation private constructor(
     internal val rustCoreVerifiablePresentation: RustCoreVerifiablePresentation,
 ) {
     companion object {
-        internal fun fromRustCore(rustCoreVerifiablePresentation: RustCoreVerifiablePresentation): VerifiablePresentation {
-            val data = rustCoreVerifiablePresentation.getData()
-
-            return VerifiablePresentation(
-                data.context,
-                data.type,
-                data.id,
-                data.holder,
-                Date.from(data.issuanceDate),
-                data.expirationDate?.let { Date.from(it) },
-                data.verifiableCredential,
-                rustCoreVerifiablePresentation
-            )
-        }
-
         fun create(
             holder: String,
             verifiableCredential: List<String>,

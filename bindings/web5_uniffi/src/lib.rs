@@ -39,8 +39,8 @@ use web5_uniffi_wrapper::{
 };
 
 use web5::{
-    credentials::verifiable_credential_1_1::CredentialStatus as CredentialStatusData,
     credentials::CredentialSchema as CredentialSchemaData,
+    credentials::CredentialStatus as CredentialStatusData,
     crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{
         data_model::{
