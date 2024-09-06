@@ -27,6 +27,8 @@ pub enum Web5Error {
     Mutex(String),
     #[error("network error {0}")]
     Network(String),
+    #[error("datetime error {0}")]
+    DateTime(String),
 
     #[error(transparent)]
     Resolution(#[from] ResolutionMetadataError),

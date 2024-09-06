@@ -1,22 +1,16 @@
-use crate::credentials::josekit::{JoseSigner, JoseVerifier, JoseVerifierAlwaysTrue};
 use crate::credentials::verifiable_credential_1_1::VerifiableCredential;
 use crate::credentials::VerificationError;
-use crate::crypto::dsa::ed25519::Ed25519Verifier;
-use crate::crypto::dsa::Signer;
 use crate::dids::bearer_did::BearerDid;
-use crate::dids::data_model::document::FindVerificationMethodOptions;
 use crate::dids::did::Did;
-use crate::dids::resolution::resolution_metadata::ResolutionMetadataError;
-use crate::dids::resolution::resolution_result::ResolutionResult;
 use crate::errors::{Result, Web5Error};
+use crate::jose::Jwt;
+use crate::json::{FromJsonValue, JsonObject, JsonValue, ToJsonValue};
 use crate::rfc3339::{
     deserialize_optional_system_time, deserialize_system_time, serialize_optional_system_time,
     serialize_system_time,
 };
-use josekit::jws::JwsHeader;
-use josekit::jwt::JwtPayload;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::collections::HashMap;
 use std::time::SystemTime;
 use uuid::Uuid;
 
@@ -82,6 +76,26 @@ pub struct JwtPayloadVerifiablePresentation {
     pub verifiable_credential: Vec<String>,
 }
 
+impl FromJsonValue for JwtPayloadVerifiablePresentation {
+    fn from_json_value(value: &JsonValue) -> Result<Option<Self>> {
+        if let JsonValue::Object(ref obj) = *value {
+            let json_value = serde_json::to_value(obj)?;
+            let value = serde_json::from_value::<Self>(json_value)?;
+            Ok(Some(value))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl ToJsonValue for JwtPayloadVerifiablePresentation {
+    fn to_json_value(&self) -> Result<JsonValue> {
+        let json_string = serde_json::to_string(self)?;
+        let map = serde_json::from_str::<HashMap<String, JsonValue>>(&json_string)?;
+        Ok(map.to_json_value()?)
+    }
+}
+
 impl VerifiablePresentation {
     pub fn create(
         holder: String,
@@ -139,46 +153,6 @@ impl VerifiablePresentation {
     }
 }
 
-pub fn sign_presentation_with_signer(
-    vp: &VerifiablePresentation,
-    key_id: &str,
-    signer: Arc<dyn Signer>,
-) -> Result<String> {
-    let mut payload = JwtPayload::new();
-    let vp_claim = JwtPayloadVerifiablePresentation {
-        context: vp.context.clone(),
-        id: Some(vp.id.clone()),
-        r#type: vp.r#type.clone(),
-        holder: Some(vp.holder.clone()),
-        verifiable_credential: vp.verifiable_credential.clone(),
-        issuance_date: Some(vp.issuance_date),
-        expiration_date: vp.expiration_date,
-    };
-
-    payload
-        .set_claim("vp", Some(serde_json::to_value(vp_claim)?))
-        .map_err(|e| Web5Error::Unknown(format!("failed to set claim {}", e)))?;
-    payload.set_issuer(vp.holder.to_string());
-    payload.set_jwt_id(&vp.id);
-    payload.set_not_before(&vp.issuance_date);
-    payload.set_issued_at(&SystemTime::now());
-    if let Some(exp) = &vp.expiration_date {
-        payload.set_expires_at(exp);
-    }
-
-    let jose_signer = JoseSigner {
-        kid: key_id.to_string(),
-        signer,
-    };
-
-    let mut header = JwsHeader::new();
-    header.set_token_type("JWT");
-    let vp_jwt = josekit::jwt::encode_with_signer(&payload, &header, &jose_signer)
-        .map_err(|e| Web5Error::Crypto(format!("failed to sign vp-jwt {}", e)))?;
-
-    Ok(vp_jwt)
-}
-
 pub fn sign_presentation_with_did(
     vp: &VerifiablePresentation,
     bearer_did: &BearerDid,
@@ -191,25 +165,28 @@ pub fn sign_presentation_with_did(
         )));
     }
 
-    let verification_method_id = verification_method_id
-        .unwrap_or_else(|| bearer_did.document.verification_method[0].id.clone());
-
-    let is_assertion_method = if let Some(assertion_methods) = &bearer_did.document.assertion_method
-    {
-        assertion_methods.contains(&verification_method_id)
-    } else {
-        false
+    let vp_claims = JwtPayloadVerifiablePresentation {
+        context: vp.context.clone(),
+        id: Some(vp.id.clone()),
+        r#type: vp.r#type.clone(),
+        holder: Some(vp.holder.clone()),
+        verifiable_credential: vp.verifiable_credential.clone(),
+        issuance_date: Some(vp.issuance_date),
+        expiration_date: vp.expiration_date,
     };
 
-    if !is_assertion_method {
-        return Err(Web5Error::Parameter(format!(
-            "verification_method_id {} is not an assertion_method",
-            verification_method_id
-        )));
+    let mut claims = JsonObject::new();
+    claims.insert("vp", &vp_claims)?;
+    claims.insert("iss", &vp.holder)?;
+    claims.insert("jti", &vp.id)?;
+    claims.insert("nbf", &vp.issuance_date)?;
+    claims.insert("iat", &SystemTime::now())?;
+    if let Some(exp) = &vp.expiration_date {
+        claims.insert("exp", exp)?;
     }
 
-    let signer = bearer_did.get_signer(&verification_method_id)?;
-    sign_presentation_with_signer(vp, &verification_method_id, signer)
+    let jwt = Jwt::from_claims(&claims, bearer_did, verification_method_id)?;
+    Ok(jwt.compact_jws)
 }
 
 fn build_vp_context(context: Option<Vec<String>>) -> Vec<String> {
@@ -229,82 +206,35 @@ fn build_vp_type(r#type: Option<Vec<String>>) -> Vec<String> {
 }
 
 pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiablePresentation> {
-    let header = josekit::jwt::decode_header(vp_jwt)
-        .map_err(|_| Web5Error::Parameter("failed to decode vp-jwt jose header".to_string()))?;
+    let jwt = Jwt::from_compact_jws(vp_jwt, verify_signature)?;
 
-    let kid = header
-        .claim("kid")
-        .and_then(serde_json::Value::as_str)
-        .ok_or(VerificationError::MissingKid)?;
-
-    if kid.is_empty() {
-        return Err(VerificationError::MissingKid.into());
-    }
-
-    let jwt_payload = if verify_signature {
-        let did = Did::parse(kid)?;
-
-        let resolution_result = ResolutionResult::resolve(&did.uri);
-        if let Some(err) = resolution_result.resolution_metadata.error.clone() {
-            return Err(err.into());
-        }
-
-        let public_key_jwk = resolution_result
-            .document
-            .ok_or(ResolutionMetadataError::InternalError)?
-            .find_verification_method(FindVerificationMethodOptions {
-                verification_method_id: Some(kid.to_string()),
-            })?
-            .public_key_jwk;
-
-        let jose_verifier = &JoseVerifier {
-            kid: kid.to_string(),
-            verifier: Arc::new(Ed25519Verifier::new(public_key_jwk)),
-        };
-
-        let (jwt_payload, _) =
-            josekit::jwt::decode_with_verifier(vp_jwt, jose_verifier).map_err(|e| {
-                Web5Error::Crypto(format!("vp-jwt failed cryptographic verification {}", e))
-            })?;
-
-        jwt_payload
-    } else {
-        let (jwt_payload, _) = josekit::jwt::decode_with_verifier(
-            vp_jwt,
-            &JoseVerifierAlwaysTrue {
-                kid: kid.to_string(),
-            },
-        )
-        .map_err(|e| Web5Error::Crypto(format!("vp-jwt failed to decode payload {}", e)))?;
-
-        jwt_payload
-    };
-
-    let vp_claim = jwt_payload
-        .claim("vp")
-        .ok_or(VerificationError::MissingClaim("vp".to_string()))?;
-    let vp_payload = serde_json::from_value::<JwtPayloadVerifiablePresentation>(vp_claim.clone())?;
-
-    // Registered claims checks
-    let jti = jwt_payload
-        .jwt_id()
+    let jti = jwt
+        .claims
+        .get::<String>("jti")?
         .ok_or(VerificationError::MissingClaim("jti".to_string()))?;
-    let iss = jwt_payload
-        .issuer()
+    let iss = jwt
+        .claims
+        .get::<String>("iss")?
         .ok_or(VerificationError::MissingClaim("issuer".to_string()))?;
-    let nbf = jwt_payload
-        .not_before()
+    let nbf = jwt
+        .claims
+        .get::<SystemTime>("nbf")?
         .ok_or(VerificationError::MissingClaim("not_before".to_string()))?;
-    let exp = jwt_payload.expires_at();
+    let exp = jwt.claims.get::<SystemTime>("exp")?;
 
-    if let Some(id) = &vp_payload.id {
+    let vp_payload = jwt
+        .claims
+        .get::<JwtPayloadVerifiablePresentation>("vp")?
+        .ok_or(VerificationError::MissingClaim("vp".to_string()))?;
+
+    if let Some(id) = vp_payload.id {
         if id != jti {
             return Err(VerificationError::ClaimMismatch("id".to_string()).into());
         }
     }
 
     let vp_issuer = vp_payload.holder.clone();
-    if let Some(holder) = &vp_payload.holder {
+    if let Some(holder) = vp_payload.holder {
         if iss != holder {
             return Err(VerificationError::ClaimMismatch("holder".to_string()).into());
         }

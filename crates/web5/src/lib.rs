@@ -3,6 +3,7 @@ pub mod crypto;
 pub mod dids;
 
 pub mod errors;
+pub mod jose;
 pub mod json;
 pub mod rfc3339;
 

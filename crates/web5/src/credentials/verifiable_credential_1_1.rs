@@ -371,10 +371,7 @@ mod tests {
                 .expect("should be valid vc jwt");
 
             let mut evidence_item = JsonObject::new();
-            evidence_item.insert(
-                "A Key".to_string(),
-                JsonValue::String("A Value".to_string()),
-            );
+            evidence_item.insert_value("A Key", JsonValue::String("A Value".to_string()));
             let expected_evidence = vec![evidence_item];
             assert_eq!(Some(expected_evidence), vc.evidence);
         }
