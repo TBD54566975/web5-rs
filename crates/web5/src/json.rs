@@ -10,6 +10,10 @@ pub trait FromJson: Sized + DeserializeOwned {
     fn from_json_string(json: &str) -> Result<Self> {
         Ok(serde_json::from_str(json)?)
     }
+
+    fn from_json_byte_array(json: &[u8]) -> Result<Self> {
+        Ok(serde_json::from_slice(json)?)
+    }
 }
 
 pub trait ToJson: Serialize {

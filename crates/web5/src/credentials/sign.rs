@@ -36,6 +36,7 @@ pub fn sign_with_did(
 
     let mut claims = JsonObject::new();
     claims.insert("vc", &vc_claim)?;
+    claims.insert("iss", &vc.issuer.to_string())?;
     claims.insert("jti", &vc.id)?;
     claims.insert("sub", &vc.credential_subject.id)?;
     claims.insert("nbf", &vc.issuance_date)?;
