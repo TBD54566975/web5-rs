@@ -194,6 +194,7 @@ CLASS PresentationDefinition
   PUBLIC DATA name: string?
   PUBLIC DATA purpose: string?
   PUBLIC DATA input_descriptors: []InputDescriptor
+  
   METHOD select_credentials(vc_jwts: []string): []string
 ```
 
