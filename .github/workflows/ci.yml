@@ -71,7 +71,17 @@ jobs:
       - name: Set Rust 1.74.0 as default
         run: rustup default 1.74.0
       - name: Test
-        run: cargo test --package web5
+        run: |
+          rustup component add llvm-tools-preview
+          cargo install grcov
+          cargo test --package web5
+        env:
+          RUSTFLAGS: -Cinstrument-coverage
+          LLVM_PROFILE_FILE: web5-rs-%p-%m.profraw
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 #v4.5.0
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   build_aarch64_apple_darwin:
     runs-on: macos-latest
@@ -221,6 +231,10 @@ jobs:
         run: |
           cd bound/kt/
           mvn test --batch-mode
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 #v4.5.0
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   kotlin-deploy-snapshot:
     needs:
