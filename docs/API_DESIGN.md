@@ -198,7 +198,7 @@ CLASS PresentationDefinition
   PUBLIC DATA input_descriptors: []InputDescriptor
   
   METHOD select_credentials(vc_jwts: []string): []string
-  METHOD create_presentation_from_credentials(vc_jwts: []string): (PresentationSubmission, []string)
+  METHOD create_presentation_from_credentials(vc_jwts: []string): PresentationResult
 ```
 
 ### `InputDescriptor` 
@@ -247,6 +247,14 @@ CLASS Filter
   PUBLIC DATA pattern: string?
   PUBLIC DATA const_value: string?
   PUBLIC DATA contains: Filter?
+```
+
+### `PresentationResult`
+
+```pseudocode!
+CLASS PresentationResult
+  PUBLIC DATA presentation_submission: PresentationSubmission
+  PUBLIC DATA matched_vc_jwts: []string
 ```
 
 ### `PresentationSubmission`

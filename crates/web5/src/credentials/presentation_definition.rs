@@ -141,6 +141,12 @@ pub struct InputDescriptorMapping {
     pub path_nested: Option<Box<InputDescriptorMapping>>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PresentationResult {
+    pub presentation_submission: PresentationSubmission,
+    pub matched_vc_jwts: Vec<String>,
+}
+
 fn generate_token() -> String {
     Uuid::new_v4().to_string()
 }
@@ -178,13 +184,13 @@ impl PresentationDefinition {
     /// * `presentation_definition` - The Presentation Definition V2 object against which VCs are validated.
     ///
     /// # Returns
-    ///
+    /// A `PresentationResult` which holds the `PresentationSubmission` and a Vec<String> which has the vc_jwts that were used
     /// A `PresentationSubmission` object.
     /// A `Vec<String>` which contains the chosen vc_jwts
     pub fn create_presentation_from_credentials(
         &self,
         vc_jwts: &Vec<String>,
-    ) -> Result<(PresentationSubmission, Vec<String>)> {
+    ) -> Result<PresentationResult> {
         // Check if there are submission requirements (not supported in this implementation)
         if self.submission_requirements.is_some() {
             return Err(PexError::IllegalState(
@@ -252,8 +258,10 @@ impl PresentationDefinition {
             descriptor_map,
         };
 
-        // Return both the presentation submission and the list of used vc_jwts
-        Ok((presentation_submission, used_vc_jwts))
+        Ok(PresentationResult {
+            presentation_submission,
+            matched_vc_jwts: used_vc_jwts,
+        })
     }
 }
 
@@ -449,13 +457,14 @@ mod tests {
 
         assert!(result.is_ok(), "Failed to create presentation submission");
 
-        let presentation_submission = result.unwrap();
+        let presentation_result = result.unwrap();
 
-        assert_eq!(presentation_submission.0.definition_id, "test_pd_id");
-        assert_eq!(presentation_submission.0.descriptor_map.len(), 1);
-        assert_eq!(presentation_submission.0.descriptor_map[0].id, "test_input_1");
-        assert_eq!(presentation_submission.0.descriptor_map[0].format, "jwt_vc");
-        assert_eq!(presentation_submission.0.descriptor_map[0].path, "$.verifiableCredential[0]");
+        assert_eq!(presentation_result.presentation_submission.definition_id, "test_pd_id");
+        assert_eq!(presentation_result.presentation_submission.descriptor_map.len(), 1);
+        assert_eq!(presentation_result.presentation_submission.descriptor_map[0].id, "test_input_1");
+        assert_eq!(presentation_result.presentation_submission.descriptor_map[0].format, "jwt_vc");
+        assert_eq!(presentation_result.presentation_submission.descriptor_map[0].path, "$.verifiableCredential[0]");
+
     }
 
     #[test]
@@ -502,7 +511,7 @@ mod tests {
 
         let vc_jwts = vec![signed_vcjwt_1.clone()];
 
-        let (presentation_submission, selected_vcs) = presentation_definition
+        let presentation_result = presentation_definition
             .create_presentation_from_credentials(&vc_jwts)
             .unwrap();
 
@@ -512,7 +521,7 @@ mod tests {
         let mut additional_data = HashMap::new();
         additional_data.insert(
             "presentation_submission".to_string(),
-            json!(presentation_submission),
+            json!(presentation_result.presentation_submission),
         );
 
         let vp_create_options = VerifiablePresentationCreateOptions {
@@ -520,7 +529,7 @@ mod tests {
             ..Default::default()
         };
 
-        let vp = VerifiablePresentation::create(holder_uri.clone(), selected_vcs, Some(vp_create_options))
+        let vp = VerifiablePresentation::create(holder_uri.clone(), presentation_result.matched_vc_jwts, Some(vp_create_options))
             .expect("Failed to create Verifiable Presentation");
 
         let vp_jwt = vp.sign(&holder.clone(), None).unwrap();
@@ -544,7 +553,7 @@ mod tests {
         // Check if the decoded presentation_submission is equal to the original one
         assert_eq!(
             decoded_presentation_submission,
-            Some(&json!(presentation_submission)),
+            Some(&json!(presentation_result.presentation_submission)),
             "The presentation_submission in additional_data does not match the expected value"
         );
     }
@@ -655,7 +664,7 @@ mod tests {
         ];
 
         // Unwrap the result of `create_presentation_from_credentials`
-        let (presentation_submission, selected_vcs) = presentation_definition
+        let presentation_result= presentation_definition
             .create_presentation_from_credentials(&vc_jwts)
             .unwrap();
 
@@ -665,7 +674,7 @@ mod tests {
         let mut additional_data = HashMap::new();
         additional_data.insert(
             "presentation_submission".to_string(),
-            json!(presentation_submission),
+            json!(presentation_result.presentation_submission),
         );
 
         let vp_create_options = VerifiablePresentationCreateOptions {
@@ -674,7 +683,7 @@ mod tests {
         };
 
         // Use the `selected_vcs` directly
-        let vp = VerifiablePresentation::create(holder_uri.clone(), selected_vcs, Some(vp_create_options))
+        let vp = VerifiablePresentation::create(holder_uri.clone(), presentation_result.matched_vc_jwts, Some(vp_create_options))
             .expect("Failed to create Verifiable Presentation");
 
         let vp_jwt = vp.sign(&holder.clone(), None).unwrap();
@@ -701,7 +710,7 @@ mod tests {
         // Check if the decoded presentation_submission is equal to the original one
         assert_eq!(
             decoded_presentation_submission,
-            Some(&json!(presentation_submission)),
+            Some(&json!(presentation_result.presentation_submission)),
             "The presentation_submission in additional_data does not match the expected value"
         );
     }
