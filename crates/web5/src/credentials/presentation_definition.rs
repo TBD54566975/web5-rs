@@ -467,11 +467,27 @@ mod tests {
 
     }
 
+    /// This test demonstrates the full flow of a Presentation Exchange using a Verifiable Credential (VC) and a Presentation Definition (PD).
+    /// It covers the following steps:
+    ///
+    /// 1. Creating an issuer and defining a Presentation Definition (PD) that outlines the criteria for acceptable VCs.
+    /// 2. Creating a Verifiable Credential (VC) that matches the requirements specified in the PD.
+    /// 3. Signing the VC to generate a Verifiable Credential in JWT format.
+    /// 4. Selecting credentials that fulfill the PD's input descriptors using `create_presentation_from_credentials`.
+    /// 5. Creating a Verifiable Presentation (VP) using the selected credentials.
+    /// 6. Signing the VP to generate a Verifiable Presentation in JWT format.
+    /// 7. Decoding and verifying the signed VP to ensure its integrity and correctness.
+    ///
+    /// This flow illustrates how a holder can create a VP that satisfies a verifier's requirements, based on input descriptors.
+
     #[test]
     fn test_presentation_exchange_full_flow() {
+        // Step 1: Create an issuer (typically the entity that issued the credential)
         let issuer = DidJwk::create(None).unwrap();
         let issuer_uri = issuer.clone().did.uri;
 
+        // Step 2: Define a Presentation Definition (PD) that specifies the required input descriptors
+        // In this case, the input descriptor specifies that the credential must contain a `credentialSubject.id` matching a DID JWK pattern.
         let presentation_definition = PresentationDefinition {
             id: "test_pd_id".to_string(),
             name: Some("Test Presentation Definition".to_string()),
@@ -500,6 +516,7 @@ mod tests {
             submission_requirements: None,
         };
 
+        // Step 3: Create a Verifiable Credential (VC) that contains a credential subject matching the PD criteria
         let vc_1 = VerifiableCredential::create(
             Issuer::from(issuer_uri.clone()),
             CredentialSubject::from(issuer_uri.clone()),
@@ -507,50 +524,63 @@ mod tests {
         )
             .unwrap();
 
+        // Step 4: Sign the VC to generate a VC in JWT format
         let signed_vcjwt_1 = vc_1.sign(&issuer.clone(), None).unwrap();
 
+        // Step 5: Collect the JWTs into a vector
         let vc_jwts = vec![signed_vcjwt_1.clone()];
 
+        // Step 6: Select the credentials that match the PD's input descriptors
         let presentation_result = presentation_definition
             .create_presentation_from_credentials(&vc_jwts)
             .unwrap();
 
+        // Step 7: Create the Verifiable Presentation (VP) with the selected credentials and additional data
         let holder = DidJwk::create(None).unwrap();
         let holder_uri = holder.clone().did.uri;
 
+        // Additional data includes the presentation submission, which links the presentation to the PD
         let mut additional_data = HashMap::new();
         additional_data.insert(
             "presentation_submission".to_string(),
             json!(presentation_result.presentation_submission),
         );
 
+        // Create VP with the matched credentials and additional data
         let vp_create_options = VerifiablePresentationCreateOptions {
             additional_data: Some(additional_data),
             ..Default::default()
         };
 
-        let vp = VerifiablePresentation::create(holder_uri.clone(), presentation_result.matched_vc_jwts, Some(vp_create_options))
+        // Generate the Verifiable Presentation
+        let vp = VerifiablePresentation::create(
+            holder_uri.clone(),
+            presentation_result.matched_vc_jwts, // Use the selected credentials from the PD
+            Some(vp_create_options)
+        )
             .expect("Failed to create Verifiable Presentation");
 
+        // Step 8: Sign the VP to generate a JWT format
         let vp_jwt = vp.sign(&holder.clone(), None).unwrap();
 
+        // Step 9: Decode and verify the signed VP to ensure correctness
         let decoded_vp = VerifiablePresentation::from_vp_jwt(&vp_jwt, true)
             .expect("Failed to decode Verifiable Presentation JWT");
 
-        // Check that the holder matches
+        // Step 10: Verify the holder matches the expected holder
         assert_eq!(decoded_vp.holder, holder_uri);
 
-        // Check that the verifiable credential matches
+        // Step 11: Verify that the correct Verifiable Credential was included in the presentation
         assert_eq!(decoded_vp.verifiable_credential.len(), 1);
         assert_eq!(decoded_vp.verifiable_credential[0], signed_vcjwt_1);
 
-        // Retrieve the presentation_submission from decoded_vp.additional_data
+        // Step 12: Retrieve the presentation_submission from the decoded VP's additional data
         let decoded_presentation_submission = decoded_vp
             .additional_data
             .as_ref()
             .and_then(|data| data.get("presentation_submission"));
 
-        // Check if the decoded presentation_submission is equal to the original one
+        // Step 13: Check if the decoded presentation_submission is equal to the original one
         assert_eq!(
             decoded_presentation_submission,
             Some(&json!(presentation_result.presentation_submission)),
