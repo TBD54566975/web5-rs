@@ -1,7 +1,7 @@
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 
 use crate::{
-    crypto::dsa::ed25519::Ed25519Verifier,
+    crypto::dsa::{ed25519::Ed25519Verifier, secp256k1::Secp256k1Verifier, Dsa, Verifier},
     dids::{
         data_model::document::FindVerificationMethodOptions,
         did::Did,
@@ -42,7 +42,7 @@ pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredenti
             return Err(err.into());
         }
 
-        let public_key_jwk = resolution_result
+        let public_jwk = resolution_result
             .document
             .ok_or(ResolutionMetadataError::InternalError)?
             .find_verification_method(FindVerificationMethodOptions {
@@ -50,9 +50,19 @@ pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredenti
             })?
             .public_key_jwk;
 
+        let dsa = Dsa::from_str(&public_jwk.alg.clone().ok_or(Web5Error::Crypto(format!(
+            "resolve publicKeyJwk must have alg {}",
+            kid
+        )))?)?;
+        let verifier: Arc<dyn Verifier> = match dsa {
+            Dsa::Ed25519 => Arc::new(Ed25519Verifier::new(public_jwk)),
+            Dsa::Secp256k1 => Arc::new(Secp256k1Verifier::new(public_jwk)),
+        };
+
         let jose_verifier = &JoseVerifier {
             kid: kid.to_string(),
-            verifier: Arc::new(Ed25519Verifier::new(public_key_jwk)),
+            dsa,
+            verifier,
         };
 
         let (jwt_payload, _) =

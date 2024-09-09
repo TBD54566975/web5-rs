@@ -3,6 +3,7 @@ use crate::errors::{Result, Web5Error};
 pub mod ed25519;
 pub mod secp256k1;
 
+#[derive(Clone)]
 pub enum Dsa {
     Ed25519,
     Secp256k1,
@@ -15,6 +16,7 @@ impl std::str::FromStr for Dsa {
         match input.to_ascii_lowercase().as_str() {
             "ed25519" => Ok(Dsa::Ed25519),
             "secp256k1" => Ok(Dsa::Secp256k1),
+            "es256k" => Ok(Dsa::Secp256k1),
             _ => Err(Web5Error::Parameter(format!("unsupported dsa {}", input))),
         }
     }

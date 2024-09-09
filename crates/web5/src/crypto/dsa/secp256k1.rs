@@ -1,7 +1,9 @@
+use super::Verifier;
 use crate::crypto::jwk::Jwk;
 use crate::errors::Result;
 use crate::errors::Web5Error;
 use base64::{engine::general_purpose, Engine as _};
+use k256::ecdsa::signature::Verifier as K256Verifier;
 
 pub struct Secp256k1Generator;
 
@@ -64,6 +66,43 @@ pub fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
         y: Some(general_purpose::URL_SAFE_NO_PAD.encode(y_bytes)),
         ..Default::default()
     })
+}
+
+#[derive(Clone)]
+pub struct Secp256k1Verifier {
+    public_jwk: Jwk,
+}
+
+impl Secp256k1Verifier {
+    pub fn new(public_jwk: Jwk) -> Self {
+        Self { public_jwk }
+    }
+}
+
+impl Verifier for Secp256k1Verifier {
+    fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<()> {
+        if let Some(d) = &self.public_jwk.d {
+            if !d.is_empty() {
+                return Err(Web5Error::Crypto(
+                    "provided verification key cannot contain private key material".to_string(),
+                ));
+            }
+        }
+
+        let public_key_bytes = public_jwk_extract_bytes(&self.public_jwk)?;
+
+        let verifying_key =
+            k256::ecdsa::VerifyingKey::from_sec1_bytes(&public_key_bytes).map_err(|e| {
+                Web5Error::Crypto(format!("unable to instantiate verifying key: {}", e))
+            })?;
+
+        let signature = k256::ecdsa::Signature::from_slice(signature)
+            .map_err(|e| Web5Error::Crypto(format!("invalid signature format: {}", e)))?;
+
+        verifying_key
+            .verify(payload, &signature)
+            .map_err(|_| Web5Error::Crypto("cryptographic verification failure".to_string()))
+    }
 }
 
 #[cfg(test)]
