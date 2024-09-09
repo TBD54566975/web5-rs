@@ -22,6 +22,10 @@
     {
       "language": "kotlin",
       "path": "bound/kt/src/test/kotlin/web5/sdk/dids/DidTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/dids/did.rs"
     }
   ]
 }

@@ -13,6 +13,10 @@
     {
       "language": "kotlin",
       "path": "bound/kt/src/test/kotlin/web5/sdk/crypto/keys/JwkTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/crypto/jwk.rs"
     }
   ]
 }

@@ -6,6 +6,10 @@
     {
       "language": "kotlin",
       "path": "bound/kt/src/test/kotlin/web5/sdk/dids/BearerDidTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/dids/bearer_did.rs"
     }
   ]
 }

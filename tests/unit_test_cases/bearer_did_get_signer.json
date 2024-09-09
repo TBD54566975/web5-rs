@@ -1,13 +1,17 @@
 {
   "test_names": [
-  "test_verification_method_id_empty",
-  "test_not_found_by_verification_method_id",
+    "test_verification_method_id_empty",
+    "test_not_found_by_verification_method_id",
     "test_found_by_verification_method_id"
   ],
   "test_files": [
     {
       "language": "kotlin",
       "path": "bound/kt/src/test/kotlin/web5/sdk/dids/BearerDidTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/dids/bearer_did.rs"
     }
   ]
 }

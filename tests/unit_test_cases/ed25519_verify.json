@@ -10,6 +10,10 @@
     {
       "language": "kotlin",
       "path": "bound/kt/src/test/kotlin/web5/sdk/crypto/verifiers/Ed25519VerifierTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/crypto/dsa/ed25519.rs"
     }
   ]
 }
