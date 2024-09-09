@@ -5,14 +5,14 @@ use super::decode::decode;
 use super::CredentialSubject;
 use super::Issuer;
 
+use crate::datetime::{
+    deserialize_optional_rfc3339, deserialize_rfc3339, serialize_optional_rfc3339,
+    serialize_rfc3339,
+};
 use crate::dids::bearer_did::BearerDid;
 use crate::errors::Result;
 use crate::json::JsonObject;
 use crate::json::{FromJson, ToJson};
-use crate::rfc3339::{
-    deserialize_optional_system_time, deserialize_system_time, serialize_optional_system_time,
-    serialize_system_time,
-};
 
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
@@ -32,14 +32,16 @@ pub struct VerifiableCredential {
     pub credential_subject: CredentialSubject,
     #[serde(
         rename = "issuanceDate",
-        serialize_with = "serialize_system_time",
-        deserialize_with = "deserialize_system_time"
+        serialize_with = "serialize_rfc3339",
+        deserialize_with = "deserialize_rfc3339"
     )]
     pub issuance_date: SystemTime,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_rfc3339",
+        deserialize_with = "deserialize_optional_rfc3339",
+        skip_serializing_if = "Option::is_none",
+        default
     )]
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "credentialStatus", skip_serializing_if = "Option::is_none")]
@@ -218,10 +220,10 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_invalid_did_uri, true);
 
             match result {
-                Err(Web5Error::Parameter(err_msg)) => {
-                    assert_eq!(err_msg, "identifier regex match failure invalid did uri")
+                Err(Web5Error::Resolution(err)) => {
+                    assert_eq!(err, ResolutionMetadataError::InvalidDid)
                 }
-                _ => panic!("Expected Web5Error::Parameter, but got: {:?}", result),
+                _ => panic!("Expected Web5Error::Resolution, but got: {:?}", result),
             };
         }
 
@@ -262,13 +264,13 @@ mod tests {
         fn test_fails_cryptographic_verification() {
             TEST_SUITE.include(test_name!());
 
-            let vc_jwt_with_invalid_signature = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkhWelpGVERsSVRUbHRkSGx5Y0dsWWRGRlVNR3B4Wms1MmFXTm5RVGxCVkRnME1IWTFZMDh5YjFSckluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjZmYTQ2MDVjLWFlZGItNGQ2NC05NzdiLTFmY2NmYTU1ZTM1ZiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKSFZ6WkZURGxJVFRsdGRIbHljR2xZZEZGVU1HcHhaazUyYVdOblFUbEJWRGcwTUhZMVkwOHliMVJySW4wIzAiLCJpc3N1YW5jZURhdGUiOiIyMDI0LTA4LTI4VDEyOjQyOjI3Ljc3Mjg4OSswMDowMCIsImV4cGlyYXRpb25EYXRlIjpudWxsLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSJ9fSwiaXNzIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKSFZ6WkZURGxJVFRsdGRIbHljR2xZZEZGVU1HcHhaazUyYVdOblFUbEJWRGcwTUhZMVkwOHliMVJySW4wIzAiLCJqdGkiOiJ1cm46dXVpZDo2ZmE0NjA1Yy1hZWRiLTRkNjQtOTc3Yi0xZmNjZmE1NWUzNWYiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjQ4NDg5NDcsImlhdCI6MTcyNDg0ODk0N30.-JwIGYZ9HlJASYxdRBWY5KlwP0iJUxWUOU6BsOR74VeC-zKgZb9WWZR08OVD-wv0X8KD5--0K5Dr9r5fL3B0Aw-invalid-signature"#;
+            let vc_jwt_with_invalid_signature = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKMmJGOUNOVTB6UzFwclNXdDNTMDg1VGpKRlVFTTFjVE5IVGxoamQwWktObFl0VlU5RkxTMUlVa3MwSW4wIzAifQ.eyJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUoyYkY5Q05VMHpTMXByU1d0M1MwODVUakpGVUVNMWNUTkhUbGhqZDBaS05sWXRWVTlGTFMxSVVrczBJbjAiLCJqdGkiOiJ1cm46dXVpZDoyMWUxNWRjYi0xM2MzLTQwYTYtYWJiNS01NTA3Nzg5Zjk4YmEiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjU4OTU2NTYsImlhdCI6MTcyNTg5NTY1NiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJpc3N1ZXIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUoyYkY5Q05VMHpTMXByU1d0M1MwODVUakpGVUVNMWNUTkhUbGhqZDBaS05sWXRWVTlGTFMxSVVrczBJbjAiLCJpZCI6InVybjp1dWlkOjIxZTE1ZGNiLTEzYzMtNDBhNi1hYmI1LTU1MDc3ODlmOThiYSIsImlzc3VhbmNlRGF0ZSI6IjIwMjQtMDktMDlUMTU6Mjc6MzZaIn19.6AR3aNzlMDgRpniSMhOGfXN3wUS0IkIoWa_KpZprOWwVbSyVjcI_Ndo3SGCutUSiBboYH9sFomdGb7_0AeVDCg"#;
 
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_invalid_signature, true);
 
             match result {
                 Err(Web5Error::Crypto(err_msg)) => {
-                    assert!(err_msg.contains("vc-jwt failed cryptographic verification"))
+                    assert_eq!("cryptographic verification failure", err_msg)
                 }
                 _ => panic!("Expected Web5Error::Crypto, but got: {:?}", result),
             };

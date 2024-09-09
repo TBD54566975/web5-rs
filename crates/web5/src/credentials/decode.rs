@@ -3,34 +3,36 @@ use super::{
     jwt_payload_vc::JwtPayloadVerifiableCredential,
     verifiable_credential_1_1::VerifiableCredential, VerificationError,
 };
-use crate::{errors::Result, jose::Jwt};
-use std::time::SystemTime;
+use crate::{errors::Result, jose::Jwt, json::FromJsonValue};
 
 pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredential> {
     let jwt = Jwt::from_compact_jws(vc_jwt, verify_signature)?;
 
     let jti = jwt
         .claims
-        .get::<String>("jti")?
+        .jti
         .ok_or(VerificationError::MissingClaim("jti".to_string()))?;
     let iss = jwt
         .claims
-        .get::<String>("iss")?
+        .iss
         .ok_or(VerificationError::MissingClaim("issuer".to_string()))?;
     let sub = jwt
         .claims
-        .get::<String>("sub")?
+        .sub
         .ok_or(VerificationError::MissingClaim("subject".to_string()))?;
     let nbf = jwt
         .claims
-        .get::<SystemTime>("nbf")?
+        .nbf
         .ok_or(VerificationError::MissingClaim("not_before".to_string()))?;
-    let exp = jwt.claims.get::<SystemTime>("exp")?;
+    let exp = jwt.claims.exp;
 
-    let vc_payload = jwt
-        .claims
-        .get::<JwtPayloadVerifiableCredential>("vc")?
-        .ok_or(VerificationError::MissingClaim("vc".to_string()))?;
+    let vc_payload = JwtPayloadVerifiableCredential::from_json_value(
+        jwt.claims
+            .additional_properties
+            .ok_or(VerificationError::MissingClaim("vc".to_string()))?
+            .get("vc")
+            .ok_or(VerificationError::MissingClaim("vc".to_string()))?,
+    )?;
 
     if let Some(id) = vc_payload.id {
         if id != jti {

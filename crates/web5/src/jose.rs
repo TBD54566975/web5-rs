@@ -1,28 +1,79 @@
-use std::str::FromStr;
-
 use crate::{
+    credentials::VerificationError,
     crypto::dsa::{ed25519::Ed25519Verifier, Dsa, Verifier},
+    datetime::{deserialize_optional_unix_timestamp, serialize_optional_unix_timestamp},
     dids::{
         bearer_did::BearerDid, data_model::document::FindVerificationMethodOptions,
         resolution::resolution_result::ResolutionResult,
     },
     errors::{Result, Web5Error},
-    json::{FromJson, JsonObject, ToJson},
+    json::{FromJson, JsonValue, ToJson},
 };
 use base64::Engine;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, str::FromStr, time::SystemTime};
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct JoseHeader {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub typ: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub alg: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kid: Option<String>,
+}
+
+impl FromJson for JoseHeader {}
+impl ToJson for JoseHeader {}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct JwtClaims {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub iss: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub jti: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sub: Option<String>,
+    #[serde(
+        serialize_with = "serialize_optional_unix_timestamp",
+        deserialize_with = "deserialize_optional_unix_timestamp",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub nbf: Option<SystemTime>,
+    #[serde(
+        serialize_with = "serialize_optional_unix_timestamp",
+        deserialize_with = "deserialize_optional_unix_timestamp",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub iat: Option<SystemTime>,
+    #[serde(
+        serialize_with = "serialize_optional_unix_timestamp",
+        deserialize_with = "deserialize_optional_unix_timestamp",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub exp: Option<SystemTime>,
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub additional_properties: Option<HashMap<String, JsonValue>>,
+}
+
+impl FromJson for JwtClaims {}
+impl ToJson for JwtClaims {}
 
 pub struct Jwt {
     pub kid: String,
     pub parts: Vec<String>,
-    pub header: JsonObject,
-    pub claims: JsonObject,
+    pub header: JoseHeader,
+    pub claims: JwtClaims,
     pub signature: Vec<u8>,
     pub compact_jws: String,
 }
 
 impl Jwt {
     pub fn from_claims(
-        claims: &JsonObject,
+        claims: &JwtClaims,
         bearer_did: &BearerDid,
         verification_method_id: Option<String>,
     ) -> Result<Self> {
@@ -56,10 +107,11 @@ impl Jwt {
                 "did document publicKeyJwk must have alg".to_string(),
             ))?;
 
-        let mut header = JsonObject::new();
-        header.insert("typ", &"JWT".to_string())?;
-        header.insert("alg", &alg)?;
-        header.insert("kid", &verification_method_id)?;
+        let header = JoseHeader {
+            typ: Some("JWT".to_string()),
+            alg: Some(alg),
+            kid: Some(verification_method_id.clone()),
+        };
 
         let header_part =
             base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(header.to_json_string()?);
@@ -103,14 +155,14 @@ impl Jwt {
             .map_err(|e| {
                 Web5Error::Parameter(format!("failed to base64 decode header part {}", e))
             })?;
-        let header = JsonObject::from_json_byte_array(&header_json_byte_array)?;
+        let header = JoseHeader::from_json_byte_array(&header_json_byte_array)?;
 
         let claims_json_byte_array = base64::engine::general_purpose::URL_SAFE_NO_PAD
             .decode(&parts[1])
             .map_err(|e| {
                 Web5Error::Parameter(format!("failed to base64 decode claims part {}", e))
             })?;
-        let claims = JsonObject::from_json_byte_array(&claims_json_byte_array)?;
+        let claims = JwtClaims::from_json_byte_array(&claims_json_byte_array)?;
 
         let signature = base64::engine::general_purpose::URL_SAFE_NO_PAD
             .decode(&parts[2])
@@ -118,9 +170,10 @@ impl Jwt {
                 Web5Error::Parameter(format!("failed to base64 decode signature part {}", e))
             })?;
 
-        let kid = header.get::<String>("kid")?.ok_or(Web5Error::Parameter(
-            "jose header must include kid value".to_string(),
-        ))?;
+        let kid = header.kid.clone().ok_or(VerificationError::MissingKid)?;
+        if kid.is_empty() {
+            return Err(VerificationError::MissingKid.into());
+        }
 
         if verify {
             let resolution_result = ResolutionResult::resolve(&kid);

@@ -34,70 +34,97 @@ pub enum JsonValue {
 }
 
 pub trait FromJsonValue: Sized {
-    fn from_json_value(value: &JsonValue) -> Result<Option<Self>>;
+    fn from_json_value(value: &JsonValue) -> Result<Self>;
+}
+
+pub(crate) fn json_value_type_name(value: &JsonValue) -> &'static str {
+    match value {
+        JsonValue::Null => "null",
+        JsonValue::Bool(_) => "bool",
+        JsonValue::Number(_) => "number",
+        JsonValue::String(_) => "string",
+        JsonValue::Array(_) => "array",
+        JsonValue::Object(_) => "object",
+    }
 }
 
 impl FromJsonValue for bool {
-    fn from_json_value(value: &JsonValue) -> Result<Option<Self>> {
+    fn from_json_value(value: &JsonValue) -> Result<Self> {
         if let JsonValue::Bool(ref b) = *value {
-            Ok(Some(b.clone()))
+            Ok(b.clone())
         } else {
-            Ok(None)
+            Err(Web5Error::Json(format!(
+                "expected bool, but found {}",
+                json_value_type_name(value)
+            )))
         }
     }
 }
 
 impl FromJsonValue for f64 {
-    fn from_json_value(value: &JsonValue) -> Result<Option<Self>> {
+    fn from_json_value(value: &JsonValue) -> Result<Self> {
         if let JsonValue::Number(ref n) = *value {
-            Ok(Some(n.clone()))
+            Ok(n.clone())
         } else {
-            Ok(None)
+            Err(Web5Error::Json(format!(
+                "expected number, but found {}",
+                json_value_type_name(value)
+            )))
         }
     }
 }
 
 impl FromJsonValue for String {
-    fn from_json_value(value: &JsonValue) -> Result<Option<Self>> {
+    fn from_json_value(value: &JsonValue) -> Result<Self> {
         if let JsonValue::String(ref s) = *value {
-            Ok(Some(s.clone()))
+            Ok(s.clone())
         } else {
-            Ok(None)
+            Err(Web5Error::Json(format!(
+                "expected string, but found {}",
+                json_value_type_name(value)
+            )))
         }
     }
 }
 
 impl FromJsonValue for Vec<JsonValue> {
-    fn from_json_value(value: &JsonValue) -> Result<Option<Self>> {
+    fn from_json_value(value: &JsonValue) -> Result<Self> {
         if let JsonValue::Array(ref arr) = *value {
-            Ok(Some(arr.clone()))
+            Ok(arr.clone())
         } else {
-            Ok(None)
+            Err(Web5Error::Json(format!(
+                "expected array, but found {}",
+                json_value_type_name(value)
+            )))
         }
     }
 }
 
 impl FromJsonValue for HashMap<String, JsonValue> {
-    fn from_json_value(value: &JsonValue) -> Result<Option<Self>> {
+    fn from_json_value(value: &JsonValue) -> Result<Self> {
         if let JsonValue::Object(ref obj) = *value {
-            Ok(Some(obj.clone()))
+            Ok(obj.clone())
         } else {
-            Ok(None)
+            Err(Web5Error::Json(format!(
+                "expected object, but found {}",
+                json_value_type_name(value)
+            )))
         }
     }
 }
 
 impl FromJsonValue for SystemTime {
-    fn from_json_value(value: &JsonValue) -> Result<Option<Self>> {
+    fn from_json_value(value: &JsonValue) -> Result<Self> {
         if let JsonValue::String(ref s) = *value {
             let datetime =
                 DateTime::parse_from_rfc3339(s).map_err(|e| Web5Error::DateTime(e.to_string()))?;
             let system_time = datetime.with_timezone(&Utc).timestamp();
-            Ok(Some(
-                UNIX_EPOCH + std::time::Duration::from_secs(system_time as u64),
-            ))
+            Ok(UNIX_EPOCH + std::time::Duration::from_secs(system_time as u64))
         } else {
-            Ok(None)
+            Err(Web5Error::Json(format!(
+                "expected string (RFC3339 datetime), but found {}",
+                json_value_type_name(value)
+            )))
         }
     }
 }
@@ -185,7 +212,7 @@ impl JsonObject {
     {
         let value = match self.get_value(key) {
             None => None,
-            Some(v) => T::from_json_value(v)?,
+            Some(v) => Some(T::from_json_value(v)?),
         };
         Ok(value)
     }

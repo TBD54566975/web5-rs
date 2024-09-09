@@ -4,10 +4,10 @@ use super::{
 use crate::{
     dids::bearer_did::BearerDid,
     errors::{Result, Web5Error},
-    jose::Jwt,
-    json::JsonObject,
+    jose::{Jwt, JwtClaims},
+    json::{JsonValue, ToJsonValue},
 };
-use std::time::SystemTime;
+use std::{collections::HashMap, time::SystemTime};
 
 pub fn sign_with_did(
     vc: &VerifiableCredential,
@@ -34,16 +34,18 @@ pub fn sign_with_did(
         evidence: vc.evidence.clone(),
     };
 
-    let mut claims = JsonObject::new();
-    claims.insert("vc", &vc_claim)?;
-    claims.insert("iss", &vc.issuer.to_string())?;
-    claims.insert("jti", &vc.id)?;
-    claims.insert("sub", &vc.credential_subject.id)?;
-    claims.insert("nbf", &vc.issuance_date)?;
-    claims.insert("iat", &SystemTime::now())?;
-    if let Some(exp) = &vc.expiration_date {
-        claims.insert("exp", exp)?;
-    }
+    let mut additional_properties: HashMap<String, JsonValue> = HashMap::new();
+    additional_properties.insert("vc".to_string(), vc_claim.to_json_value()?);
+
+    let claims = JwtClaims {
+        iss: Some(vc.issuer.to_string()),
+        jti: Some(vc.id.clone()),
+        sub: Some(vc.credential_subject.id.clone()),
+        nbf: Some(vc.issuance_date),
+        iat: Some(SystemTime::now()),
+        exp: vc.expiration_date,
+        additional_properties: Some(additional_properties),
+    };
 
     let jwt = Jwt::from_claims(&claims, bearer_did, verification_method_id)?;
     Ok(jwt.compact_jws)

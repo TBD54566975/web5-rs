@@ -1,14 +1,14 @@
 use crate::credentials::verifiable_credential_1_1::VerifiableCredential;
 use crate::credentials::VerificationError;
+use crate::datetime::{
+    deserialize_optional_rfc3339, deserialize_rfc3339, serialize_optional_rfc3339,
+    serialize_rfc3339,
+};
 use crate::dids::bearer_did::BearerDid;
 use crate::dids::did::Did;
 use crate::errors::{Result, Web5Error};
-use crate::jose::Jwt;
-use crate::json::{FromJsonValue, JsonObject, JsonValue, ToJsonValue};
-use crate::rfc3339::{
-    deserialize_optional_system_time, deserialize_system_time, serialize_optional_system_time,
-    serialize_system_time,
-};
+use crate::jose::{Jwt, JwtClaims};
+use crate::json::{json_value_type_name, FromJsonValue, JsonValue, ToJsonValue};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::SystemTime;
@@ -27,14 +27,16 @@ pub struct VerifiablePresentation {
     pub holder: String,
     #[serde(
         rename = "issuanceDate",
-        serialize_with = "serialize_system_time",
-        deserialize_with = "deserialize_system_time"
+        serialize_with = "serialize_rfc3339",
+        deserialize_with = "deserialize_rfc3339"
     )]
     pub issuance_date: SystemTime,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_rfc3339",
+        deserialize_with = "deserialize_optional_rfc3339",
+        skip_serializing_if = "Option::is_none",
+        default
     )]
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "verifiableCredential")]
@@ -62,14 +64,18 @@ pub struct JwtPayloadVerifiablePresentation {
     pub holder: Option<String>,
     #[serde(
         rename = "issuanceDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_rfc3339",
+        deserialize_with = "deserialize_optional_rfc3339",
+        skip_serializing_if = "Option::is_none",
+        default
     )]
     pub issuance_date: Option<SystemTime>,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_rfc3339",
+        deserialize_with = "deserialize_optional_rfc3339",
+        skip_serializing_if = "Option::is_none",
+        default
     )]
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "verifiableCredential", skip_serializing_if = "Vec::is_empty")]
@@ -77,13 +83,16 @@ pub struct JwtPayloadVerifiablePresentation {
 }
 
 impl FromJsonValue for JwtPayloadVerifiablePresentation {
-    fn from_json_value(value: &JsonValue) -> Result<Option<Self>> {
+    fn from_json_value(value: &JsonValue) -> Result<Self> {
         if let JsonValue::Object(ref obj) = *value {
             let json_value = serde_json::to_value(obj)?;
             let value = serde_json::from_value::<Self>(json_value)?;
-            Ok(Some(value))
+            Ok(value)
         } else {
-            Ok(None)
+            Err(Web5Error::Json(format!(
+                "expected object, but found {}",
+                json_value_type_name(value)
+            )))
         }
     }
 }
@@ -175,15 +184,18 @@ pub fn sign_presentation_with_did(
         expiration_date: vp.expiration_date,
     };
 
-    let mut claims = JsonObject::new();
-    claims.insert("vp", &vp_claims)?;
-    claims.insert("iss", &vp.holder)?;
-    claims.insert("jti", &vp.id)?;
-    claims.insert("nbf", &vp.issuance_date)?;
-    claims.insert("iat", &SystemTime::now())?;
-    if let Some(exp) = &vp.expiration_date {
-        claims.insert("exp", exp)?;
-    }
+    let mut additional_properties: HashMap<String, JsonValue> = HashMap::new();
+    additional_properties.insert("vp".to_string(), vp_claims.to_json_value()?);
+
+    let claims = JwtClaims {
+        iss: Some(vp.holder.clone()),
+        jti: Some(vp.id.clone()),
+        sub: None,
+        nbf: Some(vp.issuance_date),
+        iat: Some(SystemTime::now()),
+        exp: vp.expiration_date,
+        additional_properties: Some(additional_properties),
+    };
 
     let jwt = Jwt::from_claims(&claims, bearer_did, verification_method_id)?;
     Ok(jwt.compact_jws)
@@ -210,22 +222,25 @@ pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiableP
 
     let jti = jwt
         .claims
-        .get::<String>("jti")?
+        .jti
         .ok_or(VerificationError::MissingClaim("jti".to_string()))?;
     let iss = jwt
         .claims
-        .get::<String>("iss")?
+        .iss
         .ok_or(VerificationError::MissingClaim("issuer".to_string()))?;
     let nbf = jwt
         .claims
-        .get::<SystemTime>("nbf")?
+        .nbf
         .ok_or(VerificationError::MissingClaim("not_before".to_string()))?;
-    let exp = jwt.claims.get::<SystemTime>("exp")?;
+    let exp = jwt.claims.exp;
 
-    let vp_payload = jwt
-        .claims
-        .get::<JwtPayloadVerifiablePresentation>("vp")?
-        .ok_or(VerificationError::MissingClaim("vp".to_string()))?;
+    let vp_payload = JwtPayloadVerifiablePresentation::from_json_value(
+        jwt.claims
+            .additional_properties
+            .ok_or(VerificationError::MissingClaim("vp".to_string()))?
+            .get("vp")
+            .ok_or(VerificationError::MissingClaim("vp".to_string()))?,
+    )?;
 
     if let Some(id) = vp_payload.id {
         if id != jti {

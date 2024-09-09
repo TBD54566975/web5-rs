@@ -2,11 +2,11 @@ use super::{
     credential_schema::CredentialSchema, credential_subject::CredentialSubject, issuer::Issuer,
 };
 use crate::credentials::verifiable_credential_1_1::CredentialStatus;
-use crate::errors::Result;
-use crate::json::{FromJsonValue, JsonValue, ToJsonValue};
+use crate::errors::{Result, Web5Error};
+use crate::json::{json_value_type_name, FromJsonValue, JsonValue, ToJsonValue};
 use crate::{
+    datetime::{deserialize_optional_rfc3339, serialize_optional_rfc3339},
     json::JsonObject,
-    rfc3339::{deserialize_optional_system_time, serialize_optional_system_time},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -24,14 +24,18 @@ pub struct JwtPayloadVerifiableCredential {
     pub issuer: Option<Issuer>,
     #[serde(
         rename = "issuanceDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_rfc3339",
+        deserialize_with = "deserialize_optional_rfc3339",
+        skip_serializing_if = "Option::is_none",
+        default
     )]
     pub issuance_date: Option<SystemTime>,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_rfc3339",
+        deserialize_with = "deserialize_optional_rfc3339",
+        skip_serializing_if = "Option::is_none",
+        default
     )]
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "credentialStatus", skip_serializing_if = "Option::is_none")]
@@ -45,13 +49,16 @@ pub struct JwtPayloadVerifiableCredential {
 }
 
 impl FromJsonValue for JwtPayloadVerifiableCredential {
-    fn from_json_value(value: &JsonValue) -> Result<Option<Self>> {
+    fn from_json_value(value: &JsonValue) -> Result<Self> {
         if let JsonValue::Object(ref obj) = *value {
             let json_value = serde_json::to_value(obj)?;
             let value = serde_json::from_value::<Self>(json_value)?;
-            Ok(Some(value))
+            Ok(value)
         } else {
-            Ok(None)
+            Err(Web5Error::Json(format!(
+                "expected object, but found {}",
+                json_value_type_name(value)
+            )))
         }
     }
 }
