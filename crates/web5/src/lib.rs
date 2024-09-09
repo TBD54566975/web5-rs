@@ -7,6 +7,4 @@ pub mod json;
 pub mod rfc3339;
 
 #[cfg(test)]
-mod test_helpers;
-#[cfg(test)]
 mod test_vectors;

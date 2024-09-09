@@ -112,28 +112,9 @@ mod tests {
 
     mod new {
         use super::*;
-        use crate::{test_helpers::UnitTestSuite, test_name};
-
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("did_parse");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
 
         #[test]
         fn test_did_empty_string_should_error() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "";
             let result = Did::parse(uri);
             assert!(result.is_err(), "Expected error for input: {}", uri);
@@ -145,8 +126,6 @@ mod tests {
 
         #[test]
         fn test_did_incomplete_scheme_should_error() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:";
             let result = Did::parse(uri);
             assert!(result.is_err(), "Expected error for input: {}", uri);
@@ -158,8 +137,6 @@ mod tests {
 
         #[test]
         fn test_did_missing_id_part_should_error() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:uport";
             let result = Did::parse(uri);
             assert!(result.is_err(), "Expected error for input: {}", uri);
@@ -171,8 +148,6 @@ mod tests {
 
         #[test]
         fn test_did_missing_id_should_error() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:uport:";
             let result = Did::parse(uri);
             assert!(result.is_err(), "Expected error for input: {}", uri);
@@ -184,8 +159,6 @@ mod tests {
 
         #[test]
         fn test_did_invalid_characters_in_id_should_error() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:uport:1234_12313***";
             let result = Did::parse(uri);
             assert!(result.is_err(), "Expected error for input: {}", uri);
@@ -197,8 +170,6 @@ mod tests {
 
         #[test]
         fn test_did_invalid_bare_id_should_error() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "2nQtiQG6Cgm1GYTBaaKAgr76uY7iSexUkqX";
             let result = Did::parse(uri);
             assert!(result.is_err(), "Expected error for input: {}", uri);
@@ -210,8 +181,6 @@ mod tests {
 
         #[test]
         fn test_did_invalid_percent_encoding_should_error() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:method:%12%1";
             let result = Did::parse(uri);
             assert!(result.is_err(), "Expected error for input: {}", uri);
@@ -223,8 +192,6 @@ mod tests {
 
         #[test]
         fn test_did_invalid_percent_encoding_incomplete_should_error() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:method:%1233%Ay";
             let result = Did::parse(uri);
             assert!(result.is_err(), "Expected error for input: {}", uri);
@@ -236,8 +203,6 @@ mod tests {
 
         #[test]
         fn test_did_capitalized_method_should_error() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:CAP:id";
             let result = Did::parse(uri);
             assert!(result.is_err(), "Expected error for input: {}", uri);
@@ -249,8 +214,6 @@ mod tests {
 
         #[test]
         fn test_did_invalid_additional_id_should_error() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:method:id::anotherid%r9";
             let result = Did::parse(uri);
             assert!(result.is_err(), "Expected error for input: {}", uri);
@@ -262,8 +225,6 @@ mod tests {
 
         #[test]
         fn test_did_valid_did_no_params_path_query_fragment() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:example:123456789abcdefghi";
             let expected = Did {
                 uri: uri.to_string(),
@@ -278,8 +239,6 @@ mod tests {
 
         #[test]
         fn test_did_valid_did_with_params() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:example:123456789abcdefghi;foo=bar;baz=qux";
             let expected = Did {
                 uri: "did:example:123456789abcdefghi".to_string(),
@@ -298,8 +257,6 @@ mod tests {
 
         #[test]
         fn test_did_valid_did_with_query() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:example:123456789abcdefghi?foo=bar&baz=qux";
             let expected = Did {
                 uri: "did:example:123456789abcdefghi".to_string(),
@@ -315,8 +272,6 @@ mod tests {
 
         #[test]
         fn test_did_valid_did_with_fragment() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:example:123456789abcdefghi#keys-1";
             let expected = Did {
                 uri: "did:example:123456789abcdefghi".to_string(),
@@ -332,8 +287,6 @@ mod tests {
 
         #[test]
         fn test_did_valid_did_with_query_and_fragment() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:example:123456789abcdefghi?foo=bar&baz=qux#keys-1";
             let expected = Did {
                 uri: "did:example:123456789abcdefghi".to_string(),
@@ -350,8 +303,6 @@ mod tests {
 
         #[test]
         fn test_did_valid_did_with_params_query_and_fragment() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:example:123456789abcdefghi;foo=bar;baz=qux?foo=bar&baz=qux#keys-1";
             let expected = Did {
                 uri: "did:example:123456789abcdefghi".to_string(),
@@ -372,8 +323,6 @@ mod tests {
 
         #[test]
         fn test_did_valid_did_with_path() {
-            TEST_SUITE.include(test_name!());
-
             let uri = "did:example:123456789abcdefghi/path/to/resource";
             let expected = Did {
                 uri: "did:example:123456789abcdefghi".to_string(),

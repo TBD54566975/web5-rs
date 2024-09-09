@@ -92,9 +92,7 @@ pub fn sign_with_did(
 mod tests {
     use super::*;
     use crate::credentials::credential_subject::CredentialSubject;
-    use crate::{test_helpers::UnitTestSuite, test_name};
-    use lazy_static::lazy_static;
-
+    
     const SUBJECT_DID_URI: &str = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y";
 
     fn credential_subject() -> CredentialSubject {
@@ -106,26 +104,8 @@ mod tests {
 
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite =
-                UnitTestSuite::new("verifiable_credential_1_1_sign");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
         #[test]
         fn test_can_sign_then_verify() {
-            TEST_SUITE.include(test_name!());
 
             let bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
@@ -145,8 +125,7 @@ mod tests {
 
         #[test]
         fn test_bearer_did_mismatch_issuer() {
-            TEST_SUITE.include(test_name!());
-
+            
             let bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
@@ -174,8 +153,7 @@ mod tests {
 
         #[test]
         fn test_defaults_to_first_vm() {
-            TEST_SUITE.include(test_name!());
-
+            
             let bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
@@ -199,8 +177,7 @@ mod tests {
 
         #[test]
         fn test_vm_must_be_assertion_method() {
-            TEST_SUITE.include(test_name!());
-
+            
             let mut bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),

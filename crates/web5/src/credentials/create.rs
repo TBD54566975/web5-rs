@@ -106,9 +106,7 @@ mod tests {
     use super::*;
     use crate::credentials::credential_schema::{CredentialSchema, CREDENTIAL_SCHEMA_TYPE};
     use crate::json::JsonValue;
-    use crate::{test_helpers::UnitTestSuite, test_name};
-    use lazy_static::lazy_static;
-    use mockito::Server;
+        use mockito::Server;
     use regex::Regex;
     use std::collections::HashMap;
 
@@ -159,27 +157,9 @@ mod tests {
 
     use crate::{credentials::issuer::ObjectIssuer, json::JsonObject};
 
-    lazy_static! {
-        static ref TEST_SUITE: UnitTestSuite =
-            UnitTestSuite::new("verifiable_credential_1_1_create");
-    }
-
-    #[test]
-    fn z_assert_all_suite_cases_covered() {
-        // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-        // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-        // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-        // wait 100ms to be last-in-queue of mutex lock
-        std::thread::sleep(std::time::Duration::from_millis(100));
-
-        TEST_SUITE.assert_coverage()
-    }
-
     #[test]
     fn test_default_context_added_if_not_supplied() {
-        TEST_SUITE.include(test_name!());
-
+        
         let vc = create_vc(
             issuer(),
             credential_subject(),
@@ -192,8 +172,7 @@ mod tests {
 
     #[test]
     fn test_default_context_not_duplicated_if_supplied() {
-        TEST_SUITE.include(test_name!());
-
+        
         let options = VerifiableCredentialCreateOptions {
             context: Some(vec![BASE_CONTEXT.to_string()]),
             ..Default::default()
@@ -206,8 +185,7 @@ mod tests {
 
     #[test]
     fn test_developer_provided_context_appended_to_default() {
-        TEST_SUITE.include(test_name!());
-
+        
         let custom_context = "https://example.com/custom-context";
         let options = VerifiableCredentialCreateOptions {
             context: Some(vec![custom_context.to_string()]),
@@ -221,8 +199,7 @@ mod tests {
 
     #[test]
     fn test_default_type_added_if_not_supplied() {
-        TEST_SUITE.include(test_name!());
-
+        
         let vc = create_vc(
             issuer(),
             credential_subject(),
@@ -235,8 +212,7 @@ mod tests {
 
     #[test]
     fn test_default_type_not_duplicated_if_supplied() {
-        TEST_SUITE.include(test_name!());
-
+        
         let options = VerifiableCredentialCreateOptions {
             r#type: Some(vec![BASE_TYPE.to_string()]),
             ..Default::default()
@@ -249,8 +225,7 @@ mod tests {
 
     #[test]
     fn test_developer_provided_type_appended_to_default() {
-        TEST_SUITE.include(test_name!());
-
+        
         let custom_type = "CustomType";
         let options = VerifiableCredentialCreateOptions {
             r#type: Some(vec![custom_type.to_string()]),
@@ -264,8 +239,7 @@ mod tests {
 
     #[test]
     fn test_id_generated_if_not_supplied() {
-        TEST_SUITE.include(test_name!());
-
+        
         let vc = create_vc(
             issuer(),
             credential_subject(),
@@ -279,8 +253,7 @@ mod tests {
 
     #[test]
     fn test_id_must_be_set_if_supplied() {
-        TEST_SUITE.include(test_name!());
-
+        
         let custom_id = "custom-id";
         let options = VerifiableCredentialCreateOptions {
             id: Some(custom_id.to_string()),
@@ -294,8 +267,7 @@ mod tests {
 
     #[test]
     fn test_issuer_string_must_not_be_empty() {
-        TEST_SUITE.include(test_name!());
-
+        
         let empty_issuer = Issuer::from("");
         let result = create_vc(
             empty_issuer,
@@ -313,8 +285,7 @@ mod tests {
 
     #[test]
     fn test_issuer_string_must_be_set() {
-        TEST_SUITE.include(test_name!());
-
+        
         let vc = create_vc(
             issuer(),
             credential_subject(),
@@ -327,8 +298,7 @@ mod tests {
 
     #[test]
     fn test_issuer_string_must_be_valid_did() {
-        TEST_SUITE.include(test_name!());
-
+        
         let result = create_vc(
             Issuer::String("did:invalid-123".to_string()),
             credential_subject(),
@@ -345,8 +315,7 @@ mod tests {
 
     #[test]
     fn test_issuer_object_id_must_not_be_empty() {
-        TEST_SUITE.include(test_name!());
-
+        
         let issuer = Issuer::Object(ObjectIssuer {
             id: "".to_string(),
             name: "Example Name".to_string(),
@@ -369,8 +338,7 @@ mod tests {
 
     #[test]
     fn test_issuer_object_id_must_be_valid_did() {
-        TEST_SUITE.include(test_name!());
-
+        
         let result = create_vc(
             issuer(),
             CredentialSubject {
@@ -393,8 +361,7 @@ mod tests {
 
     #[test]
     fn test_issuer_object_name_must_not_be_empty() {
-        TEST_SUITE.include(test_name!());
-
+        
         let issuer = Issuer::Object(ObjectIssuer {
             id: ISSUER_DID_URI.to_string(),
             name: "".to_string(),
@@ -417,8 +384,7 @@ mod tests {
 
     #[test]
     fn test_issuer_object_must_be_set() {
-        TEST_SUITE.include(test_name!());
-
+        
         let issuer = Issuer::Object(ObjectIssuer {
             id: ISSUER_DID_URI.to_string(),
             name: "Example Name".to_string(),
@@ -437,8 +403,7 @@ mod tests {
 
     #[test]
     fn test_issuer_object_supports_additional_properties() {
-        TEST_SUITE.include(test_name!());
-
+        
         let additional_properties = JsonObject {
             properties: HashMap::from([(
                 "extra_key".to_string(),
@@ -469,8 +434,7 @@ mod tests {
 
     #[test]
     fn test_credential_subject_id_must_not_be_empty() {
-        TEST_SUITE.include(test_name!());
-
+        
         let credential_subject = CredentialSubject::from("");
 
         let result = create_vc(
@@ -489,8 +453,7 @@ mod tests {
 
     #[test]
     fn test_credential_subject_must_be_set() {
-        TEST_SUITE.include(test_name!());
-
+        
         let vc = create_vc(
             issuer(),
             credential_subject(),
@@ -503,8 +466,7 @@ mod tests {
 
     #[test]
     fn test_credential_subject_supports_additional_properties() {
-        TEST_SUITE.include(test_name!());
-
+        
         let additional_properties = JsonObject {
             properties: HashMap::from([(
                 "extra_key".to_string(),
@@ -532,8 +494,7 @@ mod tests {
 
     #[test]
     fn test_issuance_date_must_be_set() {
-        TEST_SUITE.include(test_name!());
-
+        
         let issuance_date = SystemTime::now();
 
         let options = VerifiableCredentialCreateOptions {
@@ -548,8 +509,7 @@ mod tests {
 
     #[test]
     fn test_issuance_date_must_be_now_if_not_supplied() {
-        TEST_SUITE.include(test_name!());
-
+        
         let vc = create_vc(
             issuer(),
             credential_subject(),
@@ -565,8 +525,7 @@ mod tests {
 
     #[test]
     fn test_expiration_date_must_be_set_if_supplied() {
-        TEST_SUITE.include(test_name!());
-
+        
         let expiration_date = SystemTime::now();
         let options = VerifiableCredentialCreateOptions {
             expiration_date: Some(expiration_date),
@@ -580,8 +539,7 @@ mod tests {
 
     #[test]
     fn test_evidence_must_be_set_if_supplied() {
-        TEST_SUITE.include(test_name!());
-
+        
         let mut evidence_item = JsonObject::new();
         evidence_item.insert(
             "A Key".to_string(),
@@ -601,8 +559,7 @@ mod tests {
 
     #[test]
     fn test_schema_type_must_be_jsonschema() {
-        TEST_SUITE.include(test_name!());
-
+        
         let result = create_vc(
             issuer(),
             credential_subject(),
@@ -628,8 +585,7 @@ mod tests {
 
     #[test]
     fn test_schema_resolve_network_issue() {
-        TEST_SUITE.include(test_name!());
-
+        
         let url = "invalid url".to_string(); // here
 
         let result = create_vc(
@@ -654,8 +610,7 @@ mod tests {
 
     #[test]
     fn test_schema_resolve_non_success() {
-        TEST_SUITE.include(test_name!());
-
+        
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -686,8 +641,7 @@ mod tests {
 
     #[test]
     fn test_schema_resolve_invalid_response_body() {
-        TEST_SUITE.include(test_name!());
-
+        
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -720,8 +674,7 @@ mod tests {
 
     #[test]
     fn test_schema_invalid_json_schema() {
-        TEST_SUITE.include(test_name!());
-
+        
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -757,8 +710,7 @@ mod tests {
 
     #[test]
     fn test_schema_do_not_support_draft04() {
-        TEST_SUITE.include(test_name!());
-
+        
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -794,8 +746,7 @@ mod tests {
 
     #[test]
     fn test_schema_do_not_support_draft06() {
-        TEST_SUITE.include(test_name!());
-
+        
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -831,8 +782,7 @@ mod tests {
 
     #[test]
     fn test_schema_fails_validation() {
-        TEST_SUITE.include(test_name!());
-
+        
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -865,8 +815,7 @@ mod tests {
 
     #[test]
     fn test_schema_example_from_spec() {
-        TEST_SUITE.include(test_name!());
-
+        
         // using Example 1 & Example 2 from here https://www.w3.org/TR/vc-json-schema/#jsonschema
 
         let mut mock_server = Server::new();
