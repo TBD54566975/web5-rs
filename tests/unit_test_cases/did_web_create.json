@@ -1,16 +1,24 @@
-[
-  "test_can_specify_key_manager",
-  "test_can_specify_secp256k1",
-  "test_defaults_to_ed25519",
-  "test_invalid_domain",
-  "test_should_allow_http_for_localhost",
-  "test_must_be_https",
-  "test_should_trim_did_json",
-  "test_should_trim_well_known",
-  "test_should_percent_encode_colons",
-  "test_should_replace_path_with_colons",
-  "test_should_add_optional_verification_methods",
-  "test_should_add_optional_services",
-  "test_should_add_optional_also_known_as",
-  "test_should_add_optional_controllers"
-]
+{
+  "test_names": [
+    "test_can_specify_key_manager",
+    "test_can_specify_secp256k1",
+    "test_defaults_to_ed25519",
+    "test_invalid_domain",
+    "test_should_allow_http_for_localhost",
+    "test_must_be_https",
+    "test_should_trim_did_json",
+    "test_should_trim_well_known",
+    "test_should_percent_encode_colons",
+    "test_should_replace_path_with_colons",
+    "test_should_add_optional_verification_methods",
+    "test_should_add_optional_services",
+    "test_should_add_optional_also_known_as",
+    "test_should_add_optional_controllers"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/dids/methods/web/DidWebTests.kt"
+    }
+  ]
+}

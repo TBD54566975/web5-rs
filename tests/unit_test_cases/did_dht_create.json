@@ -1,8 +1,16 @@
-[
-  "test_can_specify_key_manager",
-  "test_can_specify_publish_and_gateway_url",
-  "test_should_add_optional_verification_methods",
-  "test_should_add_optional_services",
-  "test_should_add_optional_also_known_as",
-  "test_should_add_optional_controllers"
-]
+{
+  "test_names": [
+    "test_can_specify_key_manager",
+    "test_can_specify_publish_and_gateway_url",
+    "test_should_add_optional_verification_methods",
+    "test_should_add_optional_services",
+    "test_should_add_optional_also_known_as",
+    "test_should_add_optional_controllers"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/dids/methods/dht/DidDhtTests.kt"
+    }
+  ]
+}

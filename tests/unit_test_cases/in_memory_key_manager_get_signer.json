@@ -1,1 +1,13 @@
-["test_must_be_public_key", "test_not_found", "test_found"]
+{
+  "test_names": [
+    "test_must_be_public_key",
+    "test_not_found",
+    "test_found"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/crypto/keys/InMemoryKeyManagerTest.kt"
+    }
+  ]
+}
