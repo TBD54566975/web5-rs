@@ -1,9 +1,11 @@
+use super::Signer;
 use super::Verifier;
 use crate::crypto::jwk::Jwk;
 use crate::errors::Result;
 use crate::errors::Web5Error;
 use base64::{engine::general_purpose, Engine as _};
-use k256::ecdsa::signature::Verifier as K256Verifier;
+use k256::ecdsa::signature::{Signer as K256Signer, Verifier as K256Verifier};
+use k256::ecdsa::Signature;
 
 pub struct Secp256k1Generator;
 
@@ -66,6 +68,34 @@ pub fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
         y: Some(general_purpose::URL_SAFE_NO_PAD.encode(y_bytes)),
         ..Default::default()
     })
+}
+
+#[derive(Clone)]
+pub struct Secp256k1Signer {
+    private_jwk: Jwk,
+}
+
+impl Secp256k1Signer {
+    pub fn new(private_jwk: Jwk) -> Self {
+        Self { private_jwk }
+    }
+}
+
+impl Signer for Secp256k1Signer {
+    fn sign(&self, payload: &[u8]) -> Result<Vec<u8>> {
+        let d = self.private_jwk.d.as_ref().ok_or(Web5Error::Crypto(
+            "private key material must be set".to_string(),
+        ))?;
+
+        let decoded_d = general_purpose::URL_SAFE_NO_PAD.decode(d)?;
+
+        let signing_key = k256::ecdsa::SigningKey::from_slice(&decoded_d)
+            .map_err(|e| Web5Error::Crypto(format!("invalid private key: {}", e)))?;
+
+        let signature: Signature = signing_key.sign(payload);
+
+        Ok(signature.to_vec())
+    }
 }
 
 #[derive(Clone)]

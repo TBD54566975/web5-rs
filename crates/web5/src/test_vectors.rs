@@ -326,9 +326,8 @@ mod test_vectors {
     }
 
     mod credentials {
-        use crate::credentials::VerifiableCredential;
-
         use super::*;
+        use crate::credentials::VerifiableCredential;
 
         #[derive(Debug, serde::Deserialize)]
         struct VerifyVectorInput {
@@ -343,8 +342,7 @@ mod test_vectors {
                 TestVectorFile::load_from_path(path);
 
             for vector in vectors.vectors {
-                // TODO remove did:key from test vectors
-                if vector.description.contains("did:key") {
+                if vector.description.contains("from web5-") {
                     continue;
                 }
 

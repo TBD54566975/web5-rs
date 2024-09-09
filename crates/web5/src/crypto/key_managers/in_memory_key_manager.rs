@@ -1,13 +1,14 @@
 use super::{KeyExporter, KeyManager};
 use crate::{
     crypto::{
-        dsa::{ed25519::Ed25519Signer, Signer},
+        dsa::{ed25519::Ed25519Signer, secp256k1::Secp256k1Signer, Dsa, Signer},
         jwk::Jwk,
     },
     errors::{Result, Web5Error},
 };
 use std::{
     collections::HashMap,
+    str::FromStr,
     sync::{Arc, RwLock},
 };
 
@@ -64,7 +65,18 @@ impl KeyManager for InMemoryKeyManager {
                 "signer not found for public_jwk with thumbprint {}",
                 thumbprint
             )))?;
-        Ok(Arc::new(Ed25519Signer::new(private_jwk.clone())))
+
+        let dsa = Dsa::from_str(
+            &public_jwk
+                .alg
+                .clone()
+                .ok_or(Web5Error::Crypto("public jwk must have alg".to_string()))?,
+        )?;
+        let signer: Arc<dyn Signer> = match dsa {
+            Dsa::Ed25519 => Arc::new(Ed25519Signer::new(private_jwk.clone())),
+            Dsa::Secp256k1 => Arc::new(Secp256k1Signer::new(private_jwk.clone())),
+        };
+        Ok(signer)
     }
 }
 

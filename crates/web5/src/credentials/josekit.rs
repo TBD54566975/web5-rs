@@ -12,12 +12,16 @@ use josekit::{
 #[derive(Clone)]
 pub struct JoseSigner {
     pub kid: String,
+    pub dsa: Dsa,
     pub signer: Arc<dyn Signer>,
 }
 
 impl JwsSigner for JoseSigner {
     fn algorithm(&self) -> &dyn JwsAlgorithm {
-        &EddsaJwsAlgorithm::Eddsa
+        match self.dsa {
+            Dsa::Ed25519 => &EddsaJwsAlgorithm::Eddsa,
+            Dsa::Secp256k1 => &EcdsaJwsAlgorithm::Es256k,
+        }
     }
 
     fn key_id(&self) -> Option<&str> {

@@ -154,6 +154,7 @@ impl VerifiablePresentation {
 pub fn sign_presentation_with_signer(
     vp: &VerifiablePresentation,
     key_id: &str,
+    dsa: Dsa,
     signer: Arc<dyn Signer>,
 ) -> Result<String> {
     let mut payload = JwtPayload::new();
@@ -181,6 +182,7 @@ pub fn sign_presentation_with_signer(
 
     let jose_signer = JoseSigner {
         kid: key_id.to_string(),
+        dsa: dsa.clone(),
         signer,
     };
 
@@ -221,8 +223,20 @@ pub fn sign_presentation_with_did(
         )));
     }
 
+    let public_jwk = bearer_did
+        .document
+        .find_verification_method(FindVerificationMethodOptions {
+            verification_method_id: Some(verification_method_id.clone()),
+        })?
+        .public_key_jwk;
+
+    let dsa = Dsa::from_str(&public_jwk.alg.clone().ok_or(Web5Error::Crypto(format!(
+        "did document vm {} publicKeyJwk must have alg",
+        verification_method_id
+    )))?)?;
+
     let signer = bearer_did.get_signer(&verification_method_id)?;
-    sign_presentation_with_signer(vp, &verification_method_id, signer)
+    sign_presentation_with_signer(vp, &verification_method_id, dsa, signer)
 }
 
 fn build_vp_context(context: Option<Vec<String>>) -> Vec<String> {
@@ -271,7 +285,7 @@ pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiableP
             .public_key_jwk;
 
         let dsa = Dsa::from_str(&public_jwk.alg.clone().ok_or(Web5Error::Crypto(format!(
-            "resolve publicKeyJwk must have alg {}",
+            "resolved publicKeyJwk must have alg {}",
             kid
         )))?)?;
         let verifier: Arc<dyn Verifier> = match dsa {

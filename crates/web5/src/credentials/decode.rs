@@ -51,7 +51,7 @@ pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredenti
             .public_key_jwk;
 
         let dsa = Dsa::from_str(&public_jwk.alg.clone().ok_or(Web5Error::Crypto(format!(
-            "resolve publicKeyJwk must have alg {}",
+            "resolved publicKeyJwk must have alg {}",
             kid
         )))?)?;
         let verifier: Arc<dyn Verifier> = match dsa {
