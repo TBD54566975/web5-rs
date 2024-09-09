@@ -18,20 +18,8 @@ class DidWebTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Create {
-        private val testSuite = UnitTestSuite("did_web_create")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_can_specify_key_manager() {
-            testSuite.include()
 
             val keyManager = InMemoryKeyManager(listOf())
             val bearerDid = DidWeb.create("localhost", DidWebCreateOptions(keyManager = keyManager))

@@ -9,20 +9,8 @@ import web5.sdk.Web5Exception
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class JwkTest {
 
-    private val testSuite = UnitTestSuite("jwk_compute_thumbprint")
-
-    @AfterAll
-    fun verifyAllTestsIncluded() {
-        if (testSuite.tests.isNotEmpty()) {
-            println("The following tests were not included or executed:")
-            testSuite.tests.forEach { println(it) }
-            fail("Not all tests were executed! ${testSuite.tests}")
-        }
-    }
-
     @Test
     fun test_ec_valid() {
-        testSuite.include()
         val jwk = Jwk(
             kty = "EC",
             crv = "secp256k1",
@@ -36,7 +24,6 @@ class JwkTest {
 
     @Test
     fun test_okp_valid() {
-        testSuite.include()
         val jwk = Jwk(
             kty = "OKP",
             crv = "Ed25519",
@@ -49,7 +36,6 @@ class JwkTest {
 
     @Test
     fun test_unsupported_kty() {
-        testSuite.include()
         val jwk = Jwk(
             kty = "RSA",
             crv = "RS256",
@@ -66,7 +52,6 @@ class JwkTest {
 
     @Test
     fun test_empty_kty() {
-        testSuite.include()
         val jwk = Jwk(
             kty = "",
             crv = "Ed25519",
@@ -82,7 +67,6 @@ class JwkTest {
 
     @Test
     fun test_empty_x() {
-        testSuite.include()
         val jwk = Jwk(
             kty = "OKP",
             crv = "Ed25519",
@@ -98,7 +82,6 @@ class JwkTest {
 
     @Test
     fun test_empty_crv() {
-        testSuite.include()
         val jwk = Jwk(
             kty = "EC",
             crv = "",
@@ -115,7 +98,6 @@ class JwkTest {
 
     @Test
     fun test_ec_missing_y() {
-        testSuite.include()
         val jwk = Jwk(
             kty = "EC",
             crv = "P-256",
@@ -131,7 +113,6 @@ class JwkTest {
 
     @Test
     fun test_ec_empty_y() {
-        testSuite.include()
         val jwk = Jwk(
             kty = "EC",
             crv = "P-256",

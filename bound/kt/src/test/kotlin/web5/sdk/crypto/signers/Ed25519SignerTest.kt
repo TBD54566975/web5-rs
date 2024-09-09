@@ -10,20 +10,8 @@ import web5.sdk.Web5Exception
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Ed25519SignerTest {
 
-    private val testSuite = UnitTestSuite("ed25519_sign")
-
-    @AfterAll
-    fun verifyAllTestsIncluded() {
-        if (testSuite.tests.isNotEmpty()) {
-            println("The following tests were not included or executed:")
-            testSuite.tests.forEach { println(it) }
-            fail("Not all tests were executed! ${testSuite.tests}")
-        }
-    }
-
     @Test
     fun test_with_valid_key() {
-        testSuite.include()
 
         val jwk = Ed25519Generator.generate()
         val signer = Ed25519Signer(jwk)

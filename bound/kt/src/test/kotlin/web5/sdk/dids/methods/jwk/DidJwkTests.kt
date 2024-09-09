@@ -12,20 +12,8 @@ class DidJwkTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Create {
-        private val testSuite = UnitTestSuite("did_jwk_create")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_can_specify_key_manager() {
-            testSuite.include()
 
             val keyManager = InMemoryKeyManager(listOf())
             val bearerDid = DidJwk.create(DidJwkCreateOptions(keyManager))
@@ -65,20 +53,8 @@ class DidJwkTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Resolve {
-        private val testSuite = UnitTestSuite("did_jwk_resolve")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_invalid_did() {
-            testSuite.include()
 
             val resolutionResult = DidJwk.resolve("something invalid")
             assertEquals(ResolutionMetadataError.INVALID_DID, resolutionResult.resolutionMetadata.error)

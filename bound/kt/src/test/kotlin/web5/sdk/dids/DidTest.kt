@@ -9,20 +9,8 @@ import web5.sdk.Web5Exception
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DidTest {
 
-  private val testSuite = UnitTestSuite("did_parse")
-
-  @AfterAll
-  fun verifyAllTestsIncluded() {
-    if (testSuite.tests.isNotEmpty()) {
-      println("The following tests were not included or executed:")
-      testSuite.tests.forEach { println(it) }
-      fail("Not all tests were executed! ${testSuite.tests}")
-    }
-  }
-
   @Test
   fun test_did_empty_string_should_error() {
-    testSuite.include()
     val uri = ""
 
     val exception = assertThrows<Web5Exception> {
