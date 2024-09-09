@@ -4,7 +4,7 @@ use super::{
 use crate::credentials::verifiable_credential_1_1::CredentialStatus;
 use crate::{
     json::JsonObject,
-    rfc3339::{deserialize_optional_system_time, serialize_optional_system_time},
+    datetime::{deserialize_optional_unix_timestamp, serialize_optional_unix_timestamp},
 };
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
@@ -21,14 +21,14 @@ pub struct JwtPayloadVerifiableCredential {
     pub issuer: Option<Issuer>,
     #[serde(
         rename = "issuanceDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_unix_timestamp",
+        deserialize_with = "deserialize_optional_unix_timestamp"
     )]
     pub issuance_date: Option<SystemTime>,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_unix_timestamp",
+        deserialize_with = "deserialize_optional_unix_timestamp"
     )]
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "credentialStatus", skip_serializing_if = "Option::is_none")]

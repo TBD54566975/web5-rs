@@ -5,14 +5,14 @@ use super::decode::decode;
 use super::CredentialSubject;
 use super::Issuer;
 
+use crate::datetime::{
+    deserialize_optional_rfc3339, deserialize_rfc3339, serialize_optional_rfc3339,
+    serialize_rfc3339,
+};
 use crate::dids::bearer_did::BearerDid;
 use crate::errors::Result;
 use crate::json::JsonObject;
 use crate::json::{FromJson, ToJson};
-use crate::rfc3339::{
-    deserialize_optional_system_time, deserialize_system_time, serialize_optional_system_time,
-    serialize_system_time,
-};
 
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
@@ -32,14 +32,14 @@ pub struct VerifiableCredential {
     pub credential_subject: CredentialSubject,
     #[serde(
         rename = "issuanceDate",
-        serialize_with = "serialize_system_time",
-        deserialize_with = "deserialize_system_time"
+        serialize_with = "serialize_rfc3339",
+        deserialize_with = "deserialize_rfc3339"
     )]
     pub issuance_date: SystemTime,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_rfc3339",
+        deserialize_with = "deserialize_optional_rfc3339"
     )]
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "credentialStatus", skip_serializing_if = "Option::is_none")]

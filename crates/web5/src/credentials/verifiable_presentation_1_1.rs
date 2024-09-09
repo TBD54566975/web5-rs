@@ -9,9 +9,9 @@ use crate::dids::did::Did;
 use crate::dids::resolution::resolution_metadata::ResolutionMetadataError;
 use crate::dids::resolution::resolution_result::ResolutionResult;
 use crate::errors::{Result, Web5Error};
-use crate::rfc3339::{
-    deserialize_optional_system_time, deserialize_system_time, serialize_optional_system_time,
-    serialize_system_time,
+use crate::datetime::{
+    deserialize_optional_rfc3339, deserialize_optional_unix_timestamp, deserialize_rfc3339,
+    serialize_optional_rfc3339, serialize_optional_unix_timestamp, serialize_rfc3339,
 };
 use josekit::jws::JwsHeader;
 use josekit::jwt::JwtPayload;
@@ -33,14 +33,14 @@ pub struct VerifiablePresentation {
     pub holder: String,
     #[serde(
         rename = "issuanceDate",
-        serialize_with = "serialize_system_time",
-        deserialize_with = "deserialize_system_time"
+        serialize_with = "serialize_rfc3339",
+        deserialize_with = "deserialize_rfc3339"
     )]
     pub issuance_date: SystemTime,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_rfc3339",
+        deserialize_with = "deserialize_optional_rfc3339"
     )]
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "verifiableCredential")]
@@ -68,14 +68,14 @@ pub struct JwtPayloadVerifiablePresentation {
     pub holder: Option<String>,
     #[serde(
         rename = "issuanceDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_unix_timestamp",
+        deserialize_with = "deserialize_optional_unix_timestamp"
     )]
     pub issuance_date: Option<SystemTime>,
     #[serde(
         rename = "expirationDate",
-        serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        serialize_with = "serialize_optional_unix_timestamp",
+        deserialize_with = "deserialize_optional_unix_timestamp"
     )]
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "verifiableCredential", skip_serializing_if = "Vec::is_empty")]
