@@ -3,6 +3,9 @@
 # Directory containing the JSON test case files
 JSON_DIR="tests/unit_test_cases"
 
+# Initialize error flag
+error_flag=0
+
 # Loop through each JSON file in the directory
 for json_file in "$JSON_DIR"/*.json; do
     # Extract test names from the JSON file using jq
@@ -19,6 +22,7 @@ for json_file in "$JSON_DIR"/*.json; do
             file_content=$(cat "$file_path")
         else
             echo "  File not found: $file_path"
+            error_flag=1  # Set error flag
             continue
         fi
 
@@ -27,7 +31,13 @@ for json_file in "$JSON_DIR"/*.json; do
             # Check if the test name exists in the file content
             if ! grep -q "$test_name" <<< "$file_content"; then
                 echo "  Missing test: $test_name in $file_path"
+                error_flag=1  # Set error flag
             fi
         done
     done
 done
+
+# Exit with error if any issues were found
+if [[ $error_flag -ne 0 ]]; then
+    exit 1
+fi
