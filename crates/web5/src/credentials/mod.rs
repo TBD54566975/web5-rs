@@ -15,7 +15,6 @@ pub use status_list_credential::{
 };
 mod verifiable_credential_1_1;
 mod verifiable_presentation_1_1;
-mod presentation_submission;
 
 pub use verifiable_credential_1_1::CredentialStatus;
 pub use verifiable_credential_1_1::VerifiableCredential;
