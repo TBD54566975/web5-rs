@@ -1,61 +1,13 @@
-use std::{str::FromStr, sync::Arc, time::SystemTime};
-
-use crate::{
-    crypto::dsa::{Dsa, Signer},
-    dids::{bearer_did::BearerDid, data_model::document::FindVerificationMethodOptions},
-    errors::{Result, Web5Error},
-};
-use josekit::{jws::JwsHeader, jwt::JwtPayload};
-
 use super::{
-    josekit::JoseSigner, jwt_payload_vc::JwtPayloadVerifiableCredential,
-    verifiable_credential_1_1::VerifiableCredential,
+    jwt_payload_vc::JwtPayloadVerifiableCredential, verifiable_credential_1_1::VerifiableCredential,
 };
-
-pub fn sign_with_signer(
-    vc: &VerifiableCredential,
-    key_id: &str,
-    dsa: Dsa,
-    signer: Arc<dyn Signer>,
-) -> Result<String> {
-    let mut payload = JwtPayload::new();
-    let vc_claim = JwtPayloadVerifiableCredential {
-        context: vc.context.clone(),
-        id: Some(vc.id.clone()),
-        r#type: vc.r#type.clone(),
-        issuer: Some(vc.issuer.clone()),
-        issuance_date: Some(vc.issuance_date),
-        expiration_date: vc.expiration_date,
-        credential_status: vc.credential_status.clone(),
-        credential_subject: Some(vc.credential_subject.clone()),
-        credential_schema: vc.credential_schema.clone(),
-        evidence: vc.evidence.clone(),
-    };
-    payload
-        .set_claim("vc", Some(serde_json::to_value(vc_claim)?))
-        .map_err(|e| Web5Error::Unknown(format!("failed to set claim {}", e)))?;
-    payload.set_issuer(vc.issuer.to_string());
-    payload.set_jwt_id(&vc.id);
-    payload.set_subject(&vc.credential_subject.id);
-    payload.set_not_before(&vc.issuance_date);
-    payload.set_issued_at(&SystemTime::now());
-    if let Some(exp) = &vc.expiration_date {
-        payload.set_expires_at(exp);
-    }
-
-    let jose_signer = JoseSigner {
-        kid: key_id.to_string(),
-        dsa,
-        signer,
-    };
-
-    let mut header = JwsHeader::new();
-    header.set_token_type("JWT");
-    let vc_jwt = josekit::jwt::encode_with_signer(&payload, &header, &jose_signer)
-        .map_err(|e| Web5Error::Crypto(format!("failed to sign vc-jwt {}", e)))?;
-
-    Ok(vc_jwt)
-}
+use crate::{
+    dids::bearer_did::BearerDid,
+    errors::{Result, Web5Error},
+    jose::{Jwt, JwtClaims},
+    json::{JsonValue, ToJsonValue},
+};
+use std::{collections::HashMap, time::SystemTime};
 
 pub fn sign_with_did(
     vc: &VerifiableCredential,
@@ -69,37 +21,34 @@ pub fn sign_with_did(
         )));
     }
 
-    let verification_method_id = verification_method_id
-        .unwrap_or_else(|| bearer_did.document.verification_method[0].id.clone());
-
-    let is_assertion_method = if let Some(assertion_methods) = &bearer_did.document.assertion_method
-    {
-        assertion_methods.contains(&verification_method_id)
-    } else {
-        false
+    let vc_claim = JwtPayloadVerifiableCredential {
+        context: vc.context.clone(),
+        id: Some(vc.id.clone()),
+        r#type: vc.r#type.clone(),
+        issuer: Some(vc.issuer.clone()),
+        issuance_date: Some(vc.issuance_date),
+        expiration_date: vc.expiration_date,
+        credential_status: vc.credential_status.clone(),
+        credential_subject: Some(vc.credential_subject.clone()),
+        credential_schema: vc.credential_schema.clone(),
+        evidence: vc.evidence.clone(),
     };
 
-    if !is_assertion_method {
-        return Err(Web5Error::Parameter(format!(
-            "verification_method_id {} is not an assertion_method",
-            verification_method_id
-        )));
-    }
+    let mut additional_properties: HashMap<String, JsonValue> = HashMap::new();
+    additional_properties.insert("vc".to_string(), vc_claim.to_json_value()?);
 
-    let public_jwk = bearer_did
-        .document
-        .find_verification_method(FindVerificationMethodOptions {
-            verification_method_id: Some(verification_method_id.clone()),
-        })?
-        .public_key_jwk;
+    let claims = JwtClaims {
+        iss: Some(vc.issuer.to_string()),
+        jti: Some(vc.id.clone()),
+        sub: Some(vc.credential_subject.id.clone()),
+        nbf: Some(vc.issuance_date),
+        iat: Some(SystemTime::now()),
+        exp: vc.expiration_date,
+        additional_properties: Some(additional_properties),
+    };
 
-    let dsa = Dsa::from_str(&public_jwk.alg.clone().ok_or(Web5Error::Crypto(format!(
-        "did document vm {} publicKeyJwk must have alg",
-        verification_method_id
-    )))?)?;
-
-    let signer = bearer_did.get_signer(&verification_method_id)?;
-    sign_with_signer(vc, &verification_method_id, dsa, signer)
+    let jwt = Jwt::from_claims(&claims, bearer_did, verification_method_id)?;
+    Ok(jwt.compact_jws)
 }
 
 #[cfg(test)]
@@ -201,12 +150,7 @@ mod tests {
             let vc_jwt =
                 sign_with_did(&vc, &bearer_did, None).expect("should sign with default vm");
 
-            let header = josekit::jwt::decode_header(vc_jwt).unwrap();
-
-            let kid = header
-                .claim("kid")
-                .and_then(serde_json::Value::as_str)
-                .unwrap();
+            let kid = Jwt::from_compact_jws(&vc_jwt, false).unwrap().kid;
 
             assert_eq!(bearer_did.document.verification_method[0].id, kid)
         }

@@ -583,10 +583,7 @@ mod tests {
         TEST_SUITE.include(test_name!());
 
         let mut evidence_item = JsonObject::new();
-        evidence_item.insert(
-            "A Key".to_string(),
-            JsonValue::String("A Value".to_string()),
-        );
+        evidence_item.insert_value("A Key", JsonValue::String("A Value".to_string()));
         let evidence = vec![evidence_item];
 
         let options = VerifiableCredentialCreateOptions {
@@ -880,8 +877,8 @@ mod tests {
             .create();
 
         let mut additional_properties = JsonObject::new();
-        additional_properties.insert(
-            "emailAddress".to_string(),
+        additional_properties.insert_value(
+            "emailAddress",
             JsonValue::String("alice@tbd.email".to_string()),
         );
 
