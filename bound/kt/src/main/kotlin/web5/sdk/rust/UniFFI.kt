@@ -925,6 +925,20 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
