@@ -115,11 +115,9 @@ mod tests {
     mod from_vc_jwt {
         use super::*;
         use crate::credentials::credential_schema::CREDENTIAL_SCHEMA_TYPE;
+        use crate::dids::resolution::resolution_metadata::ResolutionMetadataError;
         use crate::json::JsonValue;
         use crate::{credentials::VerificationError, errors::Web5Error};
-        use crate::{
-            dids::resolution::resolution_metadata::ResolutionMetadataError,
-        };
         use mockito::{Server, ServerOpts};
 
         fn assert_credential_error<T>(result: Result<T>, expected_error: VerificationError)

@@ -98,7 +98,6 @@ mod tests {
 
         #[test]
         fn test_must_be_private_jwk() {
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk = Ed25519Generator::generate();
             let mut public_jwk = private_jwk.clone();
@@ -114,7 +113,6 @@ mod tests {
 
         #[test]
         fn test_successfully_imports_and_returns_public_jwk() {
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk = Ed25519Generator::generate();
 
@@ -131,7 +129,6 @@ mod tests {
 
         #[test]
         fn test_must_be_public_key() {
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk = Ed25519Generator::generate();
             let result = key_manager.get_signer(private_jwk);
@@ -145,7 +142,6 @@ mod tests {
 
         #[test]
         fn test_not_found() {
-
             let key_manager = InMemoryKeyManager::new();
             let mut public_jwk = Ed25519Generator::generate();
             public_jwk.d = None;
@@ -166,7 +162,6 @@ mod tests {
 
         #[test]
         fn test_found() {
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk = Ed25519Generator::generate();
             let mut public_jwk = private_jwk.clone();
@@ -185,7 +180,6 @@ mod tests {
 
         #[test]
         fn test_export_empty_list() {
-
             let key_manager = InMemoryKeyManager::new();
             let result = key_manager.export_private_jwks().unwrap();
             assert!(result.is_empty());
@@ -193,7 +187,6 @@ mod tests {
 
         #[test]
         fn test_export_single_key() {
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk = Ed25519Generator::generate();
             key_manager.import_private_jwk(private_jwk.clone()).unwrap();
@@ -205,7 +198,6 @@ mod tests {
 
         #[test]
         fn test_export_multiple_keys() {
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk1 = Ed25519Generator::generate();
             let private_jwk2 = Ed25519Generator::generate();
@@ -224,4 +216,3 @@ mod tests {
         }
     }
 }
-

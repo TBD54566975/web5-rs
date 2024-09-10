@@ -227,13 +227,12 @@ impl DidDht {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     mod create {
         use super::*;
 
         #[test]
         fn test_can_specify_key_manager() {
-
             let key_manager = Arc::new(InMemoryKeyManager::new());
             let result = DidDht::create(Some(DidDhtCreateOptions {
                 publish: Some(false),
@@ -253,7 +252,6 @@ mod tests {
 
         #[test]
         fn test_can_specify_publish_and_gateway_url() {
-            
             let mut mock_server = mockito::Server::new();
             let gateway_url = mock_server.url();
 
@@ -277,7 +275,6 @@ mod tests {
 
         #[test]
         fn test_should_add_optional_verification_methods() {
-            
             let additional_verification_method = VerificationMethod {
                 id: "did:web:example.com#key-1".to_string(),
                 r#type: "JsonWebKey".to_string(),
@@ -303,7 +300,6 @@ mod tests {
 
         #[test]
         fn test_should_add_optional_services() {
-            
             let service = Service {
                 id: "did:web:example.com#service-0".to_string(),
                 r#type: "SomeService".to_string(),
@@ -324,7 +320,6 @@ mod tests {
 
         #[test]
         fn test_should_add_optional_also_known_as() {
-            
             let also_known_as = vec!["https://alias.example.com".to_string()];
 
             let result = DidDht::create(Some(DidDhtCreateOptions {
@@ -341,7 +336,6 @@ mod tests {
 
         #[test]
         fn test_should_add_optional_controllers() {
-            
             let controllers = vec!["did:web:controller.example.com".to_string()];
 
             let result = DidDht::create(Some(DidDhtCreateOptions {
@@ -362,7 +356,6 @@ mod tests {
 
         #[test]
         fn test_can_specify_gateway_url() {
-
             let mut mock_server = mockito::Server::new();
             let gateway_url = mock_server.url();
 
@@ -391,7 +384,6 @@ mod tests {
 
         #[test]
         fn test_can_handle_network_error() {
-            
             let mut mock_server = mockito::Server::new();
             let gateway_url = mock_server.url();
 
@@ -428,7 +420,6 @@ mod tests {
 
         #[test]
         fn test_invalid_did() {
-
             let resolution_result = DidDht::resolve("something invalid", None);
             assert_eq!(
                 resolution_result.resolution_metadata.error,
@@ -438,7 +429,6 @@ mod tests {
 
         #[test]
         fn test_method_not_supported() {
-            
             let resolution_result = DidDht::resolve("did:web:example", None);
             assert_eq!(
                 resolution_result.resolution_metadata.error,
@@ -448,7 +438,6 @@ mod tests {
 
         #[test]
         fn test_not_found() {
-            
             let bearer_did = DidDht::create(Some(DidDhtCreateOptions {
                 publish: Some(false),
                 ..Default::default()
@@ -476,7 +465,6 @@ mod tests {
 
         #[test]
         fn test_internal_error() {
-            
             let bearer_did = DidDht::create(Some(DidDhtCreateOptions {
                 publish: Some(false),
                 ..Default::default()
@@ -504,7 +492,6 @@ mod tests {
 
         #[test]
         fn test_can_create_then_resolve() {
-            
             let mut mock_server = mockito::Server::new();
             let gateway_url = mock_server.url();
 

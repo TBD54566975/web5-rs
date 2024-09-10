@@ -42,14 +42,13 @@ impl From<ResolutionMetadataError> for ResolutionResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-        use mockito::Server;
+    use mockito::Server;
 
     mod resolve {
         use super::*;
 
         #[test]
         fn test_invalid_did() {
-
             let resolution_result = ResolutionResult::resolve("something invalid");
             assert_eq!(
                 resolution_result.resolution_metadata.error,
@@ -59,7 +58,6 @@ mod tests {
 
         #[test]
         fn test_did_jwk() {
-            
             let bearer_did = DidJwk::create(None).unwrap();
 
             let resolution_result = ResolutionResult::resolve(&bearer_did.did.uri);
@@ -69,7 +67,6 @@ mod tests {
 
         #[test]
         fn test_did_web() {
-            
             let mut mock_server = Server::new();
             let url = mock_server.url();
 
@@ -91,7 +88,6 @@ mod tests {
 
         #[test]
         fn test_method_not_supported() {
-            
             let resolution_result = ResolutionResult::resolve("did:example:123");
             assert!(resolution_result.resolution_metadata.error.is_some());
             assert_eq!(

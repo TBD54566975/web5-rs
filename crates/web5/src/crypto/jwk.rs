@@ -78,7 +78,6 @@ mod tests {
 
         #[test]
         fn test_ec_valid() {
-
             let jwk = Jwk {
                 kty: "EC".to_string(),
                 crv: "secp256k1".to_string(),
@@ -93,7 +92,6 @@ mod tests {
 
         #[test]
         fn test_okp_valid() {
-
             let jwk = Jwk {
                 kty: "OKP".to_string(),
                 crv: "Ed25519".to_string(),
@@ -107,7 +105,6 @@ mod tests {
 
         #[test]
         fn test_unsupported_kty() {
-
             let jwk = Jwk {
                 kty: "RSA".to_string(),
                 crv: "RS256".to_string(),
@@ -123,7 +120,6 @@ mod tests {
 
         #[test]
         fn test_empty_kty() {
-
             let jwk = Jwk {
                 kty: "".to_string(),
                 crv: "Ed25519".to_string(),
@@ -138,7 +134,6 @@ mod tests {
 
         #[test]
         fn test_empty_x() {
-
             let jwk = Jwk {
                 kty: "OKP".to_string(),
                 crv: "Ed25519".to_string(),
@@ -153,7 +148,6 @@ mod tests {
 
         #[test]
         fn test_empty_crv() {
-
             let jwk = Jwk {
                 kty: "EC".to_string(),
                 crv: "".to_string(),
@@ -169,7 +163,6 @@ mod tests {
 
         #[test]
         fn test_ec_missing_y() {
-
             let jwk = Jwk {
                 kty: "EC".to_string(),
                 crv: "P-256".to_string(),
@@ -184,7 +177,6 @@ mod tests {
 
         #[test]
         fn test_ec_empty_y() {
-
             let jwk = Jwk {
                 kty: "EC".to_string(),
                 crv: "P-256".to_string(),
@@ -199,4 +191,3 @@ mod tests {
         }
     }
 }
-

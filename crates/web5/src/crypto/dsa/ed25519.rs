@@ -165,35 +165,31 @@ impl Verifier for Ed25519Verifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-        use general_purpose::URL_SAFE_NO_PAD;
+    use general_purpose::URL_SAFE_NO_PAD;
 
     mod generate {
         use super::*;
 
         #[test]
         fn test_must_set_alg() {
-
             let jwk = Ed25519Generator::generate();
             assert_eq!(jwk.alg, Some("Ed25519".to_string()));
         }
 
         #[test]
         fn test_must_set_kty() {
-            
             let jwk = Ed25519Generator::generate();
             assert_eq!(jwk.kty, "OKP".to_string());
         }
 
         #[test]
         fn test_must_set_crv() {
-            
             let jwk = Ed25519Generator::generate();
             assert_eq!(jwk.crv, "Ed25519");
         }
 
         #[test]
         fn test_must_set_public_key_with_correct_length() {
-            
             let jwk = Ed25519Generator::generate();
             let public_key_bytes = URL_SAFE_NO_PAD
                 .decode(&jwk.x)
@@ -203,7 +199,6 @@ mod tests {
 
         #[test]
         fn test_must_set_private_key_with_correct_length() {
-            
             let jwk = Ed25519Generator::generate();
             let private_key_bytes = jwk.d.expect("Private key is missing");
             let decoded_private_key_bytes = URL_SAFE_NO_PAD
@@ -218,7 +213,6 @@ mod tests {
 
         #[test]
         fn test_with_valid_key() {
-
             let jwk = Ed25519Generator::generate();
             let signer = Ed25519Signer::new(jwk);
 
@@ -240,7 +234,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_private_key() {
-            
             let mut jwk = Ed25519Generator::generate();
 
             // Set an invalid private key (wrong length)
@@ -266,7 +259,6 @@ mod tests {
 
         #[test]
         fn test_with_missing_private_key() {
-            
             let mut jwk = Ed25519Generator::generate();
 
             // Remove the private key
@@ -299,7 +291,6 @@ mod tests {
 
         #[test]
         fn test_with_valid_signature() {
-
             let (public_jwk, private_jwk) = generate_keys();
             let signer = Ed25519Signer::new(private_jwk);
             let verifier = Ed25519Verifier::new(public_jwk);
@@ -317,7 +308,6 @@ mod tests {
 
         #[test]
         fn test_with_private_key() {
-            
             let (_, private_jwk) = generate_keys();
             let verifier = Ed25519Verifier::new(private_jwk); // this is not allowed
 
@@ -340,7 +330,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_signature() {
-            
             let (public_jwk, _) = generate_keys();
             let verifier = Ed25519Verifier::new(public_jwk);
 
@@ -361,7 +350,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_public_key() {
-            
             let (mut public_jwk, private_jwk) = generate_keys();
             public_jwk.x = URL_SAFE_NO_PAD.encode(&[0u8; PUBLIC_KEY_LENGTH - 1]);
 
@@ -389,7 +377,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_signature_length() {
-            
             let (public_jwk, _) = generate_keys();
             let verifier = Ed25519Verifier::new(public_jwk);
 

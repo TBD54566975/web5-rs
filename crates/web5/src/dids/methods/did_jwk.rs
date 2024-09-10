@@ -120,13 +120,12 @@ impl DidJwk {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     mod create {
         use super::*;
 
         #[test]
         fn test_can_specify_key_manager() {
-
             let key_manager = Arc::new(InMemoryKeyManager::new());
             let result = DidJwk::create(Some(DidJwkCreateOptions {
                 key_manager: Some(key_manager.clone()),
@@ -145,7 +144,6 @@ mod tests {
 
         #[test]
         fn test_can_specify_secp256k1() {
-            
             let result = DidJwk::create(Some(DidJwkCreateOptions {
                 dsa: Some(Dsa::Secp256k1),
                 ..Default::default()
@@ -164,7 +162,6 @@ mod tests {
 
         #[test]
         fn test_defaults_to_ed25519() {
-            
             let result = DidJwk::create(None);
             assert!(result.is_ok());
 
@@ -183,7 +180,6 @@ mod tests {
 
         #[test]
         fn test_invalid_did() {
-
             let resolution_result = DidJwk::resolve("something invalid");
             assert_eq!(
                 resolution_result.resolution_metadata.error,
@@ -193,7 +189,6 @@ mod tests {
 
         #[test]
         fn test_create_then_resolve() {
-            
             let result = DidJwk::create(None);
             assert!(result.is_ok());
             let bearer_did = result.unwrap();

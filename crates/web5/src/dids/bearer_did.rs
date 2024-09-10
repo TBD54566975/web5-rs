@@ -71,7 +71,6 @@ mod tests {
 
         #[test]
         fn test_can_instantiate_successfully() {
-
             let key_manager = Arc::new(InMemoryKeyManager::new());
             let did_jwk_bearer_did = DidJwk::create(Some(DidJwkCreateOptions {
                 key_manager: Some(key_manager.clone()),
@@ -95,7 +94,6 @@ mod tests {
 
         #[test]
         fn test_verification_method_id_empty() {
-
             let bearer_did = DidJwk::create(None).unwrap();
 
             let result = bearer_did.get_signer("");
@@ -109,7 +107,6 @@ mod tests {
 
         #[test]
         fn test_not_found_by_verification_method_id() {
-            
             let bearer_did = DidJwk::create(None).unwrap();
 
             let result = bearer_did.get_signer("something invalid");
@@ -123,7 +120,6 @@ mod tests {
 
         #[test]
         fn test_found_by_verification_method_id() {
-            
             let bearer_did = DidJwk::create(None).unwrap();
 
             let result = bearer_did.get_signer(&bearer_did.document.verification_method[0].id);
@@ -136,7 +132,6 @@ mod tests {
 
         #[test]
         fn test_can_export() {
-
             let key_manager = Arc::new(InMemoryKeyManager::new());
             let bearer_did = DidJwk::create(Some(DidJwkCreateOptions {
                 key_manager: Some(key_manager.clone()),

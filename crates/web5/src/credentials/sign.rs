@@ -106,7 +106,7 @@ pub fn sign_with_did(
 mod tests {
     use super::*;
     use crate::credentials::credential_subject::CredentialSubject;
-    
+
     const SUBJECT_DID_URI: &str = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y";
 
     fn credential_subject() -> CredentialSubject {
@@ -120,7 +120,6 @@ mod tests {
 
         #[test]
         fn test_can_sign_then_verify() {
-
             let bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
@@ -139,7 +138,6 @@ mod tests {
 
         #[test]
         fn test_bearer_did_mismatch_issuer() {
-            
             let bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
@@ -167,7 +165,6 @@ mod tests {
 
         #[test]
         fn test_defaults_to_first_vm() {
-            
             let bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
@@ -191,7 +188,6 @@ mod tests {
 
         #[test]
         fn test_vm_must_be_assertion_method() {
-            
             let mut bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
