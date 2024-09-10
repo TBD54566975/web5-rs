@@ -1,6 +1,5 @@
 package web5.sdk.vc.pex
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import web5.sdk.Json
 import web5.sdk.Web5Exception
 import web5.sdk.rust.PresentationDefinition as RustCorePresentationDefinition
@@ -10,8 +9,8 @@ data class PresentationDefinition(
     val id: String,
     val name: String?,
     val purpose: String?,
-    @JsonProperty("input_descriptors")
-    val inputDescriptors: List<InputDescriptor>
+    val inputDescriptors: List<InputDescriptor>,
+val submissionRequirements: List<SubmissionRequirement>? = null
 ) {
     internal val rustCorePresentationDefinition = RustCorePresentationDefinition(
         Json.stringify(this)
@@ -20,6 +19,15 @@ data class PresentationDefinition(
     fun selectCredentials(vcJwts: List<String>): List<String> {
         try {
             return this.rustCorePresentationDefinition.selectCredentials(vcJwts)
+        } catch (e: RustCoreException) {
+            throw Web5Exception.fromRustCore(e)
+        }
+    }
+
+    fun createPresentationFromCredentials(vcJwts: List<String>): PresentationResult {
+        try {
+            val rustCoreJsonSerializedPresentationResult = this.rustCorePresentationDefinition.createPresentationFromCredentials(vcJwts)
+            return Json.jsonMapper.readValue(rustCoreJsonSerializedPresentationResult, PresentationResult::class.java)
         } catch (e: RustCoreException) {
             throw Web5Exception.fromRustCore(e)
         }
@@ -57,4 +65,38 @@ data class Filter(
     val pattern: String? = null,
     val const: String? = null,
     val contains: Filter? = null
+)
+
+data class SubmissionRequirement(
+    val rule: SubmissionRequirementRule,
+    val from: String? = null,
+    val fromNested: List<SubmissionRequirement>? = null,
+    val name: String? = null,
+    val purpose: String? = null,
+    val count: Int? = null,
+    val min: Int? = null,
+    val max: Int? = null
+)
+
+enum class SubmissionRequirementRule {
+    All,
+    Pick
+}
+
+data class PresentationResult(
+    val presentationSubmission: PresentationSubmission,
+    val matchedVcJwts: List<String>
+)
+
+data class PresentationSubmission(
+    val id: String,
+    val definitionId: String,
+    val descriptorMap: List<InputDescriptorMapping>
+)
+
+data class InputDescriptorMapping(
+    val id: String,
+    val format: String,
+    val path: String,
+    val pathNested: InputDescriptorMapping? = null
 )

@@ -7,11 +7,16 @@ use web5_uniffi_wrapper::{
             VerifiableCredentialCreateOptions as VerifiableCredentialCreateOptionsData,
             VerifiableCredentialData,
         },
-        verifiable_presentation_1_1::VerifiablePresentation,
+        verifiable_presentation_1_1::{
+            VerifiablePresentation,
+            VerifiablePresentationCreateOptions as VerifiablePresentationCreateOptionsData,
+            VerifiablePresentationData,
+        },
     },
     crypto::{
         dsa::{
             ed25519::{ed25519_generator_generate, Ed25519Signer, Ed25519Verifier},
+            secp256k1::{secp256k1_generator_generate, Secp256k1Signer, Secp256k1Verifier},
             Signer, Verifier,
         },
         in_memory_key_manager::InMemoryKeyManager,
@@ -37,8 +42,6 @@ use web5_uniffi_wrapper::{
 use web5::{
     credentials::{
         CredentialSchema as CredentialSchemaData, CredentialStatus as CredentialStatusData,
-        VerifiablePresentation as VerifiablePresentationData,
-        VerifiablePresentationCreateOptions as VerifiablePresentationCreateOptionsData,
     },
     crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{

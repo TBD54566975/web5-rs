@@ -1,8 +1,8 @@
-use std::{sync::Arc, time::SystemTime};
+use std::{str::FromStr, sync::Arc, time::SystemTime};
 
 use crate::{
-    crypto::dsa::Signer,
-    dids::bearer_did::BearerDid,
+    crypto::dsa::{Dsa, Signer},
+    dids::{bearer_did::BearerDid, data_model::document::FindVerificationMethodOptions},
     errors::{Result, Web5Error},
 };
 use josekit::{jws::JwsHeader, jwt::JwtPayload};
@@ -15,6 +15,7 @@ use super::{
 pub fn sign_with_signer(
     vc: &VerifiableCredential,
     key_id: &str,
+    dsa: Dsa,
     signer: Arc<dyn Signer>,
 ) -> Result<String> {
     let mut payload = JwtPayload::new();
@@ -44,6 +45,7 @@ pub fn sign_with_signer(
 
     let jose_signer = JoseSigner {
         kid: key_id.to_string(),
+        dsa,
         signer,
     };
 
@@ -84,8 +86,20 @@ pub fn sign_with_did(
         )));
     }
 
+    let public_jwk = bearer_did
+        .document
+        .find_verification_method(FindVerificationMethodOptions {
+            verification_method_id: Some(verification_method_id.clone()),
+        })?
+        .public_key_jwk;
+
+    let dsa = Dsa::from_str(&public_jwk.alg.clone().ok_or(Web5Error::Crypto(format!(
+        "did document vm {} publicKeyJwk must have alg",
+        verification_method_id
+    )))?)?;
+
     let signer = bearer_did.get_signer(&verification_method_id)?;
-    sign_with_signer(vc, &verification_method_id, signer)
+    sign_with_signer(vc, &verification_method_id, dsa, signer)
 }
 
 #[cfg(test)]

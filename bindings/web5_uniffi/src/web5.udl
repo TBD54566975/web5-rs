@@ -1,5 +1,6 @@
 namespace web5 {
   JwkData ed25519_generator_generate();
+  JwkData secp256k1_generator_generate();
 
   [Throws=Web5Error]
   BearerDid did_jwk_create(DidJwkCreateOptions? options);
@@ -86,6 +87,18 @@ interface Ed25519Signer {
 };
 
 interface Ed25519Verifier {
+  constructor(JwkData public_jwk);
+  [Throws=Web5Error]
+  void verify(bytes message, bytes signature);
+};
+
+interface Secp256k1Signer {
+  constructor(JwkData private_key);
+  [Throws=Web5Error]
+  bytes sign(bytes payload);
+};
+
+interface Secp256k1Verifier {
   constructor(JwkData public_jwk);
   [Throws=Web5Error]
   void verify(bytes message, bytes signature);
@@ -245,11 +258,9 @@ interface PresentationDefinition {
   string get_json_serialized_presentation_definition();
   [Throws=Web5Error]
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
+  [Throws=Web5Error]
+  string create_presentation_from_credentials([ByRef] sequence<string> vc_jwts);
 };
-
-
-
-
 
 dictionary VerifiableCredentialCreateOptionsData {
   string? id;
@@ -323,6 +334,7 @@ dictionary VerifiablePresentationCreateOptionsData {
   sequence<string>? type;
   timestamp? issuance_date;
   timestamp? expiration_date;
+  string? json_serialized_additional_data;
 };
 
 interface VerifiablePresentation {
@@ -351,4 +363,5 @@ dictionary VerifiablePresentationData {
   timestamp issuance_date;
   timestamp? expiration_date;
   sequence<string> verifiable_credential;
+  string? json_serialized_additional_data;
 };

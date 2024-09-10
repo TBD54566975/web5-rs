@@ -2,7 +2,8 @@ use crate::credentials::josekit::{JoseSigner, JoseVerifier, JoseVerifierAlwaysTr
 use crate::credentials::verifiable_credential_1_1::VerifiableCredential;
 use crate::credentials::VerificationError;
 use crate::crypto::dsa::ed25519::Ed25519Verifier;
-use crate::crypto::dsa::Signer;
+use crate::crypto::dsa::secp256k1::Secp256k1Verifier;
+use crate::crypto::dsa::{Dsa, Signer, Verifier};
 use crate::dids::bearer_did::BearerDid;
 use crate::dids::data_model::document::FindVerificationMethodOptions;
 use crate::dids::did::Did;
@@ -16,6 +17,9 @@ use crate::rfc3339::{
 use josekit::jws::JwsHeader;
 use josekit::jwt::JwtPayload;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::Arc;
 use std::time::SystemTime;
 use uuid::Uuid;
@@ -45,6 +49,8 @@ pub struct VerifiablePresentation {
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "verifiableCredential")]
     pub verifiable_credential: Vec<String>,
+    #[serde(flatten)]
+    pub additional_data: Option<HashMap<String, Value>>,
 }
 
 #[derive(Default, Clone)]
@@ -54,6 +60,7 @@ pub struct VerifiablePresentationCreateOptions {
     pub r#type: Option<Vec<String>>,
     pub issuance_date: Option<SystemTime>,
     pub expiration_date: Option<SystemTime>,
+    pub additional_data: Option<HashMap<String, Value>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -69,17 +76,21 @@ pub struct JwtPayloadVerifiablePresentation {
     #[serde(
         rename = "issuanceDate",
         serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        deserialize_with = "deserialize_optional_system_time",
+        default
     )]
     pub issuance_date: Option<SystemTime>,
     #[serde(
         rename = "expirationDate",
         serialize_with = "serialize_optional_system_time",
-        deserialize_with = "deserialize_optional_system_time"
+        deserialize_with = "deserialize_optional_system_time",
+        default
     )]
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "verifiableCredential", skip_serializing_if = "Vec::is_empty")]
     pub verifiable_credential: Vec<String>,
+    #[serde(flatten)]
+    pub additional_data: Option<HashMap<String, Value>>,
 }
 
 impl VerifiablePresentation {
@@ -115,6 +126,7 @@ impl VerifiablePresentation {
             issuance_date: options.issuance_date.unwrap_or_else(SystemTime::now),
             expiration_date: options.expiration_date,
             verifiable_credential: vc_jwts,
+            additional_data: options.additional_data,
         };
 
         Ok(verifiable_presentation)
@@ -142,6 +154,7 @@ impl VerifiablePresentation {
 pub fn sign_presentation_with_signer(
     vp: &VerifiablePresentation,
     key_id: &str,
+    dsa: Dsa,
     signer: Arc<dyn Signer>,
 ) -> Result<String> {
     let mut payload = JwtPayload::new();
@@ -153,6 +166,7 @@ pub fn sign_presentation_with_signer(
         verifiable_credential: vp.verifiable_credential.clone(),
         issuance_date: Some(vp.issuance_date),
         expiration_date: vp.expiration_date,
+        additional_data: vp.additional_data.clone(),
     };
 
     payload
@@ -168,6 +182,7 @@ pub fn sign_presentation_with_signer(
 
     let jose_signer = JoseSigner {
         kid: key_id.to_string(),
+        dsa: dsa.clone(),
         signer,
     };
 
@@ -208,8 +223,20 @@ pub fn sign_presentation_with_did(
         )));
     }
 
+    let public_jwk = bearer_did
+        .document
+        .find_verification_method(FindVerificationMethodOptions {
+            verification_method_id: Some(verification_method_id.clone()),
+        })?
+        .public_key_jwk;
+
+    let dsa = Dsa::from_str(&public_jwk.alg.clone().ok_or(Web5Error::Crypto(format!(
+        "did document vm {} publicKeyJwk must have alg",
+        verification_method_id
+    )))?)?;
+
     let signer = bearer_did.get_signer(&verification_method_id)?;
-    sign_presentation_with_signer(vp, &verification_method_id, signer)
+    sign_presentation_with_signer(vp, &verification_method_id, dsa, signer)
 }
 
 fn build_vp_context(context: Option<Vec<String>>) -> Vec<String> {
@@ -249,7 +276,7 @@ pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiableP
             return Err(err.into());
         }
 
-        let public_key_jwk = resolution_result
+        let public_jwk = resolution_result
             .document
             .ok_or(ResolutionMetadataError::InternalError)?
             .find_verification_method(FindVerificationMethodOptions {
@@ -257,9 +284,19 @@ pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiableP
             })?
             .public_key_jwk;
 
+        let dsa = Dsa::from_str(&public_jwk.alg.clone().ok_or(Web5Error::Crypto(format!(
+            "resolved publicKeyJwk must have alg {}",
+            kid
+        )))?)?;
+        let verifier: Arc<dyn Verifier> = match dsa {
+            Dsa::Ed25519 => Arc::new(Ed25519Verifier::new(public_jwk)),
+            Dsa::Secp256k1 => Arc::new(Secp256k1Verifier::new(public_jwk)),
+        };
+
         let jose_verifier = &JoseVerifier {
             kid: kid.to_string(),
-            verifier: Arc::new(Ed25519Verifier::new(public_key_jwk)),
+            dsa,
+            verifier,
         };
 
         let (jwt_payload, _) =
@@ -318,6 +355,7 @@ pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiableP
         issuance_date: nbf,
         expiration_date: exp,
         verifiable_credential: vp_payload.verifiable_credential,
+        additional_data: vp_payload.additional_data,
     };
 
     Ok(verifiable_presentation)
