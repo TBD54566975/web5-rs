@@ -4,7 +4,7 @@ pub mod dids;
 
 mod datetime;
 pub mod errors;
-pub mod jose;
+mod jose;
 pub mod json;
 
 #[cfg(test)]
