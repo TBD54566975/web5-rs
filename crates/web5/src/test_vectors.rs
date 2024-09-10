@@ -324,4 +324,46 @@ mod test_vectors {
                 .collect::<String>()
         }
     }
+
+    mod credentials {
+        use super::*;
+        use crate::credentials::VerifiableCredential;
+
+        #[derive(Debug, serde::Deserialize)]
+        struct VerifyVectorInput {
+            #[serde(rename = "vcJwt")]
+            pub vc_jwt: String,
+        }
+
+        #[test]
+        fn verify() {
+            let path = "credentials/verify.json";
+            let vectors: TestVectorFile<VerifyVectorInput, Option<bool>> =
+                TestVectorFile::load_from_path(path);
+
+            for vector in vectors.vectors {
+                if vector.description.contains("from web5-") {
+                    continue;
+                }
+
+                let vc_jwt = vector.input.vc_jwt;
+                let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+
+                if matches!(vector.errors, Some(true)) {
+                    assert!(
+                        result.is_err(),
+                        "Expected an error, but verification succeeded. Result: {:?}, Description: {}",
+                        result, vector.description
+                    );
+                } else {
+                    assert!(
+                        result.is_ok(),
+                        "Verification failed. Result: {:?}, Description: {}",
+                        result,
+                        vector.description
+                    );
+                }
+            }
+        }
+    }
 }

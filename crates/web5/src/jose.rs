@@ -1,6 +1,6 @@
 use crate::{
     credentials::VerificationError,
-    crypto::dsa::{ed25519::Ed25519Verifier, Dsa, Verifier},
+    crypto::dsa::{ed25519::Ed25519Verifier, secp256k1::Secp256k1Verifier, Dsa, Verifier},
     datetime::{deserialize_optional_unix_timestamp, serialize_optional_unix_timestamp},
     dids::{
         bearer_did::BearerDid, data_model::document::FindVerificationMethodOptions,
@@ -11,7 +11,7 @@ use crate::{
 };
 use base64::Engine;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, str::FromStr, time::SystemTime};
+use std::{collections::HashMap, str::FromStr, sync::Arc, time::SystemTime};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct JoseHeader {
@@ -195,7 +195,7 @@ impl Jwt {
                     verification_method_id: Some(kid.clone()),
                 })?
                 .public_key_jwk;
-            let verifier = match &public_jwk.alg {
+            let verifier: Arc<dyn Verifier> = match &public_jwk.alg {
                 None => {
                     return Err(Web5Error::Parameter(format!(
                         "verification method jwk alg must be set {}",
@@ -203,12 +203,8 @@ impl Jwt {
                     )))
                 }
                 Some(alg) => match Dsa::from_str(alg)? {
-                    Dsa::Ed25519 => Ed25519Verifier::new(public_jwk),
-                    Dsa::Secp256k1 => {
-                        return Err(Web5Error::Unknown(
-                            "secp256k1 verification not currently supported".to_string(),
-                        ))
-                    }
+                    Dsa::Ed25519 => Arc::new(Ed25519Verifier::new(public_jwk)),
+                    Dsa::Secp256k1 => Arc::new(Secp256k1Verifier::new(public_jwk)),
                 },
             };
 

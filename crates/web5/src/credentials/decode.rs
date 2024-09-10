@@ -3,7 +3,8 @@ use super::{
     jwt_payload_vc::JwtPayloadVerifiableCredential,
     verifiable_credential_1_1::VerifiableCredential, VerificationError,
 };
-use crate::{errors::Result, jose::Jwt, json::FromJsonValue};
+use crate::errors::Result;
+use crate::{jose::Jwt, json::FromJsonValue};
 
 pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredential> {
     let jwt = Jwt::from_compact_jws(vc_jwt, verify_signature)?;

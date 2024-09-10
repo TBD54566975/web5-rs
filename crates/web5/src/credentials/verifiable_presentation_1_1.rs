@@ -10,6 +10,7 @@ use crate::errors::{Result, Web5Error};
 use crate::jose::{Jwt, JwtClaims};
 use crate::json::{json_value_type_name, FromJsonValue, JsonValue, ToJsonValue};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::HashMap;
 use std::time::SystemTime;
 use uuid::Uuid;
@@ -41,6 +42,8 @@ pub struct VerifiablePresentation {
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "verifiableCredential")]
     pub verifiable_credential: Vec<String>,
+    #[serde(flatten)]
+    pub additional_data: Option<HashMap<String, Value>>,
 }
 
 #[derive(Default, Clone)]
@@ -50,6 +53,7 @@ pub struct VerifiablePresentationCreateOptions {
     pub r#type: Option<Vec<String>>,
     pub issuance_date: Option<SystemTime>,
     pub expiration_date: Option<SystemTime>,
+    pub additional_data: Option<HashMap<String, Value>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -80,6 +84,8 @@ pub struct JwtPayloadVerifiablePresentation {
     pub expiration_date: Option<SystemTime>,
     #[serde(rename = "verifiableCredential", skip_serializing_if = "Vec::is_empty")]
     pub verifiable_credential: Vec<String>,
+    #[serde(flatten)]
+    pub additional_data: Option<HashMap<String, Value>>,
 }
 
 impl FromJsonValue for JwtPayloadVerifiablePresentation {
@@ -138,6 +144,7 @@ impl VerifiablePresentation {
             issuance_date: options.issuance_date.unwrap_or_else(SystemTime::now),
             expiration_date: options.expiration_date,
             verifiable_credential: vc_jwts,
+            additional_data: options.additional_data,
         };
 
         Ok(verifiable_presentation)
@@ -182,6 +189,7 @@ pub fn sign_presentation_with_did(
         verifiable_credential: vp.verifiable_credential.clone(),
         issuance_date: Some(vp.issuance_date),
         expiration_date: vp.expiration_date,
+        additional_data: vp.additional_data.clone(),
     };
 
     let mut additional_properties: HashMap<String, JsonValue> = HashMap::new();
@@ -263,6 +271,7 @@ pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiableP
         issuance_date: nbf,
         expiration_date: exp,
         verifiable_credential: vp_payload.verifiable_credential,
+        additional_data: vp_payload.additional_data,
     };
 
     Ok(verifiable_presentation)

@@ -1,4 +1,5 @@
 pub mod ed25519;
+pub mod secp256k1;
 
 use crate::errors::Result;
 use std::sync::Arc;

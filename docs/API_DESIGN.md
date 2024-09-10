@@ -166,6 +166,7 @@ CLASS VerifiablePresentation
   PUBLIC DATA issuance_date: datetime
   PUBLIC DATA expiration_date: datetime?
   PUBLIC DATA verifiable_credential: []string
+  PUBLIC DATA additional_data: Map<string, string>?
 
   CONSTRUCTOR create(holder: string, vc_jwts: []string, options: VerifiablePresentationCreateOptions?)
   CONSTRUCTOR from_vp_jwt(vp_jwt: string, verify: bool)
@@ -182,6 +183,7 @@ CLASS VerifiablePresentationCreateOptions
   PUBLIC DATA type: []string?
   PUBLIC DATA issuance_date: datetime?
   PUBLIC DATA expiration_date: datetime?
+  PUBLIC DATA additional_data: Map<string, string>?
 ```
 
 ## Presentation Exchange (PEX)
@@ -194,7 +196,9 @@ CLASS PresentationDefinition
   PUBLIC DATA name: string?
   PUBLIC DATA purpose: string?
   PUBLIC DATA input_descriptors: []InputDescriptor
+  
   METHOD select_credentials(vc_jwts: []string): []string
+  METHOD create_presentation_from_credentials(vc_jwts: []string): PresentationResult
 ```
 
 ### `InputDescriptor` 
@@ -245,6 +249,54 @@ CLASS Filter
   PUBLIC DATA contains: Filter?
 ```
 
+### `PresentationResult`
+
+```pseudocode!
+CLASS PresentationResult
+  PUBLIC DATA presentation_submission: PresentationSubmission
+  PUBLIC DATA matched_vc_jwts: []string
+```
+
+### `PresentationSubmission`
+
+```pseudocode!
+CLASS PresentationSubmission
+  PUBLIC DATA id: string
+  PUBLIC DATA definition_id: string
+  PUBLIC DATA descriptor_map: []InputDescriptorMapping
+```
+
+### `InputDescriptorMapping`
+
+```pseudocode!
+CLASS InputDescriptorMapping
+  PUBLIC DATA id: string
+  PUBLIC DATA format: string
+  PUBLIC DATA path: string
+  PUBLIC DATA path_nested: InputDescriptorMapping?
+```
+
+### `SubmissionRequirement`
+
+```pseudocode!
+CLASS SubmissionRequirement
+  PUBLIC DATA rule: SubmissionRequirementRule
+  PUBLIC DATA from: string?
+  PUBLIC DATA from_nested: []SubmissionRequirement?
+  PUBLIC DATA name: string?
+  PUBLIC DATA purpose: string?
+  PUBLIC DATA count: uint32?
+  PUBLIC DATA min: uint32?
+  PUBLIC DATA max: uint32?
+```
+
+### `SubmissionRequirementRule`
+
+```pseudocode!
+ENUM SubmissionRequirementRule
+  All
+  Pick
+```
 # Crypto
 
 ## `Jwk`
