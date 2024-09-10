@@ -1,5 +1,6 @@
 namespace web5 {
   JwkData ed25519_generator_generate();
+  JwkData secp256k1_generator_generate();
 
   [Throws=Web5Error]
   BearerDid did_jwk_create(DidJwkCreateOptions? options);
@@ -86,6 +87,18 @@ interface Ed25519Signer {
 };
 
 interface Ed25519Verifier {
+  constructor(JwkData public_jwk);
+  [Throws=Web5Error]
+  void verify(bytes message, bytes signature);
+};
+
+interface Secp256k1Signer {
+  constructor(JwkData private_key);
+  [Throws=Web5Error]
+  bytes sign(bytes payload);
+};
+
+interface Secp256k1Verifier {
   constructor(JwkData public_jwk);
   [Throws=Web5Error]
   void verify(bytes message, bytes signature);

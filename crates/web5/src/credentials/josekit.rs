@@ -1,20 +1,27 @@
 use std::{fmt::Formatter, sync::Arc};
 
-use crate::crypto::dsa::{Signer, Verifier};
+use crate::crypto::dsa::{Dsa, Signer, Verifier};
 use josekit::{
-    jws::{alg::eddsa::EddsaJwsAlgorithm, JwsAlgorithm, JwsSigner, JwsVerifier},
+    jws::{
+        alg::{ecdsa::EcdsaJwsAlgorithm, eddsa::EddsaJwsAlgorithm},
+        JwsAlgorithm, JwsSigner, JwsVerifier,
+    },
     JoseError,
 };
 
 #[derive(Clone)]
 pub struct JoseSigner {
     pub kid: String,
+    pub dsa: Dsa,
     pub signer: Arc<dyn Signer>,
 }
 
 impl JwsSigner for JoseSigner {
     fn algorithm(&self) -> &dyn JwsAlgorithm {
-        &EddsaJwsAlgorithm::Eddsa
+        match self.dsa {
+            Dsa::Ed25519 => &EddsaJwsAlgorithm::Eddsa,
+            Dsa::Secp256k1 => &EcdsaJwsAlgorithm::Es256k,
+        }
     }
 
     fn key_id(&self) -> Option<&str> {
@@ -46,12 +53,16 @@ impl core::fmt::Debug for JoseSigner {
 #[derive(Clone)]
 pub struct JoseVerifier {
     pub kid: String,
+    pub dsa: Dsa,
     pub verifier: Arc<dyn Verifier>,
 }
 
 impl JwsVerifier for JoseVerifier {
     fn algorithm(&self) -> &dyn JwsAlgorithm {
-        &EddsaJwsAlgorithm::Eddsa
+        match self.dsa {
+            Dsa::Ed25519 => &EddsaJwsAlgorithm::Eddsa,
+            Dsa::Secp256k1 => &EcdsaJwsAlgorithm::Es256k,
+        }
     }
 
     fn key_id(&self) -> Option<&str> {
