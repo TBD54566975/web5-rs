@@ -150,7 +150,7 @@ let vc_jwt = vc.sign(bearer_did, None)?;
 ### Instantiate a new `did:jwk`
 
 ```kotlin
-val didJwk = DidJwk.create(null)
+val didJwk = DidJwk.create()
 println("Created DID JWK: ${didJwk.did.uri}")
 ```
 
