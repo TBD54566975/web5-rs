@@ -3,7 +3,6 @@ package web5.sdk.crypto.keys
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
-import web5.sdk.UnitTestSuite
 import web5.sdk.Web5Exception
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

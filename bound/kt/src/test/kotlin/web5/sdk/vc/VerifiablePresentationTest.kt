@@ -23,7 +23,7 @@ class VerifiablePresentationTest {
         val options = VerifiablePresentationCreateOptions(
             id = "urn:uuid:12345678-1234-5678-1234-567812345678",
             context = listOf("https://www.w3.org/2018/credentials/v1"),
-            type = listof(verifiablePresentation"),
+            type = listOf("VerifiablePresentation"),
             issuanceDate = Date(),
             expirationDate = Date(System.currentTimeMillis() + 86400000) // 1 day later
         )

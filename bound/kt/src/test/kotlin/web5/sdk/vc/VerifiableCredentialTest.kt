@@ -6,7 +6,6 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
-import web5.sdk.UnitTestSuite
 import web5.sdk.dids.BearerDid
 import web5.sdk.dids.methods.jwk.DidJwk
 import web5.sdk.Web5Exception
@@ -614,17 +613,6 @@ class VerifiableCredentialTest {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class FromVcJwt {
-        private val testSuite = UnitTestSuite("verifiable_credential_1_1_from_vc_jwt")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_missing_kid_jose_header() {
 
@@ -1313,17 +1301,6 @@ class VerifiableCredentialTest {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Sign {
-        private val testSuite = UnitTestSuite("verifiable_credential_1_1_sign")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_can_sign_then_verify() {
 

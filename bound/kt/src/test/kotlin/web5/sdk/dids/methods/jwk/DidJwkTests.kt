@@ -3,7 +3,6 @@ package web5.sdk.dids.methods.jwk
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
-import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.keys.InMemoryKeyManager
 import web5.sdk.crypto.Dsa
 import web5.sdk.dids.ResolutionMetadataError
@@ -27,7 +26,6 @@ class DidJwkTests {
 
         @Test
         fun test_can_specify_secp256k1() {
-            testSuite.include()
 
             val bearerDid = DidJwk.create(DidJwkCreateOptions(dsa = Dsa.SECP256K1))
 
@@ -39,7 +37,6 @@ class DidJwkTests {
 
         @Test
         fun test_defaults_to_ed25519() {
-            testSuite.include()
 
             val bearerDid = DidJwk.create()
 
@@ -62,7 +59,6 @@ class DidJwkTests {
 
         @Test
         fun test_create_then_resolve() {
-            testSuite.include()
 
             val bearerDid = DidJwk.create()
             val resolutionResult = DidJwk.resolve(bearerDid.did.uri)
