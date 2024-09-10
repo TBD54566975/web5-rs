@@ -136,57 +136,30 @@ impl Verifier for Secp256k1Verifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_helpers::UnitTestSuite;
-    use crate::test_name;
-    use lazy_static::lazy_static;
 
     mod generate {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("secp256k1_generate");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
         #[test]
         fn test_must_set_alg() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Secp256k1Generator::generate();
             assert_eq!(jwk.alg, Some("ES256K".to_string()));
         }
 
         #[test]
         fn test_must_set_kty() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Secp256k1Generator::generate();
             assert_eq!(jwk.kty, "EC".to_string());
         }
 
         #[test]
         fn test_must_set_crv() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Secp256k1Generator::generate();
             assert_eq!(jwk.crv, "secp256k1");
         }
 
         #[test]
         fn test_must_set_public_key_with_correct_length() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Secp256k1Generator::generate();
             let x_bytes = general_purpose::URL_SAFE_NO_PAD
                 .decode(&jwk.x)
@@ -200,8 +173,6 @@ mod tests {
 
         #[test]
         fn test_must_set_private_key_with_correct_length() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Secp256k1Generator::generate();
             let private_key_bytes = jwk.d.expect("Private key is missing");
             let decoded_private_key_bytes = general_purpose::URL_SAFE_NO_PAD
@@ -214,26 +185,8 @@ mod tests {
     mod sign {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("secp256k1_sign");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
         #[test]
         fn test_with_valid_key() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Secp256k1Generator::generate();
             let signer = Secp256k1Signer::new(jwk);
 
@@ -255,8 +208,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_private_key() {
-            TEST_SUITE.include(test_name!());
-
             let mut jwk = Secp256k1Generator::generate();
 
             // Set an invalid private key (wrong length)
@@ -278,8 +229,6 @@ mod tests {
 
         #[test]
         fn test_with_missing_private_key() {
-            TEST_SUITE.include(test_name!());
-
             let mut jwk = Secp256k1Generator::generate();
 
             // Remove the private key
@@ -303,22 +252,6 @@ mod tests {
     mod verify {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("secp256k1_verify");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
         fn generate_keys() -> (Jwk, Jwk) {
             let private_jwk = Secp256k1Generator::generate();
             let public_jwk = to_public_jwk(&private_jwk);
@@ -327,8 +260,6 @@ mod tests {
 
         #[test]
         fn test_with_valid_signature() {
-            TEST_SUITE.include(test_name!());
-
             let (public_jwk, private_jwk) = generate_keys();
             let signer = Secp256k1Signer::new(private_jwk);
             let verifier = Secp256k1Verifier::new(public_jwk);
@@ -346,8 +277,6 @@ mod tests {
 
         #[test]
         fn test_with_private_key() {
-            TEST_SUITE.include(test_name!());
-
             let (_, private_jwk) = generate_keys();
             let verifier = Secp256k1Verifier::new(private_jwk); // Should not use a private key for verification
 
@@ -370,8 +299,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_signature() {
-            TEST_SUITE.include(test_name!());
-
             let (public_jwk, private_jwk) = generate_keys();
             let signer = Secp256k1Signer::new(private_jwk);
             let verifier = Secp256k1Verifier::new(public_jwk);
@@ -396,8 +323,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_public_key() {
-            TEST_SUITE.include(test_name!());
-
             let (mut public_jwk, private_jwk) = generate_keys();
             public_jwk.x = general_purpose::URL_SAFE_NO_PAD.encode(&[0u8; 31]); // Invalid length
 
@@ -421,8 +346,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_signature_length() {
-            TEST_SUITE.include(test_name!());
-
             let (public_jwk, _) = generate_keys();
             let verifier = Secp256k1Verifier::new(public_jwk);
 
