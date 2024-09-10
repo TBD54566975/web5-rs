@@ -29,7 +29,10 @@ pub struct PresentationDefinition {
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub purpose: Option<String>,
+
+    #[serde(rename = "inputDescriptors")]
     pub input_descriptors: Vec<InputDescriptor>,
+    #[serde(rename = "submissionRequirements")]
     pub submission_requirements: Option<Vec<SubmissionRequirement>>,
 }
 
@@ -96,7 +99,7 @@ pub struct SubmissionRequirement {
     pub rule: SubmissionRequirementRule,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub from: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", rename = "fromNested")]
     pub from_nested: Option<Vec<SubmissionRequirement>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -123,10 +126,10 @@ pub enum SubmissionRequirementRule {
 pub struct PresentationSubmission {
     pub id: String,
 
-    #[serde(rename = "definition_id")]
+    #[serde(rename = "definitionId")]
     pub definition_id: String,
 
-    #[serde(rename = "descriptor_map")]
+    #[serde(rename = "descriptorMap")]
     pub descriptor_map: Vec<InputDescriptorMapping>,
 }
 
@@ -137,13 +140,15 @@ pub struct InputDescriptorMapping {
     pub format: String,
     pub path: String,
 
-    #[serde(rename = "path_nested")]
+    #[serde(rename = "pathNested")]
     pub path_nested: Option<Box<InputDescriptorMapping>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PresentationResult {
+    #[serde(rename = "presentationSubmission")]
     pub presentation_submission: PresentationSubmission,
+    #[serde(rename = "matchedVcJwts")]
     pub matched_vc_jwts: Vec<String>,
 }
 

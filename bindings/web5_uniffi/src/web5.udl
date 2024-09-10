@@ -245,11 +245,9 @@ interface PresentationDefinition {
   string get_json_serialized_presentation_definition();
   [Throws=Web5Error]
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
+  [Throws=Web5Error]
+  string create_presentation_from_credentials([ByRef] sequence<string> vc_jwts);
 };
-
-
-
-
 
 dictionary VerifiableCredentialCreateOptionsData {
   string? id;

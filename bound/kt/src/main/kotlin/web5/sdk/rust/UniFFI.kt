@@ -923,6 +923,8 @@ internal open class UniffiVTableCallbackInterfaceVerifier(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1056,6 +1058,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_web5_uniffi_fn_constructor_presentationdefinition_new(`jsonSerializedPresentationDefinition`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_web5_uniffi_fn_method_presentationdefinition_create_presentation_from_credentials(`ptr`: Pointer,`vcJwts`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_presentationdefinition_get_json_serialized_presentation_definition(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_web5_uniffi_fn_method_presentationdefinition_select_credentials(`ptr`: Pointer,`vcJwts`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1300,6 +1304,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_web5_uniffi_checksum_method_portabledid_to_json_string(
     ): Short
+    fun uniffi_web5_uniffi_checksum_method_presentationdefinition_create_presentation_from_credentials(
+    ): Short
     fun uniffi_web5_uniffi_checksum_method_presentationdefinition_get_json_serialized_presentation_definition(
     ): Short
     fun uniffi_web5_uniffi_checksum_method_presentationdefinition_select_credentials(
@@ -1454,6 +1460,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_portabledid_to_json_string() != 53673.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_create_presentation_from_credentials() != 27580.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_method_presentationdefinition_get_json_serialized_presentation_definition() != 52261.toShort()) {
@@ -4548,6 +4557,8 @@ public object FfiConverterTypePortableDid: FfiConverter<PortableDid, Pointer> {
 
 public interface PresentationDefinitionInterface {
     
+    fun `createPresentationFromCredentials`(`vcJwts`: List<kotlin.String>): kotlin.String
+    
     fun `getJsonSerializedPresentationDefinition`(): kotlin.String
     
     fun `selectCredentials`(`vcJwts`: List<kotlin.String>): List<kotlin.String>
@@ -4642,6 +4653,19 @@ open class PresentationDefinition: Disposable, AutoCloseable, PresentationDefini
             UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_clone_presentationdefinition(pointer!!, status)
         }
     }
+
+    
+    @Throws(Web5Exception::class)override fun `createPresentationFromCredentials`(`vcJwts`: List<kotlin.String>): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(Web5Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_method_presentationdefinition_create_presentation_from_credentials(
+        it, FfiConverterSequenceString.lower(`vcJwts`),_status)
+}
+    }
+    )
+    }
+    
 
     
     @Throws(Web5Exception::class)override fun `getJsonSerializedPresentationDefinition`(): kotlin.String {

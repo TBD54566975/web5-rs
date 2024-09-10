@@ -91,4 +91,43 @@ class VerifiablePresentationTest {
         assertEquals(vp.type, decodedVp.type)
         assertEquals(vp.verifiableCredential, decodedVp.verifiableCredential)
     }
+
+    @Test
+    fun test_create_verifiable_presentation_with_additional_properties() {
+        val holder = HOLDER_DID_URI
+        val verifiableCredential = listOf(VERIFIABLE_CREDENTIAL)
+
+        // Define additional properties to test
+        val additionalProperties = mapOf(
+            "customProperty1" to "customValue1",
+            "customProperty2" to 12345,
+            "customProperty3" to true
+        )
+
+        val options = VerifiablePresentationCreateOptions(
+            id = "urn:uuid:12345678-1234-5678-1234-567812345678",
+            context = listOf("https://www.w3.org/2018/credentials/v1"),
+            type = listOf("VerifiablePresentation"),
+            issuanceDate = Date(),
+            expirationDate = Date(System.currentTimeMillis() + 86400000), // 1 day later
+            additionalProperties = additionalProperties
+        )
+
+        val vp = VerifiablePresentation.create(holder, verifiableCredential, options)
+
+        // Assertions
+        assertEquals(holder, vp.holder)
+        assertEquals(options.id, vp.id)
+        assertEquals(options.context, vp.context)
+        assertEquals(options.type, vp.type)
+        assertEquals(verifiableCredential, vp.verifiableCredential)
+        assertNotNull(vp.issuanceDate)
+        assertNotNull(vp.expirationDate)
+        assertNotNull(vp.additionalProperties)
+
+        // Check that the additional properties match
+        assertEquals("customValue1", vp.additionalProperties?.get("customProperty1"))
+        assertEquals(12345, vp.additionalProperties?.get("customProperty2"))
+        assertEquals(true, vp.additionalProperties?.get("customProperty3"))
+    }
 }
