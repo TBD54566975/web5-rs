@@ -141,7 +141,7 @@ impl Jwt {
 
     pub fn from_compact_jws(compact_jws: &str, verify: bool) -> Result<Self> {
         let parts = compact_jws
-            .split(".")
+            .split('.')
             .map(String::from)
             .collect::<Vec<String>>();
         if parts.len() != 3 {

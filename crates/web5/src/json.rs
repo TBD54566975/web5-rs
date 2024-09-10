@@ -51,7 +51,7 @@ pub(crate) fn json_value_type_name(value: &JsonValue) -> &'static str {
 impl FromJsonValue for bool {
     fn from_json_value(value: &JsonValue) -> Result<Self> {
         if let JsonValue::Bool(ref b) = *value {
-            Ok(b.clone())
+            Ok(*b)
         } else {
             Err(Web5Error::Json(format!(
                 "expected bool, but found {}",
@@ -64,7 +64,7 @@ impl FromJsonValue for bool {
 impl FromJsonValue for f64 {
     fn from_json_value(value: &JsonValue) -> Result<Self> {
         if let JsonValue::Number(ref n) = *value {
-            Ok(n.clone())
+            Ok(*n)
         } else {
             Err(Web5Error::Json(format!(
                 "expected number, but found {}",

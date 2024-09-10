@@ -67,6 +67,6 @@ impl ToJsonValue for JwtPayloadVerifiableCredential {
     fn to_json_value(&self) -> Result<JsonValue> {
         let json_string = serde_json::to_string(self)?;
         let map = serde_json::from_str::<HashMap<String, JsonValue>>(&json_string)?;
-        Ok(map.to_json_value()?)
+        map.to_json_value()
     }
 }
