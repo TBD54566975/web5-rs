@@ -107,7 +107,7 @@ The binding process follows these key steps:
    All the core logic for working with DIDs, verifiable credentials, and cryptographic signing and verification is implemented in Rust. Rust is chosen as the core layer for its memory safety, performance, and cross-platform capabilities.
 
 2. **Building the Kotlin Bindings**  
-   The Kotlin bindings are generated from the core Rust code and live in the `bound/kotlin` directory. These bindings allow Kotlin applications to access the functionality of the core Rust libraries through idiomatic Kotlin APIs.
+   The Kotlin bindings are generated from the core Rust code and live in the `bound/kt` directory. These bindings allow Kotlin applications to access the functionality of the core Rust libraries through idiomatic Kotlin APIs.
 
 3. **Packaging & Distribution**  
    The Kotlin bindings are packaged and distributed as a Kotlin library, which can be imported and used in Kotlin applications just like any other dependency.
