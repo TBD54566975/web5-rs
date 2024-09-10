@@ -10,7 +10,7 @@ use web5_uniffi_wrapper::{
         verifiable_presentation_1_1::{
             VerifiablePresentation,
             VerifiablePresentationCreateOptions as VerifiablePresentationCreateOptionsData,
-            VerifiablePresentationData
+            VerifiablePresentationData,
         },
     },
     crypto::{

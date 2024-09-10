@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use crate::{dids::bearer_did::BearerDid, errors::Result};
+use serde_json::Value;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::SystemTime;
-use serde_json::Value;
 use web5::credentials::VerifiablePresentation as InnerVerifiablePresentation;
 use web5::credentials::VerifiablePresentationCreateOptions as InnerVerifiablePresentationCreateOptions;
 
@@ -26,13 +26,12 @@ impl VerifiablePresentation {
         vc_jwts: Vec<String>,
         options: Option<VerifiablePresentationCreateOptions>,
     ) -> Result<Self> {
-
         let options = options.unwrap_or_default();
 
         let additional_data = match options.json_serialized_additional_data {
-            Some(additional_data) => {
-                Some(serde_json::from_str::<HashMap<String,Value>>(&additional_data)?)
-            }
+            Some(additional_data) => Some(serde_json::from_str::<HashMap<String, Value>>(
+                &additional_data,
+            )?),
             None => None,
         };
 
@@ -42,7 +41,7 @@ impl VerifiablePresentation {
             r#type: options.r#type,
             issuance_date: options.issuance_date,
             expiration_date: options.expiration_date,
-            additional_data: additional_data,
+            additional_data,
         };
 
         let inner_vp = InnerVerifiablePresentation::create(holder, vc_jwts, Some(inner_options))?;
@@ -64,7 +63,7 @@ impl VerifiablePresentation {
             verifiable_credential: self.inner_vp.verifiable_credential.clone(),
             issuance_date: self.inner_vp.issuance_date,
             expiration_date: self.inner_vp.expiration_date,
-            json_serialized_additional_data: json_serialized_additional_data,
+            json_serialized_additional_data,
         })
     }
 

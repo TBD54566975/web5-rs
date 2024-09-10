@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use crate::credentials::josekit::{JoseSigner, JoseVerifier, JoseVerifierAlwaysTrue};
 use crate::credentials::verifiable_credential_1_1::VerifiableCredential;
 use crate::credentials::VerificationError;
@@ -17,9 +16,10 @@ use crate::rfc3339::{
 use josekit::jws::JwsHeader;
 use josekit::jwt::JwtPayload;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::SystemTime;
-use serde_json::Value;
 use uuid::Uuid;
 
 pub const BASE_PRESENTATION_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
@@ -161,7 +161,7 @@ pub fn sign_presentation_with_signer(
         verifiable_credential: vp.verifiable_credential.clone(),
         issuance_date: Some(vp.issuance_date),
         expiration_date: vp.expiration_date,
-        additional_data: vp.additional_data.clone()
+        additional_data: vp.additional_data.clone(),
     };
 
     payload
@@ -327,7 +327,7 @@ pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiableP
         issuance_date: nbf,
         expiration_date: exp,
         verifiable_credential: vp_payload.verifiable_credential,
-        additional_data: vp_payload.additional_data
+        additional_data: vp_payload.additional_data,
     };
 
     Ok(verifiable_presentation)

@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use crate::credentials::verifiable_credential_1_1::VerifiableCredential;
 use jsonpath_rust::{
     JsonPathFinder,
     JsonPathValue::{NewValue, NoValue, Slice},
@@ -8,7 +9,6 @@ use jsonschema::JSONSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, to_value, Map, Value};
 use uuid::Uuid;
-use crate::credentials::verifiable_credential_1_1::VerifiableCredential;
 
 #[derive(thiserror::Error, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum PexError {
@@ -152,7 +152,6 @@ fn generate_token() -> String {
 }
 
 impl PresentationDefinition {
-
     /// Selects Verifiable Credentials (VCs) that match the input descriptors of the presentation definition.
     ///
     /// # Arguments
@@ -397,12 +396,14 @@ impl JsonSchemaBuilder {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
     use super::*;
-    use serde_json::json;
-    use crate::credentials::{CredentialSubject, Issuer, VerifiablePresentation, VerifiablePresentationCreateOptions};
+    use crate::credentials::{
+        CredentialSubject, Issuer, VerifiablePresentation, VerifiablePresentationCreateOptions,
+    };
     use crate::dids::methods::did_jwk::DidJwk;
     use crate::json::{JsonObject, JsonValue};
+    use serde_json::json;
+    use std::collections::HashMap;
 
     #[test]
     fn test_create_presentation_from_credentials() {
@@ -413,31 +414,27 @@ mod tests {
             id: "test_pd_id".to_string(),
             name: Some("Test Presentation Definition".to_string()),
             purpose: Some("Testing".to_string()),
-            input_descriptors: vec![
-                InputDescriptor {
-                    id: "test_input_1".to_string(),
-                    name: Some("Test Input 1".to_string()),
-                    purpose: Some("Testing Input 1".to_string()),
-                    constraints: Constraints {
-                        fields: vec![
-                            Field {
-                                path: vec!["$.credentialSubject.id".to_string()],
-                                filter: Some(Filter {
-                                    r#type: Some("string".to_string()),
-                                    pattern: Some("^did:jwk:.*$".to_string()),
-                                    const_value: None,
-                                    contains: None,
-                                }),
-                                id: None,
-                                name: None,
-                                purpose: None,
-                                optional: None,
-                                predicate: None,
-                            }
-                        ],
-                    },
-                }
-            ],
+            input_descriptors: vec![InputDescriptor {
+                id: "test_input_1".to_string(),
+                name: Some("Test Input 1".to_string()),
+                purpose: Some("Testing Input 1".to_string()),
+                constraints: Constraints {
+                    fields: vec![Field {
+                        path: vec!["$.credentialSubject.id".to_string()],
+                        filter: Some(Filter {
+                            r#type: Some("string".to_string()),
+                            pattern: Some("^did:jwk:.*$".to_string()),
+                            const_value: None,
+                            contains: None,
+                        }),
+                        id: None,
+                        name: None,
+                        purpose: None,
+                        optional: None,
+                        predicate: None,
+                    }],
+                },
+            }],
             submission_requirements: None,
         };
 
@@ -445,13 +442,12 @@ mod tests {
             Issuer::from(issuer_uri.clone()),
             CredentialSubject::from(issuer_uri.clone()),
             Default::default(),
-        ).unwrap();
+        )
+        .unwrap();
 
         let signed_vcjwt_1 = vc_1.sign(&issuer.clone(), None).unwrap();
 
-        let vc_jwts = vec![
-            signed_vcjwt_1
-        ];
+        let vc_jwts = vec![signed_vcjwt_1];
 
         let result = presentation_definition.create_presentation_from_credentials(&vc_jwts);
 
@@ -459,12 +455,29 @@ mod tests {
 
         let presentation_result = result.unwrap();
 
-        assert_eq!(presentation_result.presentation_submission.definition_id, "test_pd_id");
-        assert_eq!(presentation_result.presentation_submission.descriptor_map.len(), 1);
-        assert_eq!(presentation_result.presentation_submission.descriptor_map[0].id, "test_input_1");
-        assert_eq!(presentation_result.presentation_submission.descriptor_map[0].format, "jwt_vc");
-        assert_eq!(presentation_result.presentation_submission.descriptor_map[0].path, "$.verifiableCredential[0]");
-
+        assert_eq!(
+            presentation_result.presentation_submission.definition_id,
+            "test_pd_id"
+        );
+        assert_eq!(
+            presentation_result
+                .presentation_submission
+                .descriptor_map
+                .len(),
+            1
+        );
+        assert_eq!(
+            presentation_result.presentation_submission.descriptor_map[0].id,
+            "test_input_1"
+        );
+        assert_eq!(
+            presentation_result.presentation_submission.descriptor_map[0].format,
+            "jwt_vc"
+        );
+        assert_eq!(
+            presentation_result.presentation_submission.descriptor_map[0].path,
+            "$.verifiableCredential[0]"
+        );
     }
 
     /// This test demonstrates the full flow of a Presentation Exchange using a Verifiable Credential (VC) and a Presentation Definition (PD).
@@ -522,7 +535,7 @@ mod tests {
             CredentialSubject::from(issuer_uri.clone()),
             Default::default(),
         )
-            .unwrap();
+        .unwrap();
 
         // Step 4: Sign the VC to generate a VC in JWT format
         let signed_vcjwt_1 = vc_1.sign(&issuer.clone(), None).unwrap();
@@ -556,9 +569,9 @@ mod tests {
         let vp = VerifiablePresentation::create(
             holder_uri.clone(),
             presentation_result.matched_vc_jwts, // Use the selected credentials from the PD
-            Some(vp_create_options)
+            Some(vp_create_options),
         )
-            .expect("Failed to create Verifiable Presentation");
+        .expect("Failed to create Verifiable Presentation");
 
         // Step 8: Sign the VP to generate a JWT format
         let vp_jwt = vp.sign(&holder.clone(), None).unwrap();
@@ -654,7 +667,7 @@ mod tests {
             },
             Default::default(),
         )
-            .unwrap();
+        .unwrap();
 
         // For vc_2, we add the "role" property to match the second input descriptor
         let vc_2_credential_subject = CredentialSubject {
@@ -670,7 +683,8 @@ mod tests {
             Issuer::from(issuer_uri.clone()),
             vc_2_credential_subject,
             Default::default(),
-        ).unwrap();
+        )
+        .unwrap();
 
         // vc_3 won't match either input descriptor
         let vc_3 = VerifiableCredential::create(
@@ -680,7 +694,8 @@ mod tests {
                 additional_properties: None, // No matching role
             },
             Default::default(),
-        ).unwrap();
+        )
+        .unwrap();
 
         // Sign all three VCs
         let signed_vcjwt_1 = vc_1.sign(&issuer.clone(), None).unwrap();
@@ -694,7 +709,7 @@ mod tests {
         ];
 
         // Unwrap the result of `create_presentation_from_credentials`
-        let presentation_result= presentation_definition
+        let presentation_result = presentation_definition
             .create_presentation_from_credentials(&vc_jwts)
             .unwrap();
 
@@ -713,8 +728,12 @@ mod tests {
         };
 
         // Use the `selected_vcs` directly
-        let vp = VerifiablePresentation::create(holder_uri.clone(), presentation_result.matched_vc_jwts, Some(vp_create_options))
-            .expect("Failed to create Verifiable Presentation");
+        let vp = VerifiablePresentation::create(
+            holder_uri.clone(),
+            presentation_result.matched_vc_jwts,
+            Some(vp_create_options),
+        )
+        .expect("Failed to create Verifiable Presentation");
 
         let vp_jwt = vp.sign(&holder.clone(), None).unwrap();
 

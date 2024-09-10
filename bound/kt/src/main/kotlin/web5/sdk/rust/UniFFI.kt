@@ -7022,7 +7022,8 @@ data class VerifiablePresentationCreateOptionsData (
     var `context`: List<kotlin.String>?, 
     var `type`: List<kotlin.String>?, 
     var `issuanceDate`: java.time.Instant?, 
-    var `expirationDate`: java.time.Instant?
+    var `expirationDate`: java.time.Instant?, 
+    var `jsonSerializedAdditionalData`: kotlin.String?
 ) {
     
     companion object
@@ -7036,6 +7037,7 @@ public object FfiConverterTypeVerifiablePresentationCreateOptionsData: FfiConver
             FfiConverterOptionalSequenceString.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
+            FfiConverterOptionalString.read(buf),
         )
     }
 
@@ -7044,7 +7046,8 @@ public object FfiConverterTypeVerifiablePresentationCreateOptionsData: FfiConver
             FfiConverterOptionalSequenceString.allocationSize(value.`context`) +
             FfiConverterOptionalSequenceString.allocationSize(value.`type`) +
             FfiConverterOptionalTimestamp.allocationSize(value.`issuanceDate`) +
-            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`)
+            FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`) +
+            FfiConverterOptionalString.allocationSize(value.`jsonSerializedAdditionalData`)
     )
 
     override fun write(value: VerifiablePresentationCreateOptionsData, buf: ByteBuffer) {
@@ -7053,6 +7056,7 @@ public object FfiConverterTypeVerifiablePresentationCreateOptionsData: FfiConver
             FfiConverterOptionalSequenceString.write(value.`type`, buf)
             FfiConverterOptionalTimestamp.write(value.`issuanceDate`, buf)
             FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
+            FfiConverterOptionalString.write(value.`jsonSerializedAdditionalData`, buf)
     }
 }
 
@@ -7065,7 +7069,8 @@ data class VerifiablePresentationData (
     var `holder`: kotlin.String, 
     var `issuanceDate`: java.time.Instant, 
     var `expirationDate`: java.time.Instant?, 
-    var `verifiableCredential`: List<kotlin.String>
+    var `verifiableCredential`: List<kotlin.String>, 
+    var `jsonSerializedAdditionalData`: kotlin.String?
 ) {
     
     companion object
@@ -7081,6 +7086,7 @@ public object FfiConverterTypeVerifiablePresentationData: FfiConverterRustBuffer
             FfiConverterTimestamp.read(buf),
             FfiConverterOptionalTimestamp.read(buf),
             FfiConverterSequenceString.read(buf),
+            FfiConverterOptionalString.read(buf),
         )
     }
 
@@ -7091,7 +7097,8 @@ public object FfiConverterTypeVerifiablePresentationData: FfiConverterRustBuffer
             FfiConverterString.allocationSize(value.`holder`) +
             FfiConverterTimestamp.allocationSize(value.`issuanceDate`) +
             FfiConverterOptionalTimestamp.allocationSize(value.`expirationDate`) +
-            FfiConverterSequenceString.allocationSize(value.`verifiableCredential`)
+            FfiConverterSequenceString.allocationSize(value.`verifiableCredential`) +
+            FfiConverterOptionalString.allocationSize(value.`jsonSerializedAdditionalData`)
     )
 
     override fun write(value: VerifiablePresentationData, buf: ByteBuffer) {
@@ -7102,6 +7109,7 @@ public object FfiConverterTypeVerifiablePresentationData: FfiConverterRustBuffer
             FfiConverterTimestamp.write(value.`issuanceDate`, buf)
             FfiConverterOptionalTimestamp.write(value.`expirationDate`, buf)
             FfiConverterSequenceString.write(value.`verifiableCredential`, buf)
+            FfiConverterOptionalString.write(value.`jsonSerializedAdditionalData`, buf)
     }
 }
 
