@@ -1,5 +1,7 @@
 package web5.sdk.vc
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import web5.sdk.Json
 import java.util.Date
 import web5.sdk.Web5Exception
 import web5.sdk.dids.BearerDid
@@ -12,7 +14,8 @@ data class VerifiablePresentationCreateOptions(
     val context: List<String>? = null,
     val type: List<String>? = null,
     val issuanceDate: Date? = null,
-    val expirationDate: Date? = null
+    val expirationDate: Date? = null,
+    val additionalProperties: Map<String, Any>? = null
 )
 
 data class VerifiablePresentation private constructor(
@@ -23,6 +26,7 @@ data class VerifiablePresentation private constructor(
     val issuanceDate: Date,
     val expirationDate: Date? = null,
     val verifiableCredential: List<String>,
+    val additionalProperties: Map<String, Any>?,
     internal val rustCoreVerifiablePresentation: RustCoreVerifiablePresentation,
 ) {
     companion object {
@@ -32,6 +36,8 @@ data class VerifiablePresentation private constructor(
             options: VerifiablePresentationCreateOptions? = null
         ): VerifiablePresentation {
             try {
+                val jsonSerializedAdditionalProperties = options?.additionalProperties?.let { Json.stringify(it) }
+
                 val rustCoreVerifiablePresentation = RustCoreVerifiablePresentation.create(
                     holder,
                     verifiableCredential,
@@ -40,7 +46,8 @@ data class VerifiablePresentation private constructor(
                         options?.context,
                         options?.type,
                         options?.issuanceDate?.toInstant(),
-                        options?.expirationDate?.toInstant()
+                        options?.expirationDate?.toInstant(),
+                        jsonSerializedAdditionalProperties
                     )
                 )
 
@@ -54,7 +61,8 @@ data class VerifiablePresentation private constructor(
                     Date.from(data.issuanceDate),
                     data.expirationDate?.let { Date.from(it) },
                     data.verifiableCredential,
-                    rustCoreVerifiablePresentation
+                    options?.additionalProperties,
+                    rustCoreVerifiablePresentation,
                 )
             } catch (e: RustCoreException) {
                 throw Web5Exception.fromRustCore(e)
@@ -66,6 +74,8 @@ data class VerifiablePresentation private constructor(
                 val rustCoreVerifiablePresentation = RustCoreVerifiablePresentation.fromVpJwt(vpJwt, verify)
                 val data = rustCoreVerifiablePresentation.getData()
 
+                val additionalProperties = data.jsonSerializedAdditionalData?.let { Json.jsonMapper.readValue<Map<String, Any>>(it) }
+
                 return VerifiablePresentation(
                     data.context,
                     data.type,
@@ -74,6 +84,7 @@ data class VerifiablePresentation private constructor(
                     Date.from(data.issuanceDate),
                     data.expirationDate?.let { Date.from(it) },
                     data.verifiableCredential,
+                    additionalProperties,
                     rustCoreVerifiablePresentation
                 )
             } catch (e: RustCoreException) {

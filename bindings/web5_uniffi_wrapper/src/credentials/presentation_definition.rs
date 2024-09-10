@@ -16,6 +16,13 @@ impl PresentationDefinition {
         Ok(self.0.select_credentials(vc_jwts)?)
     }
 
+    pub fn create_presentation_from_credentials(&self, vc_jwts: &Vec<String>) -> Result<String> {
+        let presentation_result = self.0.create_presentation_from_credentials(vc_jwts)?;
+        let json_serialized_presentation_result = serde_json::to_string(&presentation_result)?;
+
+        Ok(json_serialized_presentation_result)
+    }
+
     pub fn get_json_serialized_presentation_definition(&self) -> Result<String> {
         let json_serialized_presentation_definition = serde_json::to_string(&self.0)?;
 

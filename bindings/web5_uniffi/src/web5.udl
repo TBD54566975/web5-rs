@@ -245,11 +245,9 @@ interface PresentationDefinition {
   string get_json_serialized_presentation_definition();
   [Throws=Web5Error]
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
+  [Throws=Web5Error]
+  string create_presentation_from_credentials([ByRef] sequence<string> vc_jwts);
 };
-
-
-
-
 
 dictionary VerifiableCredentialCreateOptionsData {
   string? id;
@@ -323,6 +321,7 @@ dictionary VerifiablePresentationCreateOptionsData {
   sequence<string>? type;
   timestamp? issuance_date;
   timestamp? expiration_date;
+  string? json_serialized_additional_data;
 };
 
 interface VerifiablePresentation {
@@ -351,4 +350,5 @@ dictionary VerifiablePresentationData {
   timestamp issuance_date;
   timestamp? expiration_date;
   sequence<string> verifiable_credential;
+  string? json_serialized_additional_data;
 };

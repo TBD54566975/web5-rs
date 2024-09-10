@@ -7,7 +7,11 @@ use web5_uniffi_wrapper::{
             VerifiableCredentialCreateOptions as VerifiableCredentialCreateOptionsData,
             VerifiableCredentialData,
         },
-        verifiable_presentation_1_1::VerifiablePresentation,
+        verifiable_presentation_1_1::{
+            VerifiablePresentation,
+            VerifiablePresentationCreateOptions as VerifiablePresentationCreateOptionsData,
+            VerifiablePresentationData,
+        },
     },
     crypto::{
         dsa::{
@@ -37,8 +41,6 @@ use web5_uniffi_wrapper::{
 use web5::{
     credentials::{
         CredentialSchema as CredentialSchemaData, CredentialStatus as CredentialStatusData,
-        VerifiablePresentation as VerifiablePresentationData,
-        VerifiablePresentationCreateOptions as VerifiablePresentationCreateOptionsData,
     },
     crypto::{dsa::Dsa, jwk::Jwk as JwkData},
     dids::{
