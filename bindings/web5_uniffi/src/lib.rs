@@ -16,6 +16,7 @@ use web5_uniffi_wrapper::{
     crypto::{
         dsa::{
             ed25519::{ed25519_generator_generate, Ed25519Signer, Ed25519Verifier},
+            secp256k1::{secp256k1_generator_generate, Secp256k1Signer, Secp256k1Verifier},
             Signer, Verifier,
         },
         in_memory_key_manager::InMemoryKeyManager,
