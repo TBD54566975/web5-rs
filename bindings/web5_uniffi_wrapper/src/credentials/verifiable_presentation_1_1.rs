@@ -5,10 +5,6 @@ use std::time::SystemTime;
 use serde_json::Value;
 use web5::credentials::VerifiablePresentation as InnerVerifiablePresentation;
 use web5::credentials::VerifiablePresentationCreateOptions as InnerVerifiablePresentationCreateOptions;
-use web5::{
-    json::{FromJson as _, JsonObject},
-};
-// use web5::json::JsonObject;
 
 #[derive(Default)]
 pub struct VerifiablePresentationCreateOptions {
