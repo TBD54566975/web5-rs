@@ -30,6 +30,7 @@ x25519-dalek = { version = "2.0.1", features = ["getrandom", "static_secrets"] }
 zbase32 = "0.1.2"
 lazy_static = "1.5.0"
 flate2 = "1.0.33"
+native-tls = "0.2.12"
 
 [dev-dependencies]
 mockito = "1.5.0"
