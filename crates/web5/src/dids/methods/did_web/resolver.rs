@@ -1,11 +1,13 @@
-use crate::dids::{
-    data_model::document::Document,
-    did::Did,
-    resolution::{
-        resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
+use crate::{
+    dids::{
+        data_model::document::Document,
+        did::Did,
+        resolution::{
+            resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
+        },
     },
+    http::HttpClient,
 };
-use reqwest::header::HeaderMap;
 use std::{
     future::{Future, IntoFuture},
     pin::Pin,
@@ -48,23 +50,11 @@ impl Resolver {
     }
 
     async fn resolve(url: String) -> Result<ResolutionResult, ResolutionMetadataError> {
-        let headers = HeaderMap::new();
+        let response = HttpClient::get(&url).map_err(|_| ResolutionMetadataError::InternalError)?;
 
-        let client = reqwest::Client::builder()
-            .default_headers(headers)
-            .build()
-            .map_err(|_| ResolutionMetadataError::InternalError)?;
-
-        let response = client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|_| ResolutionMetadataError::InternalError)?;
-
-        if response.status().is_success() {
-            let did_document = response
-                .json::<Document>()
-                .await
+        if response.is_success() {
+            // Parse the body as JSON into a DID Document
+            let did_document: Document = serde_json::from_str(&response.body)
                 .map_err(|_| ResolutionMetadataError::RepresentationNotSupported)?;
 
             Ok(ResolutionResult {
