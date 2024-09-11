@@ -1,11 +1,11 @@
 use crate::errors::Web5Error;
 use native_tls::TlsConnector;
-use serde_json::Value;
+use serde::de::DeserializeOwned;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use url::Url;
 
-pub fn get_json_schema(url: &str) -> Result<Value, Web5Error> {
+pub fn get_json<T: DeserializeOwned>(url: &str) -> Result<T, Web5Error> {
     let parsed_url =
         Url::parse(url).map_err(|err| Web5Error::Http(format!("failed to parse url {}", err)))?;
 
@@ -88,8 +88,8 @@ pub fn get_json_schema(url: &str) -> Result<Value, Web5Error> {
         }
     }
 
-    let schema_json: Value = serde_json::from_str(body)
+    let json_value = serde_json::from_str::<T>(body)
         .map_err(|err| Web5Error::Http(format!("unable to parse json response body {}", err)))?;
 
-    Ok(schema_json)
+    Ok(json_value)
 }
