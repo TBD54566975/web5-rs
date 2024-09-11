@@ -1,7 +1,9 @@
 use super::verifiable_credential_1_1::VerifiableCredential;
-use crate::errors::{Result, Web5Error};
+use crate::{
+    errors::{Result, Web5Error},
+    http::HttpClient,
+};
 use jsonschema::{Draft, JSONSchema};
-use reqwest::blocking::get;
 use serde::{Deserialize, Serialize};
 
 pub const CREDENTIAL_SCHEMA_TYPE: &str = "JsonSchema";
@@ -28,17 +30,16 @@ pub(crate) fn validate_credential_schema(
     }
 
     let url = &credential_schema.id;
-    let response = get(url).map_err(|err| {
+    let response = HttpClient::get(url).map_err(|err| {
         Web5Error::Network(format!("unable to resolve json schema {} {}", url, err))
     })?;
-    if !response.status().is_success() {
+    if !response.is_success() {
         return Err(Web5Error::JsonSchema(format!(
             "non-200 response when resolving json schema {} {}",
-            url,
-            response.status()
+            url, response.status_code
         )));
     }
-    let schema_json = response.json::<serde_json::Value>().map_err(|err| {
+    let schema_json = serde_json::from_str::<serde_json::Value>(&response.body).map_err(|err| {
         Web5Error::JsonSchema(format!(
             "unable to parse json schema from response body {} {}",
             url, err
