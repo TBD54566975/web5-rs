@@ -1,7 +1,3 @@
-use bep44::Bep44Message;
-use reqwest::blocking::Client;
-use simple_dns::Packet;
-
 use crate::{
     crypto::{
         dsa::ed25519::{self, Ed25519Generator, Ed25519Verifier},
@@ -19,7 +15,10 @@ use crate::{
         },
     },
     errors::{Result, Web5Error},
+    http::HttpClient,
 };
+use bep44::Bep44Message;
+use simple_dns::Packet;
 use std::sync::Arc;
 
 mod bep44;
@@ -130,15 +129,10 @@ impl DidDht {
             bearer_did.did.id.trim_start_matches('/')
         );
 
-        let client = Client::new();
-        let response = client
-            .put(url)
-            .header("Content-Type", "application/octet-stream")
-            .body(body)
-            .send()
+        let response = HttpClient::put(&url, &body)
             .map_err(|_| Web5Error::Network("failed to publish DID to mainline".to_string()))?;
 
-        if response.status() != 200 {
+        if !response.is_success() {
             return Err(Web5Error::Network(
                 "failed to PUT DID to mainline".to_string(),
             ));
@@ -170,26 +164,19 @@ impl DidDht {
                 did.id.trim_start_matches('/')
             );
 
-            let client = Client::new();
+            let response =
+                HttpClient::get(&url).map_err(|_| ResolutionMetadataError::InternalError)?;
 
-            // Make the GET request
-            let response = client
-                .get(url)
-                .send()
-                .map_err(|_| ResolutionMetadataError::InternalError)?;
-
-            // Check if the status is not 200
-            let status = response.status();
-            if status == 404 {
+            if response.status_code == 404 {
                 return Err(ResolutionMetadataError::NotFound)?;
-            } else if status != 200 {
+            } else if !response.is_success() {
                 return Err(ResolutionMetadataError::InternalError)?;
             }
 
-            // check http response status is 200 and body is nonempty
-            let body = response
-                .bytes()
-                .map_err(|_| ResolutionMetadataError::NotFound)?;
+            let body = response.body.as_bytes();
+            if body.is_empty() {
+                return Err(ResolutionMetadataError::NotFound)?;
+            }
 
             // Check if the body is empty
             if body.is_empty() {
