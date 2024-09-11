@@ -672,10 +672,7 @@ mod tests {
 
         match result {
             Err(Web5Error::Http(err_msg)) => {
-                assert_eq!(
-                    "non-successful response code HTTP/1.1 500 Internal Server Error",
-                    err_msg
-                )
+                assert_eq!("non-successful response code 500", err_msg)
             }
             _ => panic!(
                 "expected Web5Error::JsonSchema with specific message but got {:?}",
