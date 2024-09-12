@@ -201,6 +201,9 @@ CLASS VerifiableCredentialCreateOptions
   
   /// The optional credential status, which indicates revocation or suspension information.
   PUBLIC DATA credential_status: CredentialStatus?
+
+  /// The credential schema, used to validate the data structure of the credential. This is optional.
+  PUBLIC DATA credential_schema: CredentialSchema?
   
   /// An optional array of evidence supporting the claims made in the credential.
   PUBLIC DATA evidence: []Evidence?

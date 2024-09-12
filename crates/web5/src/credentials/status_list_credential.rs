@@ -13,11 +13,22 @@ pub const STATUS_LIST_2021: &str = "StatusList2021";
 
 pub const STATUS_LIST_2021_ENTRY: &str = "StatusList2021Entry";
 
+/// Represents a Status List Credential, which is used to maintain the revocation or suspension status of multiple Verifiable Credentials.
+/// A Status List Credential is a special type of Verifiable Credential that tracks the status of other credentials.
 pub struct StatusListCredential {
+    /// The base Verifiable Credential associated with the Status List.
     pub base: VerifiableCredential,
 }
 
 impl StatusListCredential {
+    /// Creates a new Status List Credential with the specified issuer, status purpose,
+    /// and the list of disabled credentials.
+    ///
+    /// # Arguments
+    ///
+    /// * `issuer` - The entity issuing the Status List Credential.
+    /// * `status_purpose` - The purpose of the status (e.g., "revocation").
+    /// * `disabled_credentials` - A list of Verifiable Credentials that are disabled (revoked or suspended).
     pub fn create(
         issuer: Issuer,
         status_purpose: String,
