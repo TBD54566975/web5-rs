@@ -1,5 +1,4 @@
 use bep44::Bep44Message;
-use reqwest::blocking::Client;
 use simple_dns::Packet;
 
 use crate::{
@@ -19,7 +18,7 @@ use crate::{
         },
     },
     errors::{Result, Web5Error},
-    http::get_bytes_as_http_response,
+    http::{get_bytes_as_http_response, put_bytes_as_http_response},
 };
 use std::sync::Arc;
 
@@ -192,15 +191,8 @@ impl DidDht {
             bearer_did.did.id.trim_start_matches('/')
         );
 
-        let client = Client::new();
-        let response = client
-            .put(url)
-            .header("Content-Type", "application/octet-stream")
-            .body(body)
-            .send()
-            .map_err(|_| Web5Error::Network("failed to publish DID to mainline".to_string()))?;
-
-        if response.status() != 200 {
+        let response = put_bytes_as_http_response(&url, &body)?;
+        if response.status_code != 200 {
             return Err(Web5Error::Network(
                 "failed to PUT DID to mainline".to_string(),
             ));

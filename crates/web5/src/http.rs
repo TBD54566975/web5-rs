@@ -47,7 +47,7 @@ fn parse_destination(url: &str) -> Result<Destination> {
     })
 }
 
-fn transmit(destination: &Destination, request: &str) -> Result<Vec<u8>> {
+fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
     let mut buffer = Vec::new();
 
     if destination.schema == "https" {
@@ -60,7 +60,7 @@ fn transmit(destination: &Destination, request: &str) -> Result<Vec<u8>> {
             .map_err(|err| Web5Error::Network(err.to_string()))?;
 
         stream
-            .write_all(request.as_bytes())
+            .write_all(request)
             .map_err(|err| Web5Error::Network(err.to_string()))?;
 
         stream
@@ -72,7 +72,7 @@ fn transmit(destination: &Destination, request: &str) -> Result<Vec<u8>> {
             .map_err(|err| Web5Error::Network(err.to_string()))?;
 
         stream
-            .write_all(request.as_bytes())
+            .write_all(request)
             .map_err(|err| Web5Error::Network(err.to_string()))?;
 
         stream
@@ -138,7 +138,7 @@ pub fn get_json<T: DeserializeOwned>(url: &str) -> Result<T> {
         Accept: application/json\r\n\r\n",
         destination.path, destination.host
     );
-    let response_bytes = transmit(&destination, &request)?;
+    let response_bytes = transmit(&destination, request.as_bytes())?;
     let response = parse_response(&response_bytes)?;
 
     if !(200..300).contains(&response.status_code) {
@@ -165,7 +165,30 @@ pub fn get_bytes_as_http_response(url: &str) -> Result<HttpResponse> {
         destination.path, destination.host
     );
 
-    let response_bytes = transmit(&destination, &request)?;
+    let response_bytes = transmit(&destination, request.as_bytes())?;
+
+    parse_response(&response_bytes)
+}
+
+pub fn put_bytes_as_http_response(url: &str, body: &[u8]) -> Result<HttpResponse> {
+    let destination = parse_destination(url)?;
+
+    let request = format!(
+        "PUT {} HTTP/1.1\r\n\
+        Host: {}\r\n\
+        Connection: close\r\n\
+        Content-Length: {}\r\n\
+        Content-Type: application/octet-stream\r\n\r\n",
+        destination.path,
+        destination.host,
+        body.len()
+    );
+
+    // Concatenate the request headers and the body to form the full request
+    let mut request_with_body = request.into_bytes();
+    request_with_body.extend_from_slice(body);
+
+    let response_bytes = transmit(&destination, &request_with_body)?;
 
     parse_response(&response_bytes)
 }
