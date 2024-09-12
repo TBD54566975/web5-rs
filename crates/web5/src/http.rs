@@ -84,18 +84,24 @@ fn transmit(destination: &Destination, request: &str) -> Result<Vec<u8>> {
 }
 
 fn parse_response(response_bytes: &[u8]) -> Result<HttpResponse> {
-    let response = String::from_utf8_lossy(response_bytes);
-    let (header_part, body_part) = response
-        .split_once("\r\n\r\n")
+    // Find the position of the first \r\n\r\n, which separates headers and body
+    let header_end = response_bytes
+        .windows(4)
+        .position(|window| window == b"\r\n\r\n")
         .ok_or_else(|| Web5Error::Http("invalid HTTP response format".to_string()))?;
 
-    // Split header into lines
-    let mut header_lines = header_part.lines();
+    // Extract the headers section (before the \r\n\r\n)
+    let header_part = &response_bytes[..header_end];
 
-    // Parse the status line (e.g., HTTP/1.1 200 OK)
+    // Convert the header part to a string (since headers are ASCII/UTF-8 compliant)
+    let header_str = String::from_utf8_lossy(header_part);
+
+    // Parse the status line (first line in the headers)
+    let mut header_lines = header_str.lines();
     let status_line = header_lines
         .next()
         .ok_or_else(|| Web5Error::Http("missing status line".to_string()))?;
+
     let status_parts: Vec<&str> = status_line.split_whitespace().collect();
     if status_parts.len() < 3 {
         return Err(Web5Error::Http("invalid status line format".to_string()));
@@ -105,7 +111,7 @@ fn parse_response(response_bytes: &[u8]) -> Result<HttpResponse> {
         .parse::<u16>()
         .map_err(|_| Web5Error::Http("invalid status code".to_string()))?;
 
-    // Parse headers
+    // Parse headers into a HashMap
     let mut headers = HashMap::new();
     for line in header_lines {
         if let Some((key, value)) = line.split_once(": ") {
@@ -113,9 +119,8 @@ fn parse_response(response_bytes: &[u8]) -> Result<HttpResponse> {
         }
     }
 
-    // Extract body bytes
-    let body_offset = response_bytes.len() - body_part.as_bytes().len();
-    let body = response_bytes[body_offset..].to_vec();
+    // The body is the part after the \r\n\r\n separator
+    let body = response_bytes[header_end + 4..].to_vec();
 
     Ok(HttpResponse {
         status_code,
@@ -147,4 +152,20 @@ pub fn get_json<T: DeserializeOwned>(url: &str) -> Result<T> {
         .map_err(|err| Web5Error::Http(format!("unable to parse json response body {}", err)))?;
 
     Ok(json_value)
+}
+
+pub fn get_bytes_as_http_response(url: &str) -> Result<HttpResponse> {
+    let destination = parse_destination(url)?;
+
+    let request = format!(
+        "GET {} HTTP/1.1\r\n\
+        Host: {}\r\n\
+        Connection: close\r\n\
+        Accept: application/octet-stream\r\n\r\n",
+        destination.path, destination.host
+    );
+
+    let response_bytes = transmit(&destination, &request)?;
+
+    parse_response(&response_bytes)
 }
