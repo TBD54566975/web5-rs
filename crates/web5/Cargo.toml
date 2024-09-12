@@ -29,7 +29,7 @@ x25519-dalek = { version = "2.0.1", features = ["getrandom", "static_secrets"] }
 zbase32 = "0.1.2"
 lazy_static = "1.5.0"
 flate2 = "1.0.33"
-rustls = "0.23.13"
+rustls = { version = "0.23.13", default-features = false, features = ["std", "tls12"] }
 webpki-roots = "0.26.5"
 
 [dev-dependencies]
