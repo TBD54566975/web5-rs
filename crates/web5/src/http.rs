@@ -88,21 +88,6 @@ fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
         tls_stream
             .read_to_end(&mut buffer)
             .map_err(|err| Web5Error::Network(err.to_string()))?;
-
-        // let connector = TlsConnector::new().map_err(|err| Web5Error::Network(err.to_string()))?;
-        // let stream = TcpStream::connect((&destination.host[..], destination.port))
-        //     .map_err(|err| Web5Error::Network(err.to_string()))?;
-        // let mut stream = connector
-        //     .connect(&destination.host, stream)
-        //     .map_err(|err| Web5Error::Network(err.to_string()))?;
-
-        // stream
-        //     .write_all(request)
-        //     .map_err(|err| Web5Error::Network(err.to_string()))?;
-
-        // stream
-        //     .read_to_end(&mut buffer)
-        //     .map_err(|err| Web5Error::Network(err.to_string()))?;
     } else {
         // HTTP connection
         let mut stream = TcpStream::connect((&destination.host[..], destination.port))
