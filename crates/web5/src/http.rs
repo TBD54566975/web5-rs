@@ -1,10 +1,13 @@
 use crate::errors::{Result, Web5Error};
-use native_tls::TlsConnector;
+use rustls::pki_types::ServerName;
+use rustls::{ClientConfig, ClientConnection, RootCertStore, StreamOwned};
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::TcpStream;
+use std::sync::Arc;
 use url::Url;
+use webpki_roots::TLS_SERVER_ROOTS;
 
 pub struct HttpResponse {
     pub status_code: u16,
@@ -52,20 +55,54 @@ fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
 
     if destination.schema == "https" {
         // HTTPS connection
-        let connector = TlsConnector::new().map_err(|err| Web5Error::Network(err.to_string()))?;
+
+        // Create a RootCertStore and load the root certificates from webpki-roots
+        let root_store = RootCertStore::from_iter(TLS_SERVER_ROOTS.iter().cloned());
+
+        // Build the ClientConfig using the root certificates and disabling client auth
+        let config = ClientConfig::builder()
+            .with_root_certificates(root_store)
+            .with_no_client_auth();
+
+        let rc_config = Arc::new(config); // Arc allows sharing the config
+
+        // Make the TCP connection to the server
         let stream = TcpStream::connect((&destination.host[..], destination.port))
             .map_err(|err| Web5Error::Network(err.to_string()))?;
-        let mut stream = connector
-            .connect(&destination.host, stream)
-            .map_err(|err| Web5Error::Network(err.to_string()))?;
 
-        stream
+        // Convert the server name to the expected type for TLS validation
+        let server_name = ServerName::try_from(destination.host.clone())
+            .map_err(|_| Web5Error::Http("invalid DNS name".to_string()))?;
+
+        // Create the TLS connection
+        let client = ClientConnection::new(rc_config, server_name)
+            .map_err(|err| Web5Error::Network(err.to_string()))?;
+        let mut tls_stream = StreamOwned::new(client, stream);
+
+        // Write the request over the TLS stream
+        tls_stream
             .write_all(request)
             .map_err(|err| Web5Error::Network(err.to_string()))?;
 
-        stream
+        // Read the response into the buffer
+        tls_stream
             .read_to_end(&mut buffer)
             .map_err(|err| Web5Error::Network(err.to_string()))?;
+
+        // let connector = TlsConnector::new().map_err(|err| Web5Error::Network(err.to_string()))?;
+        // let stream = TcpStream::connect((&destination.host[..], destination.port))
+        //     .map_err(|err| Web5Error::Network(err.to_string()))?;
+        // let mut stream = connector
+        //     .connect(&destination.host, stream)
+        //     .map_err(|err| Web5Error::Network(err.to_string()))?;
+
+        // stream
+        //     .write_all(request)
+        //     .map_err(|err| Web5Error::Network(err.to_string()))?;
+
+        // stream
+        //     .read_to_end(&mut buffer)
+        //     .map_err(|err| Web5Error::Network(err.to_string()))?;
     } else {
         // HTTP connection
         let mut stream = TcpStream::connect((&destination.host[..], destination.port))
