@@ -19,6 +19,7 @@ use crate::{
         },
     },
     errors::{Result, Web5Error},
+    http::get_bytes_as_http_response,
 };
 use std::sync::Arc;
 
@@ -170,35 +171,17 @@ impl DidDht {
                 did.id.trim_start_matches('/')
             );
 
-            let client = Client::new();
-
-            // Make the GET request
-            let response = client
-                .get(url)
-                .send()
+            let response = get_bytes_as_http_response(&url)
                 .map_err(|_| ResolutionMetadataError::InternalError)?;
 
-            // Check if the status is not 200
-            let status = response.status();
-            if status == 404 {
-                return Err(ResolutionMetadataError::NotFound)?;
-            } else if status != 200 {
-                return Err(ResolutionMetadataError::InternalError)?;
-            }
-
-            // check http response status is 200 and body is nonempty
-            let body = response
-                .bytes()
-                .map_err(|_| ResolutionMetadataError::NotFound)?;
-
-            // Check if the body is empty
-            if body.is_empty() {
-                return Err(ResolutionMetadataError::NotFound)?;
+            if response.status_code == 404 {
+                return Err(ResolutionMetadataError::NotFound);
+            } else if response.status_code != 200 {
+                return Err(ResolutionMetadataError::InternalError);
             }
 
             // bep44 decode and verify response body bytes
-            let body: Vec<u8> = body.into();
-            let bep44_message = Bep44Message::decode(&body)
+            let bep44_message = Bep44Message::decode(&response.body)
                 .map_err(|_| ResolutionMetadataError::InvalidDidDocument)?;
             bep44_message
                 .verify(&Ed25519Verifier::new(identity_key))
