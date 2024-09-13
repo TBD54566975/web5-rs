@@ -87,7 +87,7 @@
 #### `VerifiableCredential`
 
 ```pseudocode!
-/// Represents a Verifiable Credential according to the W3C Verifiable Credentials Data Model.
+/// Represents a Verifiable Credential according to the [W3C Verifiable Credentials Data Model v1.1](https://www.w3.org/TR/vc-data-model/) and conformant to the [Web5 specification](https://tbd54566975.github.io/web5-spec/#verifiable-credentials-vcs).
 /// A Verifiable Credential is a tamper-evident credential that has authorship that can be cryptographically verified.
 CLASS VerifiableCredential
 
@@ -97,7 +97,7 @@ CLASS VerifiableCredential
   /// The unique identifier for the Verifiable Credential.
   PUBLIC DATA id: string
   
-  /// The type(s) of the Verifiable Credential, typically includes "VerifiableCredential".
+  /// The type(s) of the Verifiable Credential.
   PUBLIC DATA type: []string
   
   /// The entity (either a string or an object) that issued the credential.
@@ -123,22 +123,22 @@ CLASS VerifiableCredential
 
   /// Creates a new Verifiable Credential with the specified issuer, subject, and optional creation options.
   /// 
-  /// @param issuer The entity issuing the credential.
-  /// @param credential_subject The subject of the credential containing claims.
+  /// @param issuer The entity issuing the credential. The issuer must be a valid DID.
+  /// @param credential_subject The subject of the credential containing claims. The subject must be a valid DID.
   /// @param options Optional parameters for creating the credential, such as schema or status.
   CONSTRUCTOR create(issuer: Issuer, credential_subject: CredentialSubject, options: VerifiableCredentialCreateOptions?)
   
   /// Constructs a Verifiable Credential from a VC JWT (JSON Web Token).
   /// 
-  /// @param vc_jwt The Verifiable Credential in JWT format.
-  /// @param verify If true, verifies the integrity of the JWT before creating the credential.
+  /// @param vc_jwt The Verifiable Credential in JWT format, serialized as a compact JWS.
+  /// @param verify If true, verifies the integrity of the JWT by performing cryptographic verification against the signature, validating the VC Data Model, and validates the JSON Schema if present.
   CONSTRUCTOR from_vc_jwt(vc_jwt: string, verify: bool)
 
   /// Signs the Verifiable Credential using the specified Bearer DID and optional verification method.
   /// 
   /// @param bearer_did The DID used to sign the credential.
-  /// @param verification_method_id Optional identifier for the verification method.
-  /// @returns A string representing the signed JWT of the Verifiable Credential.
+  /// @param verification_method_id Optional identifier of the Verification Method for which to sign with.
+  /// @returns A string representing the signed JWT, serialized as a compact JWS, of the Verifiable Credential.
   METHOD sign(bearer_did: BearerDid, verification_method_id: String?): string
 ```
 
@@ -185,12 +185,17 @@ CLASS CredentialStatus
 CLASS VerifiableCredentialCreateOptions
 
   /// The unique identifier for the Verifiable Credential. This is optional.
+  /// If not provided the default value will be of format urn:uuid:{uuid}.
   PUBLIC DATA id: string?
   
   /// The context(s) for the Verifiable Credential, which define the meaning of terms within the credential.
+  /// The base context https://www.w3.org/2018/credentials/v1 is always the first value whereafter values provided here will be appended.
+  /// If the base context is also provided here it will be de-duplicated against the base context already applied by default.
   PUBLIC DATA context: []string?
   
-  /// The type(s) of the Verifiable Credential. Typically includes "VerifiableCredential".
+  /// The type(s) of the Verifiable Credential.
+  /// The base type VerifiableCredential will always be the first value whereafter values provided here will be appeneded onto.
+  /// If the base type is also provided here then it will be de-duplicated against the base type referred to above.
   PUBLIC DATA type: []string?
   
   /// The issuance date of the credential. If not provided, defaults to the current date and time.
@@ -203,6 +208,7 @@ CLASS VerifiableCredentialCreateOptions
   PUBLIC DATA credential_status: CredentialStatus?
 
   /// The credential schema, used to validate the data structure of the credential. This is optional.
+  /// JSON Schema validation is performed if the value is provided, and creation will fail if validation fails.
   PUBLIC DATA credential_schema: CredentialSchema?
   
   /// An optional array of evidence supporting the claims made in the credential.
@@ -240,7 +246,8 @@ CLASS StatusListCredential
 #### `VerifiablePresentation`
 
 ```pseudocode!
-/// Represents a Verifiable Presentation according to the W3C Verifiable Credentials Data Model.
+/// Represents a Verifiable Presentation according to the [W3C Verifiable Credentials Data Model v1.1](https://www.w3.org/TR/vc-data-model/#presentations-0)
+/// and conformant to the [Web5 specification](https://tbd54566975.github.io/web5-spec/#verifiable-presentation-v11-data-model).
 /// A Verifiable Presentation allows a holder to present one or more Verifiable Credentials to a verifier.
 CLASS VerifiablePresentation
 
@@ -250,7 +257,7 @@ CLASS VerifiablePresentation
   /// The unique identifier for the Verifiable Presentation.
   PUBLIC DATA id: string
   
-  /// The type(s) of the Verifiable Presentation, typically includes "VerifiablePresentation".
+  /// The type(s) of the Verifiable Presentation.
   PUBLIC DATA type: []string
   
   /// The holder of the Verifiable Presentation, identified by a DID or other identifier.
@@ -270,22 +277,22 @@ CLASS VerifiablePresentation
 
   /// Creates a new Verifiable Presentation with the specified holder, Verifiable Credential JWTs, and optional creation options.
   /// 
-  /// @param holder The entity holding and presenting the Verifiable Presentation.
-  /// @param vc_jwts A list of Verifiable Credential JWTs to include in the presentation.
+  /// @param holder The entity holding and presenting the Verifiable Presentation. The holder must be a valid DID.
+  /// @param vc_jwts A list of Verifiable Credential JWTs to include in the presentation. All `vc_jwt` values are verified and the call will will if any fail verification.
   /// @param options Optional parameters for creating the presentation, such as context or expiration.
   CONSTRUCTOR create(holder: string, vc_jwts: []string, options: VerifiablePresentationCreateOptions?)
   
   /// Constructs a Verifiable Presentation from a VP JWT (JSON Web Token).
   /// 
-  /// @param vp_jwt The Verifiable Presentation in JWT format.
-  /// @param verify If true, verifies the integrity of the JWT before creating the presentation.
+  /// @param vp_jwt The Verifiable Presentation in JWT format, serialized as a compact JWS.
+  /// @param verify If true, verifies the integrity of the JWT by performing cryptographic verification against the signature and validating the Data Model.
   CONSTRUCTOR from_vp_jwt(vp_jwt: string, verify: bool)
 
   /// Signs the Verifiable Presentation using the specified Bearer DID and optional verification method.
   /// 
   /// @param bearer_did The DID used to sign the presentation.
-  /// @param verification_method_id Optional identifier for the verification method.
-  /// @returns A string representing the signed JWT of the Verifiable Presentation.
+  /// @param verification_method_id Optional identifier  of the Verification Method for which to sign with.
+  /// @returns A string representing the signed JWT, serialized as a compact JWS, of the Verifiable Presentation.
   METHOD sign(bearer_did: BearerDid, verification_method_id: String?): string
 ```
 
@@ -297,12 +304,17 @@ CLASS VerifiablePresentation
 CLASS VerifiablePresentationCreateOptions
 
   /// The unique identifier for the Verifiable Presentation. This is optional.
+  /// If not provided then the default value will be of format urn:uuid:{uuid}.
   PUBLIC DATA id: string?
   
   /// The context(s) for the Verifiable Presentation, which define the meaning of terms within the presentation.
+  /// The base context https://www.w3.org/2018/credentials/v1 is always the first value whereafter values provided here will be appended onto.
+  /// If the base context is also provided here then it will be de-duplicated against the base context referred to above.
   PUBLIC DATA context: []string?
   
-  /// The type(s) of the Verifiable Presentation. Typically includes "VerifiablePresentation".
+  /// The type(s) of the Verifiable Presentation.
+  /// The base type VerifiablePresentation will always be the first value whereafter values provided here will be appeneded onto.
+  /// If the base type is also provided here then it will be de-duplicated against the base type referred to above.
   PUBLIC DATA type: []string?
   
   /// The issuance date of the presentation. If not provided, defaults to the current date and time.
