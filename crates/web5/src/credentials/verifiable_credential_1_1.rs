@@ -118,7 +118,7 @@ pub struct CredentialStatus {
     /// The unique identifier for the credential status.
     pub id: String,
 
-    /// The type(s) of the credential status, typically includes "CredentialStatus".
+    /// The type(s) of the credential status.
     #[serde(rename = "type")]
     pub r#type: String,
 

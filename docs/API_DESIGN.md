@@ -164,7 +164,7 @@ CLASS CredentialStatus
   /// The unique identifier for the credential status.
   PUBLIC DATA id: string
   
-  /// The type(s) of the credential status, typically includes "CredentialStatus".
+  /// The type(s) of the credential status.
   PUBLIC DATA type: []string
   
   /// The purpose of the status (e.g., "revocation" or "suspension").
