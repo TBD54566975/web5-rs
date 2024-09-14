@@ -18,6 +18,16 @@ int bridge(intFunc f) {
 extern int bridge_in_rust(intFunc);
 
 extern int fortytwo();
+extern int fortyfour();
+
+// Structure to hold function pointers
+typedef struct {
+    int (*func1)();
+    int (*func2)();
+} FuncStruct;
+
+// C function declaration for Rust's process_functions
+extern int process_functions(FuncStruct* funcs);
 */
 import "C"
 import (
@@ -75,4 +85,16 @@ func main() {
 	// Call the Rust function with the Go fortytwo function
 	result = C.bridge_in_rust(C.intFunc(C.fortytwo))
 	fmt.Println("Result from Rust calling Go function:", int(result)) // Output: 42
+
+	// ---
+
+	// Prepare the structure to pass to Rust
+	funcs := C.FuncStruct{
+		func1: C.intFunc(C.fortytwo),
+		func2: C.intFunc(C.fortyfour),
+	}
+
+	// Call Rust function with the structure
+	result = C.process_functions(&funcs)
+	fmt.Println("Result from Rust after calling Go functions:", int(result)) // Output: 86 (42 + 44)
 }

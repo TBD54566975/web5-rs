@@ -9,3 +9,8 @@ import "C"
 func fortytwo() C.int {
 	return 42
 }
+
+//export fortyfour
+func fortyfour() C.int {
+	return 44
+}

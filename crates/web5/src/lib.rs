@@ -55,8 +55,33 @@ pub extern "C" fn jwk_free_string(s: *mut c_char) {
     }
 }
 
+// ---
+
 #[no_mangle]
 pub extern "C" fn bridge_in_rust(func: extern "C" fn() -> i32) -> i32 {
     println!("printed in rust {}", func());
     func() // Call the Go function passed in
+}
+
+// ---
+
+#[repr(C)]
+pub struct FuncStruct {
+    pub func1: extern "C" fn() -> i32,
+    pub func2: extern "C" fn() -> i32,
+}
+
+#[no_mangle]
+pub extern "C" fn process_functions(funcs: *const FuncStruct) -> i32 {
+    // Call func1 and func2 from the struct
+    let funcs = unsafe { &*funcs };
+    let result1 = (funcs.func1)();
+    let result2 = (funcs.func2)();
+
+    // Print results
+    println!("Result of func1: {}", result1); // 42
+    println!("Result of func2: {}", result2); // 44
+
+    // Return the addition of the two results
+    result1 + result2
 }
