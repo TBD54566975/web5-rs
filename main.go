@@ -3,9 +3,18 @@ package main
 /*
 #cgo LDFLAGS: -L./target/release -lweb5
 #include <stdlib.h>
+#include <stdio.h>
 
 char* jwk_compute_thumbprint_from_json(const char* jwk_json);
 void jwk_free_string(char* s);
+
+typedef int (*intFunc)();
+
+int bridge(intFunc f) {
+    return f();
+}
+
+extern int fortytwo();
 */
 import "C"
 import (
@@ -50,4 +59,11 @@ func main() {
 
 	// Print the result from Rust (the thumbprint)
 	fmt.Println("Thumbprint:", C.GoString(thumbprint))
+
+	// ---
+
+	// Call the C bridge function with the Go fortytwo function.
+	result := C.bridge(C.intFunc(C.fortytwo))
+
+	fmt.Println("Result from C calling Go function:", int(result)) // Output: 42
 }
