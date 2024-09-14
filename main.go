@@ -14,6 +14,9 @@ int bridge(intFunc f) {
     return f();
 }
 
+// C function declaration for Rust's bridge_in_rust
+extern int bridge_in_rust(intFunc);
+
 extern int fortytwo();
 */
 import "C"
@@ -66,4 +69,10 @@ func main() {
 	result := C.bridge(C.intFunc(C.fortytwo))
 
 	fmt.Println("Result from C calling Go function:", int(result)) // Output: 42
+
+	// ---
+
+	// Call the Rust function with the Go fortytwo function
+	result = C.bridge_in_rust(C.intFunc(C.fortytwo))
+	fmt.Println("Result from Rust calling Go function:", int(result)) // Output: 42
 }
