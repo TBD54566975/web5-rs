@@ -31,6 +31,9 @@ lint: setup
 bind: setup
   just bind-kotlin
 
+bindc: setup
+  cargo build --release --package web5_c
+
 bind-kotlin: setup
   mkdir -p bound/kt/src/main/resources
   cargo build --release --package web5_uniffi --target aarch64-apple-darwin
