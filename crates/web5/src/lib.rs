@@ -57,5 +57,6 @@ pub extern "C" fn jwk_free_string(s: *mut c_char) {
 
 #[no_mangle]
 pub extern "C" fn bridge_in_rust(func: extern "C" fn() -> i32) -> i32 {
+    println!("printed in rust {}", func());
     func() // Call the Go function passed in
 }
