@@ -18,6 +18,13 @@ void free_string(char *s);
 /** --- */
 
 /** dsa signer */
+typedef unsigned char* (*signFunc)(const unsigned char* payload, size_t payload_len);
+typedef struct {
+    signFunc sign;
+} CSigner;
+void proof_of_concept(const CSigner* signer); // todo temporary
+extern unsigned char* go_signer_sign(const unsigned char* payload, size_t payload_len);
+
 typedef struct CEd25519Signer CEd25519Signer;
 CEd25519Signer *ed25519_signer_new(const CJwk *jwk);
 unsigned char *ed25519_signer_sign(CEd25519Signer *signer, const unsigned char *payload, size_t payload_len, size_t *out_len);
