@@ -17,7 +17,7 @@ type JWK struct {
 	Y   string `json:"y,omitempty"`
 }
 
-func (j JWK) toCJwk() *C.CJwk {
+func (j JWK) ToCJwk() *C.CJwk {
 	return &C.CJwk{
 		alg: C.CString(j.ALG),
 		kty: C.CString(j.KTY),
@@ -28,7 +28,7 @@ func (j JWK) toCJwk() *C.CJwk {
 	}
 }
 
-func (j JWK) freeCJwk(cJwk *C.CJwk) {
+func (j JWK) FreeCJwk(cJwk *C.CJwk) {
 	C.free(unsafe.Pointer(cJwk.alg))
 	C.free(unsafe.Pointer(cJwk.kty))
 	C.free(unsafe.Pointer(cJwk.crv))
@@ -38,8 +38,8 @@ func (j JWK) freeCJwk(cJwk *C.CJwk) {
 }
 
 func (j JWK) ComputeThumbprint() (string, error) {
-	cJwk := j.toCJwk()
-	defer j.freeCJwk(cJwk)
+	cJwk := j.ToCJwk()
+	defer j.FreeCJwk(cJwk)
 
 	cThumbprint := C.jwk_compute_thumbprint(cJwk)
 	if cThumbprint == nil {

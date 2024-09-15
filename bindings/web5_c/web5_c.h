@@ -3,16 +3,25 @@
 
 #include <stdlib.h>
 
-typedef struct {
-	const char* alg;
-	const char* kty;
-	const char* crv;
-	const char* d;
-	const char* x;
-	const char* y;
+/** jwk */
+typedef struct
+{
+	const char *alg;
+	const char *kty;
+	const char *crv;
+	const char *d;
+	const char *x;
+	const char *y;
 } CJwk;
+char *jwk_compute_thumbprint(const CJwk *jwk);
+void free_string(char *s);
+/** --- */
 
-char* jwk_compute_thumbprint(const CJwk* jwk);
-void free_string(char* s);
+/** dsa signer */
+typedef struct CEd25519Signer CEd25519Signer;
+CEd25519Signer *ed25519_signer_new(const CJwk *jwk);
+unsigned char *ed25519_signer_sign(CEd25519Signer *signer, const unsigned char *payload, size_t payload_len, size_t *out_len);
+void ed25519_signer_free(CEd25519Signer *signer);
+/** --- */
 
 #endif // WEB5_C_H

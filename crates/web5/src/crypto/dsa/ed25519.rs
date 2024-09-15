@@ -273,6 +273,7 @@ mod tests {
         #[test]
         fn test_with_valid_key() {
             let jwk = Ed25519Generator::generate();
+            println!("{:?}", jwk);
             let signer = Ed25519Signer::new(jwk);
 
             let message = b"Test message";
