@@ -7,13 +7,13 @@ import (
 	"web5/crypto/dsa"
 )
 
-func Test_ProofOfConcept(t *testing.T) {
+func Test_PocSignerFromGo(t *testing.T) {
 	signer := dsa.InGoSigner{}
-	dsa.ProofOfConcept(&signer)
+	dsa.PocSignerFromGo(&signer)
 }
 
-func Test_ProofOfConcept2(t *testing.T) {
-	signer := dsa.ProofOfConcept2()
+func Test_PocSignerFromRust(t *testing.T) {
+	signer := dsa.PocSignerFromRust()
 	result, _ := signer.Sign([]byte("Test message"))
 	encoded := base64.RawURLEncoding.EncodeToString(result)
 	fmt.Println("Base64 Encoded (from rust):", encoded)

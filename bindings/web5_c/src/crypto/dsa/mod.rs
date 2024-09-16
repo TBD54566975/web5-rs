@@ -61,7 +61,7 @@ pub extern "C" fn call_sign(
 
 // todo temporary
 #[no_mangle]
-pub extern "C" fn proof_of_concept(signer: *const CSigner) {
+pub extern "C" fn poc_signer_from_go(signer: *const CSigner) {
     if signer.is_null() {
         return;
     }
@@ -80,7 +80,7 @@ pub extern "C" fn proof_of_concept(signer: *const CSigner) {
 
 // todo temporary
 #[no_mangle]
-pub extern "C" fn proof_of_concept_2() -> *mut CSigner {
+pub extern "C" fn poc_signer_from_rust() -> *mut CSigner {
     let private_jwk = Jwk {
         alg: Some("Ed25519".to_string()),
         kty: "OKP".to_string(),

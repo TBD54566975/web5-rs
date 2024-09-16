@@ -59,10 +59,10 @@ func (s *InGoSigner) Sign(payload []byte) ([]byte, error) {
 	fmt.Println("Base64 Encoded (from golang):", encoded)
 	return payload, nil
 }
-func ProofOfConcept(signer Signer) {
+func PocSignerFromGo(signer Signer) {
 	cSigner, id := NewCSigner(signer)
 	defer FreeCSigner(id)
-	C.proof_of_concept(&cSigner)
+	C.poc_signer_from_go(&cSigner)
 }
 
 // --
@@ -88,8 +88,8 @@ func (s *innerSigner) Sign(payload []byte) ([]byte, error) {
 	return signature, nil
 }
 
-func ProofOfConcept2() Signer {
-	cSigner := C.proof_of_concept_2()
+func PocSignerFromRust() Signer {
+	cSigner := C.poc_signer_from_rust()
 	return &innerSigner{cSigner: cSigner}
 }
 

@@ -28,8 +28,8 @@ extern unsigned char *foreign_signer_sign(int signer_id, const unsigned char *pa
 unsigned char *call_sign(CSigner *signer, const unsigned char *payload, size_t payload_len, size_t *out_len);
 
 // todo temporary
-void proof_of_concept(const CSigner *signer);
-CSigner *proof_of_concept_2();
+void poc_signer_from_go(const CSigner *signer);
+CSigner *poc_signer_from_rust();
 // todo temporary
 
 typedef struct CEd25519Signer CEd25519Signer;
