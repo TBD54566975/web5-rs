@@ -6,33 +6,22 @@ package dsa
 */
 import "C"
 import (
-	"sync"
 	"unsafe"
 )
 
-var (
-	signerInstance Signer
-	mu             sync.Mutex
-)
-
-func SetSigner(s Signer) {
+//export foreign_signer_sign
+func foreign_signer_sign(signer_id C.int, payload *C.uchar, payload_len C.size_t) *C.uchar {
 	mu.Lock()
-	defer mu.Unlock()
-	signerInstance = s
-}
+	signer, exists := signerRegistry[int(signer_id)]
+	mu.Unlock()
 
-//export go_signer_sign
-func go_signer_sign(payload *C.uchar, payload_len C.size_t) *C.uchar {
-	mu.Lock()
-	defer mu.Unlock()
-
-	if signerInstance == nil {
+	if !exists {
 		return nil
 	}
 
 	goPayload := C.GoBytes(unsafe.Pointer(payload), C.int(payload_len))
 
-	result, _ := signerInstance.Sign(goPayload)
+	result, _ := signer.Sign(goPayload)
 
 	cResult := C.CBytes(result)
 	return (*C.uchar)(cResult)

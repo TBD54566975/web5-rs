@@ -2,7 +2,8 @@ pub mod ed25519;
 
 #[repr(C)]
 pub struct CSigner {
-    pub sign: extern "C" fn(payload: *const u8, payload_len: usize) -> *mut u8,
+    pub signer_id: i32,
+    pub sign: extern "C" fn(signer_id: i32, payload: *const u8, payload_len: usize) -> *mut u8,
 }
 
 // todo temporary
@@ -15,5 +16,5 @@ pub extern "C" fn proof_of_concept(signer: *const CSigner) {
     let signer = unsafe { &*signer };
     let payload = b"Test message";
 
-    (signer.sign)(payload.as_ptr(), payload.len());
+    (signer.sign)(signer.signer_id, payload.as_ptr(), payload.len());
 }
