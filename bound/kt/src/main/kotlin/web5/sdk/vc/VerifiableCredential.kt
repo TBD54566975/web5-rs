@@ -131,13 +131,6 @@ data class VerifiableCredential private constructor(
          * val verifiableCredential = VerifiableCredential.create(
          *     Issuer.StringIssuer(issuerBearerDid.did.uri),
          *     CredentialSubject(id = subjectDidUri),
-         *     VerifiableCredentialCreateOptions(
-         *         credentialStatus = CredentialStatus(
-         *             id = "https://example.com/status/1",
-         *             type = "StatusList2021Entry",
-         *             statusPurpose = "revocation",
-         *             statusListIndex = "3",
-         *             statusListCredential = "https://example.com/status/1"
          *         )
          *     )
          * )
