@@ -7,11 +7,9 @@ package dsa
 */
 import "C"
 import (
-	"encoding/base64"
 	"fmt"
 	"sync"
 	"unsafe"
-	"web5/crypto"
 )
 
 var (
@@ -20,7 +18,7 @@ var (
 	mu             sync.Mutex
 )
 
-func NewCSigner(signer Signer) (C.CSigner, int) {
+func newCSigner(signer Signer) (C.CSigner, int) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -33,39 +31,12 @@ func NewCSigner(signer Signer) (C.CSigner, int) {
 	}, signerCounter
 }
 
-func FreeCSigner(id int) {
+func freeCSigner(id int) {
 	mu.Lock()
 	defer mu.Unlock()
 
 	delete(signerRegistry, id)
 }
-
-// todo temporary
-type InGoSigner struct{}
-
-func (s *InGoSigner) Sign(payload []byte) ([]byte, error) {
-	jwk := crypto.JWK{
-		ALG: "Ed25519",
-		KTY: "OKP",
-		CRV: "Ed25519",
-		D:   "UMxzGsW84I6kS3JkenqYI1gH0GmvxYG2ovI69Vlno8g",
-		X:   "EzbXpICojY4ZI2i775GwkkTIbe5nuLL13JbdzUfsO6Q",
-		Y:   "",
-	}
-	signer, _ := NewEd25519Signer(jwk)
-	signature, _ := signer.Sign(payload)
-
-	encoded := base64.RawURLEncoding.EncodeToString(signature)
-	fmt.Println("Base64 Encoded (from golang):", encoded)
-	return payload, nil
-}
-func PocSignerFromGo(signer Signer) {
-	cSigner, id := NewCSigner(signer)
-	defer FreeCSigner(id)
-	C.poc_signer_from_go(&cSigner)
-}
-
-// --
 
 type innerSigner struct {
 	cSigner *C.CSigner
@@ -86,11 +57,6 @@ func (s *innerSigner) Sign(payload []byte) ([]byte, error) {
 
 	signature := C.GoBytes(unsafe.Pointer(cSignature), C.int(cSignatureLen))
 	return signature, nil
-}
-
-func PocSignerFromRust() Signer {
-	cSigner := C.poc_signer_from_rust()
-	return &innerSigner{cSigner: cSigner}
 }
 
 type Signer interface {

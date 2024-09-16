@@ -2,16 +2,12 @@ use lazy_static::lazy_static;
 use std::{
     collections::HashMap,
     ptr,
-    sync::{
-        atomic::{AtomicI32, Ordering},
-        Arc, Mutex,
-    },
+    sync::{atomic::AtomicI32, Arc, Mutex},
 };
-use web5::crypto::{
-    dsa::{ed25519::Ed25519Signer, Signer},
-    jwk::Jwk,
-};
+use web5::crypto::dsa::Signer;
+
 pub mod ed25519;
+pub mod poc;
 
 static SIGNER_ID_COUNTER: AtomicI32 = AtomicI32::new(1);
 lazy_static! {
@@ -57,45 +53,4 @@ pub extern "C" fn call_sign(
     out_len: *mut usize,
 ) -> *mut u8 {
     unsafe { ((*signer).sign)((*signer).signer_id, payload, payload_len, out_len) }
-}
-
-// todo temporary
-#[no_mangle]
-pub extern "C" fn poc_signer_from_go(signer: *const CSigner) {
-    if signer.is_null() {
-        return;
-    }
-
-    let signer = unsafe { &*signer };
-    let payload = b"Test message";
-
-    let mut out_len: usize = 0;
-    (signer.sign)(
-        signer.signer_id,
-        payload.as_ptr(),
-        payload.len(),
-        &mut out_len,
-    );
-}
-
-// todo temporary
-#[no_mangle]
-pub extern "C" fn poc_signer_from_rust() -> *mut CSigner {
-    let private_jwk = Jwk {
-        alg: Some("Ed25519".to_string()),
-        kty: "OKP".to_string(),
-        crv: "Ed25519".to_string(),
-        d: Some("UMxzGsW84I6kS3JkenqYI1gH0GmvxYG2ovI69Vlno8g".to_string()),
-        x: "EzbXpICojY4ZI2i775GwkkTIbe5nuLL13JbdzUfsO6Q".to_string(),
-        y: None,
-    };
-    let signer: Arc<dyn Signer> = Arc::new(Ed25519Signer::new(private_jwk));
-
-    let signer_id = SIGNER_ID_COUNTER.fetch_add(1, Ordering::SeqCst);
-    SIGNER_REGISTRY.lock().unwrap().insert(signer_id, signer);
-
-    Box::into_raw(Box::new(CSigner {
-        signer_id,
-        sign: rust_signer_sign,
-    }))
 }

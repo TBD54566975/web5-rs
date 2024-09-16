@@ -8,7 +8,7 @@ import (
 )
 
 func Test_PocSignerFromGo(t *testing.T) {
-	signer := dsa.InGoSigner{}
+	signer := dsa.PocGoSigner{}
 	dsa.PocSignerFromGo(&signer)
 }
 

@@ -27,10 +27,8 @@ typedef struct
 extern unsigned char *foreign_signer_sign(int signer_id, const unsigned char *payload, size_t payload_len, size_t *out_len);
 unsigned char *call_sign(CSigner *signer, const unsigned char *payload, size_t payload_len, size_t *out_len);
 
-// todo temporary
-void poc_signer_from_go(const CSigner *signer);
+void poc_signer_from_foreign(const CSigner *signer);
 CSigner *poc_signer_from_rust();
-// todo temporary
 
 typedef struct CEd25519Signer CEd25519Signer;
 CEd25519Signer *ed25519_signer_new(const CJwk *jwk);
