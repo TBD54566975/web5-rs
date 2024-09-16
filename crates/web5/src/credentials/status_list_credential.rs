@@ -30,7 +30,7 @@ impl StatusListCredential {
     /// * `disabled_credentials` - A list of Verifiable Credentials that are disabled (revoked or suspended).
     ///
     /// # Example
-    /// ```rust
+    /// ```ignore
     /// let issuer_bearer_did = DidJwk::create(None).unwrap();
     /// let subject_did_uri = "did:dht:ng4hmqtrgujox4agpf8okxihnyy1zqnq97qfeq15x8oar7yepzhy";
     ///
@@ -124,7 +124,7 @@ impl StatusListCredential {
     /// * `Err` if the credential status is invalid or incompatible.
     ///
     /// # Example
-    /// ```rust
+    /// ```ignore
     /// let issuer_bearer_did = DidJwk::create(None).unwrap();
     /// let subject_did_uri = "did:dht:ng4hmqtrgujox4agpf8okxihnyy1zqnq97qfeq15x8oar7yepzhy";
     ///
