@@ -40,7 +40,6 @@ void ed25519_signer_free(CEd25519Signer *signer);
 /** key managers */
 typedef struct CInMemoryKeyManager CInMemoryKeyManager;
 
-// Create a new InMemoryKeyManager instance
 CInMemoryKeyManager *in_memory_key_manager_new();
 CJwk *in_memory_key_manager_import_private_jwk(CInMemoryKeyManager *manager, const CJwk *private_jwk);
 CSigner *in_memory_key_manager_get_signer(CInMemoryKeyManager *manager, const CJwk *public_jwk);

@@ -8,7 +8,9 @@ package web5c
 import "C"
 import (
 	"errors"
+	"fmt"
 	"runtime"
+	"sync"
 	"unsafe"
 )
 
@@ -76,4 +78,67 @@ func CEd25519SignerSign(signer *CEd25519Signer, payload []byte) ([]byte, error) 
 
 	signature := C.GoBytes(unsafe.Pointer(cSignature), C.int(cSigLen))
 	return signature, nil
+}
+
+/** --- */
+
+type CSigner C.CSigner
+
+func CSignerSign(signer *CSigner, payload []byte) ([]byte, error) {
+	cPayload := (*C.uchar)(unsafe.Pointer(&payload[0]))
+	payloadLen := C.size_t(len(payload))
+
+	cSigner := (*C.CSigner)(signer)
+
+	var cSignatureLen C.size_t
+
+	cSignature := C.call_sign(cSigner, cPayload, payloadLen, &cSignatureLen)
+
+	if cSignature == nil {
+		return nil, fmt.Errorf("sign failed")
+	}
+	defer C.free(unsafe.Pointer(cSignature))
+
+	signature := C.GoBytes(unsafe.Pointer(cSignature), C.int(cSignatureLen))
+	return signature, nil
+}
+
+func POCSignerFromRust() *CSigner {
+	cSigner := C.poc_signer_from_rust()
+	return (*CSigner)(cSigner)
+}
+
+type SignFunc func(payload []byte) ([]byte, error)
+
+var (
+	signerRegistry = make(map[int]SignFunc)
+	signerCounter  int
+	mu             sync.Mutex
+)
+
+func RegisterSignFunc(signFunc SignFunc) (*CSigner, int) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	signerCounter++
+	signerRegistry[signerCounter] = signFunc
+
+	cSigner := &C.CSigner{
+		signer_id: C.int(signerCounter),
+		sign:      (C.signFunc)(C.foreign_signer_sign),
+	}
+
+	return (*CSigner)(cSigner), signerCounter
+}
+
+func FreeSignFunc(id int) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	delete(signerRegistry, id)
+}
+
+func POCSignerFromForeign(signer *CSigner) {
+	cSigner := (*C.CSigner)(signer)
+	C.poc_signer_from_foreign(cSigner)
 }
