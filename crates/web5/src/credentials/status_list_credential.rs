@@ -125,15 +125,6 @@ impl StatusListCredential {
     ///
     /// # Example
     /// ```rust
-    /// use web5::credentials::CredentialStatus;
-    /// use web5::credentials::CredentialSubject;
-    /// use web5::credentials::Issuer;
-    /// use web5::credentials::STATUS_LIST_2021_ENTRY;
-    /// use web5::credentials::StatusListCredential;
-    /// use web5::credentials::VerifiableCredential;
-    /// use web5::credentials::VerifiableCredentialCreateOptions;
-    /// use web5::dids::methods::did_jwk::DidJwk;
-    ///
     /// let issuer_bearer_did = DidJwk::create(None).unwrap();
     /// let subject_did_uri = "did:dht:ng4hmqtrgujox4agpf8okxihnyy1zqnq97qfeq15x8oar7yepzhy";
     ///
