@@ -1,6 +1,8 @@
 package crypto
 
-import "web5/web5c"
+import (
+	"web5/web5c"
+)
 
 type JWK struct {
 	ALG string `json:"alg,omitempty"`
@@ -17,4 +19,15 @@ func (j JWK) ComputeThumbprint() (string, error) {
 
 	thumbprint := web5c.CJwkComputeThumbprint(cJwk)
 	return thumbprint, nil
+}
+
+func NewJWKFromCJwk(cJwk *web5c.CJwk) *JWK {
+	return &JWK{
+		ALG: cJwk.GetALG(),
+		KTY: cJwk.GetKTY(),
+		CRV: cJwk.GetCRV(),
+		D:   cJwk.GetD(),
+		X:   cJwk.GetX(),
+		Y:   cJwk.GetY(),
+	}
 }

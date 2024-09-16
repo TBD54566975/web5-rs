@@ -29,6 +29,30 @@ func NewCJwk(alg, kty, crv, d, x, y string) *CJwk {
 	return (*CJwk)(cJwk)
 }
 
+func (cJwk *CJwk) GetALG() string {
+	return C.GoString(cJwk.alg)
+}
+
+func (cJwk *CJwk) GetKTY() string {
+	return C.GoString(cJwk.kty)
+}
+
+func (cJwk *CJwk) GetCRV() string {
+	return C.GoString(cJwk.crv)
+}
+
+func (cJwk *CJwk) GetD() string {
+	return C.GoString(cJwk.d)
+}
+
+func (cJwk *CJwk) GetX() string {
+	return C.GoString(cJwk.x)
+}
+
+func (cJwk *CJwk) GetY() string {
+	return C.GoString(cJwk.y)
+}
+
 func FreeCJwk(cJwk *CJwk) {
 	C.free(unsafe.Pointer(cJwk.alg))
 	C.free(unsafe.Pointer(cJwk.kty))
@@ -141,4 +165,43 @@ func FreeSignFunc(id int) {
 func POCSignerFromForeign(signer *CSigner) {
 	cSigner := (*C.CSigner)(signer)
 	C.poc_signer_from_foreign(cSigner)
+}
+
+/** --- */
+
+type CInMemoryKeyManager C.CInMemoryKeyManager
+
+func NewCInMemoryKeyManager() (*CInMemoryKeyManager, error) {
+	cManager := C.in_memory_key_manager_new()
+	if cManager == nil {
+		return nil, errors.New("failed to create InMemoryKeyManager")
+	}
+
+	runtime.SetFinalizer(cManager, func(m *C.CInMemoryKeyManager) {
+		if m != nil {
+			C.in_memory_key_manager_free(m)
+			m = nil
+		}
+	})
+
+	return (*CInMemoryKeyManager)(cManager), nil
+}
+
+func CInMemoryKeyManagerImportPrivateJwk(manager *CInMemoryKeyManager, cJwk *CJwk) (*CJwk, error) {
+	cManager := (*C.CInMemoryKeyManager)(manager)
+	cPublicJwk := C.in_memory_key_manager_import_private_jwk(cManager, (*C.CJwk)(unsafe.Pointer(cJwk)))
+	if cPublicJwk == nil {
+		return nil, errors.New("failed to import private JWK")
+	}
+
+	return (*CJwk)(cPublicJwk), nil
+}
+
+func CInMemoryKeyManagerGetSigner(manager *CInMemoryKeyManager, cPublicJWK *CJwk) (*CSigner, error) {
+	cSigner := C.in_memory_key_manager_get_signer((*C.CInMemoryKeyManager)(manager), (*C.CJwk)(unsafe.Pointer(cPublicJWK)))
+	if cSigner == nil {
+		return nil, errors.New("failed to retrieve signer")
+	}
+
+	return (*CSigner)(cSigner), nil
 }

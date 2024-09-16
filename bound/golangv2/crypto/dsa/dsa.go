@@ -6,10 +6,14 @@ type Signer interface {
 	Sign(payload []byte) ([]byte, error)
 }
 
-type InnerSigner struct {
-	CSigner *web5c.CSigner
+type innerSigner struct {
+	cSigner *web5c.CSigner
 }
 
-func (s *InnerSigner) Sign(payload []byte) ([]byte, error) {
-	return web5c.CSignerSign(s.CSigner, payload)
+func (s *innerSigner) Sign(payload []byte) ([]byte, error) {
+	return web5c.CSignerSign(s.cSigner, payload)
+}
+
+func NewSignerFromCSigner(cSigner *web5c.CSigner) Signer {
+	return &innerSigner{cSigner}
 }

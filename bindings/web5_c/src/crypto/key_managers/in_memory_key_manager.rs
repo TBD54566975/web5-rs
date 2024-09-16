@@ -54,7 +54,7 @@ pub extern "C" fn in_memory_key_manager_get_signer(
                 sign: rust_signer_sign,
             }))
         }
-        Err(_) => std::ptr::null_mut(),
+        Err(d_value) => std::ptr::null_mut(),
     }
 }
 
