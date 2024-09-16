@@ -131,3 +131,150 @@ impl BearerDid {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::dids::methods::did_jwk::{DidJwk, DidJwkCreateOptions};
+    use crate::{test_helpers::UnitTestSuite, test_name};
+    use lazy_static::lazy_static;
+
+    mod from_portable_did {
+        use super::*;
+
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite =
+                UnitTestSuite::new("bearer_did_from_portable_did");
+        }
+
+        #[test]
+        fn z_assert_all_suite_cases_covered() {
+            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
+            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
+            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
+
+            // wait 100ms to be last-in-queue of mutex lock
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            TEST_SUITE.assert_coverage()
+        }
+
+        #[test]
+        fn test_can_instantiate_successfully() {
+            TEST_SUITE.include(test_name!());
+
+            let key_manager = Arc::new(InMemoryKeyManager::new());
+            let did_jwk_bearer_did = DidJwk::create(Some(DidJwkCreateOptions {
+                key_manager: Some(key_manager.clone()),
+                ..Default::default()
+            }))
+                .unwrap();
+
+            let portable_did = PortableDid {
+                did_uri: did_jwk_bearer_did.did.uri,
+                document: did_jwk_bearer_did.document,
+                private_jwks: key_manager.export_private_jwks().unwrap(),
+            };
+
+            let result = BearerDid::from_portable_did(portable_did);
+            assert!(result.is_ok());
+        }
+    }
+
+    mod get_signer {
+        use super::*;
+
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("bearer_did_get_signer");
+        }
+
+        #[test]
+        fn z_assert_all_suite_cases_covered() {
+            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
+            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
+            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
+
+            // wait 100ms to be last-in-queue of mutex lock
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            TEST_SUITE.assert_coverage()
+        }
+
+        #[test]
+        fn test_verification_method_id_empty() {
+            TEST_SUITE.include(test_name!());
+
+            let bearer_did = DidJwk::create(None).unwrap();
+
+            let result = bearer_did.get_signer("");
+            assert!(result.is_err());
+            if let Err(Web5Error::Parameter(msg)) = result {
+                assert_eq!(msg, "verification_method_id cannot be empty".to_string());
+            } else {
+                panic!("Expected Web5Error::Parameter, got something else");
+            }
+        }
+
+        #[test]
+        fn test_not_found_by_verification_method_id() {
+            TEST_SUITE.include(test_name!());
+
+            let bearer_did = DidJwk::create(None).unwrap();
+
+            let result = bearer_did.get_signer("something invalid");
+            assert!(result.is_err());
+            if let Err(Web5Error::NotFound(msg)) = result {
+                assert_eq!(msg, "verification method not found".to_string());
+            } else {
+                panic!("Expected Web5Error::NotFound, got something else");
+            }
+        }
+
+        #[test]
+        fn test_found_by_verification_method_id() {
+            TEST_SUITE.include(test_name!());
+
+            let bearer_did = DidJwk::create(None).unwrap();
+
+            let result = bearer_did.get_signer(&bearer_did.document.verification_method[0].id);
+            assert!(result.is_ok());
+        }
+    }
+
+    mod to_portable_did {
+        use super::*;
+
+        lazy_static! {
+            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("bearer_did_to_portable_did");
+        }
+
+        #[test]
+        fn z_assert_all_suite_cases_covered() {
+            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
+            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
+            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
+
+            // wait 100ms to be last-in-queue of mutex lock
+            std::thread::sleep(std::time::Duration::from_millis(100));
+
+            TEST_SUITE.assert_coverage()
+        }
+
+        #[test]
+        fn test_can_export() {
+            TEST_SUITE.include(test_name!());
+
+            let key_manager = Arc::new(InMemoryKeyManager::new());
+            let bearer_did = DidJwk::create(Some(DidJwkCreateOptions {
+                key_manager: Some(key_manager.clone()),
+                ..Default::default()
+            }))
+                .unwrap();
+
+            let result = bearer_did.to_portable_did(key_manager);
+            assert!(result.is_ok());
+            let portable_did = result.unwrap();
+            assert_eq!(bearer_did.did.uri, portable_did.did_uri);
+        }
+    }
+}
