@@ -17,3 +17,10 @@ pub unsafe fn opt_cstr_to_string(c_str: *const c_char) -> Option<String> {
         Some(CStr::from_ptr(c_str).to_string_lossy().into_owned())
     }
 }
+
+pub fn opt_string_to_cstr(opt: Option<String>) -> *const c_char {
+    match opt {
+        Some(s) => CString::new(s).unwrap().into_raw(),
+        None => std::ptr::null(),
+    }
+}

@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+void free_string(char *s);
+
 /** jwk */
 typedef struct
 {
@@ -14,7 +16,6 @@ typedef struct
 	const char *y;
 } CJwk;
 char *jwk_compute_thumbprint(const CJwk *jwk);
-void free_string(char *s);
 /** --- */
 
 /** dsa signer */
@@ -34,6 +35,16 @@ typedef struct CEd25519Signer CEd25519Signer;
 CEd25519Signer *ed25519_signer_new(const CJwk *jwk);
 unsigned char *ed25519_signer_sign(CEd25519Signer *signer, const unsigned char *payload, size_t payload_len, size_t *out_len);
 void ed25519_signer_free(CEd25519Signer *signer);
+/** --- */
+
+/** key managers */
+typedef struct CInMemoryKeyManager CInMemoryKeyManager;
+
+// Create a new InMemoryKeyManager instance
+CInMemoryKeyManager *in_memory_key_manager_new();
+CJwk *in_memory_key_manager_import_private_jwk(CInMemoryKeyManager *manager, const CJwk *private_jwk);
+CSigner *in_memory_key_manager_get_signer(CInMemoryKeyManager *manager, const CJwk *public_jwk);
+void in_memory_key_manager_free(CInMemoryKeyManager *manager);
 /** --- */
 
 #endif // WEB5_C_H

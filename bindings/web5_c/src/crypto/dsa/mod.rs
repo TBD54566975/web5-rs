@@ -2,7 +2,10 @@ use lazy_static::lazy_static;
 use std::{
     collections::HashMap,
     ptr,
-    sync::{atomic::AtomicI32, Arc, Mutex},
+    sync::{
+        atomic::{AtomicI32, Ordering},
+        Arc, Mutex,
+    },
 };
 use web5::crypto::dsa::Signer;
 
@@ -12,6 +15,12 @@ pub mod poc;
 static SIGNER_ID_COUNTER: AtomicI32 = AtomicI32::new(1);
 lazy_static! {
     static ref SIGNER_REGISTRY: Mutex<HashMap<i32, Arc<dyn Signer>>> = Mutex::new(HashMap::new());
+}
+
+pub fn add_signer_to_registry(signer: Arc<dyn Signer>) -> i32 {
+    let signer_id = SIGNER_ID_COUNTER.fetch_add(1, Ordering::SeqCst);
+    SIGNER_REGISTRY.lock().unwrap().insert(signer_id, signer);
+    signer_id
 }
 
 #[repr(C)]
@@ -25,7 +34,7 @@ pub struct CSigner {
     ) -> *mut u8,
 }
 
-extern "C" fn rust_signer_sign(
+pub extern "C" fn rust_signer_sign(
     signer_id: i32,
     payload: *const u8,
     payload_len: usize,

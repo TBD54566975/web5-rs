@@ -1,10 +1,9 @@
+use super::{rust_signer_sign, CSigner, SIGNER_ID_COUNTER, SIGNER_REGISTRY};
 use std::sync::{atomic::Ordering, Arc};
 use web5::crypto::{
     dsa::{ed25519::Ed25519Signer, Signer},
     jwk::Jwk,
 };
-
-use super::{rust_signer_sign, CSigner, SIGNER_ID_COUNTER, SIGNER_REGISTRY};
 
 #[no_mangle]
 pub extern "C" fn poc_signer_from_foreign(signer: *const CSigner) {
@@ -24,7 +23,6 @@ pub extern "C" fn poc_signer_from_foreign(signer: *const CSigner) {
     );
 }
 
-// todo temporary
 #[no_mangle]
 pub extern "C" fn poc_signer_from_rust() -> *mut CSigner {
     let private_jwk = Jwk {

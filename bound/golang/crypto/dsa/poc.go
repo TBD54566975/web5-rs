@@ -39,5 +39,6 @@ func PocSignerFromGo(signer Signer) {
 
 func PocSignerFromRust() Signer {
 	cSigner := C.poc_signer_from_rust()
-	return &innerSigner{cSigner: cSigner}
+	signer := NewSigner(cSigner)
+	return signer
 }

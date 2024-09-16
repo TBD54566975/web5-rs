@@ -59,6 +59,12 @@ func (s *innerSigner) Sign(payload []byte) ([]byte, error) {
 	return signature, nil
 }
 
+func NewSigner(cSigner *C.CSigner) Signer {
+	return &innerSigner{
+		cSigner: cSigner,
+	}
+}
+
 type Signer interface {
 	Sign(payload []byte) ([]byte, error)
 }

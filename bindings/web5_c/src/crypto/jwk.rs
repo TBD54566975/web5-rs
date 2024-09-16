@@ -1,4 +1,4 @@
-use crate::c::opt_cstr_to_string;
+use crate::c::{opt_cstr_to_string, opt_string_to_cstr};
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::ptr;
@@ -23,6 +23,19 @@ impl From<&CJwk> for Jwk {
             d: unsafe { opt_cstr_to_string(jwk_c.d) },
             x: unsafe { CStr::from_ptr(jwk_c.x).to_string_lossy().into_owned() },
             y: unsafe { opt_cstr_to_string(jwk_c.y) },
+        }
+    }
+}
+
+impl From<Jwk> for CJwk {
+    fn from(jwk: Jwk) -> Self {
+        CJwk {
+            alg: opt_string_to_cstr(jwk.alg),
+            kty: CString::new(jwk.kty).unwrap().into_raw(),
+            crv: CString::new(jwk.crv).unwrap().into_raw(),
+            d: opt_string_to_cstr(jwk.d),
+            x: CString::new(jwk.x).unwrap().into_raw(),
+            y: opt_string_to_cstr(jwk.y),
         }
     }
 }
