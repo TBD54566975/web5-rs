@@ -21,7 +21,7 @@ pub struct StatusListCredential {
 
 impl StatusListCredential {
     /// Creates a new Status List Credential with the specified issuer, status purpose,
-    /// and the list of disabled credentials.
+    /// and the encoded bitstring list of disabled credentials.
     ///
     /// # Arguments
     ///
