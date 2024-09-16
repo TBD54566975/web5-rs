@@ -28,7 +28,7 @@ data class StatusListCredential(
          *
          * Example usage:
          * ```
-         * val issuerBearerDid = DidJwk.create(null)
+         * val issuerBearerDid = DidJwk.create()
          * val subjectDidUri = "did:dht:ng4hmqtrgujox4agpf8okxihnyy1zqnq97qfeq15x8oar7yepzhy"
          * val verifiableCredential = VerifiableCredential.create(
          *     Issuer.StringIssuer(issuerBearerDid.did.uri),
