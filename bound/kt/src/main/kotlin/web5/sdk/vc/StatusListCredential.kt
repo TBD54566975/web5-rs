@@ -79,28 +79,7 @@ data class StatusListCredential(
      *
      * Example usage:
      * ```
-     * val issuerBearerDid = DidJwk.create(null)
-     * val subjectDidUri = "did:dht:ng4hmqtrgujox4agpf8okxihnyy1zqnq97qfeq15x8oar7yepzhy"
-     *
-     * val verifiableCredential = VerifiableCredential.create(
-     *     Issuer.StringIssuer(issuerBearerDid.did.uri),
-     *     CredentialSubject(id = subjectDidUri),
-     *     VerifiableCredentialCreateOptions(
-     *         credentialStatus = CredentialStatus(
-     *             id = "https://example.com/status/1",
-     *             type = "StatusList2021Entry",
-     *             statusPurpose = "revocation",
-     *             statusListIndex = "3",
-     *             statusListCredential = "https://example.com/status/1"
-     *         )
-     *     )
-     * )
-     *
-     * val statusListCredential = StatusListCredential.create(
-     *     Issuer.StringIssuer(issuerBearerDid.did.uri),
-     *     "revocation",
-     *     listOf(verifiableCredential)
-     * )
+     
      *
      * val isDisabled = statusListCredential.isDisabled(verifiableCredential)
      * ```
