@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"sync"
 	"unsafe"
+	"web5/crypto"
 )
 
 var (
@@ -43,7 +44,18 @@ func FreeCSigner(id int) {
 type InGoSigner struct{}
 
 func (s *InGoSigner) Sign(payload []byte) ([]byte, error) {
-	encoded := base64.RawURLEncoding.EncodeToString(payload)
+	jwk := crypto.JWK{
+		ALG: "Ed25519",
+		KTY: "OKP",
+		CRV: "Ed25519",
+		D:   "UMxzGsW84I6kS3JkenqYI1gH0GmvxYG2ovI69Vlno8g",
+		X:   "EzbXpICojY4ZI2i775GwkkTIbe5nuLL13JbdzUfsO6Q",
+		Y:   "",
+	}
+	signer, _ := NewEd25519Signer(jwk)
+	signature, _ := signer.Sign(payload)
+
+	encoded := base64.RawURLEncoding.EncodeToString(signature)
 	fmt.Println("Base64 Encoded (from golang):", encoded)
 	return payload, nil
 }
