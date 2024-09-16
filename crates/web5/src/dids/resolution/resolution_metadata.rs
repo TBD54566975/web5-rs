@@ -1,7 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+/// Holds metadata about the results of the DID resolution process.
+///
+/// This struct provides information about the resolution process, such as any errors encountered.
+/// It is part of the `ResolutionResult` and helps describe why a resolution might have failed.
 #[derive(Debug, Clone, PartialEq, Default, Deserialize, Serialize)]
 pub struct ResolutionMetadata {
+    /// An optional error that provides details on any issues encountered during the DID resolution process.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<ResolutionMetadataError>,
 }

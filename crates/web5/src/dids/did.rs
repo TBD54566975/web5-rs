@@ -4,15 +4,33 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::fmt;
 
+/// A Decentralized Identifier (DID) is a globally unique identifier that does not require
+/// a centralized registration authority. This struct provides a way to parse and handle Decentralized Identifier (DID) URIs
+/// according to the W3C DID Core specification (https://www.w3.org/TR/did-core/).
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Did {
+    /// The complete DID URI.
     pub uri: String,
+
+    /// The original DID URL as provided, which may include network location details.
     pub url: String,
+
+    /// The DID method that specifies the method-specific identifier scheme (e.g., jwk, dht).
     pub method: String,
+
+    /// The method-specific identifier within the DID URI.
     pub id: String,
+
+    /// Optional method-specific parameters within the DID URI.
     pub params: Option<HashMap<String, String>>,
+
+    /// Optional path component in the DID URI.
     pub path: Option<String>,
+
+    /// Optional query component in the DID URI.
     pub query: Option<String>,
+
+    /// Optional fragment component in the DID URI.
     pub fragment: Option<String>,
 }
 
@@ -56,6 +74,26 @@ lazy_static! {
 }
 
 impl Did {
+
+    /// Parses a given DID URI into a `Did` struct.
+    ///
+    /// This function extracts and parses components from a DID URI, including the method,
+    /// method-specific ID, optional parameters, path, query, and fragment.
+    ///
+    /// # Arguments
+    ///
+    /// * `uri` - The DID URI to parse.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Did>` - A parsed `Did` struct, or an error if parsing fails.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let uri = "did:example:123456789abcdefghi";
+    /// let did = Did::parse(uri)?;
+    /// ```
     pub fn parse(uri: &str) -> Result<Did> {
         let captures = DID_URL_PATTERN
             .captures(uri)
