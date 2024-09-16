@@ -25,8 +25,12 @@ typedef struct
 	signFunc sign;
 } CSigner;
 extern unsigned char *foreign_signer_sign(int signer_id, const unsigned char *payload, size_t payload_len);
+unsigned char *call_sign(CSigner *signer, const unsigned char *payload, size_t payload_len);
 
-void proof_of_concept(const CSigner *signer); // todo temporary
+// todo temporary
+void proof_of_concept(const CSigner *signer);
+CSigner *proof_of_concept_2();
+// todo temporary
 
 typedef struct CEd25519Signer CEd25519Signer;
 CEd25519Signer *ed25519_signer_new(const CJwk *jwk);
