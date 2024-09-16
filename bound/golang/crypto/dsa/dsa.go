@@ -3,7 +3,6 @@ package dsa
 /*
 #cgo LDFLAGS: -L../../../../target/release -lweb5_c
 #include <stdlib.h>
-#include <string.h>
 #include "../../../../bindings/web5_c/web5_c.h"
 */
 import "C"
@@ -64,14 +63,16 @@ func (s *innerSigner) Sign(payload []byte) ([]byte, error) {
 	cPayload := (*C.uchar)(unsafe.Pointer(&payload[0]))
 	payloadLen := C.size_t(len(payload))
 
-	cSignature := C.call_sign(s.cSigner, cPayload, payloadLen)
+	var cSignatureLen C.size_t
+
+	cSignature := C.call_sign(s.cSigner, cPayload, payloadLen, &cSignatureLen)
 
 	if cSignature == nil {
 		return nil, fmt.Errorf("sign failed")
 	}
 	defer C.free(unsafe.Pointer(cSignature))
 
-	signature := C.GoBytes(unsafe.Pointer(cSignature), C.int(C.strlen((*C.char)(unsafe.Pointer(cSignature)))))
+	signature := C.GoBytes(unsafe.Pointer(cSignature), C.int(cSignatureLen))
 	return signature, nil
 }
 

@@ -18,14 +18,14 @@ void free_string(char *s);
 /** --- */
 
 /** dsa signer */
-typedef unsigned char *(*signFunc)(int signer_id, const unsigned char *payload, size_t payload_len);
+typedef unsigned char *(*signFunc)(int signer_id, const unsigned char *payload, size_t payload_len, size_t *out_len);
 typedef struct
 {
 	int signer_id;
 	signFunc sign;
 } CSigner;
-extern unsigned char *foreign_signer_sign(int signer_id, const unsigned char *payload, size_t payload_len);
-unsigned char *call_sign(CSigner *signer, const unsigned char *payload, size_t payload_len);
+extern unsigned char *foreign_signer_sign(int signer_id, const unsigned char *payload, size_t payload_len, size_t *out_len);
+unsigned char *call_sign(CSigner *signer, const unsigned char *payload, size_t payload_len, size_t *out_len);
 
 // todo temporary
 void proof_of_concept(const CSigner *signer);

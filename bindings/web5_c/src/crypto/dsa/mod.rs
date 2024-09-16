@@ -21,16 +21,28 @@ lazy_static! {
 #[repr(C)]
 pub struct CSigner {
     pub signer_id: i32,
-    pub sign: extern "C" fn(signer_id: i32, payload: *const u8, payload_len: usize) -> *mut u8,
+    pub sign: extern "C" fn(
+        signer_id: i32,
+        payload: *const u8,
+        payload_len: usize,
+        out_len: *mut usize,
+    ) -> *mut u8,
 }
 
-extern "C" fn rust_signer_sign(signer_id: i32, payload: *const u8, payload_len: usize) -> *mut u8 {
+extern "C" fn rust_signer_sign(
+    signer_id: i32,
+    payload: *const u8,
+    payload_len: usize,
+    out_len: *mut usize,
+) -> *mut u8 {
     let payload_slice = unsafe { std::slice::from_raw_parts(payload, payload_len) };
 
     let registry = SIGNER_REGISTRY.lock().unwrap();
     if let Some(signer) = registry.get(&signer_id) {
         if let Ok(signature) = signer.sign(payload_slice) {
+            let signature_len = signature.len();
             let signature_boxed = signature.into_boxed_slice();
+            unsafe { *out_len = signature_len };
             return Box::into_raw(signature_boxed) as *mut u8;
         }
     }
@@ -42,8 +54,9 @@ pub extern "C" fn call_sign(
     signer: *const CSigner,
     payload: *const u8,
     payload_len: usize,
+    out_len: *mut usize,
 ) -> *mut u8 {
-    unsafe { ((*signer).sign)((*signer).signer_id, payload, payload_len) }
+    unsafe { ((*signer).sign)((*signer).signer_id, payload, payload_len, out_len) }
 }
 
 // todo temporary
@@ -56,7 +69,13 @@ pub extern "C" fn proof_of_concept(signer: *const CSigner) {
     let signer = unsafe { &*signer };
     let payload = b"Test message";
 
-    (signer.sign)(signer.signer_id, payload.as_ptr(), payload.len());
+    let mut out_len: usize = 0;
+    (signer.sign)(
+        signer.signer_id,
+        payload.as_ptr(),
+        payload.len(),
+        &mut out_len,
+    );
 }
 
 // todo temporary
