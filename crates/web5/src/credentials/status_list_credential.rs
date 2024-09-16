@@ -1,11 +1,10 @@
-use std::io::{Read, Write};
-
 use super::verifiable_credential_1_1::{VerifiableCredential, VerifiableCredentialCreateOptions};
 use crate::credentials::{CredentialSubject, Issuer};
 use crate::errors::{Result, Web5Error};
 use crate::json::{JsonObject, JsonValue};
 use base64::Engine;
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
+use std::io::{Read, Write};
 
 pub const STATUS_LIST_CREDENTIAL_CONTEXT: &str = "https://w3id.org/vc/status-list/2021/v1";
 pub const STATUS_LIST_CREDENTIAL_TYPE: &str = "StatusList2021Credential";
@@ -13,11 +12,52 @@ pub const STATUS_LIST_2021: &str = "StatusList2021";
 
 pub const STATUS_LIST_2021_ENTRY: &str = "StatusList2021Entry";
 
+/// Represents a Status List Credential, which is used to maintain the revocation or suspension status of multiple Verifiable Credentials.
+/// A Status List Credential is a special type of Verifiable Credential that tracks the status of other credentials.
 pub struct StatusListCredential {
+    /// The base Verifiable Credential associated with the Status List.
     pub base: VerifiableCredential,
 }
 
 impl StatusListCredential {
+    /// Creates a new Status List Credential with the specified issuer, status purpose,
+    /// and the encoded bitstring list of disabled credentials.
+    ///
+    /// # Arguments
+    ///
+    /// * `issuer` - The entity issuing the Status List Credential.
+    /// * `status_purpose` - The purpose of the status (e.g., "revocation").
+    /// * `disabled_credentials` - A list of Verifiable Credentials that are disabled (revoked or suspended).
+    ///
+    /// # Example
+    /// ```ignore
+    /// let issuer_bearer_did = DidJwk::create(None).unwrap();
+    /// let subject_did_uri = "did:dht:ng4hmqtrgujox4agpf8okxihnyy1zqnq97qfeq15x8oar7yepzhy";
+    ///
+    /// let verifiable_credential = VerifiableCredential::create(
+    ///     Issuer::String(issuer_bearer_did.did.uri.clone()),
+    ///     CredentialSubject {
+    ///         id: subject_did_uri.to_string(),
+    ///         additional_properties: None,
+    ///     },
+    ///     Some(VerifiableCredentialCreateOptions {
+    ///         credential_status: Some(CredentialStatus {
+    ///             id: "https://example.com/status/1".to_string(),
+    ///             r#type: STATUS_LIST_2021_ENTRY.to_string(),
+    ///             status_purpose: "revocation".to_string(),
+    ///             status_list_index: "3".to_string(),
+    ///             status_list_credential: "https://example.com/status/1".to_string(),
+    ///         }),
+    ///         ..Default::default()
+    ///     }),
+    /// ).unwrap();
+    ///
+    /// let status_list_credential = StatusListCredential::create(
+    ///     Issuer::String(issuer_bearer_did.did.uri.clone()),
+    ///     "revocation".to_string(),
+    ///     Some(vec![verifiable_credential.clone()]),
+    /// ).unwrap();
+    /// ```
     pub fn create(
         issuer: Issuer,
         status_purpose: String,
@@ -84,9 +124,38 @@ impl StatusListCredential {
     /// * `Err` if the credential status is invalid or incompatible.
     ///
     /// # Example
+    /// ```ignore
+    /// let issuer_bearer_did = DidJwk::create(None).unwrap();
+    /// let subject_did_uri = "did:dht:ng4hmqtrgujox4agpf8okxihnyy1zqnq97qfeq15x8oar7yepzhy";
     ///
-    ///  let is_disabled = status_list_credential.is_disabled(&credential_to_check)?;
-    ///  println!("Credential is disabled: {}", is_disabled);
+    /// let verifiable_credential = VerifiableCredential::create(
+    ///     Issuer::String(issuer_bearer_did.did.uri.clone()),
+    ///     CredentialSubject {
+    ///         id: subject_did_uri.to_string(),
+    ///         additional_properties: None,
+    ///     },
+    ///     Some(VerifiableCredentialCreateOptions {
+    ///         credential_status: Some(CredentialStatus {
+    ///             id: "https://example.com/status/1".to_string(),
+    ///             r#type: STATUS_LIST_2021_ENTRY.to_string(),
+    ///             status_purpose: "revocation".to_string(),
+    ///             status_list_index: "3".to_string(),
+    ///             status_list_credential: "https://example.com/status/1".to_string(),
+    ///         }),
+    ///         ..Default::default()
+    ///     }),
+    /// ).unwrap();
+    ///
+    /// let status_list_credential = StatusListCredential::create(
+    ///     Issuer::String(issuer_bearer_did.did.uri.clone()),
+    ///     "revocation".to_string(),
+    ///     Some(vec![verifiable_credential.clone()]),
+    /// ).unwrap();
+    ///
+    /// let is_disabled = status_list_credential
+    ///     .is_disabled(&verifiable_credential)
+    ///     .unwrap();
+    /// ```
     pub fn is_disabled(&self, credential: &VerifiableCredential) -> Result<bool> {
         let status = credential.credential_status.as_ref().ok_or_else(|| {
             Web5Error::Parameter("no credential status found in credential".to_string())

@@ -12,6 +12,9 @@ setup:
     rustup target add aarch64-apple-darwin
   fi
 
+docs: setup
+  cargo doc --open --no-deps
+
 build: setup
   cargo build --workspace
 

@@ -4,7 +4,6 @@ use super::data_model_validation::validate_vc_data_model;
 use super::decode::decode;
 use super::CredentialSubject;
 use super::Issuer;
-
 use crate::datetime::{
     deserialize_optional_rfc3339, deserialize_rfc3339, serialize_optional_rfc3339,
     serialize_rfc3339,
@@ -20,22 +19,38 @@ use std::time::SystemTime;
 pub const BASE_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
 pub const BASE_TYPE: &str = "VerifiableCredential";
 
+/// Represents a Verifiable Credential according to the [W3C Verifiable Credentials Data Model v1.1](https://www.w3.org/TR/vc-data-model/)
+/// and conformant to the [Web5 specification](https://tbd54566975.github.io/web5-spec/#verifiable-credentials-vcs).
+/// A Verifiable Credential is a tamper-evident credential that has authorship that can be cryptographically verified.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VerifiableCredential {
+    /// A list of contexts used to define the semantic meaning of the data contained in the Verifiable Credential.
     #[serde(rename = "@context")]
     pub context: Vec<String>,
+
+    /// The unique identifier for the Verifiable Credential.
     pub id: String,
+
+    /// The type(s) of the Verifiable Credential.
     #[serde(rename = "type")]
     pub r#type: Vec<String>,
+
+    /// The entity (either a string or an object) that issued the credential.
     pub issuer: Issuer,
+
+    /// The subject of the credential, containing claims about the entity being described by the credential.
     #[serde(rename = "credentialSubject")]
     pub credential_subject: CredentialSubject,
+
+    /// The date and time when the credential was issued.
     #[serde(
         rename = "issuanceDate",
         serialize_with = "serialize_rfc3339",
         deserialize_with = "deserialize_rfc3339"
     )]
     pub issuance_date: SystemTime,
+
+    /// The optional expiration date and time after which the credential is no longer valid.
     #[serde(
         rename = "expirationDate",
         serialize_with = "serialize_optional_rfc3339",
@@ -44,10 +59,16 @@ pub struct VerifiableCredential {
         default
     )]
     pub expiration_date: Option<SystemTime>,
+
+    /// The credential status information, if applicable (e.g., revoked or suspended).
     #[serde(rename = "credentialStatus", skip_serializing_if = "Option::is_none")]
     pub credential_status: Option<CredentialStatus>,
+
+    /// The credential schema, used to validate the data structure of the credential.
     #[serde(rename = "credentialSchema", skip_serializing_if = "Option::is_none")]
     pub credential_schema: Option<CredentialSchema>,
+
+    /// An array of evidence supporting the claims made in the credential.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub evidence: Option<Vec<JsonObject>>,
 }
@@ -55,32 +76,88 @@ pub struct VerifiableCredential {
 impl FromJson for VerifiableCredential {}
 impl ToJson for VerifiableCredential {}
 
+/// Represents the options available when creating a Verifiable Credential.
+/// These options allow customization of various attributes of the credential during its creation.
 #[derive(Default, Clone)]
 pub struct VerifiableCredentialCreateOptions {
+    /// The unique identifier for the Verifiable Credential. This is optional.
+    /// If not provided then the default value will be of format urn:uuid:{uuid}.
     pub id: Option<String>,
+
+    /// The context(s) for the Verifiable Credential, which define the meaning of terms within the credential.
+    /// The base context `<https://www.w3.org/2018/credentials/v1>` is always the first value whereafter values provided here will be appended onto.
+    /// If the base context is also provided here then it will be de-duplicated against the base context referred to above.
     pub context: Option<Vec<String>>,
+
+    /// The type(s) of the Verifiable Credential.
+    /// The base type VerifiableCredential will always be the first value whereafter values provided here will be appeneded onto.
+    /// If the base type is also provided here then it will be de-duplicated against the base type referred to above.
     pub r#type: Option<Vec<String>>,
+
+    /// The issuance date of the credential. If not provided, defaults to the current date and time.
     pub issuance_date: Option<SystemTime>,
+
+    /// The optional expiration date for the credential, after which it is no longer valid.
     pub expiration_date: Option<SystemTime>,
+
+    /// The optional credential status, which may indicate revocation or suspension information.
     pub credential_status: Option<CredentialStatus>,
+
+    /// The credential schema, used to validate the data structure of the credential. This is optional.
+    /// JSON Schema validation is performed if the value is provided, and creation will fail if validation fails.
     pub credential_schema: Option<CredentialSchema>,
+
+    /// An optional array of evidence supporting the claims made in the credential.
     pub evidence: Option<Vec<JsonObject>>,
 }
 
+/// Represents the status information of a Verifiable Credential.
+/// CredentialStatus is used to indicate the revocation or suspension status of a credential.
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct CredentialStatus {
+    /// The unique identifier for the credential status.
     pub id: String,
+
+    /// The type(s) of the credential status.
     #[serde(rename = "type")]
     pub r#type: String,
+
+    /// The purpose of the status (e.g., "revocation" or "suspension").
     #[serde(rename = "statusPurpose")]
     pub status_purpose: String,
+
+    /// The index in the status list indicating the credential's position.
     #[serde(rename = "statusListIndex")]
     pub status_list_index: String,
+
+    /// The unique identifier for the Verifiable Credential that lists the status of the credential.
     #[serde(rename = "statusListCredential")]
     pub status_list_credential: String,
 }
 
 impl VerifiableCredential {
+    /// Creates a new Verifiable Credential with the specified issuer, subject, and optional creation options.
+    ///
+    /// # Arguments
+    ///
+    /// * `issuer` - The entity issuing the credential. The `issuer` must be a valid DID.
+    /// * `credential_subject` - The subject of the credential containing claims. The subject must be a valid DID.
+    /// * `options` - Optional parameters for creating the credential, such as schema or status.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let issuer_bearer_did = DidJwk::create(None).unwrap();
+    /// let subject_did_uri = "did:dht:ng4hmqtrgujox4agpf8okxihnyy1zqnq97qfeq15x8oar7yepzhy";
+    ///
+    /// let verifiable_credential = VerifiableCredential::create(
+    ///     Issuer::String(issuer_bearer_did.did.uri.clone()),
+    ///     CredentialSubject {
+    ///         id: subject_did_uri.to_string(),
+    ///         additional_properties: None,
+    ///     },
+    ///     None,
+    /// ).unwrap();
+    /// ```
     pub fn create(
         issuer: Issuer,
         credential_subject: CredentialSubject,
@@ -89,7 +166,19 @@ impl VerifiableCredential {
         super::create::create_vc(issuer, credential_subject, options)
     }
 
-    // this function currently only supports Ed25519
+    /// Constructs a Verifiable Credential from a VC JWT (JSON Web Token).
+    ///
+    /// # Arguments
+    ///
+    /// * `vc_jwt` - The Verifiable Credential in JWT format, serialized as a compact JWS.
+    /// * `verify` - If true, verifies the integrity of the JWT by performing cryptographic verification against the signature, validating the VC Data Model, and validates the JSON Schema if present.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let vc_jwt = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKUVFsbE5SbTkxWTBzNVMzZFBTSFJ6TmpoU05FVndjbVl5TXpOTE5UUk1NVlZJTjFSSWNUUmZhMGhOSW4wIzAifQ.eyJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUpRUWxsTlJtOTFZMHM1UzNkUFNIUnpOamhTTkVWd2NtWXlNek5MTlRSTU1WVklOMVJJY1RSZmEwaE5JbjAiLCJqdGkiOiJ1cm46dXVpZDphMThiNDJiYS02MTU5LTQ1YTktYWMzYi0yNzZiYjBkNDdiZjYiLCJzdWIiOiJkaWQ6ZGh0Om5nNGhtcXRyZ3Vqb3g0YWdwZjhva3hpaG55eTF6cW5xOTdxZmVxMTV4OG9hcjd5ZXB6aHkiLCJuYmYiOjE3MjYyMzE5NzIsImlhdCI6MTcyNjIzMTk3MiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0Om5nNGhtcXRyZ3Vqb3g0YWdwZjhva3hpaG55eTF6cW5xOTdxZmVxMTV4OG9hcjd5ZXB6aHkifSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKUVFsbE5SbTkxWTBzNVMzZFBTSFJ6TmpoU05FVndjbVl5TXpOTE5UUk1NVlZJTjFSSWNUUmZhMGhOSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0xM1QxMjo1Mjo1MloiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl0sImlkIjoidXJuOnV1aWQ6YTE4YjQyYmEtNjE1OS00NWE5LWFjM2ItMjc2YmIwZDQ3YmY2In19.iCd7QlAiBNLCfvtUbBtk-9PTqFfucqZ44KxhFvjGcRSjkGJr610-0jLVsNSA_CP8gblYcfw1e5jx3pGeErC-Bw"#;
+    /// let verifiable_credential =
+    ///     VerifiableCredential::from_vc_jwt(vc_jwt, true).unwrap();
+    /// ```
     pub fn from_vc_jwt(vc_jwt: &str, verify: bool) -> Result<Self> {
         let verifiable_credential = decode(vc_jwt, verify)?;
 
@@ -101,6 +190,35 @@ impl VerifiableCredential {
         Ok(verifiable_credential)
     }
 
+    /// Signs the Verifiable Credential using the specified Bearer DID and optional verification method.
+    ///
+    /// # Arguments
+    ///
+    /// * `bearer_did` - The DID used to sign the credential.
+    /// * `verification_method_id` - Optional identifier of the Verification Method for which to sign with.
+    ///
+    /// # Returns
+    ///
+    /// A string representing the signed JWT, serialized as a compact JWS, of the Verifiable Credential.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let issuer_bearer_did = DidJwk::create(None).unwrap();
+    /// let subject_did_uri = "did:dht:ng4hmqtrgujox4agpf8okxihnyy1zqnq97qfeq15x8oar7yepzhy";
+    ///
+    /// let verifiable_credential = VerifiableCredential::create(
+    ///     Issuer::String(issuer_bearer_did.did.uri.clone()),
+    ///     CredentialSubject {
+    ///         id: subject_did_uri.to_string(),
+    ///         additional_properties: None,
+    ///     },
+    ///     None,
+    /// ).unwrap();
+    ///
+    /// let vc_jwt = verifiable_credential
+    ///     .sign(&issuer_bearer_did, None)
+    ///     .unwrap();
+    /// ```
     pub fn sign(
         &self,
         bearer_did: &BearerDid,

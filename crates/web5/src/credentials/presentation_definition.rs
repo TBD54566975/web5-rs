@@ -188,7 +188,7 @@ impl PresentationDefinition {
     /// * `presentation_definition` - The Presentation Definition V2 object against which VCs are validated.
     ///
     /// # Returns
-    /// A `PresentationResult` which holds the `PresentationSubmission` and a Vec<String> which has the vc_jwts that were used
+    /// A `PresentationResult` which holds the `PresentationSubmission` and a `Vec<String>` which has the vc_jwts that were used
     /// A `PresentationSubmission` object.
     /// A `Vec<String>` which contains the chosen vc_jwts
     pub fn create_presentation_from_credentials(
