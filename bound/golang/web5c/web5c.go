@@ -106,65 +106,75 @@ func CEd25519SignerSign(signer *CEd25519Signer, payload []byte) ([]byte, error) 
 
 /** --- */
 
-type CSigner C.CSigner
-
-func CSignerSign(signer *CSigner, payload []byte) ([]byte, error) {
-	cPayload := (*C.uchar)(unsafe.Pointer(&payload[0]))
-	payloadLen := C.size_t(len(payload))
-
-	cSigner := (*C.CSigner)(signer)
-
-	var cSignatureLen C.size_t
-
-	cSignature := C.call_sign(cSigner, cPayload, payloadLen, &cSignatureLen)
-
-	if cSignature == nil {
-		return nil, fmt.Errorf("sign failed")
-	}
-	defer C.free(unsafe.Pointer(cSignature))
-
-	signature := C.GoBytes(unsafe.Pointer(cSignature), C.int(cSignatureLen))
-	return signature, nil
-}
-
 type SignFunc func(payload []byte) ([]byte, error)
 
-var (
-	signerRegistry = make(map[int]SignFunc)
-	signerCounter  int
-	mu             sync.Mutex
-)
+type CSigner struct {
+	ID   int
+	Sign SignFunc
+}
 
-func RegisterSigner(signFunc SignFunc) (*CSigner, int) {
-	mu.Lock()
-	defer mu.Unlock()
-
-	signerCounter++
-	signerRegistry[signerCounter] = signFunc
-
+func (s *CSigner) toCGo() *C.CSigner {
 	cSigner := &C.CSigner{
-		signer_id: C.int(signerCounter),
+		signer_id: C.int(s.ID),
 		sign:      (C.signFunc)(C.foreign_signer_sign),
 	}
+	return cSigner
+}
 
-	return (*CSigner)(cSigner), signerCounter
+func NewCSignerFromCGo(cSigner *C.CSigner) *CSigner {
+	return &CSigner{
+		ID: int(cSigner.signer_id),
+		Sign: func(payload []byte) ([]byte, error) {
+			var outLen C.size_t
+			cPayload := (*C.uchar)(unsafe.Pointer(&payload[0]))
+			cSignature := C.call_sign(cSigner, cPayload, C.size_t(len(payload)), &outLen)
+			if cSignature == nil {
+				return nil, fmt.Errorf("sign failed")
+			}
+			defer C.free(unsafe.Pointer(cSignature))
+			signature := C.GoBytes(unsafe.Pointer(cSignature), C.int(outLen))
+			return signature, nil
+		},
+	}
+}
+
+var (
+	signerRegistry = make(map[int]*CSigner)
+	signerCounter  int
+	signerMutex    sync.Mutex
+)
+
+func RegisterSigner(signFunc SignFunc) *CSigner {
+	signerMutex.Lock()
+	defer signerMutex.Unlock()
+
+	signerCounter++
+
+	cSigner := &CSigner{
+		ID:   signerCounter,
+		Sign: signFunc,
+	}
+
+	signerRegistry[signerCounter] = cSigner
+
+	return cSigner
 }
 
 func FreeSigner(id int) {
-	mu.Lock()
-	defer mu.Unlock()
+	signerMutex.Lock()
+	defer signerMutex.Unlock()
 
 	delete(signerRegistry, id)
 }
 
 func POCSignerFromRust() *CSigner {
-	cSigner := C.poc_signer_from_rust()
-	return (*CSigner)(cSigner)
+	cgoSigner := C.poc_signer_from_rust()
+	return NewCSignerFromCGo(cgoSigner)
 }
 
-func POCSignerFromForeign(signer *CSigner) {
-	cSigner := (*C.CSigner)(signer)
-	C.poc_signer_from_foreign(cSigner)
+func POCSignerFromForeign(cSigner *CSigner) {
+	cgoSigner := cSigner.toCGo()
+	C.poc_signer_from_foreign(cgoSigner)
 }
 
 /** --- */
@@ -198,12 +208,13 @@ func CInMemoryKeyManagerImportPrivateJwk(manager *CInMemoryKeyManager, cJwk *CJw
 }
 
 func CInMemoryKeyManagerGetSigner(manager *CInMemoryKeyManager, cPublicJWK *CJwk) (*CSigner, error) {
-	cSigner := C.in_memory_key_manager_get_signer((*C.CInMemoryKeyManager)(manager), (*C.CJwk)(cPublicJWK))
-	if cSigner == nil {
+	cgoSigner := C.in_memory_key_manager_get_signer((*C.CInMemoryKeyManager)(manager), (*C.CJwk)(cPublicJWK))
+	if cgoSigner == nil {
 		return nil, errors.New("failed to retrieve signer")
 	}
 
-	return (*CSigner)(cSigner), nil
+	cSigner := NewCSignerFromCGo(cgoSigner)
+	return cSigner, nil
 }
 
 /** --- */
@@ -221,13 +232,15 @@ func CKeyManagerImportPrivateJWK(cManager *CKeyManager, cPrivateJWK *CJwk) (*CJw
 }
 
 func CKeyManagerGetSigner(cManager *CKeyManager, cPublicJWK *CJwk) (*CSigner, error) {
-	cSigner := C.call_get_signer((*C.CKeyManager)(cManager), (*C.CJwk)(cPublicJWK))
+	cgoSigner := C.call_get_signer((*C.CKeyManager)(cManager), (*C.CJwk)(cPublicJWK))
 
-	if cSigner == nil {
+	if cgoSigner == nil {
 		return nil, fmt.Errorf("failed to get signer")
 	}
 
-	return (*CSigner)(cSigner), nil
+	cSigner := NewCSignerFromCGo(cgoSigner)
+
+	return cSigner, nil
 }
 
 func POCKeyManagerFromRust() *CKeyManager {

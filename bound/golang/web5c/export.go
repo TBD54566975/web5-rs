@@ -10,9 +10,9 @@ import (
 
 //export foreign_signer_sign
 func foreign_signer_sign(signer_id C.int, payload *C.uchar, payload_len C.size_t, out_len *C.size_t) *C.uchar {
-	mu.Lock()
-	signFunc, exists := signerRegistry[int(signer_id)]
-	mu.Unlock()
+	signerMutex.Lock()
+	signer, exists := signerRegistry[int(signer_id)]
+	signerMutex.Unlock()
 
 	if !exists {
 		return nil
@@ -20,7 +20,7 @@ func foreign_signer_sign(signer_id C.int, payload *C.uchar, payload_len C.size_t
 
 	goPayload := C.GoBytes(unsafe.Pointer(payload), C.int(payload_len))
 
-	result, _ := signFunc(goPayload)
+	result, _ := signer.Sign(goPayload)
 
 	*out_len = C.size_t(len(result))
 

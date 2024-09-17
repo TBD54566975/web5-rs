@@ -11,7 +11,7 @@ type innerSigner struct {
 }
 
 func (s *innerSigner) Sign(payload []byte) ([]byte, error) {
-	return web5c.CSignerSign(s.cSigner, payload)
+	return s.cSigner.Sign(payload)
 }
 
 func NewSignerFromCSigner(cSigner *web5c.CSigner) Signer {

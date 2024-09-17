@@ -38,8 +38,8 @@ func (s *POCGoSigner) Sign(payload []byte) ([]byte, error) {
 
 func Test_POCSignerFromGo(t *testing.T) {
 	signer := POCGoSigner{}
-	cSigner, id := web5c.RegisterSigner(signer.Sign)
-	defer web5c.FreeSigner(id)
+	cSigner := web5c.RegisterSigner(signer.Sign)
+	defer web5c.FreeSigner(cSigner.ID)
 
 	web5c.POCSignerFromForeign(cSigner)
 }
