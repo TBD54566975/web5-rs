@@ -8,6 +8,14 @@ const PUBLIC_KEY_LENGTH: usize = 32;
 pub struct X25519Generator;
 
 impl X25519Generator {
+    /// Generates a new X25519 key pair and returns it as a JWK.
+    ///
+    /// The method creates a new random private key and derives the public key from it. The private
+    /// key (`d`) and the public key (`x`) are encoded in base64url format, and a JWK is returned with
+    /// the corresponding cryptographic parameters.
+    ///
+    /// # Returns
+    /// A `Jwk` object containing the generated X25519 key pair.
     pub fn generate() -> Jwk {
         let private_key = StaticSecret::random();
         let public_key = PublicKey::from(&private_key);
@@ -25,6 +33,15 @@ impl X25519Generator {
     }
 }
 
+/// Extracts the public key bytes from an X25519 JWK.
+///
+/// This function decodes the base64url-encoded `x` value of a JWK into its raw byte representation.
+///
+/// # Arguments
+/// * `jwk` - The JWK from which to extract the public key.
+///
+/// # Returns
+/// A `Result` containing a vector of bytes representing the public key, or an error if the key length is incorrect.
 pub(crate) fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     let x_bytes = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
 
@@ -41,6 +58,16 @@ pub(crate) fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     Ok(public_key_bytes.to_vec())
 }
 
+/// Creates a JWK from raw X25519 public key bytes.
+///
+/// This function takes the raw bytes of an X25519 public key and constructs a corresponding JWK. The
+/// public key is encoded in base64url format and stored in the `x` field of the JWK.
+///
+/// # Arguments
+/// * `public_key_bytes` - A byte slice containing the raw public key.
+///
+/// # Returns
+/// A `Result` containing the constructed JWK, or an error if the key length is incorrect.
 pub(crate) fn public_jwk_from_bytes(public_key_bytes: &[u8]) -> Result<Jwk> {
     if public_key_bytes.len() != PUBLIC_KEY_LENGTH {
         return Err(Web5Error::Parameter(format!(

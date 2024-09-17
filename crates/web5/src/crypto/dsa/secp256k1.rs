@@ -7,9 +7,17 @@ use base64::{engine::general_purpose, Engine as _};
 use k256::ecdsa::signature::{Signer as K256Signer, Verifier as K256Verifier};
 use k256::ecdsa::Signature;
 
+/// A key generator for secp256k1, used to create JWKs with secp256k1 key pairs.
 pub struct Secp256k1Generator;
 
 impl Secp256k1Generator {
+    /// Generates a new secp256k1 key pair and returns it as a JWK.
+    ///
+    /// The function creates a random secp256k1 private key and derives the public key from it. Both the private key
+    /// (`d`) and public key components (`x`, `y`) are base64url-encoded and returned as a JWK.
+    ///
+    /// # Returns
+    /// A `Jwk` containing the generated secp256k1 key pair.
     pub fn generate() -> Jwk {
         let signing_key = k256::ecdsa::SigningKey::random(&mut rand::thread_rng());
         let verifying_key = signing_key.verifying_key();
@@ -30,6 +38,13 @@ impl Secp256k1Generator {
 }
 
 #[cfg(test)]
+/// Converts a private JWK to a public JWK by removing the private key (`d` field).
+///
+/// # Arguments
+/// * `jwk` - The private JWK.
+///
+/// # Returns
+/// A `Jwk` containing only the public key components.
 pub fn to_public_jwk(jwk: &Jwk) -> Jwk {
     Jwk {
         alg: jwk.alg.clone(),
@@ -41,6 +56,16 @@ pub fn to_public_jwk(jwk: &Jwk) -> Jwk {
     }
 }
 
+/// Extracts the public key bytes from a secp256k1 JWK.
+///
+/// The function decodes the base64url-encoded `x` and `y` values and returns the concatenated
+/// uncompressed public key bytes (with prefix 0x04).
+///
+/// # Arguments
+/// * `jwk` - The JWK containing the public key.
+///
+/// # Returns
+/// A `Result` containing the extracted public key bytes.
 pub fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
     let decoded_y = general_purpose::URL_SAFE_NO_PAD.decode(
@@ -57,6 +82,16 @@ pub fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     Ok(pk_bytes)
 }
 
+/// Creates a secp256k1 JWK from public key bytes.
+///
+/// The function takes the raw public key bytes and constructs a JWK by encoding the `x` and `y` components
+/// as base64url strings.
+///
+/// # Arguments
+/// * `public_key` - The raw public key bytes.
+///
+/// # Returns
+/// A `Result` containing the constructed JWK.
 pub fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
     let x_bytes = &public_key[1..33];
     let y_bytes = &public_key[33..65];
@@ -70,18 +105,37 @@ pub fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
     })
 }
 
+/// A signer for secp256k1 keys.
+///
+/// The `Secp256k1Signer` is responsible for signing messages using the secp256k1 private key material stored in a JWK.
 #[derive(Clone)]
 pub struct Secp256k1Signer {
     private_jwk: Jwk,
 }
 
 impl Secp256k1Signer {
+    /// Creates a new `Secp256k1Signer` from a private JWK.
+    ///
+    /// # Arguments
+    /// * `private_jwk` - The JWK containing the private key material.
+    ///
+    /// # Returns
+    /// A new `Secp256k1Signer` instance.
     pub fn new(private_jwk: Jwk) -> Self {
         Self { private_jwk }
     }
 }
 
 impl Signer for Secp256k1Signer {
+    /// Signs the given payload using the secp256k1 private key.
+    ///
+    /// The private key is extracted from the JWK and used to sign the payload. The resulting signature is returned.
+    ///
+    /// # Arguments
+    /// * `payload` - The data to be signed.
+    ///
+    /// # Returns
+    /// A `Result` containing the signature as a vector of bytes.
     fn sign(&self, payload: &[u8]) -> Result<Vec<u8>> {
         let d = self.private_jwk.d.as_ref().ok_or(Web5Error::Crypto(
             "private key material must be set".to_string(),
@@ -98,18 +152,38 @@ impl Signer for Secp256k1Signer {
     }
 }
 
+/// A verifier for secp256k1 keys.
+///
+/// The `Secp256k1Verifier` is responsible for verifying signatures using the secp256k1 public key material stored in a JWK.
 #[derive(Clone)]
 pub struct Secp256k1Verifier {
     public_jwk: Jwk,
 }
 
 impl Secp256k1Verifier {
+    /// Creates a new `Secp256k1Verifier` from a public JWK.
+    ///
+    /// # Arguments
+    /// * `public_jwk` - The JWK containing the public key material.
+    ///
+    /// # Returns
+    /// A new `Secp256k1Verifier` instance.
     pub fn new(public_jwk: Jwk) -> Self {
         Self { public_jwk }
     }
 }
 
 impl Verifier for Secp256k1Verifier {
+    /// Verifies the given signature using the secp256k1 public key.
+    ///
+    /// The public key is extracted from the JWK and used to verify the signature against the provided payload.
+    ///
+    /// # Arguments
+    /// * `payload` - The data that was signed.
+    /// * `signature` - The signature to verify.
+    ///
+    /// # Returns
+    /// A `Result` indicating whether the signature is valid.
     fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<()> {
         if let Some(d) = &self.public_jwk.d {
             if !d.is_empty() {
