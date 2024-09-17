@@ -1,4 +1,3 @@
-import web5.sdk.rust.SystemArchitecture;
 import web5.sdk.rust.UniffiLib;
 
 /**
@@ -11,7 +10,6 @@ public class Web5AcceptanceTest {
 
     public static void main(String... args) {
         System.setProperty("WEB5_SDK_LOG_LEVEL", "debug");
-        SystemArchitecture.INSTANCE.set();
         UniffiLib.Companion.getINSTANCE$web5();
         System.out.println(
                 "Successfully loaded shared library for " +
