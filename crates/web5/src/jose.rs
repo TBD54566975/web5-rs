@@ -62,6 +62,7 @@ pub struct JwtClaims {
 impl FromJson for JwtClaims {}
 impl ToJson for JwtClaims {}
 
+#[allow(dead_code)]
 pub struct Jwt {
     pub kid: String,
     pub parts: Vec<String>,

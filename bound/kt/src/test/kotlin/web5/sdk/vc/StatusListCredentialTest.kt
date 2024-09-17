@@ -3,10 +3,6 @@ package web5.sdk.vc
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 
-
-import web5.sdk.rust.SystemTargetTest
-import web5.sdk.rust.UniffiLib
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StatusListCredentialTest {
     companion object {
