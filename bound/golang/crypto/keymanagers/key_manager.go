@@ -42,3 +42,27 @@ func (k *innerKeyManager) GetSigner(publicJWK *crypto.JWK) (dsa.Signer, error) {
 func NewKeyManagerFromCKeyManager(cKeyManager *web5c.CKeyManager) KeyManager {
 	return &innerKeyManager{cKeyManager}
 }
+
+func ToCImportPrivateJWK(keyManager KeyManager) web5c.ImportFunc {
+	return func(cPrivateJWK *web5c.CJWK) (*web5c.CJWK, error) {
+		privateJWK := crypto.NewJWKFromCJWK(cPrivateJWK)
+		publicJWK, err := keyManager.ImportPrivateJwk(privateJWK)
+		if err != nil {
+			return nil, err
+		}
+		cPublicJWK := publicJWK.ToCJWK()
+		return cPublicJWK, nil
+	}
+}
+
+func ToCGetSigner(keyManager KeyManager) web5c.GetSignerFunc {
+	return func(cPublicJWK *web5c.CJWK) (*web5c.CSigner, error) {
+		publicJWK := crypto.NewJWKFromCJWK(cPublicJWK)
+		signer, err := keyManager.GetSigner(publicJWK)
+		if err != nil {
+			return nil, err
+		}
+		cSigner := web5c.RegisterSigner(signer.Sign)
+		return cSigner, nil
+	}
+}

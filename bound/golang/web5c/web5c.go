@@ -4,6 +4,10 @@ package web5c
 #cgo LDFLAGS: -L../../../target/release -lweb5_c
 #include <stdlib.h>
 #include "../../../bindings/web5_c/web5_c.h"
+
+extern unsigned char *foreign_signer_sign(int signer_id, const unsigned char *payload, size_t payload_len, size_t *out_len);
+extern CJwk* foreign_key_manager_import_private_jwk(int manager_id, const CJwk *private_jwk);
+extern CSigner* foreign_key_manager_get_signer(int manager_id, const CJwk *public_jwk);
 */
 import "C"
 import (
@@ -260,8 +264,43 @@ func NewCKeyManagerFromCGo(cManager *C.CKeyManager) *CKeyManager {
 	}
 }
 
+var (
+	managerRegistry = make(map[int]*CKeyManager)
+	managerCounter  int
+	managerMutex    sync.Mutex
+)
+
+func RegisterKeyManager(importFunc ImportFunc, getSignerFunc GetSignerFunc) *CKeyManager {
+	managerMutex.Lock()
+	defer managerMutex.Unlock()
+
+	managerCounter++
+
+	cManager := &CKeyManager{
+		ID:               managerCounter,
+		ImportPrivateJWK: importFunc,
+		GetSigner:        getSignerFunc,
+	}
+
+	managerRegistry[managerCounter] = cManager
+
+	return cManager
+}
+
+func FreeKeyManager(id int) {
+	managerMutex.Lock()
+	defer managerMutex.Unlock()
+
+	delete(managerRegistry, id)
+}
+
 func POCKeyManagerFromRust() *CKeyManager {
 	cgoKeyManager := C.poc_key_manager_from_rust()
 	cKeyManager := NewCKeyManagerFromCGo(cgoKeyManager)
 	return cKeyManager
+}
+
+func POCKeyManagerFromForeign(cManager *CKeyManager) {
+	cgoKeyManager := cManager.toCGo()
+	C.poc_key_manager_from_foreign(cgoKeyManager)
 }

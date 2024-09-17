@@ -1,6 +1,8 @@
 package dsa
 
-import "web5/web5c"
+import (
+	"web5/web5c"
+)
 
 type Signer interface {
 	Sign(payload []byte) ([]byte, error)
