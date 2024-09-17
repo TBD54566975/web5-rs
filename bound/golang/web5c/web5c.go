@@ -220,34 +220,48 @@ func (m *CInMemoryKeyManager) GetSigner(cPublicJWK *CJWK) (*CSigner, error) {
 
 /** --- */
 
-type CKeyManager C.CKeyManager
+type ImportFunc func(privateJWK *CJWK) (*CJWK, error)
+type GetSignerFunc func(publicJWK *CJWK) (*CSigner, error)
 
-func CKeyManagerImportPrivateJWK(cManager *CKeyManager, cPrivateJWK *CJWK) (*CJWK, error) {
-	cgoPrivateJWK := cPrivateJWK.toCGo()
-	cgoPublicJWK := C.call_import_private_jwk((*C.CKeyManager)(cManager), cgoPrivateJWK)
-
-	if cgoPublicJWK == nil {
-		return nil, fmt.Errorf("failed to import private JWK")
-	}
-
-	cPublicJWK := NewCJWKFromCGo(cgoPublicJWK)
-	return cPublicJWK, nil
+type CKeyManager struct {
+	ID               int
+	ImportPrivateJWK ImportFunc
+	GetSigner        GetSignerFunc
 }
 
-func CKeyManagerGetSigner(cManager *CKeyManager, cPublicJWK *CJWK) (*CSigner, error) {
-	cgoPublicJWK := cPublicJWK.toCGo()
-	cgoSigner := C.call_get_signer((*C.CKeyManager)(cManager), cgoPublicJWK)
-
-	if cgoSigner == nil {
-		return nil, fmt.Errorf("failed to get signer")
+func (m *CKeyManager) toCGo() *C.CKeyManager {
+	cManager := &C.CKeyManager{
+		manager_id:         C.int(m.ID),
+		import_private_jwk: (C.importFunc)(C.foreign_key_manager_import_private_jwk),
+		get_signer:         (C.getSignerFunc)(C.foreign_key_manager_get_signer),
 	}
+	return cManager
+}
 
-	cSigner := NewCSignerFromCGo(cgoSigner)
-
-	return cSigner, nil
+func NewCKeyManagerFromCGo(cManager *C.CKeyManager) *CKeyManager {
+	return &CKeyManager{
+		ID: int(cManager.manager_id),
+		ImportPrivateJWK: func(privateJWK *CJWK) (*CJWK, error) {
+			cPrivateJWK := privateJWK.toCGo()
+			cPublicJWK := C.call_import_private_jwk(cManager, cPrivateJWK)
+			if cPublicJWK == nil {
+				return nil, fmt.Errorf("failed to import private JWK")
+			}
+			return NewCJWKFromCGo(cPublicJWK), nil
+		},
+		GetSigner: func(publicJWK *CJWK) (*CSigner, error) {
+			cPublicJWK := publicJWK.toCGo()
+			cSigner := C.call_get_signer(cManager, cPublicJWK)
+			if cSigner == nil {
+				return nil, fmt.Errorf("failed to get signer")
+			}
+			return NewCSignerFromCGo(cSigner), nil
+		},
+	}
 }
 
 func POCKeyManagerFromRust() *CKeyManager {
-	cKeyManager := C.poc_key_manager_from_rust()
-	return (*CKeyManager)(cKeyManager)
+	cgoKeyManager := C.poc_key_manager_from_rust()
+	cKeyManager := NewCKeyManagerFromCGo(cgoKeyManager)
+	return cKeyManager
 }

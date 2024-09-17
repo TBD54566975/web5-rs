@@ -39,4 +39,9 @@ func Test_POCKeyManagerFromRust(t *testing.T) {
 
 	encoded := base64.RawURLEncoding.EncodeToString(result)
 	fmt.Println("Base64 Encoded (from rust):", encoded)
+
+	expectedSignature := "OFVgQLhFq9_Xq4atZqZA47qUSKKuBcuiSJ8SUfU8Yx75AA2vwJS7MzJi-QzX765lxUg5WTuQBSjPtfCVeRYVBw"
+	if encoded != expectedSignature {
+		t.Errorf("Expected signature %s, but got %s", expectedSignature, encoded)
+	}
 }
