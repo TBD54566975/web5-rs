@@ -1,6 +1,59 @@
-# Work in progress
+# Web5 SDK Mono Repo
 
-This repo is not ready for consumption, and is under heavy development. Right now the Rust core bindings work only for Apple Silicon systems.
+This monorepo houses the core components of the Web5 platform containing the core Rust code with Kotlin bindings. It features libraries for building applications with decentralized identifiers (DIDs), verifiable credentials (VCs), presentation exchange (PEX), and much more.
+
+
+## Table of Contents
+- [Features](#features)
+- [Getting Started](#getting-started)
+   - [Cloning](#cloning)
+- [Development Prerequisites](#development-prerequisites)
+   - [Hermit](#hermit)
+- [Building and Testing](#building-and-testing)
+- [Binding Process](#binding-process)
+- [API Documentation](#api-documentation)
+- [Basic Usage](#basic-usage)
+   - [DidJwk Creation](#didjwk-creation)
+   - [Verifiable Credential Creation & Signing](#verifiable-credential-creation--signing)
+   - [Verifiable Presentation Creation & Signing](#verifiable-presentation-creation--signing)
+   - [Presentation Exchange](#presentation-exchange)
+- [Rust Examples](#rust-examples)
+   - [Instantiate a new did:jwk](#instantiate-a-new-didjwk)
+   - [Simple Verifiable Credential Creation & Signing](#simple-verifiable-credential-creation--signing)
+- [Kotlin Examples](#kotlin-examples)
+   - [Instantiate a new did:jwk](#instantiate-a-new-didjwk-1)
+   - [Simple Verifiable Credential Creation & Signing](#simple-verifiable-credential-creation--signing-1)
+
+
+## Features
+- DID creation and management (support for multiple DID methods).
+- Verifiable Credential creation, signing, and verification.
+- Status List Credentials for revocation and suspension.
+- Verifiable Presentation creation and signing.
+- Presentation Exchange support to handle credential selection based on definitions and generating submissions.
+- Cross-platform support with multi-language bindings
+
+## Getting Started
+
+To start developing applications and services with the Web5 RS SDK, the following steps will guide
+you through setting up your local development environment.
+
+For detailed documentation on usage refer to the
+[API reference documentation](docs/API_DESIGN.md). Additionally, comprehensive
+guides can be found at the [TBD Developer site](https://developer.tbd.website/docs/) to enhance
+your understanding of the underlying concepts and how to implement them effectively.
+
+### Cloning
+
+This repository uses git submodules. To clone this repo with submodules:
+```sh
+git clone --recurse-submodules git@github.com:TBD54566975/web5-rs.git
+```
+
+Or to add submodules after cloning:
+```sh
+git submodule update --init
+```
 
 ## Development Prerequisites
 
@@ -43,104 +96,67 @@ $> just [buildTarget]
 For instance:
 
 ```shell
-$> just test-kotlin
-...
-[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0
-[INFO]
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  10.035 s
-[INFO] Finished at: 2024-07-15T00:38:03-04:00
-[INFO] ------------------------------------------------------------------------
+$> just build
 ```
 
-## Tooling Details
+## Binding Process
 
-While we execute most commands with `just`, some developers may like finer-grained control over the underlying build systems. This is a guide to those tools.
+The binding process follows these key steps:
 
-### Rust
+1. **Core Rust Development**
+   All the core logic for working with DIDs, verifiable credentials, and cryptographic signing and verification is implemented in Rust. Rust is chosen as the core layer for its memory safety, performance, and cross-platform capabilities.
 
-This project is written in [Rust](https://www.rust-lang.org/), a modern, performant, statically-linked programming language. It's installed and configured on you `$PATH` via Hermit, above.
+2. **Building the Kotlin Bindings**  
+   The Kotlin bindings are generated from the core Rust code and live in the `bound/kt` directory. These bindings allow Kotlin applications to access the functionality of the core Rust libraries through idiomatic Kotlin APIs.
 
-You may verify your `rust` installation via the terminal:
+3. **Packaging & Distribution**  
+   The Kotlin bindings are packaged and distributed as a Kotlin library, which can be imported and used in Kotlin applications just like any other dependency.
 
-```shell
-$> which rustup
-~/web5-rs/bin/rustup // For instance
+## API Documentation
+For the full detailed API design and usage examples, refer to the [API Design Document](docs/API_DESIGN.md)
 
-$> rustc --version
-rustc 1.79.0 (129f3b996 2024-06-10)
+## Basic Usage
+
+The SDK allows developers to work with decentralized identifiers (DIDs), verifiable credentials, and presentation exchanges. Below are the key use cases:
+
+1. **DidJwk Creation**  
+   You can create DIDs using the `Did::create` method.
+
+2. **Verifiable Credential Creation & Signing**  
+   Create a verifiable credential using `VerifiableCredential::create` and sign it with a DID.
+
+3. **Verifiable Presentation Creation & Signing**  
+   Use the SDK to create and sign verifiable presentations with `VerifiablePresentation::create` and `sign`.
+
+4. **Presentation Exchange**  
+   Select the appropriate credentials and generate presentations based on the presentation definitions using `PresentationDefinition::select_credentials` and `create_presentation_from_credentials`.
+
+## Rust Examples
+### Instantiate a new `did:jwk`
+
+```rust
+let did_jwk = DidJwk::create(None);
+println!("Created DID JWK: {}", did_jwk.did.uri);
 ```
 
-You may need to initialize your `rustc` environment if you see:
+### Simple Verifiable Credential Creation & Signing
 
-```shell
-error: rustup could not choose a version of rustc to run, because one wasn't specified explicitly, and no default is configured.
-help: run 'rustup default stable' to download the latest stable release of Rust and set it as your default toolchain.
+```rust
+let vc = VerifiableCredential::create(issuer, credential_subject, None)?;
+let vc_jwt = vc.sign(bearer_did, None)?;
 ```
 
-Fix by executing:
+## Kotlin Examples
+### Instantiate a new `did:jwk`
 
-```shell
-$> rustup default stable
-info: ... // Downloading things
-info: default toolchain set to 'stable-aarch64-apple-darwin'
-
-  stable-aarch64-apple-darwin installed - rustc 1.79.0 (129f3b996 2024-06-10)
+```kotlin
+val didJwk = DidJwk.create()
+println("Created DID JWK: ${didJwk.did.uri}")
 ```
 
-### Maven
+### Simple Verifiable Credential Creation & Signing
 
-The Java bindings are built with the
-[Maven Project Management](https://maven.apache.org/) tool.
-It is installed via Hermit above.
-
-If you want to build an artifact on your local filesystem, you can do so by running the
-following command, specifying the `-f` flag to point to the `pom.xml` for the Kotlin project.
-
-```shell
-mvn -f bound/kt/pom.xml clean verify
+```kotlin
+val vc = VerifiableCredential.create(issuer, credentialSubject)
+val vcJwt = vc.sign(bearerDid)
 ```
-
-This will first clean all previous builds and compiled code, then:
-compile, test, and build the artifacts in each of the submodules
-of this project in the `$moduleName/target` directory, for example:
-
-```shell
-ls -l bound/kt/target/
-```
-
-You should see similar to:
-
-```shell
-total 57416
-drwxr-xr-x@  8 alr  staff       256 Jul 15 00:38 classes
-drwxr-xr-x@  3 alr  staff        96 Jul 15 00:37 generated-sources
-drwxr-xr-x@  3 alr  staff        96 Jul 15 00:38 generated-test-sources
-drwxr-xr-x@  3 alr  staff        96 Jul 15 00:42 maven-archiver
-drwxr-xr-x@  3 alr  staff        96 Jul 15 00:37 maven-status
-drwxr-xr-x@ 14 alr  staff       448 Jul 15 00:42 surefire-reports
-drwxr-xr-x@  4 alr  staff       128 Jul 15 00:38 test-classes
--rw-r--r--@  1 alr  staff  29123862 Jul 15 00:42 web5-core-kt-1.0-SNAPSHOT.jar
-```
-
-If you'd like to skip packaging and test only, run:
-
-```shell
-mvn -f bound/kt/pom.xml test
-```
-
-You may also run a single test; use the `-Dtest=` parameter to denote which test to run, for example:
-
-```shell
-mvn -f bound/kt/pom.xml test -Dtest=TestClassName
-```
-
-To install builds into your local Maven repository, run from the root:
-
-```shell
-mvn -f bound/kt/pom.xml install
-```
-
-For more, see the documentation on [Maven Lifecycle](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html).

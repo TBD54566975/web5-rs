@@ -5,24 +5,49 @@ use sha2::{Digest, Sha256};
 
 #[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq)]
 pub struct Jwk {
+    /// The algorithm intended for use with the key (optional).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alg: Option<String>,
+
+    /// The key type, such as `EC` (Elliptic Curve) or `OKP` (Octet Key Pair).
     pub kty: String,
+
+    /// The curve associated with the key, such as `P-256` for EC keys.
     pub crv: String,
+
+    /// The private key component (optional). This is `None` for public keys.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub d: Option<String>,
+
+    /// The `x` coordinate for elliptic curve keys, or the public key for OKP keys.
     pub x: String,
+
+    /// The `y` coordinate for elliptic curve keys (optional).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub y: Option<String>,
 }
 
 impl Jwk {
+    /// Determines if the JWK is a public key.
+    ///
+    /// Returns `true` if the JWK represents a public key (i.e., the private key component `d` is `None`).
     pub(crate) fn is_public_key(&self) -> bool {
         self.d.is_none()
     }
 }
 
 impl Jwk {
+    /// Computes the thumbprint of the JWK.
+    ///
+    /// A thumbprint is a cryptographic hash that uniquely identifies the JWK based on its key type, curve, and public key components.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<String>` - A base64url-encoded thumbprint, or an error if required fields are missing.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `kty`, `x`, or `crv` fields are missing or empty, or if the `y` field is missing or empty for EC keys.
     pub fn compute_thumbprint(&self) -> Result<String> {
         if self.kty.is_empty() {
             return Err(Web5Error::DataMember("kty cannot be empty".to_string()));

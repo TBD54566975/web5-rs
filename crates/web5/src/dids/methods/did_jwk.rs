@@ -25,7 +25,36 @@ pub struct DidJwkCreateOptions {
 
 pub struct DidJwk;
 
+/// Provides functionality for creating and resolving "did:jwk" method Decentralized Identifiers (DIDs).
+///
+/// A "did:jwk" DID is a type of DID derived directly from a public key, allowing it to be self-verifiable
+/// by third parties without relying on a separate blockchain or ledger. This is particularly useful for scenarios
+/// involving verifiable credentials or capabilities.
 impl DidJwk {
+
+    /// Creates a new "did:jwk" DID, derived from a public key.
+    ///
+    /// This method generates a "did:jwk" DID by creating a key pair, using the provided key manager, and
+    /// constructing the DID document. The method-specific identifier is a base64url encoded JSON Web Key (JWK).
+    ///
+    /// # Arguments
+    ///
+    /// * `options` - Optional. Contains a `KeyManager` to store the key and a `Dsa` specifying the key type (e.g., Ed25519 or Secp256k1).
+    ///
+    /// # Returns
+    ///
+    /// * `Result<BearerDid>` - The newly created "did:jwk" DID, encapsulated in a `BearerDid` object.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let did_jwk = DidJwk::create(None)?;
+    /// println!("Created DID JWK: {:?}", did_jwk);
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if key generation fails or if the specified curve is not supported.
     pub fn create(options: Option<DidJwkCreateOptions>) -> Result<BearerDid> {
         let options = options.unwrap_or_default();
 
@@ -72,6 +101,30 @@ impl DidJwk {
         })
     }
 
+    /// Resolves a "did:jwk" DID into a `ResolutionResult`.
+    ///
+    /// This method constructs a DID document from the method-specific identifier (public key) encoded in the DID.
+    /// It parses the DID URI, decodes the public key, and builds a document with verification methods, authentication,
+    /// and other DID properties.
+    ///
+    /// # Arguments
+    ///
+    /// * `uri` - The DID URI to resolve.
+    ///
+    /// # Returns
+    ///
+    /// * `ResolutionResult` - The result of the resolution, containing the DID document and related metadata.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let result = DidJwk::resolve("did:jwk:example123");
+    /// println!("Resolved DID Document: {:?}", result.document);
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ResolutionMetadataError` if the DID is invalid or cannot be resolved.
     pub fn resolve(uri: &str) -> ResolutionResult {
         let did = match Did::parse(uri) {
             Ok(d) => d,

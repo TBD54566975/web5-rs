@@ -646,7 +646,7 @@ class VerifiableCredentialTest {
                 VerifiableCredential.fromVcJwt(vcJwtWithInvalidDidUri, true)
             }
 
-            assertEquals("parameter error identifier regex match failure invalid did uri", exception.message)
+            assertEquals("The requested DID was not valid and resolution could not proceed.", exception.message)
         }
 
         @Test
@@ -676,13 +676,13 @@ class VerifiableCredentialTest {
         @Test
         fun test_fails_cryptographic_verification() {
 
-            val vcJwtWithInvalidSignature = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSkhWelpGVERsSVRUbHRkSGx5Y0dsWWRGRlVNR3B4Wms1MmFXTm5RVGxCVkRnME1IWTFZMDh5YjFSckluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOjZmYTQ2MDVjLWFlZGItNGQ2NC05NzdiLTFmY2NmYTU1ZTM1ZiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKSFZ6WkZURGxJVFRsdGRIbHljR2xZZEZGVU1HcHhaazUyYVdOblFUbEJWRGcwTUhZMVkwOHliMVJySW4wIzAiLCJpc3N1YW5jZURhdGUiOiIyMDI0LTA4LTI4VDEyOjQyOjI3Ljc3Mjg4OSswMDowMCIsImV4cGlyYXRpb25EYXRlIjpudWxsLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSJ9fSwiaXNzIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKSFZ6WkZURGxJVFRsdGRIbHljR2xZZEZGVU1HcHhaazUyYVdOblFUbEJWRGcwTUhZMVkwOHliMVJySW4wIzAiLCJqdGkiOiJ1cm46dXVpZDo2ZmE0NjA1Yy1hZWRiLTRkNjQtOTc3Yi0xZmNjZmE1NWUzNWYiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjQ4NDg5NDcsImlhdCI6MTcyNDg0ODk0N30.-JwIGYZ9HlJASYxdRBWY5KlwP0iJUxWUOU6BsOR74VeC-zKgZb9WWZR08OVD-wv0X8KD5--0K5Dr9r5fL3B0Aw-invalid-signature"
+            val vcJwtWithInvalidSignature = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKMmJGOUNOVTB6UzFwclNXdDNTMDg1VGpKRlVFTTFjVE5IVGxoamQwWktObFl0VlU5RkxTMUlVa3MwSW4wIzAifQ.eyJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUoyYkY5Q05VMHpTMXByU1d0M1MwODVUakpGVUVNMWNUTkhUbGhqZDBaS05sWXRWVTlGTFMxSVVrczBJbjAiLCJqdGkiOiJ1cm46dXVpZDoyMWUxNWRjYi0xM2MzLTQwYTYtYWJiNS01NTA3Nzg5Zjk4YmEiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjU4OTU2NTYsImlhdCI6MTcyNTg5NTY1NiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJpc3N1ZXIiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUoyYkY5Q05VMHpTMXByU1d0M1MwODVUakpGVUVNMWNUTkhUbGhqZDBaS05sWXRWVTlGTFMxSVVrczBJbjAiLCJpZCI6InVybjp1dWlkOjIxZTE1ZGNiLTEzYzMtNDBhNi1hYmI1LTU1MDc3ODlmOThiYSIsImlzc3VhbmNlRGF0ZSI6IjIwMjQtMDktMDlUMTU6Mjc6MzZaIn19.6AR3aNzlMDgRpniSMhOGfXN3wUS0IkIoWa_KpZprOWwVbSyVjcI_Ndo3SGCutUSiBboYH9sFomdGb7_0AeVDCg"
 
             val exception = assertThrows<Web5Exception> {
                 VerifiableCredential.fromVcJwt(vcJwtWithInvalidSignature, true)
             }
 
-            assertTrue(exception.message.contains("cryptography error vc-jwt failed cryptographic verification"))
+            assertEquals("cryptography error cryptographic verification failure", exception.message)
         }
 
         @Test

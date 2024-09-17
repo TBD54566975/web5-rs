@@ -34,21 +34,62 @@ fn create_identifier(identity_key_jwk: &Jwk) -> Result<String> {
     Ok(format!("did:dht:{}", suffix))
 }
 
+/// Provides functionality for creating and resolving "did:dht" method Decentralized Identifiers (DIDs).
+///
+/// A "did:dht" DID is derived from an identity key and is stored on a Distributed Hash Table (DHT).
+/// The method-specific identifier for "did:dht" is a z-base-32 encoded public key.
+///
+/// # See Also:
+/// [DID DHT Specification](https://did-dht.com/)
 #[derive(Clone, Default)]
 pub struct DidDht;
 
 #[derive(Default)]
 pub struct DidDhtCreateOptions {
+    /// Determines whether to publish the DID document to the DHT after creation. Defaults to true.
     pub publish: Option<bool>,
+
+    /// The URL of the gateway to use for publishing or resolving the DID.
     pub gateway_url: Option<String>,
+
+    /// The key manager used for key storage and management. If not provided, an in-memory key manager will be used.
     pub key_manager: Option<Arc<dyn KeyManager>>,
+
+    /// Optional services to add to the DID document.
     pub service: Option<Vec<Service>>,
+
+    /// Optional controllers for the DID document.
     pub controller: Option<Vec<String>>,
+
+    /// Optional additional identifiers for the DID document (e.g., social accounts).
     pub also_known_as: Option<Vec<String>>,
+
+    /// Optional additional verification methods for the DID document.
     pub verification_method: Option<Vec<VerificationMethod>>,
 }
 
 impl DidDht {
+    /// Creates a new "did:dht" DID, derived from an identity key.
+    ///
+    /// This method generates a "did:dht" DID by creating a key pair using Ed25519, and constructs a DID document.
+    /// The method-specific identifier is a z-base-32 encoded public key.
+    ///
+    /// By default, the DID document is published to the DHT, unless the `publish` option is set to false.
+    ///
+    /// # Arguments
+    ///
+    /// * `options` - Optional parameters such as key manager, services, controllers, and whether to publish the DID.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<BearerDid>` - The newly created "did:dht" DID, encapsulated in a `BearerDid` object.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let did_dht = DidDht::create(None)?;
+    /// println!("Created DID DHT: {:?}", did_dht);
+    /// ```
     pub fn create(options: Option<DidDhtCreateOptions>) -> Result<BearerDid> {
         let options = options.unwrap_or_default();
 
@@ -100,6 +141,26 @@ impl DidDht {
         Ok(bearer_did)
     }
 
+    /// Publishes a "did:dht" DID document to the DHT.
+    ///
+    /// This method converts the DID document into a packet, signs it using the associated key, and
+    /// publishes the signed packet to the DHT using the provided gateway URL or the default gateway.
+    ///
+    /// # Arguments
+    ///
+    /// * `bearer_did` - The `BearerDid` object representing the DID to be published.
+    /// * `gateway_url` - The URL of the gateway to use for publishing. If not provided, the default gateway is used.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<()>` - Returns `Ok` if the DID is successfully published, or an error if the operation fails.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let bearer_did = DidDht::create(None)?;
+    /// DidDht::publish(bearer_did, None)?;
+    /// ```
     pub fn publish(bearer_did: BearerDid, gateway_url: Option<String>) -> Result<()> {
         let packet = bearer_did.document.to_packet().map_err(|e| {
             Web5Error::Encoding(format!("failed to convert document to packet {}", e))
@@ -147,6 +208,30 @@ impl DidDht {
         Ok(())
     }
 
+    /// Resolves a "did:dht" DID into a `ResolutionResult`.
+    ///
+    /// This method retrieves the DID document associated with the "did:dht" DID from the DHT.
+    /// It sends a GET request to the DHT gateway, verifies the document, and constructs the result.
+    ///
+    /// # Arguments
+    ///
+    /// * `uri` - The DID URI to resolve.
+    /// * `gateway_url` - The URL of the gateway to use for resolution. If not provided, the default gateway is used.
+    ///
+    /// # Returns
+    ///
+    /// * `ResolutionResult` - The result of the resolution, containing the DID document and related metadata.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let result = DidDht::resolve("did:dht:example", None);
+    /// println!("Resolved DID Document: {:?}", result.document);
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ResolutionMetadataError` if the DID cannot be resolved or verified.
     pub fn resolve(uri: &str, gateway_url: Option<String>) -> ResolutionResult {
         let result: std::result::Result<ResolutionResult, ResolutionMetadataError> = (|| {
             // check did method and decode id

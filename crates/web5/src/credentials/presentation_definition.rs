@@ -21,7 +21,7 @@ pub enum PexError {
 type Result<T> = std::result::Result<T, PexError>;
 
 /// Represents a DIF Presentation Definition defined [here](https://identity.foundation/presentation-exchange/#presentation-definition).
-/// Presentation Definitions are objects that articulate what proofs a Verifier requires.
+/// Presentation Definitions articulate what proofs a Verifier requires in the form of Input Descriptors and Submission Requirements.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PresentationDefinition {
     pub id: String,
@@ -37,7 +37,7 @@ pub struct PresentationDefinition {
 }
 
 /// Represents a DIF Input Descriptor defined [here](https://identity.foundation/presentation-exchange/#input-descriptor).
-/// Input Descriptors are used to describe the information a Verifier requires of a Holder.
+/// Input Descriptors describe the information a Verifier requires from a Holder.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct InputDescriptor {
     pub id: String,
@@ -94,6 +94,8 @@ pub struct Filter {
     pub contains: Option<Box<Filter>>,
 }
 
+/// Represents a DIF Submission Requirement as defined [here](https://identity.foundation/presentation-exchange/#submission-requirement).
+/// Submission Requirements describe what is expected to fulfill the Presentation Definition.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SubmissionRequirement {
     pub rule: SubmissionRequirementRule,
@@ -119,9 +121,8 @@ pub enum SubmissionRequirementRule {
     Pick,
 }
 
-/// Represents a presentation submission object.
-///
-/// See [Presentation Submission](https://identity.foundation/presentation-exchange/spec/v2.0.0/#presentation-submission)
+/// Represents a presentation submission object as defined [here](https://identity.foundation/presentation-exchange/spec/v2.0.0/#presentation-submission).
+/// This contains the result of fulfilling a Presentation Definition.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PresentationSubmission {
     pub id: String,
@@ -133,7 +134,7 @@ pub struct PresentationSubmission {
     pub descriptor_map: Vec<InputDescriptorMapping>,
 }
 
-/// Represents descriptor map for a presentation submission.
+/// Maps input descriptors to verifiable credentials in a presentation submission.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct InputDescriptorMapping {
     pub id: String,
@@ -144,10 +145,18 @@ pub struct InputDescriptorMapping {
     pub path_nested: Option<Box<InputDescriptorMapping>>,
 }
 
+/// Represents the result of a presentation submission process.
+///
+/// The `PresentationResult` contains the `PresentationSubmission` object, which maps input descriptors
+/// to the selected Verifiable Credentials, and a list of `matchedVcJwts` which includes the JWTs of
+/// the Verifiable Credentials that were used to fulfill the Presentation Definition.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PresentationResult {
+    /// The `PresentationSubmission` object that links input descriptors to the Verifiable Credentials (VCs).
     #[serde(rename = "presentationSubmission")]
     pub presentation_submission: PresentationSubmission,
+
+    /// A list of JWT strings representing the Verifiable Credentials (VCs) that were selected.
     #[serde(rename = "matchedVcJwts")]
     pub matched_vc_jwts: Vec<String>,
 }
@@ -188,7 +197,7 @@ impl PresentationDefinition {
     /// * `presentation_definition` - The Presentation Definition V2 object against which VCs are validated.
     ///
     /// # Returns
-    /// A `PresentationResult` which holds the `PresentationSubmission` and a Vec<String> which has the vc_jwts that were used
+    /// A `PresentationResult` which holds the `PresentationSubmission` and a `Vec<String>` which has the vc_jwts that were used
     /// A `PresentationSubmission` object.
     /// A `Vec<String>` which contains the chosen vc_jwts
     pub fn create_presentation_from_credentials(

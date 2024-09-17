@@ -22,20 +22,59 @@ use crate::{
 use resolver::Resolver;
 use url::Url;
 
+/// Provides functionality for creating and resolving "did:web" method Decentralized Identifiers (DIDs).
+///
+/// A "did:web" DID is based on web domain names, using the existing reputation system of the domain.
+/// It allows for decentralized identifiers to be hosted on web servers without the need for a blockchain.
+///
+/// # See Also:
+/// [DID Web Specification](https://w3c-ccg.github.io/did-method-web/)
 #[derive(Clone)]
 pub struct DidWeb;
 
 #[derive(Default)]
 pub struct DidWebCreateOptions {
+    /// The key manager used for key storage and management. If not provided, an in-memory key manager will be used.
     pub key_manager: Option<Arc<dyn KeyManager>>,
+
+    /// The digital signature algorithm (DSA) used to generate the key (e.g., Ed25519 or Secp256k1). Defaults to Ed25519.
     pub dsa: Option<Dsa>,
+
+    /// Optional services to add to the DID document.
     pub service: Option<Vec<Service>>,
+
+    /// Optional controllers for the DID document.
     pub controller: Option<Vec<String>>,
+
+    /// Optional additional identifiers for the DID document (e.g., social accounts).
     pub also_known_as: Option<Vec<String>>,
+
+    /// Optional additional verification methods for the DID document.
     pub verification_method: Option<Vec<VerificationMethod>>,
 }
 
 impl DidWeb {
+    /// Creates a new "did:web" DID for a given domain.
+    ///
+    /// This method generates a "did:web" DID by creating a key pair, using the provided key manager,
+    /// and constructing the DID document. The domain must be a valid URL, and additional options
+    /// can be provided to customize the DID document.
+    ///
+    /// # Arguments
+    ///
+    /// * `domain` - The domain for which to create the "did:web" DID.
+    /// * `options` - Optional parameters such as key manager, digital signature algorithm, and additional DID document properties.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<BearerDid>` - The newly created "did:web" DID, encapsulated in a `BearerDid` object.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let did_web = DidWeb::create("example.com", None)?;
+    /// println!("Created DID Web: {:?}", did_web);
+    /// ```
     pub fn create(domain: &str, options: Option<DidWebCreateOptions>) -> Result<BearerDid> {
         let options = options.unwrap_or_default();
 
@@ -127,6 +166,29 @@ impl DidWeb {
         })
     }
 
+    /// Resolves a "did:web" DID into a `ResolutionResult`.
+    ///
+    /// This method resolves a DID URI by fetching the DID document from the `.well-known` directory of
+    /// the web domain. It parses the DID URI and retrieves the associated DID document from the web server.
+    ///
+    /// # Arguments
+    ///
+    /// * `uri` - The DID URI to resolve.
+    ///
+    /// # Returns
+    ///
+    /// * `ResolutionResult` - The result of the resolution, containing the DID document and related metadata.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let result = DidWeb::resolve("did:web:example.com");
+    /// println!("Resolved DID Document: {:?}", result.document);
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ResolutionMetadataError` if the DID is invalid or cannot be resolved.
     pub fn resolve(uri: &str) -> ResolutionResult {
         let rt = match tokio::runtime::Builder::new_current_thread()
             .enable_all()

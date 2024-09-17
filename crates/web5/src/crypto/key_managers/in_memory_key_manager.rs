@@ -12,6 +12,20 @@ use std::{
     sync::{Arc, RwLock},
 };
 
+/// An in-memory implementation of the `KeyManager` and `KeyExporter` traits.
+///
+/// The `InMemoryKeyManager` provides a simple, thread-safe key management solution
+/// that stores private keys in memory. It allows for importing private JWKs, retrieving
+/// signers for public JWKs, and exporting the stored private JWKs.
+///
+/// # Examples
+///
+/// ```ignore
+/// let key_manager = InMemoryKeyManager::new();
+/// let private_jwk = Ed25519Generator::generate();
+/// let public_jwk = key_manager.import_private_jwk(private_jwk.clone()).unwrap();
+/// let signer = key_manager.get_signer(public_jwk).unwrap();
+/// ```
 #[derive(Default)]
 pub struct InMemoryKeyManager {
     map: RwLock<HashMap<String, Jwk>>,
@@ -35,6 +49,30 @@ impl InMemoryKeyManager {
 }
 
 impl KeyManager for InMemoryKeyManager {
+    /// Imports a private JWK into the key manager and returns the corresponding public JWK.
+    ///
+    /// This method adds the private JWK to the internal key map and returns the public JWK
+    /// (with the private component removed).
+    ///
+    /// # Arguments
+    ///
+    /// * `private_jwk` - The private JWK to import.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Jwk>` - The public JWK.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the provided JWK is not a private key.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let key_manager = InMemoryKeyManager::new();
+    /// let private_jwk = Ed25519Generator::generate();
+    /// let public_jwk = key_manager.import_private_jwk(private_jwk.clone()).unwrap();
+    /// ```
     fn import_private_jwk(&self, private_jwk: Jwk) -> Result<Jwk> {
         if private_jwk.is_public_key() {
             return Err(Web5Error::Parameter(
@@ -50,6 +88,31 @@ impl KeyManager for InMemoryKeyManager {
         Ok(public_jwk)
     }
 
+    /// Retrieves a signer for a given public JWK.
+    ///
+    /// This method looks up the private JWK associated with the given public JWK
+    /// and returns a signer for cryptographic operations.
+    ///
+    /// # Arguments
+    ///
+    /// * `public_jwk` - The public JWK for which to retrieve the signer.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Arc<dyn Signer>>` - The signer associated with the public JWK.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the public JWK is not found or if the JWK is not a public key.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let key_manager = InMemoryKeyManager::new();
+    /// let private_jwk = Ed25519Generator::generate();
+    /// let public_jwk = key_manager.import_private_jwk(private_jwk.clone()).unwrap();
+    /// let signer = key_manager.get_signer(public_jwk).unwrap();
+    /// ```
     fn get_signer(&self, public_jwk: Jwk) -> Result<Arc<dyn Signer>> {
         if !public_jwk.is_public_key() {
             return Err(Web5Error::Parameter(
@@ -81,6 +144,19 @@ impl KeyManager for InMemoryKeyManager {
 }
 
 impl KeyExporter for InMemoryKeyManager {
+    /// Exports all private JWKs stored in the key manager.
+    ///
+    /// This method returns all the private keys that have been stored in the key manager.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Vec<Jwk>>` - A list of private JWKs.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let private_jwks = key_manager.export_private_jwks()?;
+    /// ```
     fn export_private_jwks(&self) -> Result<Vec<Jwk>> {
         let map_lock = self.map.read()?;
         let jwks = map_lock.values().cloned().collect();
