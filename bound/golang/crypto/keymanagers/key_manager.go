@@ -7,7 +7,7 @@ import (
 )
 
 type KeyManager interface {
-	ImportPrivateJwk(privateJWK *crypto.JWK) (*crypto.JWK, error)
+	ImportPrivateJWK(privateJWK *crypto.JWK) (*crypto.JWK, error)
 	GetSigner(publicJWK *crypto.JWK) (dsa.Signer, error)
 }
 
@@ -15,7 +15,7 @@ type innerKeyManager struct {
 	cKeyManager *web5c.CKeyManager
 }
 
-func (k *innerKeyManager) ImportPrivateJwk(privateJWK *crypto.JWK) (*crypto.JWK, error) {
+func (k *innerKeyManager) ImportPrivateJWK(privateJWK *crypto.JWK) (*crypto.JWK, error) {
 	cPrivateJWK := privateJWK.ToCJWK()
 
 	cPublicJWK, err := k.cKeyManager.ImportPrivateJWK(cPrivateJWK)
@@ -46,7 +46,7 @@ func NewKeyManagerFromCKeyManager(cKeyManager *web5c.CKeyManager) KeyManager {
 func ToCImportPrivateJWK(keyManager KeyManager) web5c.ImportFunc {
 	return func(cPrivateJWK *web5c.CJWK) (*web5c.CJWK, error) {
 		privateJWK := crypto.NewJWKFromCJWK(cPrivateJWK)
-		publicJWK, err := keyManager.ImportPrivateJwk(privateJWK)
+		publicJWK, err := keyManager.ImportPrivateJWK(privateJWK)
 		if err != nil {
 			return nil, err
 		}

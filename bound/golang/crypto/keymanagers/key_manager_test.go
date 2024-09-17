@@ -23,7 +23,7 @@ func Test_POCKeyManagerFromRust(t *testing.T) {
 		Y:   "",
 	}
 
-	publicJWK, err := keyManager.ImportPrivateJwk(&privateJWK)
+	publicJWK, err := keyManager.ImportPrivateJWK(&privateJWK)
 	if err != nil {
 		t.Fatalf("Failed to import private jwk: %v", err)
 	}
@@ -68,7 +68,7 @@ func (s *POCGoSigner) Sign(payload []byte) ([]byte, error) {
 
 type POCGoKeyManager struct{}
 
-func (k *POCGoKeyManager) ImportPrivateJwk(privateJWK *crypto.JWK) (*crypto.JWK, error) {
+func (k *POCGoKeyManager) ImportPrivateJWK(privateJWK *crypto.JWK) (*crypto.JWK, error) {
 	return privateJWK, nil
 }
 

@@ -24,9 +24,7 @@ CKeyManager *alloc_ckeymanager()
 */
 import "C"
 import (
-	"errors"
 	"fmt"
-	"runtime"
 	"sync"
 	"unsafe"
 )
@@ -167,49 +165,10 @@ func POCSignerFromForeign(cSigner *CSigner) {
 
 /** --- */
 
-type CInMemoryKeyManager struct {
-	cgoManager *C.CInMemoryKeyManager
-}
-
-func NewCInMemoryKeyManager() (*CInMemoryKeyManager, error) {
-	cgoManager := C.in_memory_key_manager_new()
-	if cgoManager == nil {
-		return nil, errors.New("failed to create InMemoryKeyManager")
-	}
-
-	manager := &CInMemoryKeyManager{cgoManager}
-
-	runtime.SetFinalizer(manager, func(m *CInMemoryKeyManager) {
-		if m.cgoManager != nil {
-			C.in_memory_key_manager_free(m.cgoManager)
-			m.cgoManager = nil
-		}
-	})
-
-	return manager, nil
-}
-
-func (m *CInMemoryKeyManager) ImportPrivateJwk(cPrivateJWK *CJWK) (*CJWK, error) {
-	cgoPrivateJWK := cPrivateJWK.toCGo()
-	cgoPublicJWK := C.in_memory_key_manager_import_private_jwk(m.cgoManager, cgoPrivateJWK)
-	if cgoPublicJWK == nil {
-		return nil, errors.New("failed to import private JWK")
-	}
-
-	cPublicJWK := NewCJWKFromCGo(cgoPublicJWK)
-
-	return cPublicJWK, nil
-}
-
-func (m *CInMemoryKeyManager) GetSigner(cPublicJWK *CJWK) (*CSigner, error) {
-	cgoPublicJWK := cPublicJWK.toCGo()
-	cgoSigner := C.in_memory_key_manager_get_signer(m.cgoManager, cgoPublicJWK)
-	if cgoSigner == nil {
-		return nil, errors.New("failed to retrieve signer")
-	}
-
-	cSigner := NewCSignerFromCGo(cgoSigner)
-	return cSigner, nil
+func NewCInMemoryKeyManager_2() (*CKeyManager, error) {
+	cgoManager := C.new_in_memory_key_manager()
+	cManager := NewCKeyManagerFromCGo(cgoManager)
+	return cManager, nil
 }
 
 /** --- */

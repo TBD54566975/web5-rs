@@ -19,7 +19,7 @@ func Test_HappyPath(t *testing.T) {
 		Y:   "",
 	}
 
-	publicJWK, _ := manager.ImportPrivateJwk(privateJWK)
+	publicJWK, _ := manager.ImportPrivateJWK(privateJWK)
 
 	signer, _ := manager.GetSigner(publicJWK)
 

@@ -46,11 +46,7 @@ CSigner *call_get_signer(CKeyManager *manager, const CJwk *public_jwk);
 void poc_key_manager_from_foreign(const CKeyManager *manager);
 CKeyManager *poc_key_manager_from_rust();
 
-typedef struct CInMemoryKeyManager CInMemoryKeyManager;
-CInMemoryKeyManager *in_memory_key_manager_new();
-CJwk *in_memory_key_manager_import_private_jwk(CInMemoryKeyManager *manager, const CJwk *private_jwk);
-CSigner *in_memory_key_manager_get_signer(CInMemoryKeyManager *manager, const CJwk *public_jwk);
-void in_memory_key_manager_free(CInMemoryKeyManager *manager);
+CKeyManager *new_in_memory_key_manager();
 /** --- */
 
 #endif // WEB5_C_H
