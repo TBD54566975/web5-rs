@@ -11,10 +11,9 @@ type Ed25519Signer struct {
 }
 
 func NewEd25519Signer(jwk crypto.JWK) (*Ed25519Signer, error) {
-	cJwk := web5c.NewCJwk(jwk.ALG, jwk.KTY, jwk.CRV, jwk.D, jwk.X, jwk.Y)
-	defer web5c.FreeCJwk(cJwk)
+	cJWK := jwk.ToCJWK()
 
-	signer, err := web5c.NewCEd25519Signer(cJwk)
+	signer, err := web5c.NewCEd25519Signer(cJWK)
 	if err != nil {
 		return nil, errors.New("failed to create Ed25519Signer")
 	}

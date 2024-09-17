@@ -14,56 +14,47 @@ import (
 	"unsafe"
 )
 
-type CJwk C.CJwk
+type CJWK struct {
+	ALG string
+	KTY string
+	CRV string
+	D   string
+	X   string
+	Y   string
+}
 
-func NewCJwk(alg, kty, crv, d, x, y string) *CJwk {
-	cJwk := &C.CJwk{
-		alg: C.CString(alg),
-		kty: C.CString(kty),
-		crv: C.CString(crv),
-		d:   C.CString(d),
-		x:   C.CString(x),
-		y:   C.CString(y),
+func (j *CJWK) toCGo() *C.CJwk {
+	return &C.CJwk{
+		alg: C.CString(j.ALG),
+		kty: C.CString(j.KTY),
+		crv: C.CString(j.CRV),
+		d:   C.CString(j.D),
+		x:   C.CString(j.X),
+		y:   C.CString(j.Y),
 	}
-
-	return (*CJwk)(cJwk)
 }
 
-func (cJwk *CJwk) GetALG() string {
-	return C.GoString(cJwk.alg)
+func NewCJWKFromCGo(cJWK *C.CJwk) *CJWK {
+	return &CJWK{
+		ALG: C.GoString(cJWK.alg),
+		KTY: C.GoString(cJWK.kty),
+		CRV: C.GoString(cJWK.crv),
+		D:   C.GoString(cJWK.d),
+		X:   C.GoString(cJWK.x),
+		Y:   C.GoString(cJWK.y),
+	}
 }
 
-func (cJwk *CJwk) GetKTY() string {
-	return C.GoString(cJwk.kty)
-}
+func (j CJWK) ComputeThumbprint() string {
+	cgoJWK := j.toCGo()
+	defer C.free(unsafe.Pointer(cgoJWK.alg))
+	defer C.free(unsafe.Pointer(cgoJWK.kty))
+	defer C.free(unsafe.Pointer(cgoJWK.crv))
+	defer C.free(unsafe.Pointer(cgoJWK.d))
+	defer C.free(unsafe.Pointer(cgoJWK.x))
+	defer C.free(unsafe.Pointer(cgoJWK.y))
 
-func (cJwk *CJwk) GetCRV() string {
-	return C.GoString(cJwk.crv)
-}
-
-func (cJwk *CJwk) GetD() string {
-	return C.GoString(cJwk.d)
-}
-
-func (cJwk *CJwk) GetX() string {
-	return C.GoString(cJwk.x)
-}
-
-func (cJwk *CJwk) GetY() string {
-	return C.GoString(cJwk.y)
-}
-
-func FreeCJwk(cJwk *CJwk) {
-	C.free(unsafe.Pointer(cJwk.alg))
-	C.free(unsafe.Pointer(cJwk.kty))
-	C.free(unsafe.Pointer(cJwk.crv))
-	C.free(unsafe.Pointer(cJwk.d))
-	C.free(unsafe.Pointer(cJwk.x))
-	C.free(unsafe.Pointer(cJwk.y))
-}
-
-func CJwkComputeThumbprint(jwk *CJwk) string {
-	cThumbprint := C.jwk_compute_thumbprint((*C.CJwk)(unsafe.Pointer(jwk)))
+	cThumbprint := C.jwk_compute_thumbprint(cgoJWK)
 	defer C.free_string(cThumbprint)
 	return C.GoString(cThumbprint)
 }
@@ -72,8 +63,9 @@ func CJwkComputeThumbprint(jwk *CJwk) string {
 
 type CEd25519Signer C.CEd25519Signer
 
-func NewCEd25519Signer(cJwk *CJwk) (*CEd25519Signer, error) {
-	cSigner := C.ed25519_signer_new((*C.CJwk)(cJwk))
+func NewCEd25519Signer(cJWK *CJWK) (*CEd25519Signer, error) {
+	cgoJWK := cJWK.toCGo()
+	cSigner := C.ed25519_signer_new(cgoJWK)
 	if cSigner == nil {
 		return nil, errors.New("failed to create Ed25519Signer")
 	}
@@ -197,18 +189,22 @@ func NewCInMemoryKeyManager() (*CInMemoryKeyManager, error) {
 	return (*CInMemoryKeyManager)(cManager), nil
 }
 
-func CInMemoryKeyManagerImportPrivateJwk(manager *CInMemoryKeyManager, cJwk *CJwk) (*CJwk, error) {
+func CInMemoryKeyManagerImportPrivateJwk(manager *CInMemoryKeyManager, cPrivateJWK *CJWK) (*CJWK, error) {
 	cManager := (*C.CInMemoryKeyManager)(manager)
-	cPublicJwk := C.in_memory_key_manager_import_private_jwk(cManager, (*C.CJwk)(cJwk))
-	if cPublicJwk == nil {
+	cgoPrivateJWK := cPrivateJWK.toCGo()
+	cgoPublicJWK := C.in_memory_key_manager_import_private_jwk(cManager, cgoPrivateJWK)
+	if cgoPublicJWK == nil {
 		return nil, errors.New("failed to import private JWK")
 	}
 
-	return (*CJwk)(cPublicJwk), nil
+	cPublicJWK := NewCJWKFromCGo(cgoPublicJWK)
+
+	return cPublicJWK, nil
 }
 
-func CInMemoryKeyManagerGetSigner(manager *CInMemoryKeyManager, cPublicJWK *CJwk) (*CSigner, error) {
-	cgoSigner := C.in_memory_key_manager_get_signer((*C.CInMemoryKeyManager)(manager), (*C.CJwk)(cPublicJWK))
+func CInMemoryKeyManagerGetSigner(manager *CInMemoryKeyManager, cPublicJWK *CJWK) (*CSigner, error) {
+	cgoPublicJWK := cPublicJWK.toCGo()
+	cgoSigner := C.in_memory_key_manager_get_signer((*C.CInMemoryKeyManager)(manager), cgoPublicJWK)
 	if cgoSigner == nil {
 		return nil, errors.New("failed to retrieve signer")
 	}
@@ -221,18 +217,21 @@ func CInMemoryKeyManagerGetSigner(manager *CInMemoryKeyManager, cPublicJWK *CJwk
 
 type CKeyManager C.CKeyManager
 
-func CKeyManagerImportPrivateJWK(cManager *CKeyManager, cPrivateJWK *CJwk) (*CJwk, error) {
-	cPublicJwk := C.call_import_private_jwk((*C.CKeyManager)(cManager), (*C.CJwk)(cPrivateJWK))
+func CKeyManagerImportPrivateJWK(cManager *CKeyManager, cPrivateJWK *CJWK) (*CJWK, error) {
+	cgoPrivateJWK := cPrivateJWK.toCGo()
+	cgoPublicJWK := C.call_import_private_jwk((*C.CKeyManager)(cManager), cgoPrivateJWK)
 
-	if cPublicJwk == nil {
+	if cgoPublicJWK == nil {
 		return nil, fmt.Errorf("failed to import private JWK")
 	}
 
-	return (*CJwk)(cPublicJwk), nil
+	cPublicJWK := NewCJWKFromCGo(cgoPublicJWK)
+	return cPublicJWK, nil
 }
 
-func CKeyManagerGetSigner(cManager *CKeyManager, cPublicJWK *CJwk) (*CSigner, error) {
-	cgoSigner := C.call_get_signer((*C.CKeyManager)(cManager), (*C.CJwk)(cPublicJWK))
+func CKeyManagerGetSigner(cManager *CKeyManager, cPublicJWK *CJWK) (*CSigner, error) {
+	cgoPublicJWK := cPublicJWK.toCGo()
+	cgoSigner := C.call_get_signer((*C.CKeyManager)(cManager), cgoPublicJWK)
 
 	if cgoSigner == nil {
 		return nil, fmt.Errorf("failed to get signer")

@@ -16,23 +16,21 @@ type innerKeyManager struct {
 }
 
 func (k *innerKeyManager) ImportPrivateJwk(privateJWK *crypto.JWK) (*crypto.JWK, error) {
-	cPrivateJWK := web5c.NewCJwk(privateJWK.ALG, privateJWK.KTY, privateJWK.CRV, privateJWK.D, privateJWK.X, privateJWK.Y)
-	defer web5c.FreeCJwk(cPrivateJWK)
+	cPrivateJWK := privateJWK.ToCJWK()
 
 	cPublicJWK, err := web5c.CKeyManagerImportPrivateJWK(k.cKeyManager, cPrivateJWK)
 	if err != nil {
 		return nil, err
 	}
 
-	publicJWK := crypto.NewJWKFromCJwk(cPublicJWK)
+	publicJWK := crypto.NewJWKFromCJWK(cPublicJWK)
 	return publicJWK, nil
 }
 
 func (k *innerKeyManager) GetSigner(publicJWK *crypto.JWK) (dsa.Signer, error) {
-	cJwk := web5c.NewCJwk(publicJWK.ALG, publicJWK.KTY, publicJWK.CRV, publicJWK.D, publicJWK.X, publicJWK.Y)
-	defer web5c.FreeCJwk(cJwk)
+	cPublicJWK := publicJWK.ToCJWK()
 
-	cSigner, err := web5c.CKeyManagerGetSigner(k.cKeyManager, cJwk)
+	cSigner, err := web5c.CKeyManagerGetSigner(k.cKeyManager, cPublicJWK)
 	if err != nil {
 		return nil, err
 	}

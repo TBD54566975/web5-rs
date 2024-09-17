@@ -20,24 +20,22 @@ func NewInMemoryKeyManager() (*InMemoryKeyManager, error) {
 }
 
 func (m *InMemoryKeyManager) ImportPrivateJwk(privateJWK *crypto.JWK) (*crypto.JWK, error) {
-	cJwk := web5c.NewCJwk(privateJWK.ALG, privateJWK.KTY, privateJWK.CRV, privateJWK.D, privateJWK.X, privateJWK.Y)
-	defer web5c.FreeCJwk(cJwk)
+	cJWK := privateJWK.ToCJWK()
 
-	cPublicJwk, err := web5c.CInMemoryKeyManagerImportPrivateJwk(m.manager, cJwk)
+	cPublicJWK, err := web5c.CInMemoryKeyManagerImportPrivateJwk(m.manager, cJWK)
 	if err != nil {
 		return nil, err
 	}
 
-	publicJWK := crypto.NewJWKFromCJwk(cPublicJwk)
+	publicJWK := crypto.NewJWKFromCJWK(cPublicJWK)
 
 	return publicJWK, nil
 }
 
 func (m *InMemoryKeyManager) GetSigner(publicJWK *crypto.JWK) (dsa.Signer, error) {
-	cJwk := web5c.NewCJwk(publicJWK.ALG, publicJWK.KTY, publicJWK.CRV, publicJWK.D, publicJWK.X, publicJWK.Y)
-	defer web5c.FreeCJwk(cJwk)
+	cJWK := publicJWK.ToCJWK()
 
-	cSigner, err := web5c.CInMemoryKeyManagerGetSigner(m.manager, cJwk)
+	cSigner, err := web5c.CInMemoryKeyManagerGetSigner(m.manager, cJWK)
 	if err != nil {
 		return nil, err
 	}
