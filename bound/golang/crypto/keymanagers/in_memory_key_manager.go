@@ -7,7 +7,7 @@ import (
 )
 
 type InMemoryKeyManager struct {
-	manager *web5c.CInMemoryKeyManager
+	cManager *web5c.CInMemoryKeyManager
 }
 
 func NewInMemoryKeyManager() (*InMemoryKeyManager, error) {
@@ -22,7 +22,7 @@ func NewInMemoryKeyManager() (*InMemoryKeyManager, error) {
 func (m *InMemoryKeyManager) ImportPrivateJwk(privateJWK *crypto.JWK) (*crypto.JWK, error) {
 	cJWK := privateJWK.ToCJWK()
 
-	cPublicJWK, err := web5c.CInMemoryKeyManagerImportPrivateJwk(m.manager, cJWK)
+	cPublicJWK, err := m.cManager.ImportPrivateJwk(cJWK)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (m *InMemoryKeyManager) ImportPrivateJwk(privateJWK *crypto.JWK) (*crypto.J
 func (m *InMemoryKeyManager) GetSigner(publicJWK *crypto.JWK) (dsa.Signer, error) {
 	cJWK := publicJWK.ToCJWK()
 
-	cSigner, err := web5c.CInMemoryKeyManagerGetSigner(m.manager, cJWK)
+	cSigner, err := m.cManager.GetSigner(cJWK)
 	if err != nil {
 		return nil, err
 	}

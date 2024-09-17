@@ -61,32 +61,34 @@ func (j CJWK) ComputeThumbprint() string {
 
 /** --- */
 
-type CEd25519Signer C.CEd25519Signer
+type CEd25519Signer struct {
+	cgoSigner *C.CEd25519Signer
+}
 
 func NewCEd25519Signer(cJWK *CJWK) (*CEd25519Signer, error) {
 	cgoJWK := cJWK.toCGo()
-	cSigner := C.ed25519_signer_new(cgoJWK)
-	if cSigner == nil {
+	cgoSigner := C.ed25519_signer_new(cgoJWK)
+	if cgoSigner == nil {
 		return nil, errors.New("failed to create Ed25519Signer")
 	}
 
-	runtime.SetFinalizer(cSigner, func(s *C.CEd25519Signer) {
-		if s != nil {
-			C.ed25519_signer_free(s)
-			s = nil
+	cSigner := &CEd25519Signer{cgoSigner: cgoSigner}
+
+	runtime.SetFinalizer(cSigner, func(s *CEd25519Signer) {
+		if s.cgoSigner != nil {
+			C.ed25519_signer_free(s.cgoSigner)
+			s.cgoSigner = nil
 		}
 	})
 
-	return (*CEd25519Signer)(cSigner), nil
+	return cSigner, nil
 }
 
-func CEd25519SignerSign(signer *CEd25519Signer, payload []byte) ([]byte, error) {
+func (s *CEd25519Signer) Sign(payload []byte) ([]byte, error) {
 	cPayload := (*C.uchar)(unsafe.Pointer(&payload[0]))
 	var cSigLen C.size_t
 
-	cSigner := (*C.CEd25519Signer)(signer)
-
-	cSignature := C.ed25519_signer_sign(cSigner, cPayload, C.size_t(len(payload)), &cSigLen)
+	cSignature := C.ed25519_signer_sign(s.cgoSigner, cPayload, C.size_t(len(payload)), &cSigLen)
 	if cSignature == nil {
 		return nil, errors.New("failed to sign payload")
 	}
@@ -171,28 +173,31 @@ func POCSignerFromForeign(cSigner *CSigner) {
 
 /** --- */
 
-type CInMemoryKeyManager C.CInMemoryKeyManager
+type CInMemoryKeyManager struct {
+	cgoManager *C.CInMemoryKeyManager
+}
 
 func NewCInMemoryKeyManager() (*CInMemoryKeyManager, error) {
-	cManager := C.in_memory_key_manager_new()
-	if cManager == nil {
+	cgoManager := C.in_memory_key_manager_new()
+	if cgoManager == nil {
 		return nil, errors.New("failed to create InMemoryKeyManager")
 	}
 
-	runtime.SetFinalizer(cManager, func(m *C.CInMemoryKeyManager) {
-		if m != nil {
-			C.in_memory_key_manager_free(m)
-			m = nil
+	manager := &CInMemoryKeyManager{cgoManager}
+
+	runtime.SetFinalizer(manager, func(m *CInMemoryKeyManager) {
+		if m.cgoManager != nil {
+			C.in_memory_key_manager_free(m.cgoManager)
+			m.cgoManager = nil
 		}
 	})
 
-	return (*CInMemoryKeyManager)(cManager), nil
+	return manager, nil
 }
 
-func CInMemoryKeyManagerImportPrivateJwk(manager *CInMemoryKeyManager, cPrivateJWK *CJWK) (*CJWK, error) {
-	cManager := (*C.CInMemoryKeyManager)(manager)
+func (m *CInMemoryKeyManager) ImportPrivateJwk(cPrivateJWK *CJWK) (*CJWK, error) {
 	cgoPrivateJWK := cPrivateJWK.toCGo()
-	cgoPublicJWK := C.in_memory_key_manager_import_private_jwk(cManager, cgoPrivateJWK)
+	cgoPublicJWK := C.in_memory_key_manager_import_private_jwk(m.cgoManager, cgoPrivateJWK)
 	if cgoPublicJWK == nil {
 		return nil, errors.New("failed to import private JWK")
 	}
@@ -202,9 +207,9 @@ func CInMemoryKeyManagerImportPrivateJwk(manager *CInMemoryKeyManager, cPrivateJ
 	return cPublicJWK, nil
 }
 
-func CInMemoryKeyManagerGetSigner(manager *CInMemoryKeyManager, cPublicJWK *CJWK) (*CSigner, error) {
+func (m *CInMemoryKeyManager) GetSigner(cPublicJWK *CJWK) (*CSigner, error) {
 	cgoPublicJWK := cPublicJWK.toCGo()
-	cgoSigner := C.in_memory_key_manager_get_signer((*C.CInMemoryKeyManager)(manager), cgoPublicJWK)
+	cgoSigner := C.in_memory_key_manager_get_signer(m.cgoManager, cgoPublicJWK)
 	if cgoSigner == nil {
 		return nil, errors.New("failed to retrieve signer")
 	}

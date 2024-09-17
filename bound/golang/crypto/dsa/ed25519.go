@@ -7,7 +7,7 @@ import (
 )
 
 type Ed25519Signer struct {
-	signer *web5c.CEd25519Signer
+	cSigner *web5c.CEd25519Signer
 }
 
 func NewEd25519Signer(jwk crypto.JWK) (*Ed25519Signer, error) {
@@ -22,5 +22,5 @@ func NewEd25519Signer(jwk crypto.JWK) (*Ed25519Signer, error) {
 }
 
 func (s *Ed25519Signer) Sign(payload []byte) ([]byte, error) {
-	return web5c.CEd25519SignerSign(s.signer, payload)
+	return s.cSigner.Sign(payload)
 }
