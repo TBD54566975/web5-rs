@@ -5,32 +5,18 @@ package web5c
 #include <stdlib.h>
 #include "../../../bindings/web5_c/web5_c.h"
 
+// functions in export.go
 extern unsigned char *foreign_signer_sign(int signer_id, const unsigned char *payload, size_t payload_len, size_t *out_len);
 extern CJwk* foreign_key_manager_import_private_jwk(int manager_id, const CJwk *private_jwk);
 extern CSigner* foreign_key_manager_get_signer(int manager_id, const CJwk *public_jwk);
-
-CJwk *alloc_cjwk()
-{
-	return (CJwk *)malloc(sizeof(CJwk));
-}
-CSigner *alloc_csigner()
-{
-	return (CSigner *)malloc(sizeof(CSigner));
-}
-CKeyManager *alloc_ckeymanager()
-{
-	return (CKeyManager *)malloc(sizeof(CKeyManager));
-}
 */
 import "C"
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"unsafe"
 )
-
-// TODO we need to free the memory from the alloc calls in the preamble
-// TODO perhaps just manage the memory in rust
 
 type CJWK struct {
 	ALG string
@@ -67,16 +53,11 @@ func NewCJWKFromCGo(cJWK *C.CJwk) *CJWK {
 
 func (j CJWK) ComputeThumbprint() string {
 	cgoJWK := j.toCGo()
-	defer C.free(unsafe.Pointer(cgoJWK.alg))
-	defer C.free(unsafe.Pointer(cgoJWK.kty))
-	defer C.free(unsafe.Pointer(cgoJWK.crv))
-	defer C.free(unsafe.Pointer(cgoJWK.d))
-	defer C.free(unsafe.Pointer(cgoJWK.x))
-	defer C.free(unsafe.Pointer(cgoJWK.y))
-	defer C.free(unsafe.Pointer(cgoJWK))
+	defer C.free_cjwk(cgoJWK)
 
 	cThumbprint := C.jwk_compute_thumbprint(cgoJWK)
 	defer C.free_string(cThumbprint)
+
 	return C.GoString(cThumbprint)
 }
 
@@ -84,8 +65,15 @@ func (j CJWK) ComputeThumbprint() string {
 
 func NewCEd25519Signer(cJWK *CJWK) (*CSigner, error) {
 	cgoJWK := cJWK.toCGo()
+	defer C.free_cjwk(cgoJWK)
+
 	cgoSigner := C.new_ed25519_signer(cgoJWK)
+
 	cSigner := NewCSignerFromCGo(cgoSigner)
+	runtime.SetFinalizer(cSigner, func(signer *CSigner) {
+		C.free_csigner(cgoSigner)
+	})
+
 	return cSigner, nil
 }
 
@@ -155,15 +143,22 @@ func FreeSigner(id int) {
 
 func POCSignerFromForeign(cSigner *CSigner) {
 	cgoSigner := cSigner.toCGo()
+	defer C.free_csigner(cgoSigner)
+
 	C.poc_signer_from_foreign(cgoSigner)
 }
 
 /** --- */
 
-func NewCInMemoryKeyManager_2() (*CKeyManager, error) {
+func NewCInMemoryKeyManager() (*CKeyManager, error) {
 	cgoManager := C.new_in_memory_key_manager()
-	cManager := NewCKeyManagerFromCGo(cgoManager)
-	return cManager, nil
+
+	cKeyManager := NewCKeyManagerFromCGo(cgoManager)
+	runtime.SetFinalizer(cKeyManager, func(manager *CKeyManager) {
+		C.free_ckeymanager(cgoManager)
+	})
+
+	return cKeyManager, nil
 }
 
 /** --- */
@@ -191,20 +186,36 @@ func NewCKeyManagerFromCGo(cManager *C.CKeyManager) *CKeyManager {
 	return &CKeyManager{
 		ID: int(cManager.manager_id),
 		ImportPrivateJWK: func(privateJWK *CJWK) (*CJWK, error) {
-			cPrivateJWK := privateJWK.toCGo()
-			cPublicJWK := C.call_import_private_jwk(cManager, cPrivateJWK)
-			if cPublicJWK == nil {
+			cgoPrivateJWK := privateJWK.toCGo()
+			defer C.free_cjwk(cgoPrivateJWK)
+
+			cgoPublicJWK := C.call_import_private_jwk(cManager, cgoPrivateJWK)
+			if cgoPublicJWK == nil {
 				return nil, fmt.Errorf("failed to import private JWK")
 			}
-			return NewCJWKFromCGo(cPublicJWK), nil
+
+			cPublicJWK := NewCJWKFromCGo(cgoPublicJWK)
+			runtime.SetFinalizer(cPublicJWK, func(jwk *CJWK) {
+				C.free_cjwk(cgoPublicJWK)
+			})
+
+			return cPublicJWK, nil
 		},
 		GetSigner: func(publicJWK *CJWK) (*CSigner, error) {
-			cPublicJWK := publicJWK.toCGo()
-			cSigner := C.call_get_signer(cManager, cPublicJWK)
-			if cSigner == nil {
+			cgoPublicJWK := publicJWK.toCGo()
+			defer C.free_cjwk(cgoPublicJWK)
+
+			cgoSigner := C.call_get_signer(cManager, cgoPublicJWK)
+			if cgoSigner == nil {
 				return nil, fmt.Errorf("failed to get signer")
 			}
-			return NewCSignerFromCGo(cSigner), nil
+
+			cSigner := NewCSignerFromCGo(cgoSigner)
+			runtime.SetFinalizer(cSigner, func(signer *CSigner) {
+				C.free_csigner(cgoSigner)
+			})
+
+			return cSigner, nil
 		},
 	}
 }
@@ -241,5 +252,7 @@ func FreeKeyManager(id int) {
 
 func POCKeyManagerFromForeign(cManager *CKeyManager) {
 	cgoKeyManager := cManager.toCGo()
+	defer C.free_ckeymanager(cgoKeyManager)
+
 	C.poc_key_manager_from_foreign(cgoKeyManager)
 }

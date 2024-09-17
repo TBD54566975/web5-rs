@@ -34,6 +34,24 @@ pub struct CSigner {
     ) -> *mut u8,
 }
 
+#[no_mangle]
+pub extern "C" fn alloc_csigner() -> *mut CSigner {
+    let signer = CSigner {
+        signer_id: 0,
+        sign: rust_signer_sign,
+    };
+    Box::into_raw(Box::new(signer))
+}
+
+#[no_mangle]
+pub extern "C" fn free_csigner(signer: *mut CSigner) {
+    if !signer.is_null() {
+        unsafe {
+            let _ = Box::from_raw(signer);
+        }
+    }
+}
+
 pub extern "C" fn rust_signer_sign(
     signer_id: i32,
     payload: *const u8,

@@ -15,6 +15,8 @@ typedef struct
 	const char *x;
 	const char *y;
 } CJwk;
+CJwk *alloc_cjwk();
+void free_cjwk(CJwk *jwk);
 char *jwk_compute_thumbprint(const CJwk *jwk);
 /** --- */
 
@@ -25,6 +27,8 @@ typedef struct
 	int signer_id;
 	signFunc sign;
 } CSigner;
+CSigner *alloc_csigner();
+void free_csigner(CSigner *signer);
 unsigned char *call_sign(CSigner *signer, const unsigned char *payload, size_t payload_len, size_t *out_len);
 void poc_signer_from_foreign(const CSigner *signer);
 
@@ -40,6 +44,8 @@ typedef struct
 	importFunc import_private_jwk;
 	getSignerFunc get_signer;
 } CKeyManager;
+CKeyManager *alloc_ckeymanager();
+void free_ckeymanager(CKeyManager *manager);
 CJwk *call_import_private_jwk(CKeyManager *manager, const CJwk *private_jwk);
 CSigner *call_get_signer(CKeyManager *manager, const CJwk *public_jwk);
 void poc_key_manager_from_foreign(const CKeyManager *manager);

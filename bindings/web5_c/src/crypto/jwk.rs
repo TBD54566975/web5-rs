@@ -14,6 +14,46 @@ pub struct CJwk {
     pub y: *const c_char,
 }
 
+#[no_mangle]
+pub extern "C" fn alloc_cjwk() -> *mut CJwk {
+    let jwk = CJwk {
+        alg: ptr::null(),
+        kty: ptr::null(),
+        crv: ptr::null(),
+        d: ptr::null(),
+        x: ptr::null(),
+        y: ptr::null(),
+    };
+    Box::into_raw(Box::new(jwk))
+}
+
+#[no_mangle]
+pub extern "C" fn free_cjwk(jwk: *mut CJwk) {
+    if !jwk.is_null() {
+        unsafe {
+            if !(*jwk).alg.is_null() {
+                let _ = CString::from_raw((*jwk).alg as *mut c_char);
+            }
+            if !(*jwk).kty.is_null() {
+                let _ = CString::from_raw((*jwk).kty as *mut c_char);
+            }
+            if !(*jwk).crv.is_null() {
+                let _ = CString::from_raw((*jwk).crv as *mut c_char);
+            }
+            if !(*jwk).d.is_null() {
+                let _ = CString::from_raw((*jwk).d as *mut c_char);
+            }
+            if !(*jwk).x.is_null() {
+                let _ = CString::from_raw((*jwk).x as *mut c_char);
+            }
+            if !(*jwk).y.is_null() {
+                let _ = CString::from_raw((*jwk).y as *mut c_char);
+            }
+            let _ = Box::from_raw(jwk);
+        }
+    }
+}
+
 impl From<&CJwk> for Jwk {
     fn from(jwk_c: &CJwk) -> Self {
         Jwk {

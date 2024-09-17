@@ -11,7 +11,7 @@ type InMemoryKeyManager struct {
 }
 
 func NewInMemoryKeyManager() (*InMemoryKeyManager, error) {
-	cManager, err := web5c.NewCInMemoryKeyManager_2()
+	cManager, err := web5c.NewCInMemoryKeyManager()
 	if err != nil {
 		return nil, err
 	}

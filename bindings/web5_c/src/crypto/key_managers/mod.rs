@@ -39,6 +39,25 @@ pub struct CKeyManager {
     pub get_signer: extern "C" fn(manager_id: i32, public_jwk: *const CJwk) -> *mut CSigner,
 }
 
+#[no_mangle]
+pub extern "C" fn alloc_ckeymanager() -> *mut CKeyManager {
+    let manager = CKeyManager {
+        manager_id: 0,
+        import_private_jwk: rust_key_manager_import_private_jwk,
+        get_signer: rust_key_manager_get_signer,
+    };
+    Box::into_raw(Box::new(manager))
+}
+
+#[no_mangle]
+pub extern "C" fn free_ckeymanager(manager: *mut CKeyManager) {
+    if !manager.is_null() {
+        unsafe {
+            let _ = Box::from_raw(manager);
+        }
+    }
+}
+
 pub extern "C" fn rust_key_manager_import_private_jwk(
     manager_id: i32,
     private_jwk: *const CJwk,
