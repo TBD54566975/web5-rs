@@ -140,7 +140,7 @@ var (
 	mu             sync.Mutex
 )
 
-func RegisterSignFunc(signFunc SignFunc) (*CSigner, int) {
+func RegisterSigner(signFunc SignFunc) (*CSigner, int) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -155,7 +155,7 @@ func RegisterSignFunc(signFunc SignFunc) (*CSigner, int) {
 	return (*CSigner)(cSigner), signerCounter
 }
 
-func FreeSignFunc(id int) {
+func FreeSigner(id int) {
 	mu.Lock()
 	defer mu.Unlock()
 

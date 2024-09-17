@@ -27,7 +27,6 @@ typedef struct
 } CSigner;
 extern unsigned char *foreign_signer_sign(int signer_id, const unsigned char *payload, size_t payload_len, size_t *out_len);
 unsigned char *call_sign(CSigner *signer, const unsigned char *payload, size_t payload_len, size_t *out_len);
-
 void poc_signer_from_foreign(const CSigner *signer);
 CSigner *poc_signer_from_rust();
 
@@ -39,7 +38,6 @@ void ed25519_signer_free(CEd25519Signer *signer);
 
 /** key managers */
 typedef struct CInMemoryKeyManager CInMemoryKeyManager;
-
 CInMemoryKeyManager *in_memory_key_manager_new();
 CJwk *in_memory_key_manager_import_private_jwk(CInMemoryKeyManager *manager, const CJwk *private_jwk);
 CSigner *in_memory_key_manager_get_signer(CInMemoryKeyManager *manager, const CJwk *public_jwk);
