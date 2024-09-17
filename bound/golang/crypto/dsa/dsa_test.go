@@ -9,14 +9,6 @@ import (
 	"web5/web5c"
 )
 
-func Test_POCSignerFromRust(t *testing.T) {
-	cSigner := web5c.POCSignerFromRust()
-	signer := dsa.NewSignerFromCSigner(cSigner)
-	result, _ := signer.Sign([]byte("Test message"))
-	encoded := base64.RawURLEncoding.EncodeToString(result)
-	fmt.Println("Base64 Encoded (from rust):", encoded)
-}
-
 type POCGoSigner struct{}
 
 func (s *POCGoSigner) Sign(payload []byte) ([]byte, error) {

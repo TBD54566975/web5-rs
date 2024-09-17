@@ -1,14 +1,6 @@
+use super::{call_get_signer, call_import_private_jwk, CKeyManager};
 use crate::crypto::{dsa::call_sign, jwk::CJwk};
-
-use super::{
-    add_key_manager_to_registry, call_get_signer, call_import_private_jwk,
-    rust_key_manager_get_signer, rust_key_manager_import_private_jwk, CKeyManager,
-};
-use std::sync::Arc;
-use web5::crypto::{
-    jwk::Jwk,
-    key_managers::{in_memory_key_manager::InMemoryKeyManager, KeyManager},
-};
+use web5::crypto::jwk::Jwk;
 
 #[no_mangle]
 pub extern "C" fn poc_key_manager_from_foreign(manager: *const CKeyManager) {
@@ -41,17 +33,4 @@ pub extern "C" fn poc_key_manager_from_foreign(manager: *const CKeyManager) {
             let _ = Box::from_raw(signature);
         }
     }
-}
-
-#[no_mangle]
-pub extern "C" fn poc_key_manager_from_rust() -> *mut CKeyManager {
-    let manager: Arc<dyn KeyManager> = Arc::new(InMemoryKeyManager::new());
-
-    let manager_id = add_key_manager_to_registry(manager);
-
-    Box::into_raw(Box::new(CKeyManager {
-        manager_id,
-        import_private_jwk: rust_key_manager_import_private_jwk,
-        get_signer: rust_key_manager_get_signer,
-    }))
 }

@@ -153,11 +153,6 @@ func FreeSigner(id int) {
 	delete(signerRegistry, id)
 }
 
-func POCSignerFromRust() *CSigner {
-	cgoSigner := C.poc_signer_from_rust()
-	return NewCSignerFromCGo(cgoSigner)
-}
-
 func POCSignerFromForeign(cSigner *CSigner) {
 	cgoSigner := cSigner.toCGo()
 	C.poc_signer_from_foreign(cgoSigner)
@@ -242,12 +237,6 @@ func FreeKeyManager(id int) {
 	defer managerMutex.Unlock()
 
 	delete(managerRegistry, id)
-}
-
-func POCKeyManagerFromRust() *CKeyManager {
-	cgoKeyManager := C.poc_key_manager_from_rust()
-	cKeyManager := NewCKeyManagerFromCGo(cgoKeyManager)
-	return cKeyManager
 }
 
 func POCKeyManagerFromForeign(cManager *CKeyManager) {

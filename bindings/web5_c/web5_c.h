@@ -27,7 +27,6 @@ typedef struct
 } CSigner;
 unsigned char *call_sign(CSigner *signer, const unsigned char *payload, size_t payload_len, size_t *out_len);
 void poc_signer_from_foreign(const CSigner *signer);
-CSigner *poc_signer_from_rust();
 
 CSigner *new_ed25519_signer(const CJwk *jwk);
 /** --- */
@@ -44,7 +43,6 @@ typedef struct
 CJwk *call_import_private_jwk(CKeyManager *manager, const CJwk *private_jwk);
 CSigner *call_get_signer(CKeyManager *manager, const CJwk *public_jwk);
 void poc_key_manager_from_foreign(const CKeyManager *manager);
-CKeyManager *poc_key_manager_from_rust();
 
 CKeyManager *new_in_memory_key_manager();
 /** --- */
