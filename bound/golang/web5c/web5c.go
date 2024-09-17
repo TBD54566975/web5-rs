@@ -73,7 +73,7 @@ func CJwkComputeThumbprint(jwk *CJwk) string {
 type CEd25519Signer C.CEd25519Signer
 
 func NewCEd25519Signer(cJwk *CJwk) (*CEd25519Signer, error) {
-	cSigner := C.ed25519_signer_new((*C.CJwk)(unsafe.Pointer(cJwk)))
+	cSigner := C.ed25519_signer_new((*C.CJwk)(cJwk))
 	if cSigner == nil {
 		return nil, errors.New("failed to create Ed25519Signer")
 	}
@@ -127,11 +127,6 @@ func CSignerSign(signer *CSigner, payload []byte) ([]byte, error) {
 	return signature, nil
 }
 
-func POCSignerFromRust() *CSigner {
-	cSigner := C.poc_signer_from_rust()
-	return (*CSigner)(cSigner)
-}
-
 type SignFunc func(payload []byte) ([]byte, error)
 
 var (
@@ -162,6 +157,11 @@ func FreeSigner(id int) {
 	delete(signerRegistry, id)
 }
 
+func POCSignerFromRust() *CSigner {
+	cSigner := C.poc_signer_from_rust()
+	return (*CSigner)(cSigner)
+}
+
 func POCSignerFromForeign(signer *CSigner) {
 	cSigner := (*C.CSigner)(signer)
 	C.poc_signer_from_foreign(cSigner)
@@ -189,7 +189,7 @@ func NewCInMemoryKeyManager() (*CInMemoryKeyManager, error) {
 
 func CInMemoryKeyManagerImportPrivateJwk(manager *CInMemoryKeyManager, cJwk *CJwk) (*CJwk, error) {
 	cManager := (*C.CInMemoryKeyManager)(manager)
-	cPublicJwk := C.in_memory_key_manager_import_private_jwk(cManager, (*C.CJwk)(unsafe.Pointer(cJwk)))
+	cPublicJwk := C.in_memory_key_manager_import_private_jwk(cManager, (*C.CJwk)(cJwk))
 	if cPublicJwk == nil {
 		return nil, errors.New("failed to import private JWK")
 	}
@@ -198,10 +198,39 @@ func CInMemoryKeyManagerImportPrivateJwk(manager *CInMemoryKeyManager, cJwk *CJw
 }
 
 func CInMemoryKeyManagerGetSigner(manager *CInMemoryKeyManager, cPublicJWK *CJwk) (*CSigner, error) {
-	cSigner := C.in_memory_key_manager_get_signer((*C.CInMemoryKeyManager)(manager), (*C.CJwk)(unsafe.Pointer(cPublicJWK)))
+	cSigner := C.in_memory_key_manager_get_signer((*C.CInMemoryKeyManager)(manager), (*C.CJwk)(cPublicJWK))
 	if cSigner == nil {
 		return nil, errors.New("failed to retrieve signer")
 	}
 
 	return (*CSigner)(cSigner), nil
+}
+
+/** --- */
+
+type CKeyManager C.CKeyManager
+
+func CKeyManagerImportPrivateJWK(cManager *CKeyManager, cPrivateJWK *CJwk) (*CJwk, error) {
+	cPublicJwk := C.call_import_private_jwk((*C.CKeyManager)(cManager), (*C.CJwk)(cPrivateJWK))
+
+	if cPublicJwk == nil {
+		return nil, fmt.Errorf("failed to import private JWK")
+	}
+
+	return (*CJwk)(cPublicJwk), nil
+}
+
+func CKeyManagerGetSigner(cManager *CKeyManager, cPublicJWK *CJwk) (*CSigner, error) {
+	cSigner := C.call_get_signer((*C.CKeyManager)(cManager), (*C.CJwk)(cPublicJWK))
+
+	if cSigner == nil {
+		return nil, fmt.Errorf("failed to get signer")
+	}
+
+	return (*CSigner)(cSigner), nil
+}
+
+func POCKeyManagerFromRust() *CKeyManager {
+	cKeyManager := C.poc_key_manager_from_rust()
+	return (*CKeyManager)(cKeyManager)
 }
