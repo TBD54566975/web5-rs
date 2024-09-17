@@ -84,41 +84,11 @@ func (j CJWK) ComputeThumbprint() string {
 
 /** --- */
 
-type CEd25519Signer struct {
-	cgoSigner *C.CEd25519Signer
-}
-
-func NewCEd25519Signer(cJWK *CJWK) (*CEd25519Signer, error) {
+func NewCEd25519Signer(cJWK *CJWK) (*CSigner, error) {
 	cgoJWK := cJWK.toCGo()
-	cgoSigner := C.ed25519_signer_new(cgoJWK)
-	if cgoSigner == nil {
-		return nil, errors.New("failed to create Ed25519Signer")
-	}
-
-	cSigner := &CEd25519Signer{cgoSigner: cgoSigner}
-
-	runtime.SetFinalizer(cSigner, func(s *CEd25519Signer) {
-		if s.cgoSigner != nil {
-			C.ed25519_signer_free(s.cgoSigner)
-			s.cgoSigner = nil
-		}
-	})
-
+	cgoSigner := C.new_ed25519_signer(cgoJWK)
+	cSigner := NewCSignerFromCGo(cgoSigner)
 	return cSigner, nil
-}
-
-func (s *CEd25519Signer) Sign(payload []byte) ([]byte, error) {
-	cPayload := (*C.uchar)(unsafe.Pointer(&payload[0]))
-	var cSigLen C.size_t
-
-	cSignature := C.ed25519_signer_sign(s.cgoSigner, cPayload, C.size_t(len(payload)), &cSigLen)
-	if cSignature == nil {
-		return nil, errors.New("failed to sign payload")
-	}
-	defer C.free(unsafe.Pointer(cSignature))
-
-	signature := C.GoBytes(unsafe.Pointer(cSignature), C.int(cSigLen))
-	return signature, nil
 }
 
 /** --- */
