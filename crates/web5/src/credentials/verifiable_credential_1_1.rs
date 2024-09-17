@@ -798,8 +798,9 @@ mod tests {
             match result {
                 Err(Web5Error::Network(err_msg)) => {
                     assert!(
-                        err_msg.contains("failed to lookup address information"),
-                        "Error message is: {}", err_msg
+                        err_msg.contains("failed to connect to host"),
+                        "Error message is: {}",
+                        err_msg
                     )
                 }
                 _ => panic!(
