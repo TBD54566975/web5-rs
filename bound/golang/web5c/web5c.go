@@ -8,6 +8,19 @@ package web5c
 extern unsigned char *foreign_signer_sign(int signer_id, const unsigned char *payload, size_t payload_len, size_t *out_len);
 extern CJwk* foreign_key_manager_import_private_jwk(int manager_id, const CJwk *private_jwk);
 extern CSigner* foreign_key_manager_get_signer(int manager_id, const CJwk *public_jwk);
+
+CJwk *alloc_cjwk()
+{
+	return (CJwk *)malloc(sizeof(CJwk));
+}
+CSigner *alloc_csigner()
+{
+	return (CSigner *)malloc(sizeof(CSigner));
+}
+CKeyManager *alloc_ckeymanager()
+{
+	return (CKeyManager *)malloc(sizeof(CKeyManager));
+}
 */
 import "C"
 import (
@@ -17,6 +30,9 @@ import (
 	"sync"
 	"unsafe"
 )
+
+// TODO we need to free the memory from the alloc calls in the preamble
+// TODO perhaps just manage the memory in rust
 
 type CJWK struct {
 	ALG string
@@ -28,14 +44,16 @@ type CJWK struct {
 }
 
 func (j *CJWK) toCGo() *C.CJwk {
-	return &C.CJwk{
-		alg: C.CString(j.ALG),
-		kty: C.CString(j.KTY),
-		crv: C.CString(j.CRV),
-		d:   C.CString(j.D),
-		x:   C.CString(j.X),
-		y:   C.CString(j.Y),
-	}
+	cgoJWK := C.alloc_cjwk()
+
+	cgoJWK.alg = C.CString(j.ALG)
+	cgoJWK.kty = C.CString(j.KTY)
+	cgoJWK.crv = C.CString(j.CRV)
+	cgoJWK.d = C.CString(j.D)
+	cgoJWK.x = C.CString(j.X)
+	cgoJWK.y = C.CString(j.Y)
+
+	return cgoJWK
 }
 
 func NewCJWKFromCGo(cJWK *C.CJwk) *CJWK {
@@ -57,6 +75,7 @@ func (j CJWK) ComputeThumbprint() string {
 	defer C.free(unsafe.Pointer(cgoJWK.d))
 	defer C.free(unsafe.Pointer(cgoJWK.x))
 	defer C.free(unsafe.Pointer(cgoJWK.y))
+	defer C.free(unsafe.Pointer(cgoJWK))
 
 	cThumbprint := C.jwk_compute_thumbprint(cgoJWK)
 	defer C.free_string(cThumbprint)
@@ -112,10 +131,11 @@ type CSigner struct {
 }
 
 func (s *CSigner) toCGo() *C.CSigner {
-	cSigner := &C.CSigner{
-		signer_id: C.int(s.ID),
-		sign:      (C.signFunc)(C.foreign_signer_sign),
-	}
+	cSigner := C.alloc_csigner()
+
+	cSigner.signer_id = C.int(s.ID)
+	cSigner.sign = (C.signFunc)(C.foreign_signer_sign)
+
 	return cSigner
 }
 
@@ -234,11 +254,12 @@ type CKeyManager struct {
 }
 
 func (m *CKeyManager) toCGo() *C.CKeyManager {
-	cManager := &C.CKeyManager{
-		manager_id:         C.int(m.ID),
-		import_private_jwk: (C.importFunc)(C.foreign_key_manager_import_private_jwk),
-		get_signer:         (C.getSignerFunc)(C.foreign_key_manager_get_signer),
-	}
+	cManager := C.alloc_ckeymanager()
+
+	cManager.manager_id = C.int(m.ID)
+	cManager.import_private_jwk = (C.importFunc)(C.foreign_key_manager_import_private_jwk)
+	cManager.get_signer = (C.getSignerFunc)(C.foreign_key_manager_get_signer)
+
 	return cManager
 }
 
