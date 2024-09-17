@@ -67,8 +67,10 @@ fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
         let rc_config = Arc::new(config); // Arc allows sharing the config
 
         // Make the TCP connection to the server
-        let stream = TcpStream::connect((&destination.host[..], destination.port))
-            .map_err(|err| Web5Error::Network(err.to_string()))?;
+        let stream =
+            TcpStream::connect((&destination.host[..], destination.port)).map_err(|err| {
+                Web5Error::Network(format!("failed to connect to host: {}", err))
+            })?;
 
         // Convert the server name to the expected type for TLS validation
         let server_name = ServerName::try_from(destination.host.clone())
@@ -90,8 +92,10 @@ fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
             .map_err(|err| Web5Error::Network(err.to_string()))?;
     } else {
         // HTTP connection
-        let mut stream = TcpStream::connect((&destination.host[..], destination.port))
-            .map_err(|err| Web5Error::Network(err.to_string()))?;
+        let mut stream =
+            TcpStream::connect((&destination.host[..], destination.port)).map_err(|err| {
+                Web5Error::Network(format!("failed to connect to host: {}", err))
+            })?;
 
         stream
             .write_all(request)
