@@ -7,11 +7,6 @@ on:
         description: 'Version of web5 to release and publish to TBD Artifactory and Maven Central. For example "1.0.0" or "1.3.7-beta-2". Required. Must not end in "-SNAPSHOT".'
         required: true
 
-  #  TODO: Remove
-  pull_request:
-    branches:
-      - main
-
 env:
   WEB5_SDK_LOG_LEVEL: debug
 
