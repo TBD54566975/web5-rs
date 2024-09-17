@@ -1,5 +1,11 @@
 use super::{call_get_signer, call_import_private_jwk, CKeyManager};
-use crate::crypto::{dsa::call_sign, jwk::CJwk};
+use crate::{
+    c::free_bytes,
+    crypto::{
+        dsa::{call_sign, free_csigner},
+        jwk::{free_cjwk, CJwk},
+    },
+};
 use web5::crypto::jwk::Jwk;
 
 #[no_mangle]
@@ -26,11 +32,7 @@ pub extern "C" fn poc_key_manager_from_foreign(manager: *const CKeyManager) {
     let mut out_len: usize = 0;
     let signature = call_sign(signer, payload.as_ptr(), payload.len(), &mut out_len);
 
-    if !signature.is_null() {
-        let signature_slice = unsafe { std::slice::from_raw_parts(signature, out_len) };
-        println!("Signature: {:?}", signature_slice);
-        unsafe {
-            let _ = Box::from_raw(signature);
-        }
-    }
+    free_cjwk(public_jwk);
+    free_csigner(signer);
+    free_bytes(signature);
 }

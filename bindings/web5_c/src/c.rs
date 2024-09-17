@@ -10,6 +10,14 @@ pub extern "C" fn free_string(s: *mut c_char) {
     }
 }
 
+pub fn free_bytes(ptr: *mut u8) {
+    if !ptr.is_null() {
+        unsafe {
+            let _ = Box::from_raw(ptr);
+        }
+    }
+}
+
 pub unsafe fn opt_cstr_to_string(c_str: *const c_char) -> Option<String> {
     if c_str.is_null() {
         None
