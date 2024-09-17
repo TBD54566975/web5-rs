@@ -10,9 +10,17 @@ use ed25519_dalek::{
 };
 use rand::rngs::OsRng;
 
+/// A key generator for Ed25519, used for creating JWKs with Ed25519 key pairs.
 pub struct Ed25519Generator;
 
 impl Ed25519Generator {
+    /// Generates a new Ed25519 key pair and returns it as a JWK.
+    ///
+    /// The method creates a new Ed25519 private key and derives the public key from it. Both the private
+    /// key (`d`) and the public key (`x`) are encoded in base64url format and returned as a JWK.
+    ///
+    /// # Returns
+    /// A `Jwk` object containing the generated Ed25519 key pair.
     pub fn generate() -> Jwk {
         let signing_key = SigningKey::generate(&mut OsRng {});
         let verifying_key = signing_key.verifying_key();
@@ -31,6 +39,16 @@ impl Ed25519Generator {
     }
 }
 
+/// Creates a JWK from raw Ed25519 public key bytes.
+///
+/// This function takes the raw bytes of an Ed25519 public key and constructs a corresponding JWK. The
+/// public key is encoded in base64url format and stored in the `x` field of the JWK.
+///
+/// # Arguments
+/// * `public_key` - A byte slice containing the raw public key.
+///
+/// # Returns
+/// A `Result` containing the constructed JWK, or an error if the key length is incorrect.
 pub(crate) fn public_jwk_from_bytes(public_key: &[u8]) -> Result<Jwk> {
     if public_key.len() != PUBLIC_KEY_LENGTH {
         return Err(Web5Error::Parameter(format!(
@@ -60,6 +78,15 @@ pub fn to_public_jwk(jwk: &Jwk) -> Jwk {
     }
 }
 
+/// Extracts the public key bytes from a JWK.
+///
+/// This function decodes the base64url-encoded `x` value of a JWK and returns it as raw bytes.
+///
+/// # Arguments
+/// * `jwk` - The JWK containing the public key.
+///
+/// # Returns
+/// A `Result` containing the decoded public key bytes, or an error if the length is incorrect.
 pub(crate) fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     let decoded_x = general_purpose::URL_SAFE_NO_PAD.decode(&jwk.x)?;
 
@@ -73,11 +100,19 @@ pub(crate) fn public_jwk_extract_bytes(jwk: &Jwk) -> Result<Vec<u8>> {
     Ok(decoded_x)
 }
 
+/// A signer for Ed25519 keys.
+///
+/// The `Ed25519Signer` is responsible for signing messages using the Ed25519 private key material contained
+/// in a JWK.
 #[derive(Clone)]
 pub struct Ed25519Signer {
     private_jwk: Jwk,
 }
 
+/// A signer for Ed25519 keys.
+///
+/// The `Ed25519Signer` is responsible for signing messages using the Ed25519 private key material contained
+/// in a JWK.
 impl Ed25519Signer {
     pub fn new(private_jwk: Jwk) -> Self {
         Self { private_jwk }
@@ -85,6 +120,16 @@ impl Ed25519Signer {
 }
 
 impl Signer for Ed25519Signer {
+    /// Signs the given payload using the Ed25519 private key.
+    ///
+    /// The private key is extracted from the JWK and used to sign the payload. The resulting signature
+    /// is returned as a vector of bytes.
+    ///
+    /// # Arguments
+    /// * `payload` - The data to be signed.
+    ///
+    /// # Returns
+    /// A `Result` containing the signature as a vector of bytes, or an error if signing fails.
     fn sign(&self, payload: &[u8]) -> Result<Vec<u8>> {
         let d = self.private_jwk.d.as_ref().ok_or(Web5Error::Crypto(
             "private key material must be set".to_string(),
@@ -105,6 +150,10 @@ impl Signer for Ed25519Signer {
     }
 }
 
+/// A verifier for Ed25519 keys.
+///
+/// The `Ed25519Verifier` is responsible for verifying signatures using the Ed25519 public key material
+/// contained in a JWK.
 #[derive(Clone)]
 pub struct Ed25519Verifier {
     public_jwk: Jwk,
@@ -117,6 +166,16 @@ impl Ed25519Verifier {
 }
 
 impl Verifier for Ed25519Verifier {
+    /// Verifies the given signature using the Ed25519 public key.
+    ///
+    /// The public key is extracted from the JWK and used to verify the signature against the provided payload.
+    ///
+    /// # Arguments
+    /// * `payload` - The data that was signed.
+    /// * `signature` - The signature to verify.
+    ///
+    /// # Returns
+    /// A `Result` indicating whether the signature is valid.
     fn verify(&self, payload: &[u8], signature: &[u8]) -> Result<()> {
         if let Some(d) = &self.public_jwk.d {
             if !d.is_empty() {
