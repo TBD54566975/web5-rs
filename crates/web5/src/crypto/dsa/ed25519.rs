@@ -224,57 +224,31 @@ impl Verifier for Ed25519Verifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{test_helpers::UnitTestSuite, test_name};
     use general_purpose::URL_SAFE_NO_PAD;
-    use lazy_static::lazy_static;
 
     mod generate {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("ed25519_generate");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
         #[test]
         fn test_must_set_alg() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Ed25519Generator::generate();
             assert_eq!(jwk.alg, Some("Ed25519".to_string()));
         }
 
         #[test]
         fn test_must_set_kty() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Ed25519Generator::generate();
             assert_eq!(jwk.kty, "OKP".to_string());
         }
 
         #[test]
         fn test_must_set_crv() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Ed25519Generator::generate();
             assert_eq!(jwk.crv, "Ed25519");
         }
 
         #[test]
         fn test_must_set_public_key_with_correct_length() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Ed25519Generator::generate();
             let public_key_bytes = URL_SAFE_NO_PAD
                 .decode(&jwk.x)
@@ -284,8 +258,6 @@ mod tests {
 
         #[test]
         fn test_must_set_private_key_with_correct_length() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Ed25519Generator::generate();
             let private_key_bytes = jwk.d.expect("Private key is missing");
             let decoded_private_key_bytes = URL_SAFE_NO_PAD
@@ -298,20 +270,8 @@ mod tests {
     mod sign {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("ed25519_sign");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            std::thread::sleep(std::time::Duration::from_millis(100));
-            TEST_SUITE.assert_coverage();
-        }
-
         #[test]
         fn test_with_valid_key() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Ed25519Generator::generate();
             let signer = Ed25519Signer::new(jwk);
 
@@ -333,8 +293,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_private_key() {
-            TEST_SUITE.include(test_name!());
-
             let mut jwk = Ed25519Generator::generate();
 
             // Set an invalid private key (wrong length)
@@ -360,8 +318,6 @@ mod tests {
 
         #[test]
         fn test_with_missing_private_key() {
-            TEST_SUITE.include(test_name!());
-
             let mut jwk = Ed25519Generator::generate();
 
             // Remove the private key
@@ -385,10 +341,6 @@ mod tests {
     mod verify {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("ed25519_verify");
-        }
-
         fn generate_keys() -> (Jwk, Jwk) {
             let private_jwk = Ed25519Generator::generate();
             let mut public_jwk = private_jwk.clone();
@@ -397,15 +349,7 @@ mod tests {
         }
 
         #[test]
-        fn z_assert_all_suite_cases_covered() {
-            std::thread::sleep(std::time::Duration::from_millis(100));
-            TEST_SUITE.assert_coverage();
-        }
-
-        #[test]
         fn test_with_valid_signature() {
-            TEST_SUITE.include(test_name!());
-
             let (public_jwk, private_jwk) = generate_keys();
             let signer = Ed25519Signer::new(private_jwk);
             let verifier = Ed25519Verifier::new(public_jwk);
@@ -423,8 +367,6 @@ mod tests {
 
         #[test]
         fn test_with_private_key() {
-            TEST_SUITE.include(test_name!());
-
             let (_, private_jwk) = generate_keys();
             let verifier = Ed25519Verifier::new(private_jwk); // this is not allowed
 
@@ -447,8 +389,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_signature() {
-            TEST_SUITE.include(test_name!());
-
             let (public_jwk, _) = generate_keys();
             let verifier = Ed25519Verifier::new(public_jwk);
 
@@ -469,8 +409,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_public_key() {
-            TEST_SUITE.include(test_name!());
-
             let (mut public_jwk, private_jwk) = generate_keys();
             public_jwk.x = URL_SAFE_NO_PAD.encode(&[0u8; PUBLIC_KEY_LENGTH - 1]);
 
@@ -498,8 +436,6 @@ mod tests {
 
         #[test]
         fn test_with_invalid_signature_length() {
-            TEST_SUITE.include(test_name!());
-
             let (public_jwk, _) = generate_keys();
             let verifier = Ed25519Verifier::new(public_jwk);
 

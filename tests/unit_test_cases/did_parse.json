@@ -1,19 +1,31 @@
-[
-  "test_did_empty_string_should_error",
-  "test_did_incomplete_scheme_should_error",
-  "test_did_missing_id_part_should_error",
-  "test_did_missing_id_should_error",
-  "test_did_invalid_characters_in_id_should_error",
-  "test_did_invalid_bare_id_should_error",
-  "test_did_invalid_percent_encoding_should_error",
-  "test_did_invalid_percent_encoding_incomplete_should_error",
-  "test_did_capitalized_method_should_error",
-  "test_did_invalid_additional_id_should_error",
-  "test_did_valid_did_no_params_path_query_fragment",
-  "test_did_valid_did_with_params",
-  "test_did_valid_did_with_query",
-  "test_did_valid_did_with_fragment",
-  "test_did_valid_did_with_query_and_fragment",
-  "test_did_valid_did_with_params_query_and_fragment",
-  "test_did_valid_did_with_path"
-]
+{
+  "test_names": [
+    "test_did_empty_string_should_error",
+    "test_did_incomplete_scheme_should_error",
+    "test_did_missing_id_part_should_error",
+    "test_did_missing_id_should_error",
+    "test_did_invalid_characters_in_id_should_error",
+    "test_did_invalid_bare_id_should_error",
+    "test_did_invalid_percent_encoding_should_error",
+    "test_did_invalid_percent_encoding_incomplete_should_error",
+    "test_did_capitalized_method_should_error",
+    "test_did_invalid_additional_id_should_error",
+    "test_did_valid_did_no_params_path_query_fragment",
+    "test_did_valid_did_with_params",
+    "test_did_valid_did_with_query",
+    "test_did_valid_did_with_fragment",
+    "test_did_valid_did_with_query_and_fragment",
+    "test_did_valid_did_with_params_query_and_fragment",
+    "test_did_valid_did_with_path"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/dids/DidTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/dids/did.rs"
+    }
+  ]
+}

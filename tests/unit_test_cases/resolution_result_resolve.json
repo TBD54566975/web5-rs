@@ -1,6 +1,18 @@
-[
-  "test_invalid_did",
-  "test_did_jwk",
-  "test_did_web",
-  "test_method_not_supported"
-]
+{
+  "test_names": [
+    "test_invalid_did",
+    "test_did_jwk",
+    "test_did_web",
+    "test_method_not_supported"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/dids/ResolutionResultTests.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/dids/resolution/resolution_result.rs"
+    }
+  ]
+}

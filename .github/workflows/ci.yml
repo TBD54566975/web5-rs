@@ -52,6 +52,16 @@ jobs:
         with:
           use_oidc: true
           files: '*.profraw'
+
+  assert_full_test_suite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Run Test Suite
+        run: tests/unit_test_cases.sh
+
   build_aarch64_apple_darwin:
     runs-on: macos-latest
     name: Build aarch64-apple-darwin target

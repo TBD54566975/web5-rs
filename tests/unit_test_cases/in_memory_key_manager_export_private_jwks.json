@@ -1,5 +1,17 @@
-[
-  "test_export_empty_list",
-  "test_export_single_key",
-  "test_export_multiple_keys"
-]
+{
+  "test_names": [
+    "test_export_empty_list",
+    "test_export_single_key",
+    "test_export_multiple_keys"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/crypto/keys/InMemoryKeyManagerTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/crypto/key_managers/in_memory_key_manager.rs"
+    }
+  ]
+}

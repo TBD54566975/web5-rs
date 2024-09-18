@@ -3,7 +3,6 @@ package web5.sdk.dids.methods.jwk
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
-import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.keys.InMemoryKeyManager
 import web5.sdk.crypto.Dsa
 import web5.sdk.dids.ResolutionMetadataError
@@ -12,20 +11,8 @@ class DidJwkTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Create {
-        private val testSuite = UnitTestSuite("did_jwk_create")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_can_specify_key_manager() {
-            testSuite.include()
 
             val keyManager = InMemoryKeyManager(listOf())
             val bearerDid = DidJwk.create(DidJwkCreateOptions(keyManager))
@@ -39,7 +26,6 @@ class DidJwkTests {
 
         @Test
         fun test_can_specify_secp256k1() {
-            testSuite.include()
 
             val bearerDid = DidJwk.create(DidJwkCreateOptions(dsa = Dsa.SECP256K1))
 
@@ -51,7 +37,6 @@ class DidJwkTests {
 
         @Test
         fun test_defaults_to_ed25519() {
-            testSuite.include()
 
             val bearerDid = DidJwk.create()
 
@@ -65,20 +50,8 @@ class DidJwkTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Resolve {
-        private val testSuite = UnitTestSuite("did_jwk_resolve")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_invalid_did() {
-            testSuite.include()
 
             val resolutionResult = DidJwk.resolve("something invalid")
             assertEquals(ResolutionMetadataError.INVALID_DID, resolutionResult.resolutionMetadata.error)
@@ -86,7 +59,6 @@ class DidJwkTests {
 
         @Test
         fun test_create_then_resolve() {
-            testSuite.include()
 
             val bearerDid = DidJwk.create()
             val resolutionResult = DidJwk.resolve(bearerDid.did.uri)

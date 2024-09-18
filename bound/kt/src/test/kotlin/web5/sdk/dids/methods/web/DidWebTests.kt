@@ -6,7 +6,6 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
-import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.Dsa
 import web5.sdk.crypto.keys.InMemoryKeyManager
 import web5.sdk.crypto.keys.Jwk
@@ -18,20 +17,8 @@ class DidWebTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Create {
-        private val testSuite = UnitTestSuite("did_web_create")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_can_specify_key_manager() {
-            testSuite.include()
 
             val keyManager = InMemoryKeyManager(listOf())
             val bearerDid = DidWeb.create("localhost", DidWebCreateOptions(keyManager = keyManager))
@@ -44,7 +31,6 @@ class DidWebTests {
 
         @Test
         fun test_can_specify_secp256k1() {
-            testSuite.include()
 
             val bearerDid = DidWeb.create("localhost", DidWebCreateOptions(dsa = Dsa.SECP256K1))
 
@@ -56,7 +42,6 @@ class DidWebTests {
 
         @Test
         fun test_defaults_to_ed25519() {
-            testSuite.include()
 
             val bearerDid = DidWeb.create("localhost")
 
@@ -68,7 +53,6 @@ class DidWebTests {
 
         @Test
         fun test_invalid_domain() {
-            testSuite.include()
 
             val exception = assertThrows<Web5Exception> {
                 DidWeb.create("invalid domain")
@@ -80,7 +64,6 @@ class DidWebTests {
 
         @Test
         fun test_should_allow_http_for_localhost() {
-            testSuite.include()
 
             assertDoesNotThrow {
                 DidWeb.create("http://localhost")
@@ -102,7 +85,6 @@ class DidWebTests {
 
         @Test
         fun test_must_be_https() {
-            testSuite.include()
 
             val exception = assertThrows<Web5Exception> {
                 DidWeb.create("http://example.com")
@@ -120,7 +102,6 @@ class DidWebTests {
 
         @Test
         fun test_should_trim_did_json() {
-            testSuite.include()
 
             val bearerDid = DidWeb.create("https://example.com/did.json")
             assertEquals("did:web:example.com", bearerDid.did.uri)
@@ -128,7 +109,6 @@ class DidWebTests {
 
         @Test
         fun test_should_trim_well_known() {
-            testSuite.include()
 
             val bearerDid = DidWeb.create("https://example.com/.well-known/did.json")
             assertEquals("did:web:example.com", bearerDid.did.uri)
@@ -136,7 +116,6 @@ class DidWebTests {
 
         @Test
         fun test_should_percent_encode_colons() {
-            testSuite.include()
 
             val bearerDid = DidWeb.create("https://example.com:8080")
             assertEquals("did:web:example.com%3A8080", bearerDid.did.uri)
@@ -144,7 +123,6 @@ class DidWebTests {
 
         @Test
         fun test_should_replace_path_with_colons() {
-            testSuite.include()
 
             val bearerDid = DidWeb.create("https://example.com/path/to/resource")
             assertEquals("did:web:example.com:path:to:resource", bearerDid.did.uri)
@@ -152,7 +130,6 @@ class DidWebTests {
 
         @Test
         fun test_should_add_optional_verification_methods() {
-            testSuite.include()
 
             val additionalVerificationMethod = VerificationMethod(
                 id = "did:web:example.com#key-1",
@@ -179,7 +156,6 @@ class DidWebTests {
 
         @Test
         fun test_should_add_optional_services() {
-            testSuite.include()
 
             val service = Service(
                 id = "did:web:example.com#service-0",
@@ -197,7 +173,6 @@ class DidWebTests {
 
         @Test
         fun test_should_add_optional_also_known_as() {
-            testSuite.include()
 
             val alsoKnownAs = listOf("https://alias.example.com")
 
@@ -211,7 +186,6 @@ class DidWebTests {
 
         @Test
         fun test_should_add_optional_controllers() {
-            testSuite.include()
 
             val controllers = listOf("did:web:controller.example.com")
 
@@ -227,20 +201,9 @@ class DidWebTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Resolve {
-        private val testSuite = UnitTestSuite("did_web_resolve")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
 
         @Test
         fun test_invalid_did() {
-            testSuite.include()
 
             val resolutionResult = DidWeb.resolve("something invalid")
             assertEquals(ResolutionMetadataError.INVALID_DID, resolutionResult.resolutionMetadata.error)
@@ -248,7 +211,6 @@ class DidWebTests {
 
         @Test
         fun test_create_then_resolve() {
-            testSuite.include()
 
             val mockWebServer = MockWebServer()
             mockWebServer.start()

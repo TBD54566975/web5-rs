@@ -3,28 +3,15 @@ package web5.sdk.crypto.signers
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
-import web5.sdk.UnitTestSuite
 import web5.sdk.crypto.Secp256k1Generator
 import web5.sdk.Web5Exception
 import java.util.Base64
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Secp256k1SignerTest {
-    private val testSuite = UnitTestSuite("secp256k1_sign")
-
-    @AfterAll
-    fun verifyAllTestsIncluded() {
-        if (testSuite.tests.isNotEmpty()) {
-            println("The following tests were not included or executed:")
-            testSuite.tests.forEach { println(it) }
-            fail("Not all tests were executed! ${testSuite.tests}")
-        }
-    }
 
     @Test
     fun test_with_valid_key() {
-        testSuite.include()
-
         val jwk = Secp256k1Generator.generate()
         val signer = Secp256k1Signer(jwk)
 
@@ -38,8 +25,6 @@ class Secp256k1SignerTest {
 
     @Test
     fun test_with_invalid_private_key() {
-        testSuite.include()
-
         val jwk = Secp256k1Generator.generate()
         val invalidJwk = jwk.copy(d = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(SECRET_KEY_LENGTH - 1)))
 
@@ -55,8 +40,6 @@ class Secp256k1SignerTest {
 
     @Test
     fun test_with_missing_private_key() {
-        testSuite.include()
-
         val jwk = Secp256k1Generator.generate()
         val missingKeyJwk = jwk.copy(d = null)
 

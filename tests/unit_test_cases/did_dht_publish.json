@@ -1,4 +1,16 @@
-[
-  "test_can_specify_gateway_url",
-  "test_can_handle_network_error"
-]
+{
+  "test_names": [
+    "test_can_specify_gateway_url",
+    "test_can_handle_network_error"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/dids/methods/dht/DidDhtTests.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/dids/methods/did_dht/mod.rs"
+    }
+  ]
+}

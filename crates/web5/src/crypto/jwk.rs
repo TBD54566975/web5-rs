@@ -97,32 +97,12 @@ impl Jwk {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{errors::Web5Error, test_helpers::UnitTestSuite, test_name};
-    use lazy_static::lazy_static;
 
     mod compute_thumbprint {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite = UnitTestSuite::new("jwk_compute_thumbprint");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
         #[test]
         fn test_ec_valid() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Jwk {
                 kty: "EC".to_string(),
                 crv: "secp256k1".to_string(),
@@ -137,8 +117,6 @@ mod tests {
 
         #[test]
         fn test_okp_valid() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Jwk {
                 kty: "OKP".to_string(),
                 crv: "Ed25519".to_string(),
@@ -152,8 +130,6 @@ mod tests {
 
         #[test]
         fn test_unsupported_kty() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Jwk {
                 kty: "RSA".to_string(),
                 crv: "RS256".to_string(),
@@ -169,8 +145,6 @@ mod tests {
 
         #[test]
         fn test_empty_kty() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Jwk {
                 kty: "".to_string(),
                 crv: "Ed25519".to_string(),
@@ -185,8 +159,6 @@ mod tests {
 
         #[test]
         fn test_empty_x() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Jwk {
                 kty: "OKP".to_string(),
                 crv: "Ed25519".to_string(),
@@ -201,8 +173,6 @@ mod tests {
 
         #[test]
         fn test_empty_crv() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Jwk {
                 kty: "EC".to_string(),
                 crv: "".to_string(),
@@ -218,8 +188,6 @@ mod tests {
 
         #[test]
         fn test_ec_missing_y() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Jwk {
                 kty: "EC".to_string(),
                 crv: "P-256".to_string(),
@@ -234,8 +202,6 @@ mod tests {
 
         #[test]
         fn test_ec_empty_y() {
-            TEST_SUITE.include(test_name!());
-
             let jwk = Jwk {
                 kty: "EC".to_string(),
                 crv: "P-256".to_string(),

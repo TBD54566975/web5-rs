@@ -1,7 +1,19 @@
-[
-  "test_must_set_alg",
-  "test_must_set_kty",
-  "test_must_set_crv",
-  "test_must_set_public_key_with_correct_length",
-  "test_must_set_private_key_with_correct_length"
-]
+{
+  "test_names": [
+    "test_must_set_alg",
+    "test_must_set_kty",
+    "test_must_set_crv",
+    "test_must_set_public_key_with_correct_length",
+    "test_must_set_private_key_with_correct_length"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/crypto/Ed25519GeneratorTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/crypto/dsa/ed25519.rs"
+    }
+  ]
+}

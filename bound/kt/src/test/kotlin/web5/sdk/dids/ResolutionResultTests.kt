@@ -4,8 +4,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.fail
-import web5.sdk.UnitTestSuite
 import web5.sdk.dids.methods.jwk.DidJwk
 import web5.sdk.dids.methods.web.DidWeb
 
@@ -13,20 +11,8 @@ class ResolutionResultTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Resolve {
-        private val testSuite = UnitTestSuite("resolution_result_resolve")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_invalid_did() {
-            testSuite.include()
 
             val resolutionResult = ResolutionResult.resolve("something invalid")
             assertEquals(ResolutionMetadataError.INVALID_DID, resolutionResult.resolutionMetadata.error)
@@ -34,7 +20,6 @@ class ResolutionResultTests {
 
         @Test
         fun test_did_jwk() {
-            testSuite.include()
 
             val bearerDid = DidJwk.create()
 
@@ -45,7 +30,6 @@ class ResolutionResultTests {
 
         @Test
         fun test_did_web() {
-            testSuite.include()
 
             val mockWebServer = MockWebServer()
             mockWebServer.start()
@@ -72,7 +56,6 @@ class ResolutionResultTests {
 
         @Test
         fun test_method_not_supported() {
-            testSuite.include()
 
             val resolutionResult = ResolutionResult.resolve("did:example:123")
             assertEquals(ResolutionMetadataError.METHOD_NOT_SUPPORTED, resolutionResult.resolutionMetadata.error)
