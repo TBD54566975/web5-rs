@@ -6,8 +6,6 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.fail
-import web5.sdk.UnitTestSuite
 import web5.sdk.Web5Exception
 import web5.sdk.crypto.keys.InMemoryKeyManager
 import web5.sdk.crypto.keys.Jwk
@@ -19,20 +17,8 @@ class DidDhtTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Create {
-        private val testSuite = UnitTestSuite("did_dht_create")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_can_specify_key_manager() {
-            testSuite.include()
 
             val keyManager = InMemoryKeyManager(listOf())
             val bearerDid = DidDht.create(
@@ -50,7 +36,6 @@ class DidDhtTests {
 
         @Test
         fun test_can_specify_publish_and_gateway_url() {
-            testSuite.include()
 
             val mockWebServer = MockWebServer()
             mockWebServer.start()
@@ -81,7 +66,6 @@ class DidDhtTests {
 
         @Test
         fun test_should_add_optional_verification_methods() {
-            testSuite.include()
 
             val additionalVerificationMethod = VerificationMethod(
                 id = "did:web:example.com#key-1",
@@ -110,7 +94,6 @@ class DidDhtTests {
 
         @Test
         fun test_should_add_optional_services() {
-            testSuite.include()
 
             val service = Service(
                 id = "did:web:example.com#service-0",
@@ -130,7 +113,6 @@ class DidDhtTests {
 
         @Test
         fun test_should_add_optional_also_known_as() {
-            testSuite.include()
 
             val alsoKnownAs = listOf("https://alias.example.com")
 
@@ -146,7 +128,6 @@ class DidDhtTests {
 
         @Test
         fun test_should_add_optional_controllers() {
-            testSuite.include()
 
             val controllers = listOf("did:web:controller.example.com")
 
@@ -164,20 +145,8 @@ class DidDhtTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Publish {
-        private val testSuite = UnitTestSuite("did_dht_publish")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_can_specify_gateway_url() {
-            testSuite.include()
 
             val mockWebServer = MockWebServer()
             mockWebServer.start()
@@ -211,7 +180,6 @@ class DidDhtTests {
 
         @Test
         fun test_can_handle_network_error() {
-            testSuite.include()
 
             val mockWebServer = MockWebServer()
             mockWebServer.start()
@@ -247,20 +215,8 @@ class DidDhtTests {
     @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Resolve {
-        private val testSuite = UnitTestSuite("did_dht_resolve")
-
-        @AfterAll
-        fun verifyAllTestsIncluded() {
-            if (testSuite.tests.isNotEmpty()) {
-                println("The following tests were not included or executed:")
-                testSuite.tests.forEach { println(it) }
-                fail("Not all tests were executed! ${testSuite.tests}")
-            }
-        }
-
         @Test
         fun test_invalid_did() {
-            testSuite.include()
 
             val resolutionResult = DidDht.resolve("something invalid")
 
@@ -272,7 +228,6 @@ class DidDhtTests {
 
         @Test
         fun test_method_not_supported() {
-            testSuite.include()
 
             val resolutionResult = DidDht.resolve("did:web:example")
 
@@ -284,7 +239,6 @@ class DidDhtTests {
 
         @Test
         fun test_not_found() {
-            testSuite.include()
 
             val mockWebServer = MockWebServer()
             mockWebServer.start()
@@ -318,7 +272,6 @@ class DidDhtTests {
 
         @Test
         fun test_internal_error() {
-            testSuite.include()
 
             val mockWebServer = MockWebServer()
             mockWebServer.start()
@@ -352,7 +305,6 @@ class DidDhtTests {
 
         @Test
         fun test_can_create_then_resolve() {
-            testSuite.include()
 
             val mockWebServer = MockWebServer()
             mockWebServer.start()

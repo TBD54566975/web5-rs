@@ -1,7 +1,19 @@
-[
-  "test_with_valid_signature",
-  "test_with_private_key",
-  "test_with_invalid_signature",
-  "test_with_invalid_public_key",
-  "test_with_invalid_signature_length"
-]
+{
+  "test_names": [
+    "test_with_valid_signature",
+    "test_with_private_key",
+    "test_with_invalid_signature",
+    "test_with_invalid_public_key",
+    "test_with_invalid_signature_length"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/crypto/verifiers/Ed25519VerifierTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/crypto/dsa/ed25519.rs"
+    }
+  ]
+}

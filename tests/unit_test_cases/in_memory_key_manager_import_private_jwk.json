@@ -1,1 +1,16 @@
-["test_must_be_private_jwk", "test_successfully_imports_and_returns_public_jwk"]
+{
+  "test_names": [
+    "test_must_be_private_jwk",
+    "test_successfully_imports_and_returns_public_jwk"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/crypto/keys/InMemoryKeyManagerTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/crypto/key_managers/in_memory_key_manager.rs"
+    }
+  ]
+}

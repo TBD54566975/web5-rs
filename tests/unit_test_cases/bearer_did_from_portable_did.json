@@ -1,3 +1,11 @@
-[
-  "test_can_instantiate_successfully"
-]
+{
+  "test_names": [
+    "test_can_instantiate_successfully"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/dids/BearerDidTest.kt"
+    }
+  ]
+}

@@ -1,10 +1,22 @@
-[
-  "test_ec_valid",
-  "test_okp_valid",
-  "test_unsupported_kty",
-  "test_empty_kty",
-  "test_empty_x",
-  "test_empty_crv",
-  "test_ec_missing_y",
-  "test_ec_empty_y"
-]
+{
+  "test_names": [
+    "test_ec_valid",
+    "test_okp_valid",
+    "test_unsupported_kty",
+    "test_empty_kty",
+    "test_empty_x",
+    "test_empty_crv",
+    "test_ec_missing_y",
+    "test_ec_empty_y"
+  ],
+  "test_files": [
+    {
+      "language": "kotlin",
+      "path": "bound/kt/src/test/kotlin/web5/sdk/crypto/keys/JwkTest.kt"
+    },
+    {
+      "language": "rust",
+      "path": "crates/web5/src/crypto/jwk.rs"
+    }
+  ]
+}

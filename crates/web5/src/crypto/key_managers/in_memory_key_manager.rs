@@ -168,33 +168,12 @@ impl KeyExporter for InMemoryKeyManager {
 mod tests {
     use super::*;
     use crate::crypto::dsa::ed25519::Ed25519Generator;
-    use crate::{test_helpers::UnitTestSuite, test_name};
-    use lazy_static::lazy_static;
 
     mod import_private_jwk {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite =
-                UnitTestSuite::new("in_memory_key_manager_import_private_jwk");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
         #[test]
         fn test_must_be_private_jwk() {
-            TEST_SUITE.include(test_name!());
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk = Ed25519Generator::generate();
             let mut public_jwk = private_jwk.clone();
@@ -210,8 +189,6 @@ mod tests {
 
         #[test]
         fn test_successfully_imports_and_returns_public_jwk() {
-            TEST_SUITE.include(test_name!());
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk = Ed25519Generator::generate();
 
@@ -226,27 +203,8 @@ mod tests {
     mod get_signer {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite =
-                UnitTestSuite::new("in_memory_key_manager_get_signer");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
         #[test]
         fn test_must_be_public_key() {
-            TEST_SUITE.include(test_name!());
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk = Ed25519Generator::generate();
             let result = key_manager.get_signer(private_jwk);
@@ -260,8 +218,6 @@ mod tests {
 
         #[test]
         fn test_not_found() {
-            TEST_SUITE.include(test_name!());
-
             let key_manager = InMemoryKeyManager::new();
             let mut public_jwk = Ed25519Generator::generate();
             public_jwk.d = None;
@@ -282,8 +238,6 @@ mod tests {
 
         #[test]
         fn test_found() {
-            TEST_SUITE.include(test_name!());
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk = Ed25519Generator::generate();
             let mut public_jwk = private_jwk.clone();
@@ -300,27 +254,8 @@ mod tests {
     mod export_private_jwks {
         use super::*;
 
-        lazy_static! {
-            static ref TEST_SUITE: UnitTestSuite =
-                UnitTestSuite::new("in_memory_key_manager_export_private_jwks");
-        }
-
-        #[test]
-        fn z_assert_all_suite_cases_covered() {
-            // fn name prefixed with `z_*` b/c rust test harness executes in alphabetical order,
-            // unless intentionally executed with "shuffle" https://doc.rust-lang.org/rustc/tests/index.html#--shuffle
-            // this may not work if shuffled or if test list grows to the extent of 100ms being insufficient wait time
-
-            // wait 100ms to be last-in-queue of mutex lock
-            std::thread::sleep(std::time::Duration::from_millis(100));
-
-            TEST_SUITE.assert_coverage()
-        }
-
         #[test]
         fn test_export_empty_list() {
-            TEST_SUITE.include(test_name!());
-
             let key_manager = InMemoryKeyManager::new();
             let result = key_manager.export_private_jwks().unwrap();
             assert!(result.is_empty());
@@ -328,8 +263,6 @@ mod tests {
 
         #[test]
         fn test_export_single_key() {
-            TEST_SUITE.include(test_name!());
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk = Ed25519Generator::generate();
             key_manager.import_private_jwk(private_jwk.clone()).unwrap();
@@ -341,8 +274,6 @@ mod tests {
 
         #[test]
         fn test_export_multiple_keys() {
-            TEST_SUITE.include(test_name!());
-
             let key_manager = InMemoryKeyManager::new();
             let private_jwk1 = Ed25519Generator::generate();
             let private_jwk2 = Ed25519Generator::generate();
