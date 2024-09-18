@@ -49,7 +49,7 @@ impl Resolver {
         })
     }
 
-    async fn resolve(url: String) -> Result<ResolutionResult, ResolutionMetadataError> {
+    fn resolve(url: String) -> Result<ResolutionResult, ResolutionMetadataError> {
         let document =
             get_json::<Document>(&url).map_err(|_| ResolutionMetadataError::InternalError)?;
         Ok(ResolutionResult {
@@ -59,14 +59,21 @@ impl Resolver {
     }
 }
 
-// This trait implements the actual logic for resolving a DID URI to a DID Document.
-impl IntoFuture for Resolver {
-    type Output = Result<ResolutionResult, ResolutionMetadataError>;
-    type IntoFuture = Pin<Box<dyn Future<Output = Self::Output> + Send>>;
+// // This trait implements the actual logic for resolving a DID URI to a DID Document.
+// impl IntoFuture for Resolver {
+//     type Output = Result<ResolutionResult, ResolutionMetadataError>;
+//     type IntoFuture = Pin<Box<dyn Future<Output = Self::Output> + Send>>;
 
-    fn into_future(self) -> Self::IntoFuture {
-        let did_url = self.http_url;
-        Box::pin(async move { Self::resolve(did_url).await })
+//     fn into_future(self) -> Self::IntoFuture {
+//         let did_url = self.http_url;
+//         Box::pin(async move { Self::resolve(did_url) })
+//     }
+// }
+
+impl Resolver {
+    pub fn into_future(self) -> Result<ResolutionResult, ResolutionMetadataError> {
+        // Resolve synchronously
+        Self::resolve(self.http_url)
     }
 }
 
@@ -74,8 +81,8 @@ impl IntoFuture for Resolver {
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn resolution_success() {
+    #[test]
+    fn resolution_success() {
         let did_uri = "did:web:tbd.website";
         let result = Resolver::new(Did::parse(did_uri).unwrap()).unwrap();
         assert_eq!(result.http_url, "https://tbd.website/.well-known/did.json");
