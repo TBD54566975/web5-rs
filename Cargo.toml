@@ -4,6 +4,7 @@ members = [
     "crates/web5_cli", 
     "bindings/web5_uniffi", 
     "bindings/web5_uniffi_wrapper", 
+    "bindings/web5_wasm", 
 ]
 default-members = [
     "crates/web5",

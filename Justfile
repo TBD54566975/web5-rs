@@ -11,6 +11,7 @@ setup:
     rustup default 1.74.0
     rustup target add aarch64-apple-darwin
   fi
+  cargo install wasm-pack --version 0.13.0
 
 build: setup
   cargo build --workspace
@@ -24,6 +25,9 @@ lint: setup
 
 bind: setup
   just bind-kotlin
+
+wasm: setup
+  (cd bindings/web5_wasm; wasm-pack build --target bundler)
 
 bind-kotlin: setup
   mkdir -p bound/kt/src/main/resources

@@ -1,0 +1,14 @@
+[package]
+name = "web5_wasm"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+wasm-bindgen = "0.2.93"
+web5 = { path = "../../crates/web5" }
+
+[lib]
+crate-type = ["cdylib"]
