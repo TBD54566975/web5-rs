@@ -175,6 +175,19 @@ jobs:
       - name: Lint
         run: just lint
 
+  rust-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: Setup
+        run: just setup
+      - name: Test
+        run: just test
+
   kotlin-build-test-deploy-snapshot:
     needs:
       - build_aarch64_apple_darwin
