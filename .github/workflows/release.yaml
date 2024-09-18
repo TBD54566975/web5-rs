@@ -20,6 +20,72 @@ jobs:
     with:
       version: ${{ github.event.inputs.version }}
 
+  build_cli_aarch64-apple-darwin:
+    runs-on: macos-latest
+    name: aarch64-apple-darwin
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        run: rustup toolchain install stable
+      - name: cargo build
+        run: |
+          cargo build --target aarch64-apple-darwin --release --package web5_cli
+          cp -v target/aarch64-apple-darwin/release/web5_cli web5_cli-aarch64-apple-darwin
+      - name: upload release asset
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          files: web5_cli-aarch64-apple-darwin
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  build_cli_x86_64_apple_darwin:
+    runs-on: macos-12
+    name: x86_64-apple-darwin
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        run: rustup toolchain install stable
+      - name: cargo build
+        run: |
+          cargo build --target x86_64-apple-darwin --release --package web5_cli
+          cp -v target/x86_64-apple-darwin/release/web5_cli web5_cli-x86_64-apple-darwin
+      - name: upload release asset
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          files: web5_cli-x86_64-apple-darwin
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  build_cli_x86_64_unknown_linux_gnu:
+    runs-on: ubuntu-latest
+    name: x86_64-unknown-linux-gnu
+    steps:
+      - uses: actions/checkout@v2
+      - name: cargo build
+        run: |
+          cargo build --target x86_64-unknown-linux-gnu --release --package web5_cli
+          cp -v target/x86_64-unknown-linux-gnu/release/web5_cli web5_cli-x86_64-unknown-linux-gnu
+      - name: upload release asset
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          files: web5_cli-x86_64-unknown-linux-gnu
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  build_cli_x86_64_unknown_linux_musl:
+    runs-on: ubuntu-latest
+    name: x86_64-unknown-linux-musl
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Build Script
+        run: |
+          pushd crates/web5_cli/build/x86_64_unknown_linux_musl
+          ./build
+          popd
+          cp target/x86_64-unknown-linux-musl/release/web5_cli web5_cli-x86_64-unknown-linux-musl
+      - name: upload release asset
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          files: web5_cli-x86_64-unknown-linux-musl
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
   git-tag:
     runs-on: ubuntu-latest
     needs: run-ci
