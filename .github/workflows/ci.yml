@@ -67,8 +67,10 @@ jobs:
     name: Build aarch64-apple-darwin target
     steps:
       - uses: actions/checkout@v2
-      - name: Install Rust
-        run: rustup toolchain install stable
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
       - name: Run Build Script
         run: |
           cd bindings/web5_uniffi/libtargets/aarch64_apple_darwin
@@ -88,8 +90,10 @@ jobs:
     name: Build x86_64-apple-darwin target
     steps:
       - uses: actions/checkout@v2
-      - name: Install Rust
-        run: rustup toolchain install stable
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
       - name: Run Build Script
         run: |
           cd bindings/web5_uniffi/libtargets/x86_64_apple_darwin
@@ -147,8 +151,10 @@ jobs:
     name: Build x86_64-pc-windows-msvc target
     steps:
       - uses: actions/checkout@v2
-      - name: Install Rust
-        run: rustup toolchain install stable
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
       - name: Add MSVC target
         run: rustup target add x86_64-pc-windows-msvc
       - name: Build the library
@@ -188,6 +194,43 @@ jobs:
       - name: Test
         run: just test
 
+  kotlin-acceptance-test:
+    needs: kotlin-build-test-deploy-snapshot
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, macos-12, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: "adopt"
+          java-version: "11"
+      - name: Download web5 w/ Dependencies JAR
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: web5-with-dependencies-jar
+          path: tests/jvm
+      - name: Run Acceptance Tests (Non-Windows)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          cd tests/jvm
+          mv *-with-dependencies.jar web5-with-dependencies.jar
+          javac Web5AcceptanceTest.java -cp web5-with-dependencies.jar
+          java -classpath web5-with-dependencies.jar:. Web5AcceptanceTest
+      - name: Run Acceptance Tests (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: cmd
+        run: |
+          cd tests/jvm
+          ren *-with-dependencies.jar web5-with-dependencies.jar
+          javac Web5AcceptanceTest.java -cp web5-with-dependencies.jar
+          java -classpath web5-with-dependencies.jar;. Web5AcceptanceTest
+
   kotlin-build-test-deploy-snapshot:
     needs:
       - build_aarch64_apple_darwin
@@ -195,6 +238,7 @@ jobs:
       - build_x86_64_unknown_linux_gnu
       - build_x86_64_unknown_linux_musl
       - build_x86_64_pc_windows_msvc
+      - kotlin-acceptance-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -219,7 +263,11 @@ jobs:
         run: |
           # Version resolution: use provided
           if [ -n "${{ github.event.inputs.version }}" ]; then
-            resolvedVersion=${{ github.event.inputs.version }}
+            if [[ "${{ github.event.inputs.version }}" != *-SNAPSHOT ]]; then
+              resolvedVersion="${{ github.event.inputs.version }}-SNAPSHOT"
+            else
+              resolvedVersion="${{ github.event.inputs.version }}"
+            fi
           # Otherwise, construct a version for deployment in form X.Y.Z-commit-$shortSHA-SNAPSHOT
           else
             longSHA=$(git rev-parse --verify HEAD)
@@ -298,53 +346,16 @@ jobs:
           name: web5-with-dependencies-jar
           path: bound/kt/target/*-with-dependencies.jar
 
-  kotlin-acceptance-test:
-    needs: kotlin-build-test-deploy-snapshot
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, macos-latest, macos-12, windows-latest ]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          distribution: "adopt"
-          java-version: "11"
-      - name: Download web5 w/ Dependencies JAR
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: web5-with-dependencies-jar
-          path: tests/jvm
-      - name: Run Acceptance Tests (Non-Windows)
-        if: matrix.os != 'windows-latest'
-        shell: bash
-        run: |
-          cd tests/jvm
-          mv *-with-dependencies.jar web5-with-dependencies.jar
-          javac Web5AcceptanceTest.java -cp web5-with-dependencies.jar
-          java -classpath web5-with-dependencies.jar:. Web5AcceptanceTest
-      - name: Run Acceptance Tests (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: cmd
-        run: |
-          cd tests/jvm
-          ren *-with-dependencies.jar web5-with-dependencies.jar
-          javac Web5AcceptanceTest.java -cp web5-with-dependencies.jar
-          java -classpath web5-with-dependencies.jar;. Web5AcceptanceTest
-
   rust-test-vectors:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Install Rust 1.75.0
-        run: rustup toolchain install 1.75.0
-      - name: Set Rust 1.75.0 as default
-        run: rustup default 1.75.0
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
       - name: Install Nextest
         run: cargo install cargo-nextest
       - name: Create nextest.toml
