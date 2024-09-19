@@ -23,3 +23,6 @@ bound/kt/src/main/resources/*.dylib
 bound/kt/src/main/resources/*.so
 
 bindings/LICENSE
+.vscode
+compiled/
+coverage/
