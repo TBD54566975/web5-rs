@@ -4,59 +4,26 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version of Kotlin binary to publish to TBD Artifactory. For example "1.0.0" will result in "1.0.0-SNAPSHOT". If not supplied, will default to "commit-$shortSHA-SNAPSHOT" where $shortSHA is the shortform commit SHA.'
+        description: 'Version of Kotlin binary to publish to TBD Artifactory. For example "1.0.0-SNAPSHOT". If not supplied, will default to "commit-$shortSHA-SNAPSHOT" where $shortSHA is the shortform commit SHA. Must end in "-SNAPSHOT".'
         required: false
         default: "0.0.0-SNAPSHOT"
-  workflow_call:
-    inputs:
-      version:
-        description: 'Version of Kotlin binary to publish to TBD Artifactory. For example "1.0.0" will result in "1.0.0-SNAPSHOT". If not supplied, will default to "commit-$shortSHA-SNAPSHOT" where $shortSHA is the shortform commit SHA.'
-        required: true
-        type: string
   push:
     branches:
       - main
   pull_request:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version of Kotlin binary to publish to TBD Artifactory. For example "1.0.0-SNAPSHOT". If not supplied, will default to "commit-$shortSHA-SNAPSHOT" where $shortSHA is the shortform commit SHA. Must end in "-SNAPSHOT".'
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
-  # Make sure CI fails on all warnings, including Clippy lints
   RUSTFLAGS: "-Dwarnings"
   WEB5_SDK_LOG_LEVEL: debug
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Init Hermit
-        uses: cashapp/activate-hermit@v1
-        with:
-          cache: true
-      - name: Lint
-        run: just lint
-
-  msrv:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        rust: [stable]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Init Hermit
-        uses: cashapp/activate-hermit@v1
-        with:
-          cache: true
-      - name: Setup
-        run: just setup
-      - name: Install MSRV
-        run: cargo install cargo-msrv
-      - name: MSRV
-        run: cargo msrv --path crates/web5/ verify
-
   test:
     permissions:
       id-token: write
@@ -193,7 +160,7 @@ jobs:
       - name: Build the library
         run: |
           cargo build --target x86_64-pc-windows-msvc --release --package web5_uniffi
-          mkdir -p bound/kt/src/main/resources/
+          mkdir -p bound/kt/src/main/resources
           cp target/x86_64-pc-windows-msvc/release/web5_uniffi.dll bound/kt/src/main/resources/web5_uniffi_x86_64_pc_windows_msvc.dll
       - name: Upload .dll
         uses: actions/upload-artifact@v4.0.0
@@ -201,19 +168,38 @@ jobs:
           name: x86_64-pc-windows-msvc-dll
           path: bound/kt/src/main/resources/web5_uniffi_x86_64_pc_windows_msvc.dll
 
-  kotlin-acceptance-testing:
-    permissions:
-      id-token: write
-    needs:
-      - build_aarch64_apple_darwin
-      - build_x86_64_apple_darwin
-      - build_x86_64_unknown_linux_gnu
-      - build_x86_64_unknown_linux_musl
-      - build_x86_64_pc_windows_msvc
-    runs-on: ${{ matrix.os }}
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: Setup
+        run: just setup
+      - name: Lint
+        run: just lint
+
+  rust-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: Setup
+        run: just setup
+      - name: Test
+        run: just test
+
+  kotlin-acceptance-test:
+    needs: kotlin-build-test-deploy-snapshot
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, macos-12, windows-latest]
+        os: [ ubuntu-latest, macos-latest, macos-12, windows-latest ]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -223,54 +209,36 @@ jobs:
         with:
           distribution: "adopt"
           java-version: "11"
-      # Cache Maven repo
-      - uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      # Package up the native binaries
-      #TODO Centralize this block as we re-use it via copy/paste right now
-      - name: Download MacOS aarch64 Native Library
+      - name: Download web5 w/ Dependencies JAR
         uses: actions/download-artifact@v4.1.7
         with:
-          name: aarch64-apple-darwin-dylib
-          path: bound/kt/src/main/resources/
-      - name: Download MacOS x86_64 Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-apple-darwin-dylib
-          path: bound/kt/src/main/resources/
-      - name: Download Linux x86_64 GNU Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-unknown-linux-gnu-so
-          path: bound/kt/src/main/resources/
-      - name: Download Linux x86_64 MUSL Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-unknown-linux-musl-so
-          path: bound/kt/src/main/resources/
-      - name: Download Windows x86_64 MSVC Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-pc-windows-msvc-dll
-          path: bound/kt/src/main/resources/
-      - name: Run Maven Tests
+          name: web5-with-dependencies-jar
+          path: tests/jvm
+      - name: Run Acceptance Tests (Non-Windows)
+        if: matrix.os != 'windows-latest'
+        shell: bash
         run: |
-          cd bound/kt/
-          mvn test --batch-mode
-      - name: Upload test coverage to Codecov
-        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 #v4.5.0
-        with:
-          use_oidc: true
-          working-directory: bound/kt
-          files: target/kover/test.ic
+          cd tests/jvm
+          mv *-with-dependencies.jar web5-with-dependencies.jar
+          javac Web5AcceptanceTest.java -cp web5-with-dependencies.jar
+          java -classpath web5-with-dependencies.jar:. Web5AcceptanceTest
+      - name: Run Acceptance Tests (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: cmd
+        run: |
+          cd tests/jvm
+          ren *-with-dependencies.jar web5-with-dependencies.jar
+          javac Web5AcceptanceTest.java -cp web5-with-dependencies.jar
+          java -classpath web5-with-dependencies.jar;. Web5AcceptanceTest
 
-  kotlin-deploy-snapshot:
+  kotlin-build-test-deploy-snapshot:
     needs:
-      - kotlin-acceptance-testing
+      - build_aarch64_apple_darwin
+      - build_x86_64_apple_darwin
+      - build_x86_64_unknown_linux_gnu
+      - build_x86_64_unknown_linux_musl
+      - build_x86_64_pc_windows_msvc
+      - kotlin-acceptance-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -366,11 +334,17 @@ jobs:
           SIGN_KEY_PASS: ${{ secrets.GPG_SECRET_PASSPHRASE }}
           SIGN_KEY: ${{ secrets.GPG_SECRET_KEY }}
 
-      - name: Upload Kotlin Test Vector Results
+      - name: Upload Kotlin Test Results
         uses: actions/upload-artifact@v4.0.0
         with:
           name: kotlin-test-results
           path: bound/kt/target/surefire-reports/*.xml
+
+      - name: Upload web5 w/ Dependencies JAR
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: web5-with-dependencies-jar
+          path: bound/kt/target/*-with-dependencies.jar
 
   rust-test-vectors:
     runs-on: macos-latest
@@ -378,10 +352,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Install Rust 1.75.0
-        run: rustup toolchain install 1.75.0
-      - name: Set Rust 1.75.0 as default
-        run: rustup default 1.75.0
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
       - name: Install Nextest
         run: cargo install cargo-nextest
       - name: Create nextest.toml

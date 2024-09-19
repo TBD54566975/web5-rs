@@ -1,17 +1,34 @@
-name: Build release artifacts
+name: Release
 
 on:
-  release:
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version of web5 to release and publish to TBD Artifactory and Maven Central. For example "1.0.0" or "1.3.7-beta-2". Required. Must not end in "-SNAPSHOT".'
+        required: true
+
+env:
+  WEB5_SDK_LOG_LEVEL: debug
 
 jobs:
+
+  run-ci:
+    # This will run CI and also publish the Kotlin release to the TBD Artifactory repo manager
+    name: Run CI
+    uses: TBD54566975/web5-rs/.github/workflows/ci.yml@main
+    secrets: inherit
+    with:
+      version: ${{ github.event.inputs.version }}
+
   build_cli_aarch64-apple-darwin:
     runs-on: macos-latest
     name: aarch64-apple-darwin
     steps:
       - uses: actions/checkout@v2
-      - name: Install Rust
-        run: rustup toolchain install stable
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
       - name: cargo build
         run: |
           cargo build --target aarch64-apple-darwin --release --package web5_cli
@@ -20,15 +37,17 @@ jobs:
         uses: AButler/upload-release-assets@v3.0
         with:
           files: web5_cli-aarch64-apple-darwin
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
 
   build_cli_x86_64_apple_darwin:
     runs-on: macos-12
     name: x86_64-apple-darwin
     steps:
       - uses: actions/checkout@v2
-      - name: Install Rust
-        run: rustup toolchain install stable
+      - name: Install Rust 1.74.0
+        run: rustup toolchain install 1.74.0
+      - name: Set Rust 1.74.0 as default
+        run: rustup default 1.74.0
       - name: cargo build
         run: |
           cargo build --target x86_64-apple-darwin --release --package web5_cli
@@ -37,7 +56,7 @@ jobs:
         uses: AButler/upload-release-assets@v3.0
         with:
           files: web5_cli-x86_64-apple-darwin
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
 
   build_cli_x86_64_unknown_linux_gnu:
     runs-on: ubuntu-latest
@@ -52,7 +71,7 @@ jobs:
         uses: AButler/upload-release-assets@v3.0
         with:
           files: web5_cli-x86_64-unknown-linux-gnu
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
 
   build_cli_x86_64_unknown_linux_musl:
     runs-on: ubuntu-latest
@@ -69,7 +88,167 @@ jobs:
         uses: AButler/upload-release-assets@v3.0
         with:
           files: web5_cli-x86_64-unknown-linux-musl
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
+
+  git-tag:
+    runs-on: ubuntu-latest
+    needs: run-ci
+    outputs:
+      RELEASE_TAG: ${{ steps.set-version-and-tag.outputs.RELEASE_TAG }}
+      RELEASE_VERSION: ${{ steps.set-version-and-tag.outputs.RELEASE_VERSION }}
+
+    name: Create Git Tag
+    steps:
+      - id: checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
+
+      # Used in writing commits in the release process
+      - id: set-git-config
+        name: Set Git Config
+        run: |
+          git config user.name "tbd-releases"
+          git config user.email "releases@tbd.email"
+
+      # Cache Maven repo
+      - id: cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - id: set-version-and-tag
+        name: Set version of Kotlin and commit
+        run: |
+
+          # cd into the Kotlin project
+          cd bound/kt/
+
+          # Get the required provided version
+          version=${{ github.event.inputs.version }}
+          # Precondition check; do not allow this to proceed if a version ending in "-SNAPSHOT" was specified
+          if [[ $version =~ -SNAPSHOT$ ]]; then
+            echo "Error: The version for release must not end with \"-SNAPSHOT\": $version"
+            exit 1
+          fi
+
+          # Get the existing version from the POM and set it to the nextVersion, keeping the POM effectively versionless
+          nextVersion=$(grep -oPm1 "(?<=<version>)[^<]+" pom.xml)
+          if [[ -z $nextVersion ]]; then
+            echo "Error: Could not find a version in the pom.xml"
+            exit 1
+          fi
+
+          echo "Version to be released: $version"
+          echo "Setting next development version back to original in pom.xml: $nextVersion"
+
+          # Set newly resolved version in POM config
+          mvn \
+            versions:set \
+            --batch-mode \
+            -DnewVersion=$version
+
+          # Commit
+          git add -Av
+          git commit -m "[TBD Release Manager 🚀] Setting version to: $version"
+          tagName=v$version
+          git tag -a $tagName -m "Tag version: $tagName" # We tag with a prefix of "v"
+
+          # Make the version and tag name available to subsequent jobs as an output param
+          echo "RELEASE_TAG=$tagName" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_VERSION=$version" >> "$GITHUB_OUTPUT"
+          cat $GITHUB_OUTPUT
+
+          # Set the next development version and commit and push
+          mvn \
+            versions:set \
+            --batch-mode \
+            -DnewVersion=$nextVersion
+          git add -Av
+          git commit -m "[TBD Release Manager 🚀] Setting next development version after $version to: $nextVersion"
+          git push origin main
+          git push origin $tagName
+
+  kotlin-release-to-tbd-artifactory-and-maven-central:
+    name: Release Kotlin to Maven Central
+    needs: git-tag
+    runs-on: ubuntu-latest
+    steps:
+
+      # Check out the tag we created above
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          ref: ${{ needs.git-tag.outputs.RELEASE_TAG }} # Check out the tag we created above
+
+      # Set up JDK
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: "adopt"
+          java-version: "11"
+
+      # Cache Maven repo
+      - uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Package up the native binaries
+      #TODO Centralize this block as we re-use it via copy/paste right now
+      - name: Download MacOS aarch64 Native Library
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: aarch64-apple-darwin-dylib
+          path: bound/kt/src/main/resources/
+      - name: Download MacOS x86_64 Native Library
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: x86_64-apple-darwin-dylib
+          path: bound/kt/src/main/resources/
+      - name: Download Linux x86_64 GNU Native Library
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: x86_64-unknown-linux-gnu-so
+          path: bound/kt/src/main/resources/
+      - name: Download Linux x86_64 MUSL Native Library
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: x86_64-unknown-linux-musl-so
+          path: bound/kt/src/main/resources/
+      - name: Download Windows x86_64 MSVC Native Library
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: x86_64-pc-windows-msvc-dll
+          path: bound/kt/src/main/resources/
+
+      - name: Deploy Release Version of Kotlin Project to Maven Central
+        run: |
+          # cd into the Kotlin project
+          cd bound/kt/
+          
+          # Publish to Sonatype
+          # Precondition check: Only attempt to publish artifact if we have credentials
+          if [ -n "${{ secrets.SONATYPE_PASSWORD }}" ]; then
+            # Maven deploy lifecycle will build, run tests, verify, sign, and deploy
+            mvn deploy --batch-mode \
+              --settings .maven_settings.xml \
+              -P ossrh,sign-artifacts
+          else
+              echo "Error: No credentials"
+              exit 1
+          fi
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SIGN_KEY_PASS: ${{ secrets.GPG_SECRET_PASSPHRASE }}
+          SIGN_KEY: ${{ secrets.GPG_SECRET_KEY }}
 
   kotlin-docs:
     permissions:
@@ -92,7 +271,9 @@ jobs:
             ${{ runner.os }}-maven-
       - run: mvn dokka:dokka
         working-directory: bound/kt
-      - run: mkdir _site && mv bound/kt/target/dokka _site/kt
+      - run: mkdir -p _site/kt/${GITHUB_REF_NAME} && mv bound/kt/target/dokka/* _site/kt/${GITHUB_REF_NAME}
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
