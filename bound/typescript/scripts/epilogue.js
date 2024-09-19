@@ -10,8 +10,6 @@ module.exports.loadWasmSync = function () {
     const mod = new WebAssembly.Module(bytes);
     const instance = new WebAssembly.Instance(mod, imports);
     wasm = instance.exports;
-    // console.log("kw dbg", wasm);
-    // wasm.__wbindgen_start();
     inited = true;
 };
 
@@ -34,7 +32,6 @@ module.exports.loadWasmAsync = function () {
             .then((b64) => WebAssembly.instantiate(unbase64(b64), imports))
             .then((result) => {
                 wasm = result.instance.exports;
-                // wasm.__wbindgen_start();
                 inited = true;
             });
     }
