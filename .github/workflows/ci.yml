@@ -355,8 +355,6 @@ jobs:
         run: rustup install stable && rustup default stable
       - name: Init Hermit
         uses: cashapp/activate-hermit@v1
-        with:
-          cache: true
       - name: Setup
         run: just setup
       - name: Install Nextest
