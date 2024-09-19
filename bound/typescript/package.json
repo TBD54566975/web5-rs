@@ -24,15 +24,17 @@
     "chai": "4.3.10",
     "esbuild": "0.19.9",
     "mocha": "10.2.0",
-    "rimraf": "5.0.5"
+    "rimraf": "5.0.5",
+    "typescript": "^5.6.2"
   },
   "engines": {
     "node": ">= 18"
   },
   "scripts": {
-    "clean": "rimraf pkg tests/compiled && find dist -type f ! -name 'index.js' -delete",
-    "generate-lib": "npm run clean && ./scripts/build.sh && node ./scripts/bundle.js",
-    "test:node": "mocha",
-    "test:browser": "rimraf tests/compiled && node tests/bundle-tests.js && web-test-runner"
+    "clean": "rimraf pkg tests/compiled && find dist -type f ! -name 'index.js' -delete && find dist -type d -empty -delete",
+    "build:wasm": "./scripts/build.sh && node ./scripts/bundle.js && cp dist/bundle.js src/wasm.js && cp dist/web5_wasm.d.ts src/wasm.d.ts",
+    "build": "npm run build:wasm && tsc && cp src/wasm.js dist/src/wasm.js && cp src/wasm.d.ts dist/src/wasm.d.ts",
+    "test:node": "npm run build && node tests/bundle-node.js && mocha",
+    "test:browser": "npm run build && node tests/bundle-browser.js && web-test-runner"
   }
 }
