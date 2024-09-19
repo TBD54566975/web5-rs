@@ -4,7 +4,7 @@ use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-// todo use generalized feature flag, not target_arch, b/c we'll do so for all bindings
+// todo use generalized feature flag, not target_arch, b/c we'll do injection for all foreign bindings
 #[cfg(not(target_arch = "wasm32"))]
 use reqwest::blocking::get as reqwest_get;
 
