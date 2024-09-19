@@ -20,62 +20,58 @@ jobs:
     with:
       version: ${{ github.event.inputs.version }}
 
-  build_cli_aarch64-apple-darwin:
+  build-cli-aarch64-apple-darwin:
     runs-on: macos-latest
-    name: aarch64-apple-darwin
+    name: Build CLI (aarch64-apple-darwin)
     steps:
       - uses: actions/checkout@v2
-      - name: Install Rust 1.74.0
-        run: rustup toolchain install 1.74.0
-      - name: Set Rust 1.74.0 as default
-        run: rustup default 1.74.0
+      - name: Install Rust
+        run: rustup toolchain install stable
       - name: cargo build
         run: |
           cargo build --target aarch64-apple-darwin --release --package web5_cli
           cp -v target/aarch64-apple-darwin/release/web5_cli web5_cli-aarch64-apple-darwin
-      - name: upload release asset
-        uses: AButler/upload-release-assets@v3.0
+      - name: Upload compiled binary
+        uses: actions/upload-artifact@v4.0.0
         with:
-          files: web5_cli-aarch64-apple-darwin
-          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
+          name: web5_cli-aarch64-apple-darwin
+          path: web5_cli-aarch64-apple-darwin
 
-  build_cli_x86_64_apple_darwin:
+  build-cli-x86_64_apple_darwin:
     runs-on: macos-12
-    name: x86_64-apple-darwin
+    name: Build CLI (x86_64-apple-darwin)
     steps:
       - uses: actions/checkout@v2
-      - name: Install Rust 1.74.0
-        run: rustup toolchain install 1.74.0
-      - name: Set Rust 1.74.0 as default
-        run: rustup default 1.74.0
+      - name: Install Rust
+        run: rustup toolchain install stable
       - name: cargo build
         run: |
           cargo build --target x86_64-apple-darwin --release --package web5_cli
           cp -v target/x86_64-apple-darwin/release/web5_cli web5_cli-x86_64-apple-darwin
-      - name: upload release asset
-        uses: AButler/upload-release-assets@v3.0
+      - name: Upload compiled binary
+        uses: actions/upload-artifact@v4.0.0
         with:
-          files: web5_cli-x86_64-apple-darwin
-          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
+          name: web5_cli-x86_64-apple-darwin
+          path: web5_cli-x86_64-apple-darwin
 
-  build_cli_x86_64_unknown_linux_gnu:
+  build-cli-x86_64_unknown_linux_gnu:
     runs-on: ubuntu-latest
-    name: x86_64-unknown-linux-gnu
+    name: Build CLI (x86_64-unknown-linux-gnu)
     steps:
       - uses: actions/checkout@v2
       - name: cargo build
         run: |
           cargo build --target x86_64-unknown-linux-gnu --release --package web5_cli
           cp -v target/x86_64-unknown-linux-gnu/release/web5_cli web5_cli-x86_64-unknown-linux-gnu
-      - name: upload release asset
-        uses: AButler/upload-release-assets@v3.0
+      - name: Upload compiled binary
+        uses: actions/upload-artifact@v4.0.0
         with:
-          files: web5_cli-x86_64-unknown-linux-gnu
-          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
+          name: web5_cli-x86_64-unknown-linux-gnu
+          path: web5_cli-x86_64-unknown-linux-gnu
 
-  build_cli_x86_64_unknown_linux_musl:
+  build-cli-x86_64_unknown_linux_musl:
     runs-on: ubuntu-latest
-    name: x86_64-unknown-linux-musl
+    name: Build CLI (x86_64-unknown-linux-musl)
     steps:
       - uses: actions/checkout@v2
       - name: Run Build Script
@@ -84,15 +80,20 @@ jobs:
           ./build
           popd
           cp target/x86_64-unknown-linux-musl/release/web5_cli web5_cli-x86_64-unknown-linux-musl
-      - name: upload release asset
-        uses: AButler/upload-release-assets@v3.0
+      - name: Upload compiled binary
+        uses: actions/upload-artifact@v4.0.0
         with:
-          files: web5_cli-x86_64-unknown-linux-musl
-          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
+          name: web5_cli-x86_64-unknown-linux-musl
+          path: web5_cli-x86_64-unknown-linux-musl
 
   git-tag:
     runs-on: ubuntu-latest
-    needs: run-ci
+    needs:
+      - run-ci
+      - build-cli-aarch64-apple-darwin
+      - build-cli-x86_64_apple_darwin
+      - build-cli-x86_64_unknown_linux_gnu
+      - build-cli-x86_64_unknown_linux_musl
     outputs:
       RELEASE_TAG: ${{ steps.set-version-and-tag.outputs.RELEASE_TAG }}
       RELEASE_VERSION: ${{ steps.set-version-and-tag.outputs.RELEASE_VERSION }}
@@ -124,6 +125,7 @@ jobs:
       - id: set-version-and-tag
         name: Set version of Kotlin and commit
         run: |
+          set -exuo pipefail
 
           # cd into the Kotlin project
           cd bound/kt/
@@ -170,7 +172,7 @@ jobs:
             -DnewVersion=$nextVersion
           git add -Av
           git commit -m "[TBD Release Manager 🚀] Setting next development version after $version to: $nextVersion"
-          git push origin main
+          git push origin "${GITHUB_REF#refs/heads/}"
           git push origin $tagName
 
   kotlin-release-to-tbd-artifactory-and-maven-central:
@@ -249,6 +251,69 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SIGN_KEY_PASS: ${{ secrets.GPG_SECRET_PASSPHRASE }}
           SIGN_KEY: ${{ secrets.GPG_SECRET_KEY }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e # v1.1.4 final release
+        id: release
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          release_name: "v${{ github.event.inputs.version }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download MacOS x86_64 Native Library
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: x86_64-apple-darwin-dylib
+          path: bound/kt/src/main/resources/
+      - name: Download Linux x86_64 GNU Native Library
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: x86_64-unknown-linux-gnu-so
+          path: bound/kt/src/main/resources/
+      - name: Download Linux x86_64 MUSL Native Library
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: x86_64-unknown-linux-musl-so
+          path: bound/kt/src/main/resources/
+      - name: Download Windows x86_64 MSVC Native Library
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: x86_64-pc-windows-msvc-dll
+          path: bound/kt/src/main/resources/
+
+      - name: Download web5_cli-aarch64-apple-darwin
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: web5_cli-aarch64-apple-darwin
+          path: "."
+      - name: Download web5_cli-x86_64-apple-darwin
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: web5_cli-x86_64-apple-darwin
+          path: "."
+      - name: Download web5_cli-x86_64-unknown-linux-gnu
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: web5_cli-x86_64-unknown-linux-gnu
+          path: "."
+      - name: Download web5_cli-x86_64-unknown-linux-musl
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: web5_cli-x86_64-unknown-linux-musl
+          path: "."
+      - name: Upload release assets
+        run: |
+          set -ex
+          for asset in web5_cli-aarch64-apple-darwin web5_cli-x86_64-apple-darwin web5_cli-x86_64-unknown-linux-gnu web5_cli-x86_64-unknown-linux-musl; do
+            curl -L -f -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              -H "Content-Type: application/octet-stream" \
+              "https://uploads.github.com/repos/TBD54566975/web5-rs/releases/${{ steps.release.outputs.id }}/assets?name=${asset}" \
+              --data-binary "@${asset}"
+          done
 
   kotlin-docs:
     permissions:
