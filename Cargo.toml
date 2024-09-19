@@ -1,13 +1,12 @@
 [workspace]
-members = [ 
-    "crates/web5", 
-    "crates/web5_cli", 
-    "bindings/web5_uniffi", 
-    "bindings/web5_uniffi_wrapper", 
-]
-default-members = [
+members = [
+    "bindings/web5_uniffi",
+    "bindings/web5_uniffi_wrapper",
+    "bindings/web5_wasm",
     "crates/web5",
+    "crates/web5_cli",
 ]
+default-members = ["crates/web5"]
 resolver = "2"
 
 [workspace.package]
