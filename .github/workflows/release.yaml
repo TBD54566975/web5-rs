@@ -165,6 +165,12 @@ jobs:
             versions:set \
             --batch-mode \
             -DnewVersion=$nextVersion
+          
+          # START TESTING
+          git branch -r
+          git status
+          # END TESTING
+          
           git add -Av
           git commit -m "[TBD Release Manager 🚀] Setting next development version after $version to: $nextVersion"
           git push origin main
