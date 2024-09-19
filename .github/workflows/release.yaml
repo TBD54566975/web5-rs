@@ -120,6 +120,7 @@ jobs:
       - id: set-version-and-tag
         name: Set version of Kotlin and commit
         run: |
+          set -ex
 
           # cd into the Kotlin project
           cd bound/kt/
