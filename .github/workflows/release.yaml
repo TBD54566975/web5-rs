@@ -37,7 +37,7 @@ jobs:
         uses: AButler/upload-release-assets@v3.0
         with:
           files: web5_cli-aarch64-apple-darwin
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
 
   build_cli_x86_64_apple_darwin:
     runs-on: macos-12
@@ -56,7 +56,7 @@ jobs:
         uses: AButler/upload-release-assets@v3.0
         with:
           files: web5_cli-x86_64-apple-darwin
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
 
   build_cli_x86_64_unknown_linux_gnu:
     runs-on: ubuntu-latest
@@ -71,7 +71,7 @@ jobs:
         uses: AButler/upload-release-assets@v3.0
         with:
           files: web5_cli-x86_64-unknown-linux-gnu
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
 
   build_cli_x86_64_unknown_linux_musl:
     runs-on: ubuntu-latest
@@ -88,7 +88,7 @@ jobs:
         uses: AButler/upload-release-assets@v3.0
         with:
           files: web5_cli-x86_64-unknown-linux-musl
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
 
   git-tag:
     runs-on: ubuntu-latest
@@ -103,7 +103,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
 
       # Used in writing commits in the release process
       - id: set-git-config
@@ -271,7 +271,9 @@ jobs:
             ${{ runner.os }}-maven-
       - run: mvn dokka:dokka
         working-directory: bound/kt
-      - run: mkdir _site && mv bound/kt/target/dokka _site/kt
+      - run: mkdir -p _site/kt/${GITHUB_REF_NAME} && mv bound/kt/target/dokka/* _site/kt/${GITHUB_REF_NAME}
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

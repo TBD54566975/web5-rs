@@ -307,7 +307,7 @@ jobs:
           name: x86_64-pc-windows-msvc-dll
           path: bound/kt/src/main/resources/
 
-      - name: Build and Test Kotlin Project
+      - name: Deploy Snapshot / Verify
         run: |
 
           # cd into the Kotlin project
