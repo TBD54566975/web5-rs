@@ -2,7 +2,7 @@ use crate::errors::{Result, Web5Error};
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 
-// todo compile away for wasm target
+#[cfg(not(target_arch = "wasm32"))]
 use reqwest::blocking::get;
 
 pub struct HttpResponse {
@@ -21,6 +21,7 @@ pub trait HttpClient {
 
 pub(crate) struct RustHttpClient;
 
+#[cfg(not(target_arch = "wasm32"))]
 impl HttpClient for RustHttpClient {
     fn get_json<T: DeserializeOwned>(url: &str) -> Result<T> {
         let response = get(url)
@@ -90,5 +91,23 @@ impl HttpClient for RustHttpClient {
             headers,
             body,
         })
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl HttpClient for RustHttpClient {
+    fn get_json<T: serde::de::DeserializeOwned>(url: &str) -> Result<T> {
+        // Implement the WASM-specific HTTP client using `wasm-bindgen` or `web-sys` fetch API
+        unimplemented!("WASM HTTP client not implemented");
+    }
+
+    fn get(url: &str) -> Result<HttpResponse> {
+        // Implement the WASM-specific HTTP client using `wasm-bindgen` or `web-sys` fetch API
+        unimplemented!("WASM HTTP client not implemented");
+    }
+
+    fn put_bytes(url: &str, body: &[u8]) -> Result<HttpResponse> {
+        // Implement the WASM-specific HTTP client using `wasm-bindgen` or `web-sys` fetch API
+        unimplemented!("WASM HTTP client not implemented");
     }
 }

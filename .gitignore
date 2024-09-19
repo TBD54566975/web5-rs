@@ -21,3 +21,5 @@ Cargo.lock
 # Do not put native binaries in source control
 bound/kt/src/main/resources/*.dylib
 bound/kt/src/main/resources/*.so
+
+bindings/LICENSE
