@@ -1,34 +1,38 @@
 {
-  "name": "typescript",
-  "version": "1.0.0",
-  "description": "",
+  "name": "web5",
+  "version": "0.1.0",
+  "private": false,
   "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "clean": "rimraf dist tests/compiled",
-    "build:esm": "rimraf dist/esm dist/types && pnpm tsc -p tsconfig.json",
-    "build:cjs": "rimraf dist/cjs && pnpm tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
-    "build:browser": "rimraf dist/browser.mjs dist/browser.js && node build/bundles.js",
-    "build:tests:node": "rimraf tests/compiled && pnpm tsc -p tests/tsconfig.json",
-    "build:tests:browser": "rimraf tests/compiled && node build/esbuild-tests.cjs",
-    "build": "pnpm clean && pnpm build:esm && pnpm build:cjs && pnpm build:browser",
-    "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint . --fix",
-    "test:node": "pnpm build:tests:node && pnpm c8 mocha",
-    "test:browser": "pnpm build:tests:browser && web-test-runner"
+  "description": "",
+  "types": "./dist/web5.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/web5.d.ts"
+    }
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "files": [
+    "./dist/index.js",
+    "./dist/bundle.js",
+    "./dist/web5.d.ts"
+  ],
   "devDependencies": {
-    "@types/chai": "^4.3.19",
-    "@types/mocha": "^10.0.8",
-    "c8": "^10.1.2",
-    "chai": "^5.1.1",
-    "esbuild": "^0.23.1",
-    "eslint": "^9.10.0",
-    "mocha": "^10.7.3",
-    "rimraf": "^6.0.1",
-    "typescript": "^5.6.2"
+    "@types/chai": "4.3.0",
+    "@types/mocha": "9.1.0",
+    "@web/test-runner": "0.18.0",
+    "@web/test-runner-playwright": "0.11.0",
+    "chai": "4.3.10",
+    "esbuild": "0.19.9",
+    "mocha": "10.2.0",
+    "rimraf": "5.0.5"
+  },
+  "engines": {
+    "node": ">= 18"
+  },
+  "scripts": {
+    "clean": "rimraf pkg tests/compiled && find dist -type f ! -name 'index.js' -delete",
+    "generate-lib": "npm run clean && ./scripts/build.sh && node ./scripts/bundle.js",
+    "test:node": "mocha",
+    "test:browser": "rimraf tests/compiled && node tests/bundle-tests.js && web-test-runner"
   }
 }

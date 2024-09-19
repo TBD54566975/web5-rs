@@ -22,7 +22,8 @@ Cargo.lock
 bound/kt/src/main/resources/*.dylib
 bound/kt/src/main/resources/*.so
 
-bindings/LICENSE
-.vscode
-compiled/
-coverage/
+LICENSE
+.vscode/
+bound/typescript/dist/*
+!bound/typescript/dist/index.js
+bound/typescript/tests/compiled

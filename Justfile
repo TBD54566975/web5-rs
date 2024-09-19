@@ -51,4 +51,5 @@ test-kotlin: setup
   cd bound/kt && mvn clean test
 
 wasm: setup
-  (cd bindings/web5_wasm; wasm-pack build --target bundler)
+  (cd bindings/web5_wasm; wasm-pack build --target nodejs --out-dir ../../bound/typescript/pkg)
+  cp bound/typescript/pkg/web5_wasm.d.ts bound/typescript/src

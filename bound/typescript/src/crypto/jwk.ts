@@ -1,24 +1,20 @@
-// src/crypto/jwk.ts
+import { WasmJwk } from "../web5_wasm";
 
-export interface JWK {
-  kty: string;
-  alg: string;
-  use?: string;
-  kid?: string;
-  n?: string;
-  e?: string;
-  d?: string;
-  p?: string;
-  q?: string;
-  dp?: string;
-  dq?: string;
-  qi?: string;
-}
+export class Jwk {
+  private wasmJwk: WasmJwk;
 
-export function validateJWK(jwk: JWK): boolean {
-  if (!jwk.kty || !jwk.alg) {
-    return false;
+  constructor(
+    kty: string,
+    crv: string,
+    x: string,
+    y?: string,
+    alg?: string,
+    d?: string
+  ) {
+    this.wasmJwk = new WasmJwk(alg, kty, crv, d, x, y);
   }
-  // Add more validation logic if necessary
-  return true;
+
+  async computeThumbprint(): Promise<string> {
+    return this.wasmJwk.compute_thumbprint();
+  }
 }
