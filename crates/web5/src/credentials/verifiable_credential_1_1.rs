@@ -791,16 +791,16 @@ mod tests {
 
         #[test]
         fn test_schema_resolve_network_issue() {
-            let vc_jwt_with_invalid_url = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSmZYelYxVEU1bWNVWTRRbTB6ZVhnMmJVRndMVlJJV25sSk5WcDJWQzFmYVVKbExWZDJiMHRuTTFwakluMCMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp1dWlkOmRlNDY2N2YxLTMzM2ItNDg4OC1hMDc5LTdkMGU1N2JiZmFlZiIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKZlh6VjFURTVtY1VZNFFtMHplWGcyYlVGd0xWUklXbmxKTlZwMlZDMWZhVUpsTFZkMmIwdG5NMXBqSW4wIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOC0zMFQxNTowNToyMC43NjQ0MDgrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6ImludmFsaWQgdXJsIiwidHlwZSI6Ikpzb25TY2hlbWEifX0sImlzcyI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSmZYelYxVEU1bWNVWTRRbTB6ZVhnMmJVRndMVlJJV25sSk5WcDJWQzFmYVVKbExWZDJiMHRuTTFwakluMCIsImp0aSI6InVybjp1dWlkOmRlNDY2N2YxLTMzM2ItNDg4OC1hMDc5LTdkMGU1N2JiZmFlZiIsInN1YiI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSIsIm5iZiI6MTcyNTAzMDMyMCwiaWF0IjoxNzI1MDMwMzIwfQ.3sH7qzI7QrQMdkWIvqf7k8Mr2dMGjWBLrv4QB8gEz0t83RSFMtG-fWT-YVkUlo1qMvC4gNjT2Jc0eObCAA7VDQ"#;
+            let vc_jwt_with_invalid_url = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKTmEycDVaRlo1ZFhaU1psaExRMDVWYm0wNVVWRnJVbkUwY0doWVdYRTBObUpFVjJGemFHOW5kbXhWSW4wIzAifQ.eyJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUpOYTJwNVpGWjVkWFpTWmxoTFEwNVZibTA1VVZGclVuRTBjR2hZV1hFME5tSkVWMkZ6YUc5bmRteFZJbjAiLCJqdGkiOiJ1cm46dXVpZDo2YzM2YzU0Zi02M2VhLTRiY2MtOTgxOS0zYmNmMGIyYmUxMDgiLCJzdWIiOiJkaWQ6ZGh0OnFnbW1weWp3NWh3bnFmZ3puN3dtcm0zM2FkeThnYjh6OWlkZWliNm05Z2o0eXM2d255OHkiLCJuYmYiOjE3MjYwODk0NDIsImlhdCI6MTcyNjA4OTQ0MiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHA6Ly9sb2NhbC9zY2hlbWFzL2VtYWlsLmpzb24iLCJ0eXBlIjoiSnNvblNjaGVtYSJ9LCJpZCI6InVybjp1dWlkOjZjMzZjNTRmLTYzZWEtNGJjYy05ODE5LTNiY2YwYjJiZTEwOCIsImlzc3VlciI6ImRpZDpqd2s6ZXlKaGJHY2lPaUpGWkRJMU5URTVJaXdpYTNSNUlqb2lUMHRRSWl3aVkzSjJJam9pUldReU5UVXhPU0lzSW5naU9pSk5hMnA1WkZaNWRYWlNabGhMUTA1VmJtMDVVVkZyVW5FMGNHaFlXWEUwTm1KRVYyRnphRzluZG14VkluMCIsImlzc3VhbmNlRGF0ZSI6IjIwMjQtMDktMTFUMjE6MTc6MjJaIiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDpkaHQ6cWdtbXB5anc1aHducWZnem43d21ybTMzYWR5OGdiOHo5aWRlaWI2bTlnajR5czZ3bnk4eSJ9fX0.eZfQZdkDB2D2QMs6BPaxjU-FCJLIGMlCz0sF5FjhHkaizItfv3zGXqWVEjc8f-SRiLSmujlEKgwfw22cCvnDAQ"#;
 
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_invalid_url, true);
 
             match result {
-                Err(Web5Error::Network(err_msg)) => {
-                    assert!(err_msg.contains("unable to resolve json schema"))
+                Err(Web5Error::Http(err_msg)) => {
+                    assert!(err_msg.contains("get request failed"))
                 }
                 _ => panic!(
-                    "expected Web5Error::Network with specific message but got {:?}",
+                    "expected Web5Error::Http with specific message but got {:?}",
                     result
                 ),
             };
@@ -822,11 +822,11 @@ mod tests {
 
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_at_port, true);
             match result {
-                Err(Web5Error::JsonSchema(err_msg)) => {
-                    assert!(err_msg.contains("non-200 response when resolving json schema"))
+                Err(Web5Error::Http(err_msg)) => {
+                    assert!(err_msg.contains("http error status code 500"))
                 }
                 _ => panic!(
-                    "expected Web5Error::JsonSchema with specific message but got {:?}",
+                    "expected Web5Error::Http with specific message but got {:?}",
                     result
                 ),
             }
@@ -850,11 +850,11 @@ mod tests {
 
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_at_port, true);
             match result {
-                Err(Web5Error::JsonSchema(err_msg)) => {
-                    assert!(err_msg.contains("unable to parse json schema from response body"))
+                Err(Web5Error::Http(err_msg)) => {
+                    assert!(err_msg.contains("failed to parse json"))
                 }
                 _ => panic!(
-                    "expected Web5Error::JsonSchema with specific message but got {:?}",
+                    "expected Web5Error::Http with specific message but got {:?}",
                     result
                 ),
             }

@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 #[derive(thiserror::Error, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum PexError {
-    #[error("Failed to parse JSON: {0}")]
+    #[error("failed to parse json {0}")]
     JsonError(String),
     #[error("Invalid PEX state: {0}")]
     IllegalState(String),

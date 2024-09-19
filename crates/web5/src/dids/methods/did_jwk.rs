@@ -31,7 +31,6 @@ pub struct DidJwk;
 /// by third parties without relying on a separate blockchain or ledger. This is particularly useful for scenarios
 /// involving verifiable credentials or capabilities.
 impl DidJwk {
-
     /// Creates a new "did:jwk" DID, derived from a public key.
     ///
     /// This method generates a "did:jwk" DID by creating a key pair, using the provided key manager, and

@@ -5,7 +5,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-
 /// Represents a Portable DID (Decentralized Identifier) that includes the DID Document and
 /// its associated private keys. This structure is useful for exporting/importing DIDs
 /// across different contexts or process boundaries.

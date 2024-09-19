@@ -570,11 +570,11 @@ mod tests {
         );
 
         match result {
-            Err(Web5Error::Network(err_msg)) => {
-                assert!(err_msg.contains("unable to resolve json schema"))
+            Err(Web5Error::Http(err_msg)) => {
+                assert!(err_msg.contains("get request failed"))
             }
             _ => panic!(
-                "expected Web5Error::Network with specific message but got {:?}",
+                "expected Web5Error::Http with specific message but got {:?}",
                 result
             ),
         }
@@ -600,11 +600,11 @@ mod tests {
         );
 
         match result {
-            Err(Web5Error::JsonSchema(err_msg)) => {
-                assert!(err_msg.contains("non-200 response when resolving json schema"))
+            Err(Web5Error::Http(err_msg)) => {
+                assert!(err_msg.contains("http error status code 500"))
             }
             _ => panic!(
-                "expected Web5Error::JsonSchema with specific message but got {:?}",
+                "expected Web5Error::Http with specific message but got {:?}",
                 result
             ),
         }
@@ -632,11 +632,11 @@ mod tests {
         );
 
         match result {
-            Err(Web5Error::JsonSchema(err_msg)) => {
-                assert!(err_msg.contains("unable to parse json schema from response body"))
+            Err(Web5Error::Http(err_msg)) => {
+                assert!(err_msg.contains("failed to parse json"))
             }
             _ => panic!(
-                "expected Web5Error::JsonSchema with specific message but got {:?}",
+                "expected Web5Error::Http with specific message but got {:?}",
                 result
             ),
         }

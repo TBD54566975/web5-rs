@@ -1,14 +1,12 @@
-use crate::dids::{
-    data_model::document::Document,
-    did::Did,
-    resolution::{
-        resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
+use crate::{
+    dids::{
+        data_model::document::Document,
+        did::Did,
+        resolution::{
+            resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
+        },
     },
-};
-use reqwest::header::HeaderMap;
-use std::{
-    future::{Future, IntoFuture},
-    pin::Pin,
+    http::{HttpClient, RustHttpClient},
 };
 use url::Url;
 
@@ -47,44 +45,13 @@ impl Resolver {
         })
     }
 
-    async fn resolve(url: String) -> Result<ResolutionResult, ResolutionMetadataError> {
-        let headers = HeaderMap::new();
-
-        let client = reqwest::Client::builder()
-            .default_headers(headers)
-            .build()
+    pub fn resolve(&self) -> Result<ResolutionResult, ResolutionMetadataError> {
+        let document = RustHttpClient::get_json::<Document>(&self.http_url)
             .map_err(|_| ResolutionMetadataError::InternalError)?;
-
-        let response = client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|_| ResolutionMetadataError::InternalError)?;
-
-        if response.status().is_success() {
-            let did_document = response
-                .json::<Document>()
-                .await
-                .map_err(|_| ResolutionMetadataError::RepresentationNotSupported)?;
-
-            Ok(ResolutionResult {
-                document: Some(did_document),
-                ..Default::default()
-            })
-        } else {
-            Err(ResolutionMetadataError::NotFound)
-        }
-    }
-}
-
-// This trait implements the actual logic for resolving a DID URI to a DID Document.
-impl IntoFuture for Resolver {
-    type Output = Result<ResolutionResult, ResolutionMetadataError>;
-    type IntoFuture = Pin<Box<dyn Future<Output = Self::Output> + Send>>;
-
-    fn into_future(self) -> Self::IntoFuture {
-        let did_url = self.http_url;
-        Box::pin(async move { Self::resolve(did_url).await })
+        Ok(ResolutionResult {
+            document: Some(document),
+            ..Default::default()
+        })
     }
 }
 
@@ -92,8 +59,8 @@ impl IntoFuture for Resolver {
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn resolution_success() {
+    #[test]
+    fn resolution_success() {
         let did_uri = "did:web:tbd.website";
         let result = Resolver::new(Did::parse(did_uri).unwrap()).unwrap();
         assert_eq!(result.http_url, "https://tbd.website/.well-known/did.json");

@@ -147,7 +147,7 @@ mod tests {
                 key_manager: Some(key_manager.clone()),
                 ..Default::default()
             }))
-                .unwrap();
+            .unwrap();
 
             let portable_did = PortableDid {
                 did_uri: did_jwk_bearer_did.did.uri,
@@ -208,7 +208,7 @@ mod tests {
                 key_manager: Some(key_manager.clone()),
                 ..Default::default()
             }))
-                .unwrap();
+            .unwrap();
 
             let result = bearer_did.to_portable_did(key_manager);
             assert!(result.is_ok());

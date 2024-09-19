@@ -1,7 +1,9 @@
 use super::verifiable_credential_1_1::VerifiableCredential;
-use crate::errors::{Result, Web5Error};
+use crate::{
+    errors::{Result, Web5Error},
+    http::{HttpClient, RustHttpClient},
+};
 use jsonschema::{Draft, JSONSchema};
-use reqwest::blocking::get;
 use serde::{Deserialize, Serialize};
 
 pub const CREDENTIAL_SCHEMA_TYPE: &str = "JsonSchema";
@@ -28,23 +30,8 @@ pub(crate) fn validate_credential_schema(
     }
 
     let url = &credential_schema.id;
-    let response = get(url).map_err(|err| {
-        Web5Error::Network(format!("unable to resolve json schema {} {}", url, err))
-    })?;
-    if !response.status().is_success() {
-        return Err(Web5Error::JsonSchema(format!(
-            "non-200 response when resolving json schema {} {}",
-            url,
-            response.status()
-        )));
-    }
-    let schema_json = response.json::<serde_json::Value>().map_err(|err| {
-        Web5Error::JsonSchema(format!(
-            "unable to parse json schema from response body {} {}",
-            url, err
-        ))
-    })?;
-    let compiled_schema = JSONSchema::options().compile(&schema_json).map_err(|err| {
+    let json_schema = RustHttpClient::get_json::<serde_json::Value>(url)?;
+    let compiled_schema = JSONSchema::options().compile(&json_schema).map_err(|err| {
         Web5Error::JsonSchema(format!("unable to compile json schema {} {}", url, err))
     })?;
 
