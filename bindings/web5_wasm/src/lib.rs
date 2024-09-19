@@ -2,14 +2,17 @@ use serde::Serialize;
 use serde_wasm_bindgen::to_value;
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::prelude::*;
 use web5::crypto::dsa::Signer;
 use web5::crypto::jwk::Jwk as InnerJwk;
 use web5::crypto::key_managers::in_memory_key_manager::InMemoryKeyManager as InnerKeyManager;
 use web5::crypto::key_managers::{KeyExporter, KeyManager};
-use web5::errors::Web5Error;
+use wasm_bindgen::JsValue;
 
-// Wasm wrapper for the JWK struct
+#[wasm_bindgen]
+pub fn call_js_fn(callback: &js_sys::Function, arg: i32) -> JsValue {
+    callback.call1(&JsValue::NULL, &JsValue::from(arg)).unwrap()
+}
+
 #[derive(Serialize)]
 #[wasm_bindgen]
 pub struct WasmJwk {
@@ -47,7 +50,6 @@ impl WasmJwk {
     }
 }
 
-// Wasm wrapper for the InMemoryKeyManager
 #[wasm_bindgen]
 pub struct WasmKeyManager {
     inner: InnerKeyManager,
@@ -93,7 +95,6 @@ impl WasmKeyManager {
     }
 }
 
-// Wasm wrapper for the Signer trait
 #[wasm_bindgen]
 pub struct WasmSigner {
     inner: Arc<dyn Signer>,
