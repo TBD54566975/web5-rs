@@ -345,12 +345,14 @@ jobs:
           javac Web5AcceptanceTest.java -cp web5-with-dependencies.jar
           java -classpath web5-with-dependencies.jar;. Web5AcceptanceTest
 
-  rust-test-vectors:
+  rust-web5-test-vectors:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
+      - name: Install latest stable Rust
+        run: rustup install stable && rustup default stable
       - name: Init Hermit
         uses: cashapp/activate-hermit@v1
         with:
