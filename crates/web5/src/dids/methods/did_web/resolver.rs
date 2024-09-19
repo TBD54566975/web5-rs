@@ -6,7 +6,7 @@ use crate::{
             resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
         },
     },
-    http::{HttpClient, RustHttpClient},
+    http,
 };
 use url::Url;
 
@@ -46,7 +46,7 @@ impl Resolver {
     }
 
     pub fn resolve(&self) -> Result<ResolutionResult, ResolutionMetadataError> {
-        let document = RustHttpClient::get_json::<Document>(&self.http_url)
+        let document = http::get_json::<Document>(&self.http_url)
             .map_err(|_| ResolutionMetadataError::InternalError)?;
         Ok(ResolutionResult {
             document: Some(document),
