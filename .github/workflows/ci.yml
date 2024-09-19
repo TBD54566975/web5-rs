@@ -351,10 +351,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Install Rust 1.74.0
-        run: rustup toolchain install 1.74.0
-      - name: Set Rust 1.74.0 as default
-        run: rustup default 1.74.0
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+      - name: Setup
+        run: just setup
       - name: Install Nextest
         run: cargo install cargo-nextest
       - name: Create nextest.toml
