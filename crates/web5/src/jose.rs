@@ -190,8 +190,10 @@ impl Jws {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct JwtClaims {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub aud: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub iss: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

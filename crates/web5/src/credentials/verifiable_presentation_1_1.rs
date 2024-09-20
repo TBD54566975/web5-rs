@@ -298,6 +298,7 @@ pub fn sign_presentation_with_did(
     additional_properties.insert("vp".to_string(), vp_claims.to_json_value()?);
 
     let claims = JwtClaims {
+        aud: None,
         iss: Some(vp.holder.clone()),
         jti: Some(vp.id.clone()),
         sub: None,
