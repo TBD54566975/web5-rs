@@ -31,9 +31,9 @@
     "node": ">= 18"
   },
   "scripts": {
-    "clean": "rimraf pkg tests/compiled && find dist -type f ! -name 'index.js' -delete && find dist -type d -empty -delete",
-    "build:wasm": "./scripts/build.sh && node ./scripts/bundle.js && cp dist/bundle.js src/wasm.js && cp dist/web5_wasm.d.ts src/wasm.d.ts",
-    "build": "npm run build:wasm && tsc && cp src/wasm.js dist/src/wasm.js && cp src/wasm.d.ts dist/src/wasm.d.ts",
+    "clean": "rimraf pkg tests/compiled dist",
+    "build:wasm": "./scripts/build.sh && node ./scripts/bundle.js && cp dist/bundle.js src/wasm/generated.js && cp dist/web5_wasm.d.ts src/wasm/generated.d.ts",
+    "build": "npm run build:wasm && tsc && cp -r src/wasm dist/src",
     "test:node": "npm run build && node tests/bundle-node.js && mocha",
     "test:browser": "npm run build && node tests/bundle-browser.js && web-test-runner"
   }

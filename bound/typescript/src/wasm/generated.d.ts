@@ -19,6 +19,17 @@ export class WasmJwk {
   compute_thumbprint(): string;
 }
 /**
+*/
+export class WasmWeb5Error {
+  free(): void;
+/**
+*/
+  readonly message: string;
+/**
+*/
+  readonly variant: string;
+}
+/**
  * Load the WebAssembly module in the background, if it has not already been loaded.
  *
  * Returns a promise which will resolve once the other methods are ready.

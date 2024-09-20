@@ -27,4 +27,4 @@ LICENSE
 bound/typescript/dist/*
 !bound/typescript/dist/index.js
 bound/typescript/tests/compiled
-bound/typescript/src/wasm.js
+bound/typescript/src/wasm/generated.js
