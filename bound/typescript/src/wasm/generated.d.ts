@@ -1,9 +1,32 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-* @param {{ sign: (payload: Uint8Array) => Uint8Array }} signer
+* @returns {WasmKeyManager}
 */
-export function pass_signer(signer: { sign: (payload: Uint8Array) => Uint8Array }): void;
+export function new_in_memory_key_manager(): WasmKeyManager;
+/**
+* @param {{ importPrivateJwk: (privateJwk: WasmJwk) => WasmJwk, getSigner: (publicJwk: WasmJwk) => WasmSigner }} key_manager
+* @returns {WasmSigner}
+*/
+export function poc_key_manager_from_foreign(key_manager: { importPrivateJwk: (privateJwk: WasmJwk) => WasmJwk, getSigner: (publicJwk: WasmJwk) => WasmSigner }): WasmSigner;
+/**
+* @returns {WasmJwk}
+*/
+export function generate_ed25519_key(): WasmJwk;
+/**
+* @returns {WasmJwk}
+*/
+export function generate_secp256k1_key(): WasmJwk;
+/**
+* @param {WasmJwk} jwk
+* @returns {WasmSigner}
+*/
+export function new_ed25519_signer(jwk: WasmJwk): WasmSigner;
+/**
+* @param {WasmJwk} jwk
+* @returns {WasmSigner}
+*/
+export function new_secp256k1_signer(jwk: WasmJwk): WasmSigner;
 /**
 * @param {{hello1: Function, hello2: Function}} obj
 */
@@ -25,6 +48,49 @@ export class WasmJwk {
 * @returns {string}
 */
   compute_thumbprint(): string;
+/**
+*/
+  readonly alg: string | undefined;
+/**
+*/
+  readonly crv: string;
+/**
+*/
+  readonly d: string | undefined;
+/**
+*/
+  readonly kty: string;
+/**
+*/
+  readonly x: string;
+/**
+*/
+  readonly y: string | undefined;
+}
+/**
+*/
+export class WasmKeyManager {
+  free(): void;
+/**
+* @param {WasmJwk} private_jwk
+* @returns {WasmJwk}
+*/
+  import_private_jwk(private_jwk: WasmJwk): WasmJwk;
+/**
+* @param {WasmJwk} public_jwk
+* @returns {WasmSigner}
+*/
+  get_signer(public_jwk: WasmJwk): WasmSigner;
+}
+/**
+*/
+export class WasmSigner {
+  free(): void;
+/**
+* @param {Uint8Array} payload
+* @returns {Uint8Array}
+*/
+  sign(payload: Uint8Array): Uint8Array;
 }
 /**
 */

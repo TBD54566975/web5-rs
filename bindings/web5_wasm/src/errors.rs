@@ -3,6 +3,8 @@ use serde_wasm_bindgen::to_value;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web5::errors::Web5Error;
 
+pub type Result<T> = std::result::Result<T, JsValue>;
+
 #[wasm_bindgen]
 #[derive(Serialize)]
 pub struct WasmWeb5Error {
