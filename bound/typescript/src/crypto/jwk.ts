@@ -22,4 +22,25 @@ export class Jwk {
       throw catchWeb5Error(error)
     }
   }
+
+  tmp() {
+    console.log('kw dbg begin')
+
+    // function hello1() {
+    //   console.log("hello 1 from javascript");
+    // }
+    // wasm.call_js_function(hello1);
+
+    const obj = {
+        hello1: function() {
+            console.log("hello 1 from javascript");
+        },
+        hello2: function() {
+            console.log("hello 2 from javascript");
+        }
+    };
+    wasm.call_js_functions(obj);
+
+    console.log('kw dbg end')
+  }
 }

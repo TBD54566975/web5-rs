@@ -1,6 +1,10 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+* @param {{hello1: Function, hello2: Function}} obj
+*/
+export function call_js_functions(obj: {hello1: Function, hello2: Function}): void;
+/**
 */
 export class WasmJwk {
   free(): void;

@@ -80,4 +80,9 @@ describe('Jwk class', () => {
       expect(error.message).to.equal('data member error y cannot be empty');
     }
   });
+
+  it('should developing tmp test please remove', () => {
+    const jwk = new Jwk('ES256', 'EC', 'secp256k1', undefined, 'x_value', 'y_value');
+    jwk.tmp()
+  })
 });
