@@ -20,6 +20,7 @@ describe('Jwk class', () => {
       const jwk = new Jwk(undefined, 'RSA', 'RS256', undefined, 'x_value', 'y_value');
       jwk.computeThumbprint();
     } catch (error: any) {
+      expect(error instanceof Web5Error).to.equal(true);
       expect(error.variant).to.equal('DataMember');
       expect(error.message).to.equal('data member error kty not supported RSA');
     }
@@ -30,6 +31,7 @@ describe('Jwk class', () => {
       const jwk = new Jwk(undefined, '', 'Ed25519', undefined, 'x_value', undefined);
       jwk.computeThumbprint();
     } catch (error: any) {
+      expect(error instanceof Web5Error).to.equal(true);
       expect(error.variant).to.equal('DataMember');
       expect(error.message).to.equal('data member error kty cannot be empty');
     }
@@ -40,6 +42,7 @@ describe('Jwk class', () => {
       const jwk = new Jwk(undefined, 'OKP', 'Ed25519', undefined, '', undefined);
       jwk.computeThumbprint();
     } catch (error: any) {
+      expect(error instanceof Web5Error).to.equal(true);
       expect(error.variant).to.equal('DataMember');
       expect(error.message).to.equal('data member error x cannot be empty');
     }
@@ -50,6 +53,7 @@ describe('Jwk class', () => {
       const jwk = new Jwk(undefined, 'EC', '', undefined, 'x_value', 'y_value');
       jwk.computeThumbprint();
     } catch (error: any) {
+      expect(error instanceof Web5Error).to.equal(true);
       expect(error.variant).to.equal('DataMember');
       expect(error.message).to.equal('data member error crv cannot be empty');
     }
@@ -60,6 +64,7 @@ describe('Jwk class', () => {
       const jwk = new Jwk(undefined, 'EC', 'P-256', undefined, 'x_value', undefined);
       jwk.computeThumbprint();
     } catch (error: any) {
+      expect(error instanceof Web5Error).to.equal(true);
       expect(error.variant).to.equal('DataMember');
       expect(error.message).to.equal('data member error missing y');
     }
@@ -70,6 +75,7 @@ describe('Jwk class', () => {
       const jwk = new Jwk(undefined, 'EC', 'P-256', undefined, 'x_value', '');
       jwk.computeThumbprint();
     } catch (error: any) {
+      expect(error instanceof Web5Error).to.equal(true);
       expect(error.variant).to.equal('DataMember');
       expect(error.message).to.equal('data member error y cannot be empty');
     }

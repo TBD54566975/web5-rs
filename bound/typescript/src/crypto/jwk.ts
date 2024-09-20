@@ -1,4 +1,4 @@
-import { catchWeb5Error, Web5Error } from "../errors";
+import { catchWeb5Error } from "../errors";
 import wasm from "../wasm"
 
 export class Jwk {

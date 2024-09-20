@@ -24,6 +24,9 @@ export class WasmWeb5Error {
   free(): void;
 /**
 */
+  readonly is_web5_error: boolean;
+/**
+*/
   readonly message: string;
 /**
 */
