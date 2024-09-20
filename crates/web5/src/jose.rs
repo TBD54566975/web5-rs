@@ -33,7 +33,7 @@ pub struct Jws {
     pub payload: Vec<u8>,
     pub signature: Vec<u8>,
     pub compact_jws: String,
-    pub detatched_compact_jws: String,
+    pub detached_compact_jws: String,
 }
 
 impl Jws {
@@ -92,7 +92,7 @@ impl Jws {
             base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(signature.clone());
 
         let compact_jws = format!("{}.{}.{}", header_part, claims_part, signature_part);
-        let detatched_compact_jws = format!("{}..{}", header_part, signature_part);
+        let detached_compact_jws = format!("{}..{}", header_part, signature_part);
 
         Ok(Self {
             kid: verification_method_id,
@@ -101,7 +101,7 @@ impl Jws {
             payload: payload.into(),
             signature,
             compact_jws,
-            detatched_compact_jws,
+            detached_compact_jws,
         })
     }
 
@@ -185,7 +185,7 @@ impl Jws {
             payload,
             signature,
             compact_jws: compact_jws.to_string(),
-            detatched_compact_jws: format!("{}..{}", parts[0], parts[2]),
+            detached_compact_jws: format!("{}..{}", parts[0], parts[2]),
         })
     }
 }
@@ -252,7 +252,7 @@ impl Jwt {
             claims: claims.clone(),
             signature: jws.signature,
             compact_jws: jws.compact_jws,
-            detached_compact_jws: jws.detatched_compact_jws,
+            detached_compact_jws: jws.detached_compact_jws,
         })
     }
 
@@ -267,7 +267,7 @@ impl Jwt {
             claims: claims.clone(),
             signature: jws.signature,
             compact_jws: jws.compact_jws,
-            detached_compact_jws: jws.detatched_compact_jws,
+            detached_compact_jws: jws.detached_compact_jws,
         })
     }
 }
