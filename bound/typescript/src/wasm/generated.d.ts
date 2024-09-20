@@ -1,6 +1,10 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+* @param {{ sign: (payload: Uint8Array) => Uint8Array }} signer
+*/
+export function pass_signer(signer: { sign: (payload: Uint8Array) => Uint8Array }): void;
+/**
 * @param {{hello1: Function, hello2: Function}} obj
 */
 export function call_js_functions(obj: {hello1: Function, hello2: Function}): void;

@@ -41,6 +41,14 @@ export class Jwk {
     };
     wasm.call_js_functions(obj);
 
+    const signer = {
+      sign: (payload: Uint8Array): Uint8Array => {
+        console.log("sign from js", payload)
+        return payload
+      }
+    }
+    wasm.pass_signer(signer)
+
     console.log('kw dbg end')
   }
 }
