@@ -80,7 +80,8 @@ class PresentationDefinitionTest {
             purpose = "Test field",
             filter = Filter(
               type = "string",
-              pattern = "^did:jwk:.*$", // Matching pattern for DID JWK
+              // Matching value for 1st of 2 DID JWK's in VC-JWTs below
+              const = "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJHWXFJa0xiN3ZuYktmbUhIVkNwcDJOQndOVEJQOXdUZW4tdkZReWhLbnp3In0"
             ),
             optional = false,
             predicate = Optionality.Required

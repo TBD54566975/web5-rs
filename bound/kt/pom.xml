@@ -8,7 +8,7 @@
   <!-- Artifact Information  -->
   <groupId>xyz.block</groupId>
   <artifactId>web5</artifactId>
-  <version>0.0.0-main-SNAPSHOT</version>
+  <version>0.0.0-main-kweihe-local-SNAPSHOT</version>
   <name>Web5 SDK for the JVM</name>
   <url>https://developer.tbd.website</url>
   <description>Web5 SDK for the JVM</description>

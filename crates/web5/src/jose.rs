@@ -160,17 +160,9 @@ impl Jws {
                     verification_method_id: Some(kid.clone()),
                 })?
                 .public_key_jwk;
-            let verifier: Arc<dyn Verifier> = match &public_jwk.alg {
-                None => {
-                    return Err(Web5Error::Parameter(format!(
-                        "verification method jwk alg must be set {}",
-                        kid
-                    )))
-                }
-                Some(alg) => match Dsa::from_str(alg)? {
-                    Dsa::Ed25519 => Arc::new(Ed25519Verifier::new(public_jwk)),
-                    Dsa::Secp256k1 => Arc::new(Secp256k1Verifier::new(public_jwk)),
-                },
+            let verifier: Arc<dyn Verifier> = match Dsa::from_str(&public_jwk.crv)? {
+                Dsa::Ed25519 => Arc::new(Ed25519Verifier::new(public_jwk)),
+                Dsa::Secp256k1 => Arc::new(Secp256k1Verifier::new(public_jwk)),
             };
 
             let payload = format!("{}.{}", parts[0], parts[1]);
