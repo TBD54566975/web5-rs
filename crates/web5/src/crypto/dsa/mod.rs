@@ -15,6 +15,7 @@ impl std::str::FromStr for Dsa {
     fn from_str(input: &str) -> std::result::Result<Self, Web5Error> {
         match input.to_ascii_lowercase().as_str() {
             "ed25519" => Ok(Dsa::Ed25519),
+            "eddsa" => Ok(Dsa::Ed25519),
             "secp256k1" => Ok(Dsa::Secp256k1),
             "es256k" => Ok(Dsa::Secp256k1),
             _ => Err(Web5Error::Parameter(format!("unsupported dsa {}", input))),
