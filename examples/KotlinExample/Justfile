@@ -1,6 +1,7 @@
 dev:
   mvn compile
-  java -cp "target/classes/:target/dependency/*" com.example.HelloWorldKt
+  mvn dependency:copy-dependencies
+  java -cp "target/classes:target/dependency/*" com.example.HelloWorldKt
 
 run:
   (cd ../../bound/kt; mvn clean install)
