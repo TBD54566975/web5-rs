@@ -165,8 +165,7 @@ class PresentationDefinitionTest {
     assertEquals(1, descriptorMap.size, "There should be one descriptor in the map")
     assertEquals("test_input", descriptorMap[0].id)
     assertEquals("jwt_vc", descriptorMap[0].format)
-    // TODO unclear why this has started failing
-//    assertEquals("$.verifiableCredential[0]", descriptorMap[0].path)
+    assertEquals("$.verifiableCredential[0]", descriptorMap[0].path)
 
     // Validate the matched VCs
     val matchedVcJwts = presentationResult.matchedVcJwts
