@@ -74,7 +74,6 @@ lazy_static! {
 }
 
 impl Did {
-
     /// Parses a given DID URI into a `Did` struct.
     ///
     /// This function extracts and parses components from a DID URI, including the method,
