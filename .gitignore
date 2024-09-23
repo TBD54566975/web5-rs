@@ -22,7 +22,7 @@ Cargo.lock
 bound/kt/src/main/resources/*.dylib
 bound/kt/src/main/resources/*.so
 
-LICENSE
+bound/LICENSE
 .vscode/
 bound/typescript/dist/*
 !bound/typescript/dist/index.js
