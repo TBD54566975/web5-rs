@@ -29,8 +29,6 @@ pub enum Web5Error {
     Network(String),
     #[error("datetime error {0}")]
     DateTime(String),
-    #[error("http error {0}")]
-    Http(String),
 
     #[error(transparent)]
     Resolution(#[from] ResolutionMetadataError),
