@@ -32,7 +32,7 @@ pub struct PresentationDefinition {
 
     #[serde(rename = "input_descriptors")]
     pub input_descriptors: Vec<InputDescriptor>,
-    #[serde(rename = "submission_requirements")]
+    #[serde(rename = "submission_requirements", skip_serializing_if = "Option::is_none")]
     pub submission_requirements: Option<Vec<SubmissionRequirement>>,
 }
 
@@ -141,7 +141,7 @@ pub struct InputDescriptorMapping {
     pub format: String,
     pub path: String,
 
-    #[serde(rename = "path_nested")]
+    #[serde(rename = "path_nested", skip_serializing_if = "Option::is_none")]
     pub path_nested: Option<Box<InputDescriptorMapping>>,
 }
 
