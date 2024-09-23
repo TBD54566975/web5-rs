@@ -18,7 +18,7 @@ use crate::{
         },
     },
     errors::{Result, Web5Error},
-    http::{get_bytes_as_http_response, put_bytes_as_http_response},
+    http::{get, put},
 };
 use std::sync::Arc;
 
@@ -191,7 +191,7 @@ impl DidDht {
             bearer_did.did.id.trim_start_matches('/')
         );
 
-        let response = put_bytes_as_http_response(&url, &body)?;
+        let response = put(&url, &body)?;
         if response.status_code != 200 {
             return Err(Web5Error::Network(
                 "failed to PUT DID to mainline".to_string(),
@@ -248,8 +248,7 @@ impl DidDht {
                 did.id.trim_start_matches('/')
             );
 
-            let response = get_bytes_as_http_response(&url)
-                .map_err(|_| ResolutionMetadataError::InternalError)?;
+            let response = get(&url).map_err(|_| ResolutionMetadataError::InternalError)?;
 
             if response.status_code == 404 {
                 return Err(ResolutionMetadataError::NotFound);

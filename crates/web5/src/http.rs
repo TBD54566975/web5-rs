@@ -67,10 +67,8 @@ fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
         let rc_config = Arc::new(config); // Arc allows sharing the config
 
         // Make the TCP connection to the server
-        let stream =
-            TcpStream::connect((&destination.host[..], destination.port)).map_err(|err| {
-                Web5Error::Network(format!("failed to connect to host: {}", err))
-            })?;
+        let stream = TcpStream::connect((&destination.host[..], destination.port))
+            .map_err(|err| Web5Error::Network(format!("failed to connect to host: {}", err)))?;
 
         // Convert the server name to the expected type for TLS validation
         let server_name = ServerName::try_from(destination.host.clone())
@@ -92,10 +90,8 @@ fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
             .map_err(|err| Web5Error::Network(err.to_string()))?;
     } else {
         // HTTP connection
-        let mut stream =
-            TcpStream::connect((&destination.host[..], destination.port)).map_err(|err| {
-                Web5Error::Network(format!("failed to connect to host: {}", err))
-            })?;
+        let mut stream = TcpStream::connect((&destination.host[..], destination.port))
+            .map_err(|err| Web5Error::Network(format!("failed to connect to host: {}", err)))?;
 
         stream
             .write_all(request)
@@ -180,7 +176,7 @@ pub fn get_json<T: DeserializeOwned>(url: &str) -> Result<T> {
     Ok(json_value)
 }
 
-pub fn get_bytes_as_http_response(url: &str) -> Result<HttpResponse> {
+pub fn get(url: &str) -> Result<HttpResponse> {
     let destination = parse_destination(url)?;
 
     let request = format!(
@@ -196,7 +192,7 @@ pub fn get_bytes_as_http_response(url: &str) -> Result<HttpResponse> {
     parse_response(&response_bytes)
 }
 
-pub fn put_bytes_as_http_response(url: &str, body: &[u8]) -> Result<HttpResponse> {
+pub fn put(url: &str, body: &[u8]) -> Result<HttpResponse> {
     let destination = parse_destination(url)?;
 
     let request = format!(
