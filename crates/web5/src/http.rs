@@ -1,13 +1,13 @@
 use crate::errors::{Result, Web5Error};
 use rustls::pki_types::ServerName;
 use rustls::{ClientConfig, ClientConnection, RootCertStore, StreamOwned};
+use rustls_native_certs::load_native_certs;
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::sync::Arc;
 use url::Url;
-use webpki_roots::TLS_SERVER_ROOTS;
 
 pub struct HttpResponse {
     pub status_code: u16,
@@ -57,8 +57,11 @@ fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
     if destination.schema == "https" {
         // HTTPS connection
 
-        // Create a RootCertStore and load the root certificates from webpki-roots
-        let root_store = RootCertStore::from_iter(TLS_SERVER_ROOTS.iter().cloned());
+        // Create a RootCertStore and load the root certificates from rustls_native_certs
+        let mut root_store = RootCertStore::empty();
+        for cert in load_native_certs().unwrap() {
+            root_store.add(cert).unwrap();
+        }
 
         // Build the ClientConfig using the root certificates and disabling client auth
         let config = ClientConfig::builder()
