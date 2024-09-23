@@ -558,7 +558,7 @@ mod tests {
 
     #[test]
     fn test_schema_resolve_network_issue() {
-        let url = "invalid url".to_string(); // here
+        let url = "http://local".to_string(); // here
 
         let result = create_vc(
             issuer(),
@@ -571,7 +571,11 @@ mod tests {
 
         match result {
             Err(Web5Error::Network(err_msg)) => {
-                assert!(err_msg.contains("unable to resolve json schema"))
+                assert!(
+                    err_msg.contains("failed to connect to host"),
+                    "Error message is: {}",
+                    err_msg
+                )
             }
             _ => panic!(
                 "expected Web5Error::Network with specific message but got {:?}",
@@ -600,8 +604,8 @@ mod tests {
         );
 
         match result {
-            Err(Web5Error::JsonSchema(err_msg)) => {
-                assert!(err_msg.contains("non-200 response when resolving json schema"))
+            Err(Web5Error::Http(err_msg)) => {
+                assert_eq!("non-successful response code 500", err_msg)
             }
             _ => panic!(
                 "expected Web5Error::JsonSchema with specific message but got {:?}",
@@ -632,8 +636,8 @@ mod tests {
         );
 
         match result {
-            Err(Web5Error::JsonSchema(err_msg)) => {
-                assert!(err_msg.contains("unable to parse json schema from response body"))
+            Err(Web5Error::Http(err_msg)) => {
+                assert!(err_msg.contains("unable to parse json response body"))
             }
             _ => panic!(
                 "expected Web5Error::JsonSchema with specific message but got {:?}",
