@@ -11,6 +11,7 @@ use webpki_roots::TLS_SERVER_ROOTS;
 
 pub struct HttpResponse {
     pub status_code: u16,
+    #[allow(dead_code)]
     pub headers: HashMap<String, String>,
     pub body: Vec<u8>,
 }
