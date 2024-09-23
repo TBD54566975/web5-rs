@@ -1,9 +1,0 @@
-{
-  "mochaExplorer.files": "bound/typescript/test/**/*.test.ts",
-  "mochaExplorer.require": "ts-node/register",
-  "mochaExplorer.env": {
-    "TS_NODE_PROJECT": "bound/typescript/tsconfig.json"
-  },
-  "mochaExplorer.ui": "bdd",
-  "mochaExplorer.timeout": 2000
-}
