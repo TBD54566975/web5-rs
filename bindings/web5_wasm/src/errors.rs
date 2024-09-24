@@ -27,7 +27,7 @@ impl WasmWeb5Error {
 
     #[wasm_bindgen(getter)]
     pub fn is_web5_error(&self) -> bool {
-        self.is_web5_error.clone()
+        self.is_web5_error
     }
 }
 

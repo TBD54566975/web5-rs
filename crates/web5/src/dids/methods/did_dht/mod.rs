@@ -206,7 +206,6 @@ impl DidDht {
                     .collect(),
                 ),
                 body: Some(body),
-                ..Default::default()
             }),
         )?;
         if response.status_code != 200 {

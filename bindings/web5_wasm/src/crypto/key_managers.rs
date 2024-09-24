@@ -70,6 +70,5 @@ pub fn poc_key_manager_from_foreign(key_manager: &ForeignKeyManager) -> WasmSign
     };
 
     let public_jwk = key_manager.import_private_jwk(private_jwk.into());
-    let signer = key_manager.get_signer(public_jwk);
-    signer
+    key_manager.get_signer(public_jwk)
 }

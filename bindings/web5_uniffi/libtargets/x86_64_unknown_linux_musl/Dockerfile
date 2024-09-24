@@ -23,6 +23,7 @@ WORKDIR /usr/src/myapp
 COPY Cargo.toml ./
 COPY bindings/web5_uniffi_wrapper ./bindings/web5_uniffi_wrapper
 COPY bindings/web5_uniffi ./bindings/web5_uniffi
+COPY crates/http-std ./crates/http-std
 COPY crates/web5 ./crates/web5
 COPY crates/web5_cli ./crates/web5_cli
 
