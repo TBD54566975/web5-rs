@@ -558,7 +558,7 @@ mod tests {
 
     #[test]
     fn test_schema_resolve_network_issue() {
-        let url = "invalid url".to_string(); // here
+        let url = "http://local".to_string(); // here
 
         let result = create_vc(
             issuer(),

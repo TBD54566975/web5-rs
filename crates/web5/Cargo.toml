@@ -21,7 +21,6 @@ k256 = { version = "0.13.3", features = ["ecdsa", "jwk"] }
 tokio = "1.38.0"
 rand = { workspace = true }
 regex = "1.10.4"
-reqwest = { version = "0.12.4", features = ["json", "blocking"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = "0.10.8"
@@ -33,6 +32,10 @@ x25519-dalek = { version = "2.0.1", features = ["getrandom", "static_secrets"] }
 zbase32 = "0.1.2"
 lazy_static = "1.5.0"
 flate2 = "1.0.33"
+rustls = { version = "0.23.13", default-features = false, features = ["std", "tls12"] }
+rustls-native-certs = "0.8.0"
+# TODO temporary
+reqwest = { version = "0.12.4", features = ["json", "blocking"] }
 
 [dev-dependencies]
 mockito = "1.5.0"
