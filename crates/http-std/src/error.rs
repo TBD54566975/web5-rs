@@ -1,3 +1,4 @@
+#[cfg(not(target_arch = "wasm32"))]
 use reqwest::Error as ReqwestError;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
@@ -15,6 +16,7 @@ pub enum Error {
     Reqwest(String),
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl From<ReqwestError> for Error {
     fn from(err: ReqwestError) -> Self {
         Error::Reqwest(err.to_string())
