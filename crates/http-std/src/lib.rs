@@ -1,6 +1,7 @@
 mod client;
 mod default_client;
 mod error;
+mod reqwest_client;
 
 use lazy_static::lazy_static;
 use std::sync::{Arc, Mutex};
@@ -9,7 +10,8 @@ pub use client::{Client, FetchOptions, Method, Response};
 pub use error::{Error, Result};
 
 lazy_static! {
-    static ref CLIENT: Mutex<Arc<dyn Client>> = Mutex::new(Arc::new(default_client::DefaultClient));
+    static ref CLIENT: Mutex<Arc<dyn Client>> =
+        Mutex::new(Arc::new(reqwest_client::ReqwestClient::new()));
 }
 
 pub fn set_client(client: Arc<dyn Client>) {

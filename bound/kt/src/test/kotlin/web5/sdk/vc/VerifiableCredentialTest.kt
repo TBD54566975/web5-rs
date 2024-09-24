@@ -292,7 +292,7 @@ class VerifiableCredentialTest {
                 VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
             }
 
-            assertTrue(exception.message.contains("get request failed"))
+            assertTrue(exception.message.contains("error sending request"))
         }
 
         @Test
@@ -322,7 +322,7 @@ class VerifiableCredentialTest {
                 VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
             }
 
-            assertTrue(exception.message.contains("http error status code 500"))
+            assertTrue(exception.message.contains("failed to resolve status code 500"))
 
             mockWebServer.shutdown()
         }
@@ -355,7 +355,7 @@ class VerifiableCredentialTest {
                 VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
             }
 
-            assertTrue(exception.message.contains("failed to parse json"))
+            assertTrue(exception.message.contains("expected value at line"))
 
             mockWebServer.shutdown()
         }
@@ -1034,7 +1034,7 @@ class VerifiableCredentialTest {
                 VerifiableCredential.fromVcJwt(vcJwtWithInvalidUrl, true)
             }
 
-            assertTrue(exception.message.contains("get request failed"))
+            assertTrue(exception.message.contains("error sending request"))
         }
 
         @Test
@@ -1054,7 +1054,7 @@ class VerifiableCredentialTest {
                 VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
             }
 
-            assertTrue(exception.message.contains("http error status code 500"))
+            assertTrue(exception.message.contains("failed to resolve status code 500"))
 
             mockWebServer.shutdown()
         }
@@ -1077,7 +1077,7 @@ class VerifiableCredentialTest {
                 VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
             }
 
-            assertTrue(exception.message.contains("failed to parse json"))
+            assertTrue(exception.message.contains("expected value at line"))
 
             mockWebServer.shutdown()
         }

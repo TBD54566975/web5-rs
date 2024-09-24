@@ -797,7 +797,7 @@ mod tests {
 
             match result {
                 Err(Web5Error::Http(err)) => {
-                    assert!(err.to_string().contains("failed to connect to host"))
+                    assert!(err.to_string().contains("error sending request"))
                 }
                 _ => panic!(
                     "expected Web5Error::Http with specific message but got {:?}",
