@@ -570,14 +570,14 @@ mod tests {
         );
 
         match result {
-            Err(Web5Error::Http(err_msg)) => {
-                assert!(err_msg.contains("get request failed"))
+            Err(Web5Error::Http(err)) => {
+                assert!(err.to_string().contains("failed to connect to host"))
             }
             _ => panic!(
                 "expected Web5Error::Http with specific message but got {:?}",
                 result
             ),
-        }
+        };
     }
 
     #[test]
@@ -600,11 +600,11 @@ mod tests {
         );
 
         match result {
-            Err(Web5Error::Http(err_msg)) => {
-                assert!(err_msg.contains("http error status code 500"))
+            Err(Web5Error::JsonSchema(err_msg)) => {
+                assert_eq!("failed to resolve status code 500", err_msg)
             }
             _ => panic!(
-                "expected Web5Error::Http with specific message but got {:?}",
+                "expected Web5Error::JsonSchema with specific message but got {:?}",
                 result
             ),
         }
@@ -632,11 +632,11 @@ mod tests {
         );
 
         match result {
-            Err(Web5Error::Http(err_msg)) => {
-                assert!(err_msg.contains("failed to parse json"))
+            Err(Web5Error::Json(err_msg)) => {
+                assert!(err_msg.contains("expected value at line"))
             }
             _ => panic!(
-                "expected Web5Error::Http with specific message but got {:?}",
+                "expected Web5Error::Json with specific message but got {:?}",
                 result
             ),
         }

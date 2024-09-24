@@ -1,8 +1,5 @@
 use super::verifiable_credential_1_1::VerifiableCredential;
-use crate::{
-    errors::{Result, Web5Error},
-    http,
-};
+use crate::errors::{Result, Web5Error};
 use jsonschema::{Draft, JSONSchema};
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +27,18 @@ pub(crate) fn validate_credential_schema(
     }
 
     let url = &credential_schema.id;
-    let json_schema = http::get_json::<serde_json::Value>(url)?;
+
+    let response = http_std::fetch(&url, None)?;
+
+    if !(200..300).contains(&response.status_code) {
+        return Err(Web5Error::JsonSchema(format!(
+            "failed to resolve status code {}",
+            response.status_code
+        )));
+    }
+
+    let json_schema = serde_json::from_slice::<serde_json::Value>(&response.body)?;
+
     let compiled_schema = JSONSchema::options().compile(&json_schema).map_err(|err| {
         Web5Error::JsonSchema(format!("unable to compile json schema {} {}", url, err))
     })?;

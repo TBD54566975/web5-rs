@@ -1,12 +1,9 @@
-use crate::{
-    dids::{
-        data_model::document::Document,
-        did::Did,
-        resolution::{
-            resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
-        },
+use crate::dids::{
+    data_model::document::Document,
+    did::Did,
+    resolution::{
+        resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
     },
-    http,
 };
 use url::Url;
 
@@ -46,8 +43,18 @@ impl Resolver {
     }
 
     pub fn resolve(&self) -> Result<ResolutionResult, ResolutionMetadataError> {
-        let document = http::get_json::<Document>(&self.http_url)
+        let response = http_std::fetch(&self.http_url, None)
             .map_err(|_| ResolutionMetadataError::InternalError)?;
+
+        if response.status_code == 404 {
+            return Err(ResolutionMetadataError::NotFound);
+        } else if !(200..300).contains(&response.status_code) {
+            return Err(ResolutionMetadataError::InternalError);
+        }
+
+        let document = serde_json::from_slice::<Document>(&response.body)
+            .map_err(|_| ResolutionMetadataError::InternalError)?;
+
         Ok(ResolutionResult {
             document: Some(document),
             ..Default::default()

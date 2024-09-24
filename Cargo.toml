@@ -2,7 +2,7 @@
 members = [
     "bindings/web5_uniffi",
     "bindings/web5_uniffi_wrapper",
-    "bindings/web5_wasm",
+    "bindings/web5_wasm", "crates/http-std",
     "crates/web5",
     "crates/web5_cli",
 ]
@@ -17,6 +17,7 @@ license-file = "LICENSE"
 [workspace.dependencies]
 base64 = "0.22.0"
 chrono = { version = "0.4.37", features = ["std"] }
+lazy_static = "1.5.0"
 thiserror = "1.0.50"
 rand = "0.8.5"
 serde = { version = "1.0.193", features = ["derive"] }
