@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use super::verifiable_credential_1_1::VerifiableCredential;
 use crate::{
     errors::{Result, Web5Error},
-    http::get_json,
+    http::get_http_client,
 };
 use jsonschema::{Draft, JSONSchema};
 use serde::{Deserialize, Serialize};
@@ -30,7 +32,24 @@ pub(crate) fn validate_credential_schema(
     }
 
     let url = &credential_schema.id;
-    let json_schema = get_json::<serde_json::Value>(url)?;
+
+    let headers: HashMap<String, String> = HashMap::from([
+        ("Host".to_string(), "{}".to_string()),
+        ("Connection".to_string(), "close".to_string()),
+        ("Accept".to_string(), "application/json".to_string())
+    ]);
+    let response = get_http_client().get(url, Some(headers))
+        .map_err(|e| Web5Error::Network(format!("Failed to fetch credential schema: {}", e)))?;
+    if !(200..300).contains(&response.status_code) {
+        return Err(Web5Error::Http(format!(
+            "Failed to fetch credential schema: non-successful response code {}",
+            response.status_code
+        )));
+    }
+
+    let json_schema = serde_json::from_slice::<serde_json::Value>(&response.body)
+        .map_err(|err| Web5Error::Http(format!("unable to parse json response body {}", err)))?;
+
     let compiled_schema = JSONSchema::options().compile(&json_schema).map_err(|err| {
         Web5Error::JsonSchema(format!("unable to compile json schema {} {}", url, err))
     })?;

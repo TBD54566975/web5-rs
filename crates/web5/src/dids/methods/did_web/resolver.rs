@@ -5,12 +5,10 @@ use crate::{
         resolution::{
             resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
         },
-    },
-    http::get_json,
+    }, http::get_http_client,
 };
 use std::{
-    future::{Future, IntoFuture},
-    pin::Pin,
+    collections::HashMap, future::{Future, IntoFuture}, pin::Pin
 };
 use url::Url;
 
@@ -50,8 +48,19 @@ impl Resolver {
     }
 
     async fn resolve(url: String) -> Result<ResolutionResult, ResolutionMetadataError> {
-        let document =
-            get_json::<Document>(&url).map_err(|_| ResolutionMetadataError::InternalError)?;
+        let headers: HashMap<String, String> = HashMap::from([
+            ("Host".to_string(), "{}".to_string()),
+            ("Connection".to_string(), "close".to_string()),
+            ("Accept".to_string(), "application/json".to_string())
+        ]);
+        let response = get_http_client().get(&url, Some(headers))
+            .map_err(|_| ResolutionMetadataError::InternalError)?;
+        if !(200..300).contains(&response.status_code) {
+            return Err(ResolutionMetadataError::InternalError);
+        }
+
+        let document = serde_json::from_slice::<Document>(&response.body)
+            .map_err(|_| ResolutionMetadataError::InternalError)?;
         Ok(ResolutionResult {
             document: Some(document),
             ..Default::default()
