@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::sync::Arc;
+use std::time::Duration;
 use url::Url;
 
 struct Destination {
@@ -69,7 +70,20 @@ fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
         let mut tls_stream = StreamOwned::new(client, stream);
 
         tls_stream
+            .get_ref()
+            .set_read_timeout(Some(Duration::from_secs(60)))
+            .map_err(|err| Error::Network(err.to_string()))?;
+        tls_stream
+            .get_ref()
+            .set_write_timeout(Some(Duration::from_secs(60)))
+            .map_err(|err| Error::Network(err.to_string()))?;
+
+        tls_stream
             .write_all(request)
+            .map_err(|err| Error::Network(err.to_string()))?;
+
+        tls_stream
+            .flush()
             .map_err(|err| Error::Network(err.to_string()))?;
 
         tls_stream
@@ -80,7 +94,18 @@ fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
             .map_err(|err| Error::Network(format!("failed to connect to host: {}", err)))?;
 
         stream
+            .set_read_timeout(Some(Duration::from_secs(60)))
+            .map_err(|err| Error::Network(err.to_string()))?;
+        stream
+            .set_write_timeout(Some(Duration::from_secs(60)))
+            .map_err(|err| Error::Network(err.to_string()))?;
+
+        stream
             .write_all(request)
+            .map_err(|err| Error::Network(err.to_string()))?;
+
+        stream
+            .flush()
             .map_err(|err| Error::Network(err.to_string()))?;
 
         stream
