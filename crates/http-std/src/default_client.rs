@@ -1,3 +1,4 @@
+use crate::{Client, Error, FetchOptions, Method, Response, Result};
 use rustls::pki_types::ServerName;
 use rustls::{ClientConfig, ClientConnection, RootCertStore, StreamOwned};
 use rustls_native_certs::load_native_certs;
@@ -6,8 +7,6 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::sync::Arc;
 use url::Url;
-
-use crate::{Client, Error, FetchOptions, Method, Response, Result};
 
 struct Destination {
     pub host: String,
@@ -57,7 +56,7 @@ fn transmit(destination: &Destination, request: &[u8]) -> Result<Vec<u8>> {
             .with_root_certificates(root_store)
             .with_no_client_auth();
 
-        let rc_config = Arc::new(config); // Arc allows sharing the config
+        let rc_config = Arc::new(config);
 
         let stream = TcpStream::connect((&destination.host[..], destination.port))
             .map_err(|err| Error::Network(format!("failed to connect to host: {}", err)))?;
