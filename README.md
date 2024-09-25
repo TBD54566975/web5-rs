@@ -2,6 +2,18 @@
 
 This monorepo houses the core components of the Web5 platform containing the core Rust code with Kotlin bindings. It features libraries for building applications with decentralized identifiers (DIDs), verifiable credentials (VCs), presentation exchange (PEX), and much more.
 
+## 🎉 Hacktoberfest 2024 🎉
+
+`web5-rs` is a participating project in Hacktoberfest 2024! We’re so excited for your contributions, and have created a wide variety of issues so that anyone can contribute. Whether you're a seasoned developer or a first-time open source contributor, there's something for everyone.
+
+### To get started:
+1. Read the [contributing guide](https://github.com/taniashiba/web5-rs/blob/main/CONTRIBUTING.md).
+2. Read the [code of conduct](https://github.com/taniashiba/web5-rs/blob/main/CODE_OF_CONDUCT.md).
+3. Choose a task from this project's Hacktoberfest issues in our [Project Hub](https://github.com/TBD54566975/web5-rs/issues/322) and follow the instructions. Each issue has the 🏷️ `hacktoberfest` label.
+
+Have questions? Connecting with us in our [Discord community](https://discord.gg/tbd) in the `#hacktoberfest` project channel.
+
+---
 
 ## Table of Contents
 - [Features](#features)
