@@ -12,6 +12,7 @@ import web5.sdk.crypto.keys.Jwk
 import web5.sdk.dids.Service
 import web5.sdk.dids.VerificationMethod
 import web5.sdk.dids.ResolutionMetadataError
+import java.util.concurrent.TimeUnit
 
 class DidDhtTests {
     @Nested
@@ -55,7 +56,10 @@ class DidDhtTests {
                 )
             )
 
-            mockWebServer.takeRequest().apply {
+            val request = mockWebServer.takeRequest(60, TimeUnit.SECONDS)
+            assertNotNull(request, "Expected a request to be made to the MockWebServer")
+
+            request!!.apply {
                 assertEquals("/${bearerDid.did.uri.removePrefix("did:dht:")}", path)
                 assertEquals("PUT", method)
                 assertEquals("application/octet-stream", headers["Content-Type"])
