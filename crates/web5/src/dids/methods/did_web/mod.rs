@@ -190,25 +190,17 @@ impl DidWeb {
     ///
     /// Returns a `ResolutionMetadataError` if the DID is invalid or cannot be resolved.
     pub fn resolve(uri: &str) -> ResolutionResult {
-        let rt = match tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-        {
-            Ok(rt) => rt,
-            Err(_) => return ResolutionResult::from(ResolutionMetadataError::InternalError),
+        let did = match Did::parse(uri) {
+            Ok(did) => did,
+            Err(_) => return ResolutionResult::from(ResolutionMetadataError::InvalidDid),
         };
 
-        let result: std::result::Result<ResolutionResult, ResolutionMetadataError> =
-            rt.block_on(async {
-                let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
-                let resolution_result = Resolver::new(did)?.await;
-                Ok(match resolution_result {
-                    Err(e) => ResolutionResult::from(e),
-                    Ok(r) => r,
-                })
-            });
+        let resolution_result = match Resolver::new(did) {
+            Ok(resolver) => resolver.resolve(),
+            Err(e) => return ResolutionResult::from(e),
+        };
 
-        match result {
+        match resolution_result {
             Ok(resolution_result) => resolution_result,
             Err(e) => ResolutionResult::from(e),
         }

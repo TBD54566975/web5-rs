@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 #[derive(thiserror::Error, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum PexError {
-    #[error("Failed to parse JSON: {0}")]
+    #[error("failed to parse json {0}")]
     JsonError(String),
     #[error("Invalid PEX state: {0}")]
     IllegalState(String),
@@ -30,9 +30,12 @@ pub struct PresentationDefinition {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub purpose: Option<String>,
 
-    #[serde(rename = "inputDescriptors")]
+    #[serde(rename = "input_descriptors")]
     pub input_descriptors: Vec<InputDescriptor>,
-    #[serde(rename = "submissionRequirements")]
+    #[serde(
+        rename = "submission_requirements",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub submission_requirements: Option<Vec<SubmissionRequirement>>,
 }
 
@@ -101,7 +104,7 @@ pub struct SubmissionRequirement {
     pub rule: SubmissionRequirementRule,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub from: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", rename = "fromNested")]
+    #[serde(skip_serializing_if = "Option::is_none", rename = "from_nested")]
     pub from_nested: Option<Vec<SubmissionRequirement>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -127,10 +130,10 @@ pub enum SubmissionRequirementRule {
 pub struct PresentationSubmission {
     pub id: String,
 
-    #[serde(rename = "definitionId")]
+    #[serde(rename = "definition_id")]
     pub definition_id: String,
 
-    #[serde(rename = "descriptorMap")]
+    #[serde(rename = "descriptor_map")]
     pub descriptor_map: Vec<InputDescriptorMapping>,
 }
 
@@ -141,7 +144,7 @@ pub struct InputDescriptorMapping {
     pub format: String,
     pub path: String,
 
-    #[serde(rename = "pathNested")]
+    #[serde(rename = "path_nested", skip_serializing_if = "Option::is_none")]
     pub path_nested: Option<Box<InputDescriptorMapping>>,
 }
 

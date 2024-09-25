@@ -1,0 +1,20 @@
+[package]
+name = "http-std"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+lazy_static = { workspace = true }
+thiserror = { workspace = true }
+url = "2.5.0"
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+reqwest = { version = "0.12.7", features = ["blocking"] }
+rustls = { version = "0.23.13", default-features = false, features = [
+  "std",
+  "tls12",
+] }
+rustls-native-certs = "0.8.0"

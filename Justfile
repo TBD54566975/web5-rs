@@ -8,8 +8,11 @@ setup:
     git submodule update --init --recursive
   fi
   if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
-    rustup default 1.74.0
+    rustup default 1.76.0 # TODO undo this
     rustup target add aarch64-apple-darwin
+  fi
+  if ! command -v wasm-pack >/dev/null || [[ "$(wasm-pack --version)" != "wasm-pack 0.13.0" ]]; then
+    cargo install wasm-pack --version 0.13.0
   fi
 
 docs: setup
@@ -46,3 +49,6 @@ test-bound: setup
 
 test-kotlin: setup
   cd bound/kt && mvn clean test
+
+wasm: setup
+  (cd bindings/web5_wasm; wasm-pack build --target nodejs --out-dir ../../bound/typescript/pkg)

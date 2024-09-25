@@ -1,5 +1,6 @@
 package web5.sdk.vc.pex
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import web5.sdk.Json
 import web5.sdk.Web5Exception
 import web5.sdk.rust.PresentationDefinition as RustCorePresentationDefinition
@@ -21,7 +22,9 @@ data class PresentationDefinition(
     val id: String,
     val name: String?,
     val purpose: String?,
+    @JsonProperty("input_descriptors")
     val inputDescriptors: List<InputDescriptor>,
+    @JsonProperty("submission_requirements")
     val submissionRequirements: List<SubmissionRequirement>? = null
 ) {
     internal val rustCorePresentationDefinition = RustCorePresentationDefinition(
@@ -155,6 +158,7 @@ data class Filter(
 data class SubmissionRequirement(
     val rule: SubmissionRequirementRule,
     val from: String? = null,
+    @JsonProperty("from_nested")
     val fromNested: List<SubmissionRequirement>? = null,
     val name: String? = null,
     val purpose: String? = null,
@@ -191,7 +195,9 @@ data class PresentationResult(
  */
 data class PresentationSubmission(
     val id: String,
+    @JsonProperty("definition_id")
     val definitionId: String,
+    @JsonProperty("descriptor_map")
     val descriptorMap: List<InputDescriptorMapping>
 )
 
@@ -207,5 +213,6 @@ data class InputDescriptorMapping(
     val id: String,
     val format: String,
     val path: String,
+    @JsonProperty("path_nested")
     val pathNested: InputDescriptorMapping? = null
 )

@@ -21,3 +21,10 @@ Cargo.lock
 # Do not put native binaries in source control
 bound/kt/src/main/resources/*.dylib
 bound/kt/src/main/resources/*.so
+
+bound/LICENSE
+.vscode/
+bound/typescript/dist/*
+!bound/typescript/dist/index.js
+bound/typescript/tests/compiled
+bound/typescript/src/wasm/generated.js

@@ -129,13 +129,7 @@ impl KeyManager for InMemoryKeyManager {
                 thumbprint
             )))?;
 
-        let dsa = Dsa::from_str(
-            &public_jwk
-                .alg
-                .clone()
-                .ok_or(Web5Error::Crypto("public jwk must have alg".to_string()))?,
-        )?;
-        let signer: Arc<dyn Signer> = match dsa {
+        let signer: Arc<dyn Signer> = match Dsa::from_str(&public_jwk.crv)? {
             Dsa::Ed25519 => Arc::new(Ed25519Signer::new(private_jwk.clone())),
             Dsa::Secp256k1 => Arc::new(Secp256k1Signer::new(private_jwk.clone())),
         };

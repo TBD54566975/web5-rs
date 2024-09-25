@@ -38,6 +38,7 @@ pub fn sign_with_did(
     additional_properties.insert("vc".to_string(), vc_claim.to_json_value()?);
 
     let claims = JwtClaims {
+        aud: None,
         iss: Some(vc.issuer.to_string()),
         jti: Some(vc.id.clone()),
         sub: Some(vc.credential_subject.id.clone()),

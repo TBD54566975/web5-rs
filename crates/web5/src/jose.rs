@@ -26,55 +26,19 @@ pub struct JoseHeader {
 impl FromJson for JoseHeader {}
 impl ToJson for JoseHeader {}
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct JwtClaims {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub iss: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub jti: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sub: Option<String>,
-    #[serde(
-        serialize_with = "serialize_optional_unix_timestamp",
-        deserialize_with = "deserialize_optional_unix_timestamp",
-        skip_serializing_if = "Option::is_none",
-        default
-    )]
-    pub nbf: Option<SystemTime>,
-    #[serde(
-        serialize_with = "serialize_optional_unix_timestamp",
-        deserialize_with = "deserialize_optional_unix_timestamp",
-        skip_serializing_if = "Option::is_none",
-        default
-    )]
-    pub iat: Option<SystemTime>,
-    #[serde(
-        serialize_with = "serialize_optional_unix_timestamp",
-        deserialize_with = "deserialize_optional_unix_timestamp",
-        skip_serializing_if = "Option::is_none",
-        default
-    )]
-    pub exp: Option<SystemTime>,
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    pub additional_properties: Option<HashMap<String, JsonValue>>,
-}
-
-impl FromJson for JwtClaims {}
-impl ToJson for JwtClaims {}
-
-#[allow(dead_code)]
-pub struct Jwt {
+pub struct Jws {
     pub kid: String,
     pub parts: Vec<String>,
     pub header: JoseHeader,
-    pub claims: JwtClaims,
+    pub payload: Vec<u8>,
     pub signature: Vec<u8>,
     pub compact_jws: String,
+    pub detached_compact_jws: String,
 }
 
-impl Jwt {
-    pub fn from_claims(
-        claims: &JwtClaims,
+impl Jws {
+    pub fn from_payload(
+        payload: &[u8],
         bearer_did: &BearerDid,
         verification_method_id: Option<String>,
     ) -> Result<Self> {
@@ -117,8 +81,7 @@ impl Jwt {
         let header_part =
             base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(header.to_json_string()?);
 
-        let claims_part =
-            base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(claims.to_json_string()?);
+        let claims_part = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(payload);
 
         let message = format!("{}.{}", header_part, claims_part);
 
@@ -129,14 +92,16 @@ impl Jwt {
             base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(signature.clone());
 
         let compact_jws = format!("{}.{}.{}", header_part, claims_part, signature_part);
+        let detached_compact_jws = format!("{}..{}", header_part, signature_part);
 
         Ok(Self {
             kid: verification_method_id,
             parts: vec![header_part, claims_part, signature_part],
             header,
-            claims: claims.clone(),
+            payload: payload.into(),
             signature,
             compact_jws,
+            detached_compact_jws,
         })
     }
 
@@ -158,12 +123,11 @@ impl Jwt {
             })?;
         let header = JoseHeader::from_json_byte_array(&header_json_byte_array)?;
 
-        let claims_json_byte_array = base64::engine::general_purpose::URL_SAFE_NO_PAD
+        let payload = base64::engine::general_purpose::URL_SAFE_NO_PAD
             .decode(&parts[1])
             .map_err(|e| {
                 Web5Error::Parameter(format!("failed to base64 decode claims part {}", e))
             })?;
-        let claims = JwtClaims::from_json_byte_array(&claims_json_byte_array)?;
 
         let signature = base64::engine::general_purpose::URL_SAFE_NO_PAD
             .decode(&parts[2])
@@ -196,17 +160,9 @@ impl Jwt {
                     verification_method_id: Some(kid.clone()),
                 })?
                 .public_key_jwk;
-            let verifier: Arc<dyn Verifier> = match &public_jwk.alg {
-                None => {
-                    return Err(Web5Error::Parameter(format!(
-                        "verification method jwk alg must be set {}",
-                        kid
-                    )))
-                }
-                Some(alg) => match Dsa::from_str(alg)? {
-                    Dsa::Ed25519 => Arc::new(Ed25519Verifier::new(public_jwk)),
-                    Dsa::Secp256k1 => Arc::new(Secp256k1Verifier::new(public_jwk)),
-                },
+            let verifier: Arc<dyn Verifier> = match Dsa::from_str(&public_jwk.crv)? {
+                Dsa::Ed25519 => Arc::new(Ed25519Verifier::new(public_jwk)),
+                Dsa::Secp256k1 => Arc::new(Secp256k1Verifier::new(public_jwk)),
             };
 
             let payload = format!("{}.{}", parts[0], parts[1]);
@@ -216,11 +172,96 @@ impl Jwt {
 
         Ok(Self {
             kid,
-            parts,
+            parts: parts.clone(),
             header,
-            claims,
+            payload,
             signature,
             compact_jws: compact_jws.to_string(),
+            detached_compact_jws: format!("{}..{}", parts[0], parts[2]),
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct JwtClaims {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub aud: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub iss: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub jti: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sub: Option<String>,
+    #[serde(
+        serialize_with = "serialize_optional_unix_timestamp",
+        deserialize_with = "deserialize_optional_unix_timestamp",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub nbf: Option<SystemTime>,
+    #[serde(
+        serialize_with = "serialize_optional_unix_timestamp",
+        deserialize_with = "deserialize_optional_unix_timestamp",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub iat: Option<SystemTime>,
+    #[serde(
+        serialize_with = "serialize_optional_unix_timestamp",
+        deserialize_with = "deserialize_optional_unix_timestamp",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub exp: Option<SystemTime>,
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub additional_properties: Option<HashMap<String, JsonValue>>,
+}
+
+impl FromJson for JwtClaims {}
+impl ToJson for JwtClaims {}
+
+pub struct Jwt {
+    pub kid: String,
+    pub parts: Vec<String>,
+    pub header: JoseHeader,
+    pub claims: JwtClaims,
+    pub signature: Vec<u8>,
+    pub compact_jws: String,
+    pub detached_compact_jws: String,
+}
+
+impl Jwt {
+    pub fn from_claims(
+        claims: &JwtClaims,
+        bearer_did: &BearerDid,
+        verification_method_id: Option<String>,
+    ) -> Result<Self> {
+        let payload = claims.to_json_string()?;
+        let jws = Jws::from_payload(payload.as_bytes(), bearer_did, verification_method_id)?;
+
+        Ok(Self {
+            kid: jws.kid,
+            parts: jws.parts,
+            header: jws.header,
+            claims: claims.clone(),
+            signature: jws.signature,
+            compact_jws: jws.compact_jws,
+            detached_compact_jws: jws.detached_compact_jws,
+        })
+    }
+
+    pub fn from_compact_jws(compact_jws: &str, verify: bool) -> Result<Self> {
+        let jws = Jws::from_compact_jws(compact_jws, verify)?;
+        let claims = JwtClaims::from_json_byte_array(&jws.payload)?;
+
+        Ok(Self {
+            kid: jws.kid,
+            parts: jws.parts,
+            header: jws.header,
+            claims: claims.clone(),
+            signature: jws.signature,
+            compact_jws: jws.compact_jws,
+            detached_compact_jws: jws.detached_compact_jws,
         })
     }
 }

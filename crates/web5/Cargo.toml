@@ -13,7 +13,10 @@ byteorder = "1.5.0"
 chrono = { workspace = true }
 ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
 jsonpath-rust = "0.5.1"
-jsonschema = { version = "0.18.0", features = ["draft201909", "draft202012"] }
+jsonschema = { version = "0.18.0", default-features = false, features = [
+  "draft201909",
+  "draft202012",
+] }
 k256 = { version = "0.13.3", features = ["ecdsa", "jwk"] }
 tokio = "1.38.0"
 rand = { workspace = true }
@@ -27,10 +30,9 @@ url = "2.5.0"
 uuid = { workspace = true }
 x25519-dalek = { version = "2.0.1", features = ["getrandom", "static_secrets"] }
 zbase32 = "0.1.2"
-lazy_static = "1.5.0"
+lazy_static = { workspace = true }
 flate2 = "1.0.33"
-rustls = { version = "0.23.13", default-features = false, features = ["std", "tls12"] }
-rustls-native-certs = "0.8.0"
+http-std = { path = "../http-std" }
 
 [dev-dependencies]
 mockito = "1.5.0"
