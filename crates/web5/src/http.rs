@@ -87,7 +87,7 @@ mod reqwest_http_client {
                 }
             }
 
-            let response = req.send()?.error_for_status()?;
+            let response = req.send()?;
             let status_code = response.status().as_u16();
             let headers = response
                 .headers()
@@ -118,7 +118,7 @@ mod reqwest_http_client {
                 }
             }
 
-            let response = req.send()?.error_for_status()?;
+            let response = req.send()?;
             let status_code = response.status().as_u16();
             let headers = response
                 .headers()
@@ -149,7 +149,7 @@ mod reqwest_http_client {
                 }
             }
 
-            let response = req.send()?.error_for_status()?;
+            let response = req.send()?;
             let status_code = response.status().as_u16();
             let headers = response
                 .headers()

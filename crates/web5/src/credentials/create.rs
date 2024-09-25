@@ -572,7 +572,7 @@ mod tests {
         match result {
             Err(Web5Error::Network(err_msg)) => {
                 assert!(
-                    err_msg.contains("failed to connect to host"),
+                    err_msg.contains("Failed to fetch credential schema"),
                     "Error message is: {}",
                     err_msg
                 )
@@ -605,10 +605,10 @@ mod tests {
 
         match result {
             Err(Web5Error::Http(err_msg)) => {
-                assert_eq!("non-successful response code 500", err_msg)
+                assert!(err_msg.contains("non-successful response code 500"))
             }
             _ => panic!(
-                "expected Web5Error::JsonSchema with specific message but got {:?}",
+                "expected Web5Error::Http with specific message but got {:?}",
                 result
             ),
         }
