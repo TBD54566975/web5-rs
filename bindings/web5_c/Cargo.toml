@@ -1,0 +1,14 @@
+[package]
+name = "web5_c"
+version = "0.1.0"
+edition = "2021"
+homepage.workspace = true
+repository.workspace = true
+license-file.workspace = true
+
+[dependencies]
+lazy_static = { workspace = true }
+web5 = { path = "../../crates/web5" }
+
+[lib]
+crate-type = ["cdylib"]

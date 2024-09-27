@@ -25,11 +25,15 @@ test: setup
   cargo test --workspace
 
 lint: setup
-  cargo clippy --workspace
+  cargo clippy --workspace --exclude web5_c
+  cargo clippy --package web5_c -- -A clippy::not_unsafe_ptr_arg_deref
   cargo fmt
 
 bind: setup
   just bind-kotlin
+
+bindc: setup
+  cargo build --release --package web5_c
 
 bind-kotlin: setup
   mkdir -p bound/kt/src/main/resources

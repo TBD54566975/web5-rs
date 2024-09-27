@@ -32,7 +32,10 @@ impl Jwk {
     ///
     /// Returns `true` if the JWK represents a public key (i.e., the private key component `d` is `None`).
     pub(crate) fn is_public_key(&self) -> bool {
-        self.d.is_none()
+        match &self.d {
+            None => true,
+            Some(d_value) => d_value.is_empty(),
+        }
     }
 }
 
