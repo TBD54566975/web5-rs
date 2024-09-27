@@ -32,6 +32,7 @@ ENV LIBRARY_PATH="/usr/lib:/usr/local/lib"
 # Copy the source code to the container
 WORKDIR /usr/src/myapp
 COPY Cargo.toml ./
+COPY bindings/web5_c ./bindings/web5_c
 COPY bindings/web5_uniffi_wrapper ./bindings/web5_uniffi_wrapper
 COPY bindings/web5_uniffi ./bindings/web5_uniffi
 COPY bindings/web5_wasm ./bindings/web5_wasm
