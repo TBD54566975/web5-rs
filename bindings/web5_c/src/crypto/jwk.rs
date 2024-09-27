@@ -57,12 +57,12 @@ pub extern "C" fn free_cjwk(jwk: *mut CJwk) {
 impl From<&CJwk> for Jwk {
     fn from(jwk_c: &CJwk) -> Self {
         Jwk {
-            alg: unsafe { opt_cstr_to_string(jwk_c.alg) },
+            alg: opt_cstr_to_string(jwk_c.alg),
             kty: unsafe { CStr::from_ptr(jwk_c.kty).to_string_lossy().into_owned() },
             crv: unsafe { CStr::from_ptr(jwk_c.crv).to_string_lossy().into_owned() },
-            d: unsafe { opt_cstr_to_string(jwk_c.d) },
+            d: opt_cstr_to_string(jwk_c.d),
             x: unsafe { CStr::from_ptr(jwk_c.x).to_string_lossy().into_owned() },
-            y: unsafe { opt_cstr_to_string(jwk_c.y) },
+            y: opt_cstr_to_string(jwk_c.y),
         }
     }
 }

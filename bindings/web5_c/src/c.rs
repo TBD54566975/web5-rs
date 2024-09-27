@@ -18,11 +18,11 @@ pub fn free_bytes(ptr: *mut u8) {
     }
 }
 
-pub unsafe fn opt_cstr_to_string(c_str: *const c_char) -> Option<String> {
+pub fn opt_cstr_to_string(c_str: *const c_char) -> Option<String> {
     if c_str.is_null() {
         None
     } else {
-        Some(CStr::from_ptr(c_str).to_string_lossy().into_owned())
+        Some(unsafe { CStr::from_ptr(c_str).to_string_lossy().into_owned() })
     }
 }
 
