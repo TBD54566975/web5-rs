@@ -60,21 +60,15 @@ impl Commands {
                 no_indent,
                 json_escape,
             } => {
-                let private_jwk = Ed25519Generator::generate();
-                let key_manager = InMemoryKeyManager::new();
-                key_manager.import_private_jwk(private_jwk.clone()).unwrap();
+                let key_manager = Arc::new(InMemoryKeyManager::new());
 
                 let bearer_did = DidJwk::create(Some(DidJwkCreateOptions {
-                    key_manager: Some(Arc::new(key_manager)),
+                    key_manager: Some(key_manager.clone()),
                     ..Default::default()
                 }))
                 .unwrap();
 
-                let portable_did = PortableDid {
-                    did_uri: bearer_did.did.uri,
-                    document: bearer_did.document,
-                    private_jwks: vec![private_jwk],
-                };
+                let portable_did = bearer_did.to_portable_did(key_manager).unwrap();
 
                 print_portable_did(portable_did, no_indent, json_escape);
             }
@@ -83,23 +77,18 @@ impl Commands {
                 no_indent,
                 json_escape,
             } => {
-                let private_jwk = Ed25519Generator::generate();
-                let key_manager = InMemoryKeyManager::new();
-                key_manager.import_private_jwk(private_jwk.clone()).unwrap();
+                let key_manager = Arc::new(InMemoryKeyManager::new());
 
                 let bearer_did = DidWeb::create(
                     domain,
                     Some(DidWebCreateOptions {
-                        key_manager: Some(Arc::new(key_manager)),
+                        key_manager: Some(key_manager.clone()),
                         ..Default::default()
                     }),
                 )
                 .unwrap();
-                let portable_did = PortableDid {
-                    did_uri: bearer_did.did.uri,
-                    document: bearer_did.document,
-                    private_jwks: vec![private_jwk],
-                };
+
+                let portable_did = bearer_did.to_portable_did(key_manager).unwrap();
 
                 print_portable_did(portable_did, no_indent, json_escape)
             }
@@ -108,22 +97,16 @@ impl Commands {
                 no_indent,
                 json_escape,
             } => {
-                let private_jwk = Ed25519Generator::generate();
-                let key_manager = InMemoryKeyManager::new();
-                key_manager.import_private_jwk(private_jwk.clone()).unwrap();
+                let key_manager = Arc::new(InMemoryKeyManager::new());
 
                 let bearer_did = DidDht::create(Some(DidDhtCreateOptions {
                     publish: Some(!no_publish),
-                    key_manager: Some(Arc::new(key_manager)),
+                    key_manager: Some(key_manager.clone()),
                     ..Default::default()
                 }))
                 .unwrap();
 
-                let portable_did = PortableDid {
-                    did_uri: bearer_did.did.uri,
-                    document: bearer_did.document,
-                    private_jwks: vec![private_jwk],
-                };
+                let portable_did = bearer_did.to_portable_did(key_manager).unwrap();
 
                 print_portable_did(portable_did, no_indent, json_escape);
             }
