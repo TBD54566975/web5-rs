@@ -89,7 +89,7 @@ impl DidDht {
     /// let did_dht = DidDht::create(None)?;
     /// println!("Created DID DHT: {:?}", did_dht);
     /// ```
-    pub fn create(options: Option<DidDhtCreateOptions>) -> Result<BearerDid> {
+    pub async fn create(options: Option<DidDhtCreateOptions>) -> Result<BearerDid> {
         let options = options.unwrap_or_default();
 
         let key_manager = options
@@ -134,7 +134,7 @@ impl DidDht {
         };
 
         if options.publish.unwrap_or(true) {
-            DidDht::publish(bearer_did.clone(), options.gateway_url)?;
+            DidDht::publish(bearer_did.clone(), options.gateway_url).await?;
         }
 
         Ok(bearer_did)
@@ -160,7 +160,7 @@ impl DidDht {
     /// let bearer_did = DidDht::create(None)?;
     /// DidDht::publish(bearer_did, None)?;
     /// ```
-    pub fn publish(bearer_did: BearerDid, gateway_url: Option<String>) -> Result<()> {
+    pub async fn publish(bearer_did: BearerDid, gateway_url: Option<String>) -> Result<()> {
         let packet = bearer_did.document.to_packet().map_err(|e| {
             Web5Error::Encoding(format!("failed to convert document to packet {}", e))
         })?;
@@ -207,7 +207,8 @@ impl DidDht {
                 ),
                 body: Some(body),
             }),
-        )?;
+        )
+        .await?;
         if response.status_code != 200 {
             return Err(Web5Error::Network(
                 "failed to PUT DID to mainline".to_string(),
@@ -241,8 +242,8 @@ impl DidDht {
     /// # Errors
     ///
     /// Returns a `ResolutionMetadataError` if the DID cannot be resolved or verified.
-    pub fn resolve(uri: &str, gateway_url: Option<String>) -> ResolutionResult {
-        let result: std::result::Result<ResolutionResult, ResolutionMetadataError> = (|| {
+    pub async fn resolve(uri: &str, gateway_url: Option<String>) -> ResolutionResult {
+        let result: std::result::Result<ResolutionResult, ResolutionMetadataError> = async {
             // check did method and decode id
             let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
             if did.method != "dht" {
@@ -264,8 +265,9 @@ impl DidDht {
                 did.id.trim_start_matches('/')
             );
 
-            let response =
-                http_std::fetch(&url, None).map_err(|_| ResolutionMetadataError::InternalError)?;
+            let response = http_std::fetch(&url, None)
+                .await // todo here
+                .map_err(|_| ResolutionMetadataError::InternalError)?;
 
             if response.status_code == 404 {
                 return Err(ResolutionMetadataError::NotFound);
@@ -291,7 +293,8 @@ impl DidDht {
                 document: Some(document),
                 ..Default::default()
             })
-        })();
+        }
+        .await;
 
         match result {
             Ok(resolution_result) => resolution_result,
@@ -307,14 +310,15 @@ mod tests {
     mod create {
         use super::*;
 
-        #[test]
-        fn test_can_specify_key_manager() {
+        #[tokio::test]
+        async fn test_can_specify_key_manager() {
             let key_manager = Arc::new(InMemoryKeyManager::new());
             let result = DidDht::create(Some(DidDhtCreateOptions {
                 publish: Some(false),
                 key_manager: Some(key_manager.clone()),
                 ..Default::default()
-            }));
+            }))
+            .await;
 
             assert!(result.is_ok());
 
@@ -326,9 +330,9 @@ mod tests {
             assert!(result.is_ok())
         }
 
-        #[test]
-        fn test_can_specify_publish_and_gateway_url() {
-            let mut mock_server = mockito::Server::new();
+        #[tokio::test]
+        async fn test_can_specify_publish_and_gateway_url() {
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let mock = mock_server
@@ -342,15 +346,16 @@ mod tests {
                 publish: Some(true),
                 gateway_url: Some(gateway_url.clone()), // Use the mock server's URL
                 ..Default::default()
-            }));
+            }))
+            .await;
 
             assert!(result.is_ok());
 
             mock.assert();
         }
 
-        #[test]
-        fn test_should_add_optional_verification_methods() {
+        #[tokio::test]
+        async fn test_should_add_optional_verification_methods() {
             let additional_verification_method = VerificationMethod {
                 id: "did:web:example.com#key-1".to_string(),
                 r#type: "JsonWebKey".to_string(),
@@ -362,7 +367,8 @@ mod tests {
                 publish: Some(false),
                 verification_method: Some(vec![additional_verification_method.clone()]),
                 ..Default::default()
-            }));
+            }))
+            .await;
 
             assert!(result.is_ok());
 
@@ -374,8 +380,8 @@ mod tests {
             );
         }
 
-        #[test]
-        fn test_should_add_optional_services() {
+        #[tokio::test]
+        async fn test_should_add_optional_services() {
             let service = Service {
                 id: "did:web:example.com#service-0".to_string(),
                 r#type: "SomeService".to_string(),
@@ -386,7 +392,8 @@ mod tests {
                 publish: Some(false),
                 service: Some(vec![service.clone()]),
                 ..Default::default()
-            }));
+            }))
+            .await;
 
             assert!(result.is_ok());
 
@@ -394,15 +401,16 @@ mod tests {
             assert_eq!(did_web.document.service.unwrap()[0], service);
         }
 
-        #[test]
-        fn test_should_add_optional_also_known_as() {
+        #[tokio::test]
+        async fn test_should_add_optional_also_known_as() {
             let also_known_as = vec!["https://alias.example.com".to_string()];
 
             let result = DidDht::create(Some(DidDhtCreateOptions {
                 publish: Some(false),
                 also_known_as: Some(also_known_as.clone()),
                 ..Default::default()
-            }));
+            }))
+            .await;
 
             assert!(result.is_ok());
 
@@ -410,15 +418,16 @@ mod tests {
             assert_eq!(did_web.document.also_known_as.unwrap(), also_known_as);
         }
 
-        #[test]
-        fn test_should_add_optional_controllers() {
+        #[tokio::test]
+        async fn test_should_add_optional_controllers() {
             let controllers = vec!["did:web:controller.example.com".to_string()];
 
             let result = DidDht::create(Some(DidDhtCreateOptions {
                 publish: Some(false),
                 controller: Some(controllers.clone()),
                 ..Default::default()
-            }));
+            }))
+            .await;
 
             assert!(result.is_ok());
 
@@ -430,9 +439,9 @@ mod tests {
     mod publish {
         use super::*;
 
-        #[test]
-        fn test_can_specify_gateway_url() {
-            let mut mock_server = mockito::Server::new();
+        #[tokio::test]
+        async fn test_can_specify_gateway_url() {
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let mock = mock_server
@@ -446,21 +455,23 @@ mod tests {
                 publish: Some(false),
                 ..Default::default()
             }))
+            .await
             .unwrap();
 
             let result = DidDht::publish(
                 bearer_did,
                 Some(gateway_url.clone()), // Use the mock server's URL
-            );
+            )
+            .await;
 
             assert!(result.is_ok());
 
             mock.assert();
         }
 
-        #[test]
-        fn test_can_handle_network_error() {
-            let mut mock_server = mockito::Server::new();
+        #[tokio::test]
+        async fn test_can_handle_network_error() {
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let mock = mock_server
@@ -474,9 +485,10 @@ mod tests {
                 publish: Some(false),
                 ..Default::default()
             }))
+            .await
             .unwrap();
 
-            let result = DidDht::publish(bearer_did, Some(gateway_url));
+            let result = DidDht::publish(bearer_did, Some(gateway_url)).await;
 
             assert!(result.is_err());
             if let Err(Web5Error::Network(msg)) = result {
@@ -490,37 +502,37 @@ mod tests {
     }
 
     mod resolve {
+        use super::*;
         use std::sync::Mutex;
 
-        use super::*;
-
-        #[test]
-        fn test_invalid_did() {
-            let resolution_result = DidDht::resolve("something invalid", None);
+        #[tokio::test]
+        async fn test_invalid_did() {
+            let resolution_result = DidDht::resolve("something invalid", None).await;
             assert_eq!(
                 resolution_result.resolution_metadata.error,
                 Some(ResolutionMetadataError::InvalidDid)
             )
         }
 
-        #[test]
-        fn test_method_not_supported() {
-            let resolution_result = DidDht::resolve("did:web:example", None);
+        #[tokio::test]
+        async fn test_method_not_supported() {
+            let resolution_result = DidDht::resolve("did:web:example", None).await;
             assert_eq!(
                 resolution_result.resolution_metadata.error,
                 Some(ResolutionMetadataError::MethodNotSupported)
             )
         }
 
-        #[test]
-        fn test_not_found() {
+        #[tokio::test]
+        async fn test_not_found() {
             let bearer_did = DidDht::create(Some(DidDhtCreateOptions {
                 publish: Some(false),
                 ..Default::default()
             }))
+            .await
             .unwrap();
 
-            let mut mock_server = mockito::Server::new();
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let mock = mock_server
@@ -530,7 +542,7 @@ mod tests {
                 .with_header("content-type", "application/octet-stream")
                 .create();
 
-            let resolution_result = DidDht::resolve(&bearer_did.did.uri, Some(gateway_url));
+            let resolution_result = DidDht::resolve(&bearer_did.did.uri, Some(gateway_url)).await;
             assert_eq!(
                 resolution_result.resolution_metadata.error,
                 Some(ResolutionMetadataError::NotFound)
@@ -539,15 +551,16 @@ mod tests {
             mock.assert();
         }
 
-        #[test]
-        fn test_internal_error() {
+        #[tokio::test]
+        async fn test_internal_error() {
             let bearer_did = DidDht::create(Some(DidDhtCreateOptions {
                 publish: Some(false),
                 ..Default::default()
             }))
+            .await
             .unwrap();
 
-            let mut mock_server = mockito::Server::new();
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let mock = mock_server
@@ -557,7 +570,7 @@ mod tests {
                 .with_header("content-type", "application/octet-stream")
                 .create();
 
-            let resolution_result = DidDht::resolve(&bearer_did.did.uri, Some(gateway_url));
+            let resolution_result = DidDht::resolve(&bearer_did.did.uri, Some(gateway_url)).await;
             assert_eq!(
                 resolution_result.resolution_metadata.error,
                 Some(ResolutionMetadataError::InternalError)
@@ -566,9 +579,9 @@ mod tests {
             mock.assert();
         }
 
-        #[test]
-        fn test_can_create_then_resolve() {
-            let mut mock_server = mockito::Server::new();
+        #[tokio::test]
+        async fn test_can_create_then_resolve() {
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let published_body = Arc::new(Mutex::new(Vec::new()));
@@ -590,7 +603,8 @@ mod tests {
                 publish: Some(true),
                 gateway_url: Some(gateway_url),
                 ..Default::default()
-            }));
+            }))
+            .await;
             assert!(create_result.is_ok());
 
             let bearer_did = create_result.unwrap();
@@ -605,7 +619,8 @@ mod tests {
                 .with_body(stored_body.clone()) // Use the captured body as the response
                 .create();
 
-            let resolution_result = DidDht::resolve(&bearer_did.did.uri, Some(mock_server.url()));
+            let resolution_result =
+                DidDht::resolve(&bearer_did.did.uri, Some(mock_server.url())).await;
 
             assert_eq!(resolution_result.resolution_metadata.error, None);
             assert!(resolution_result.document.is_some());

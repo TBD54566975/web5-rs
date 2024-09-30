@@ -51,7 +51,7 @@ fn print_portable_did(portable_did: PortableDid, no_indent: &bool, json_escape: 
 }
 
 impl Commands {
-    pub fn command(&self) {
+    pub async fn command(&self) {
         match self {
             Commands::Jwk {
                 no_indent,
@@ -101,6 +101,7 @@ impl Commands {
                     key_manager: Some(key_manager.clone()),
                     ..Default::default()
                 }))
+                .await
                 .unwrap();
 
                 let portable_did = bearer_did.to_portable_did(key_manager).unwrap();

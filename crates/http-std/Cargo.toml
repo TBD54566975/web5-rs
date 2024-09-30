@@ -7,6 +7,8 @@ repository.workspace = true
 license-file.workspace = true
 
 [dependencies]
+async-trait = "0.1.83"
+serde = { workspace = true }
 lazy_static = { workspace = true }
 thiserror = { workspace = true }
 url = "2.5.0"

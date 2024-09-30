@@ -1,3 +1,4 @@
+use crate::get_rt;
 use crate::{dids::bearer_did::BearerDid, errors::Result};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -44,7 +45,12 @@ impl VerifiablePresentation {
             additional_data,
         };
 
-        let inner_vp = InnerVerifiablePresentation::create(holder, vc_jwts, Some(inner_options))?;
+        let rt = get_rt()?;
+        let inner_vp = rt.block_on(InnerVerifiablePresentation::create(
+            holder,
+            vc_jwts,
+            Some(inner_options),
+        ))?;
 
         Ok(Self { inner_vp })
     }
@@ -68,8 +74,8 @@ impl VerifiablePresentation {
     }
 
     pub fn from_vp_jwt(vp_jwt: String, verify: bool) -> Result<Self> {
-        let inner_vp = InnerVerifiablePresentation::from_vp_jwt(&vp_jwt, verify)?;
-
+        let rt = get_rt()?;
+        let inner_vp = rt.block_on(InnerVerifiablePresentation::from_vp_jwt(&vp_jwt, verify))?;
         Ok(Self { inner_vp })
     }
 

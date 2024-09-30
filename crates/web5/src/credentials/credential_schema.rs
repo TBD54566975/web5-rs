@@ -11,7 +11,7 @@ pub struct CredentialSchema {
     pub r#type: String,
 }
 
-pub(crate) fn validate_credential_schema(
+pub(crate) async fn validate_credential_schema(
     verifiable_credential: &VerifiableCredential,
 ) -> Result<()> {
     let credential_schema = match &verifiable_credential.credential_schema {
@@ -28,7 +28,7 @@ pub(crate) fn validate_credential_schema(
 
     let url = &credential_schema.id;
 
-    let response = http_std::fetch(url, None)?;
+    let response = http_std::fetch(url, None).await?;
 
     if !(200..300).contains(&response.status_code) {
         return Err(Web5Error::JsonSchema(format!(

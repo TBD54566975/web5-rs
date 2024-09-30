@@ -50,7 +50,7 @@ impl ResolutionResult {
     ///     println!("Resolution failed with error: {:?}", result.resolution_metadata.error);
     /// }
     /// ```
-    pub fn resolve(uri: &str) -> Self {
+    pub async fn resolve(uri: &str) -> Self {
         let did = match Did::parse(uri) {
             Ok(did) => did,
             Err(_) => return ResolutionResult::from(ResolutionMetadataError::InvalidDid),
@@ -58,8 +58,8 @@ impl ResolutionResult {
 
         match did.method.as_str() {
             "jwk" => DidJwk::resolve(uri),
-            "dht" => DidDht::resolve(uri, None),
-            "web" => DidWeb::resolve(uri),
+            "dht" => DidDht::resolve(uri, None).await,
+            "web" => DidWeb::resolve(uri).await,
             _ => ResolutionResult::from(ResolutionMetadataError::MethodNotSupported),
         }
     }
@@ -98,27 +98,27 @@ mod tests {
     mod resolve {
         use super::*;
 
-        #[test]
-        fn test_invalid_did() {
-            let resolution_result = ResolutionResult::resolve("something invalid");
+        #[tokio::test]
+        async fn test_invalid_did() {
+            let resolution_result = ResolutionResult::resolve("something invalid").await;
             assert_eq!(
                 resolution_result.resolution_metadata.error,
                 Some(ResolutionMetadataError::InvalidDid)
             )
         }
 
-        #[test]
-        fn test_did_jwk() {
+        #[tokio::test]
+        async fn test_did_jwk() {
             let bearer_did = DidJwk::create(None).unwrap();
 
-            let resolution_result = ResolutionResult::resolve(&bearer_did.did.uri);
+            let resolution_result = ResolutionResult::resolve(&bearer_did.did.uri).await;
             assert_eq!(resolution_result.resolution_metadata.error, None);
             assert_eq!(resolution_result.document.unwrap(), bearer_did.document);
         }
 
-        #[test]
-        fn test_did_web() {
-            let mut mock_server = Server::new();
+        #[tokio::test]
+        async fn test_did_web() {
+            let mut mock_server = Server::new_async().await;
             let url = mock_server.url();
 
             let bearer_did = DidWeb::create(&url, None).unwrap();
@@ -130,16 +130,16 @@ mod tests {
                 .with_body(serde_json::to_string(&bearer_did.document).unwrap())
                 .create();
 
-            let resolution_result = ResolutionResult::resolve(&bearer_did.did.uri);
+            let resolution_result = ResolutionResult::resolve(&bearer_did.did.uri).await;
 
             assert_eq!(resolution_result.resolution_metadata.error, None);
             assert!(resolution_result.document.is_some());
             assert_eq!(resolution_result.document.unwrap(), bearer_did.document);
         }
 
-        #[test]
-        fn test_method_not_supported() {
-            let resolution_result = ResolutionResult::resolve("did:example:123");
+        #[tokio::test]
+        async fn test_method_not_supported() {
+            let resolution_result = ResolutionResult::resolve("did:example:123").await;
             assert!(resolution_result.resolution_metadata.error.is_some());
             assert_eq!(
                 resolution_result.resolution_metadata.error.unwrap(),

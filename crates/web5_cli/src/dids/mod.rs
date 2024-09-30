@@ -17,10 +17,10 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub fn command(&self) {
+    pub async fn command(&self) {
         match self {
             Commands::Resolve { uri } => {
-                let resolution_result = ResolutionResult::resolve(uri);
+                let resolution_result = ResolutionResult::resolve(uri).await;
                 match &resolution_result.resolution_metadata.error {
                     Some(e) => println!("{:?} {}", e, e),
                     None => match &resolution_result.document {
@@ -40,7 +40,7 @@ impl Commands {
                     },
                 }
             }
-            Commands::Create { did_create_command } => did_create_command.command(),
+            Commands::Create { did_create_command } => did_create_command.command().await,
         }
     }
 }

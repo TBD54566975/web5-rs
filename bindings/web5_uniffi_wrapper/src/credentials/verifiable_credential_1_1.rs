@@ -1,3 +1,4 @@
+use crate::get_rt;
 use crate::{dids::bearer_did::BearerDid, errors::Result};
 use std::{sync::Arc, time::SystemTime};
 use web5::credentials::CredentialStatus;
@@ -60,8 +61,12 @@ impl VerifiableCredential {
             evidence,
         };
 
-        let inner_vc =
-            InnerVerifiableCredential::create(issuer, credential_subject, Some(inner_options))?;
+        let rt = get_rt()?;
+        let inner_vc = rt.block_on(InnerVerifiableCredential::create(
+            issuer,
+            credential_subject,
+            Some(inner_options),
+        ))?;
 
         Ok(Self {
             inner_vc,
@@ -91,7 +96,8 @@ impl VerifiableCredential {
     }
 
     pub fn from_vc_jwt(vc_jwt: String, verify: bool) -> Result<Self> {
-        let inner_vc = InnerVerifiableCredential::from_vc_jwt(&vc_jwt, verify)?;
+        let rt = get_rt()?;
+        let inner_vc = rt.block_on(InnerVerifiableCredential::from_vc_jwt(&vc_jwt, verify))?;
         let json_serialized_issuer = serde_json::to_string(&inner_vc.issuer)?;
         let json_serialized_credential_subject =
             serde_json::to_string(&inner_vc.credential_subject)?;

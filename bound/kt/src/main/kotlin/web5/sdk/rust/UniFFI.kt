@@ -1429,7 +1429,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_func_did_dht_publish() != 17158.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_resolve() != 56140.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_dht_resolve() != 25411.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_func_did_jwk_create() != 64914.toShort()) {
@@ -1441,7 +1441,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_func_did_web_create() != 8722.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_func_did_web_resolve() != 15538.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_func_did_web_resolve() != 6380.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_func_ed25519_generator_generate() != 57849.toShort()) {
@@ -1585,7 +1585,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_web5_uniffi_checksum_constructor_presentationdefinition_new() != 13282.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_resolve() != 11404.toShort()) {
+    if (lib.uniffi_web5_uniffi_checksum_constructor_resolutionresult_resolve() != 14670.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_web5_uniffi_checksum_constructor_secp256k1signer_new() != 58975.toShort()) {
@@ -4986,9 +4986,10 @@ open class ResolutionResult: Disposable, AutoCloseable, ResolutionResultInterfac
 
     
     companion object {
-         fun `resolve`(`uri`: kotlin.String): ResolutionResult {
+        
+    @Throws(Web5Exception::class) fun `resolve`(`uri`: kotlin.String): ResolutionResult {
             return FfiConverterTypeResolutionResult.lift(
-    uniffiRustCall() { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_constructor_resolutionresult_resolve(
         FfiConverterString.lower(`uri`),_status)
 }
@@ -8588,9 +8589,10 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
 }
     
     
- fun `didDhtResolve`(`uri`: kotlin.String, `gatewayUrl`: kotlin.String?): ResolutionResult {
+
+    @Throws(Web5Exception::class) fun `didDhtResolve`(`uri`: kotlin.String, `gatewayUrl`: kotlin.String?): ResolutionResult {
             return FfiConverterTypeResolutionResult.lift(
-    uniffiRustCall() { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_dht_resolve(
         FfiConverterString.lower(`uri`),FfiConverterOptionalString.lower(`gatewayUrl`),_status)
 }
@@ -8626,9 +8628,10 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
     )
     }
     
- fun `didWebResolve`(`uri`: kotlin.String): ResolutionResult {
+
+    @Throws(Web5Exception::class) fun `didWebResolve`(`uri`: kotlin.String): ResolutionResult {
             return FfiConverterTypeResolutionResult.lift(
-    uniffiRustCall() { _status ->
+    uniffiRustCallWithError(Web5Exception) { _status ->
     UniffiLib.INSTANCE.uniffi_web5_uniffi_fn_func_did_web_resolve(
         FfiConverterString.lower(`uri`),_status)
 }

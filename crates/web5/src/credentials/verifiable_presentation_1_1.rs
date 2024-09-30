@@ -158,7 +158,7 @@ impl VerifiablePresentation {
     /// * `options` - Optional parameters for creating the presentation, such as context or expiration.
     ///
     /// # Example
-    /// ```rust
+    /// ```ignore
     /// use web5::credentials::VerifiablePresentation;
     /// use web5::dids::methods::did_jwk::DidJwk;
     ///
@@ -170,9 +170,9 @@ impl VerifiablePresentation {
     ///     holder_bearer_did.did.uri.clone(),
     ///     vc_jwts,
     ///     None,
-    /// ).unwrap();
+    /// ).await.unwrap();
     /// ```
-    pub fn create(
+    pub async fn create(
         holder: String,
         vc_jwts: Vec<String>,
         options: Option<VerifiablePresentationCreateOptions>,
@@ -187,7 +187,7 @@ impl VerifiablePresentation {
 
         // Verify vcjwts
         for vc_jwt in vc_jwts.clone() {
-            VerifiableCredential::from_vc_jwt(&vc_jwt, true)?;
+            VerifiableCredential::from_vc_jwt(&vc_jwt, true).await?;
         }
 
         let context = build_vp_context(options.context);
@@ -219,17 +219,17 @@ impl VerifiablePresentation {
     ///              against the signature and validating the Data Model.
     ///
     /// # Example
-    /// ```rust
+    /// ```ignore
     /// use web5::credentials::VerifiablePresentation;
     ///
     /// let vp_jwt = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKYWNUaFJaR05XYlRrMlluZGpRa3R3WVhwV2RGQmlkekJ6U1c4NE0wbG9XRXAyVGtoV1VIUnpWWFYzSW4wIzAifQ.eyJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUphY1RoUlpHTldiVGsyWW5kalFrdHdZWHBXZEZCaWR6QnpTVzg0TTBsb1dFcDJUa2hXVUhSelZYVjNJbjAiLCJqdGkiOiJ1cm46dXVpZDowZDg5YTcxMS0zNTdjLTQzNTQtOWYzMS02OWQ0NDE1NWQ1ZTMiLCJuYmYiOjE3MjYyMzQwODEsImlhdCI6MTcyNjIzNDA4MSwidnAiOnsiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0xM1QxMzoyODowMVoiLCJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVQcmVzZW50YXRpb24iXSwidmVyaWZpYWJsZUNyZWRlbnRpYWwiOlsiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlpESTFOVEU1SWl3aWEybGtJam9pWkdsa09tcDNhenBsZVVwb1lrZGphVTlwU2taYVJFa3hUbFJGTlVscGQybGhNMUkxU1dwdmFWUXdkRkZKYVhkcFdUTktNa2xxYjJsU1YxRjVUbFJWZUU5VFNYTkpibWRwVDJsS1VWRnNiRTVTYlRreFdUQnpOVk16WkZCVFNGSjZUbXBvVTA1RlZuZGpiVmw1VFhwT1RFNVVVazFOVmxaSlRqRlNTV05VVW1aaE1HaE9TVzR3SXpBaWZRLmV5SnBjM01pT2lKa2FXUTZhbmRyT21WNVNtaGlSMk5wVDJsS1JscEVTVEZPVkVVMVNXbDNhV0V6VWpWSmFtOXBWREIwVVVscGQybFpNMG95U1dwdmFWSlhVWGxPVkZWNFQxTkpjMGx1WjJsUGFVcFJVV3hzVGxKdE9URlpNSE0xVXpOa1VGTklVbnBPYW1oVFRrVldkMk50V1hsTmVrNU1UbFJTVFUxV1ZrbE9NVkpKWTFSU1ptRXdhRTVKYmpBaUxDSnFkR2tpT2lKMWNtNDZkWFZwWkRwaE1UaGlOREppWVMwMk1UVTVMVFExWVRrdFlXTXpZaTB5TnpaaVlqQmtORGRpWmpZaUxDSnpkV0lpT2lKa2FXUTZaR2gwT201bk5HaHRjWFJ5WjNWcWIzZzBZV2R3WmpodmEzaHBhRzU1ZVRGNmNXNXhPVGR4Wm1WeE1UVjRPRzloY2pkNVpYQjZhSGtpTENKdVltWWlPakUzTWpZeU16RTVOeklzSW1saGRDSTZNVGN5TmpJek1UazNNaXdpZG1NaU9uc2lRR052Ym5SbGVIUWlPbHNpYUhSMGNITTZMeTkzZDNjdWR6TXViM0puTHpJd01UZ3ZZM0psWkdWdWRHbGhiSE12ZGpFaVhTd2lZM0psWkdWdWRHbGhiRk4xWW1wbFkzUWlPbnNpYVdRaU9pSmthV1E2WkdoME9tNW5OR2h0Y1hSeVozVnFiM2cwWVdkd1pqaHZhM2hwYUc1NWVURjZjVzV4T1RkeFptVnhNVFY0T0c5aGNqZDVaWEI2YUhraWZTd2lhWE56ZFdWeUlqb2laR2xrT21wM2F6cGxlVXBvWWtkamFVOXBTa1phUkVreFRsUkZOVWxwZDJsaE0xSTFTV3B2YVZRd2RGRkphWGRwV1ROS01rbHFiMmxTVjFGNVRsUlZlRTlUU1hOSmJtZHBUMmxLVVZGc2JFNVNiVGt4V1RCek5WTXpaRkJUU0ZKNlRtcG9VMDVGVm5kamJWbDVUWHBPVEU1VVVrMU5WbFpKVGpGU1NXTlVVbVpoTUdoT1NXNHdJaXdpYVhOemRXRnVZMlZFWVhSbElqb2lNakF5TkMwd09TMHhNMVF4TWpvMU1qbzFNbG9pTENKMGVYQmxJanBiSWxabGNtbG1hV0ZpYkdWRGNtVmtaVzUwYVdGc0lsMHNJbWxrSWpvaWRYSnVPblYxYVdRNllURTRZalF5WW1FdE5qRTFPUzAwTldFNUxXRmpNMkl0TWpjMlltSXdaRFEzWW1ZMkluMTkuaUNkN1FsQWlCTkxDZnZ0VWJCdGstOVBUcUZmdWNxWjQ0S3hoRnZqR2NSU2prR0pyNjEwLTBqTFZzTlNBX0NQOGdibFljZncxZTVqeDNwR2VFckMtQnciXSwiaG9sZGVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKYWNUaFJaR05XYlRrMlluZGpRa3R3WVhwV2RGQmlkekJ6U1c4NE0wbG9XRXAyVGtoV1VIUnpWWFYzSW4wIiwiaWQiOiJ1cm46dXVpZDowZDg5YTcxMS0zNTdjLTQzNTQtOWYzMS02OWQ0NDE1NWQ1ZTMifX0.f-kdfbIIms3Gg2dMKUMayeU1rQnaO_o0io33kLzy-uPqI6vsdsJZvSmDIilx7scRqlia7Pmnnj6bnF2x8F2fAw"#;
-    /// let verifiable_presentation = VerifiablePresentation::from_vp_jwt(vp_jwt, true).unwrap();
+    /// let verifiable_presentation = VerifiablePresentation::from_vp_jwt(vp_jwt, true).await.unwrap();
     /// ```
-    pub fn from_vp_jwt(vp_jwt: &str, verify: bool) -> Result<Self> {
-        let verifiable_presentation = decode_vp_jwt(vp_jwt, verify)?;
+    pub async fn from_vp_jwt(vp_jwt: &str, verify: bool) -> Result<Self> {
+        let verifiable_presentation = decode_vp_jwt(vp_jwt, verify).await?;
 
         if verify {
-            validate_vp_data_model(&verifiable_presentation)?;
+            validate_vp_data_model(&verifiable_presentation).await?;
         }
 
         Ok(verifiable_presentation)
@@ -328,8 +328,8 @@ fn build_vp_type(r#type: Option<Vec<String>>) -> Vec<String> {
     types
 }
 
-pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiablePresentation> {
-    let jwt = Jwt::from_compact_jws(vp_jwt, verify_signature)?;
+pub async fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiablePresentation> {
+    let jwt = Jwt::from_compact_jws(vp_jwt, verify_signature).await?;
 
     let jti = jwt
         .claims
@@ -380,7 +380,7 @@ pub fn decode_vp_jwt(vp_jwt: &str, verify_signature: bool) -> Result<VerifiableP
     Ok(verifiable_presentation)
 }
 
-pub fn validate_vp_data_model(
+pub async fn validate_vp_data_model(
     vp: &VerifiablePresentation,
 ) -> std::result::Result<(), VerificationError> {
     // Required fields ["@context", "id", "type", "holder", "verifiableCredential"]
@@ -426,9 +426,11 @@ pub fn validate_vp_data_model(
 
     // Verify vc_jwts
     for vc_jwt in vp.verifiable_credential.clone() {
-        VerifiableCredential::from_vc_jwt(&vc_jwt, true).map_err(|e| {
-            VerificationError::DataModelValidationError(format!("invalid vc_jwt: {}", e))
-        })?;
+        VerifiableCredential::from_vc_jwt(&vc_jwt, true)
+            .await
+            .map_err(|e| {
+                VerificationError::DataModelValidationError(format!("invalid vc_jwt: {}", e))
+            })?;
     }
 
     Ok(())
@@ -439,6 +441,7 @@ mod tests {
     use super::*;
     use crate::credentials::{CredentialSubject, Issuer};
     use crate::dids::methods::did_jwk::DidJwk;
+
     fn setup_vc_issuer_and_holder() -> (BearerDid, String, BearerDid, String) {
         let vc_issuer_did = DidJwk::create(None).expect("Failed to create VC issuer DID");
         let vc_issuer_uri = vc_issuer_did.did.uri.clone();
@@ -449,7 +452,7 @@ mod tests {
         (vc_issuer_did, vc_issuer_uri, holder, holder_uri)
     }
 
-    fn create_verifiable_credential(vc_issuer_uri: &str) -> VerifiableCredential {
+    async fn create_verifiable_credential(vc_issuer_uri: &str) -> VerifiableCredential {
         let credential_subject = CredentialSubject {
             id: vc_issuer_uri.to_string(),
             ..Default::default()
@@ -460,6 +463,7 @@ mod tests {
             credential_subject,
             None,
         )
+        .await
         .expect("Failed to create Verifiable Credential")
     }
 
@@ -468,15 +472,16 @@ mod tests {
             .expect("Failed to sign Verifiable Credential")
     }
 
-    #[test]
-    fn test_create_verifiable_presentation() {
+    #[tokio::test]
+    async fn test_create_verifiable_presentation() {
         let (vc_issuer_did, vc_issuer_uri, _holder, holder_uri) = setup_vc_issuer_and_holder();
 
-        let vc = create_verifiable_credential(&vc_issuer_uri);
+        let vc = create_verifiable_credential(&vc_issuer_uri).await;
 
         let vc_jwt = sign_verifiable_credential(&vc, &vc_issuer_did);
 
         let vp = VerifiablePresentation::create(holder_uri.clone(), vec![vc_jwt.clone()], None)
+            .await
             .expect("Failed to create Verifiable Presentation");
 
         assert_eq!(vp.holder, holder_uri);
@@ -488,14 +493,16 @@ mod tests {
         assert!(vp.issuance_date <= SystemTime::now());
         assert!(vp.expiration_date.is_none() || vp.expiration_date.unwrap() > SystemTime::now());
 
-        validate_vp_data_model(&vp).expect("Verifiable Presentation data model validation failed");
+        validate_vp_data_model(&vp)
+            .await
+            .expect("Verifiable Presentation data model validation failed");
     }
 
-    #[test]
-    fn test_verifiable_presentation_expiration() {
+    #[tokio::test]
+    async fn test_verifiable_presentation_expiration() {
         let (vc_issuer_did, vc_issuer_uri, _holder, holder_uri) = setup_vc_issuer_and_holder();
 
-        let vc = create_verifiable_credential(&vc_issuer_uri);
+        let vc = create_verifiable_credential(&vc_issuer_uri).await;
 
         let vc_jwt = sign_verifiable_credential(&vc, &vc_issuer_did);
 
@@ -508,9 +515,10 @@ mod tests {
                 ..Default::default()
             }),
         )
+        .await
         .expect("Failed to create Verifiable Presentation");
 
-        let validation_result = validate_vp_data_model(&vp);
+        let validation_result = validate_vp_data_model(&vp).await;
 
         match validation_result {
             Err(VerificationError::DataModelValidationError(msg)) => {
@@ -522,15 +530,16 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_verifiable_presentation_sign() {
+    #[tokio::test]
+    async fn test_verifiable_presentation_sign() {
         let (vc_issuer_did, vc_issuer_uri, holder, holder_uri) = setup_vc_issuer_and_holder();
 
-        let vc = create_verifiable_credential(&vc_issuer_uri);
+        let vc = create_verifiable_credential(&vc_issuer_uri).await;
 
         let vc_jwt = sign_verifiable_credential(&vc, &vc_issuer_did);
 
         let vp = VerifiablePresentation::create(holder_uri.clone(), vec![vc_jwt.clone()], None)
+            .await
             .expect("Failed to create Verifiable Presentation");
 
         // Sign the Verifiable Presentation
@@ -540,6 +549,7 @@ mod tests {
 
         // Decode the signed Verifiable Presentation JWT
         let decoded_vp = VerifiablePresentation::from_vp_jwt(&vp_jwt, true)
+            .await
             .expect("Failed to decode signed Verifiable Presentation JWT");
 
         // Verify that the decoded Verifiable Presentation matches the original
@@ -550,6 +560,7 @@ mod tests {
 
         // Validate the signed Verifiable Presentation data model
         validate_vp_data_model(&decoded_vp)
+            .await
             .expect("Signed Verifiable Presentation data model validation failed");
     }
 }

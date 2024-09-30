@@ -5,6 +5,8 @@ mod error;
 #[cfg(not(target_arch = "wasm32"))]
 mod reqwest_client;
 
+#[cfg(target_arch = "wasm32")]
+use async_trait::async_trait;
 use lazy_static::lazy_static;
 use std::sync::{Arc, Mutex};
 
@@ -32,17 +34,18 @@ pub fn get_client() -> Arc<dyn Client> {
     client.clone()
 }
 
-pub fn fetch(url: &str, options: Option<FetchOptions>) -> Result<Response> {
+pub async fn fetch(url: &str, options: Option<FetchOptions>) -> Result<Response> {
     let client = get_client();
-    client.fetch(url, options)
+    client.fetch(url, options).await
 }
 
 #[cfg(target_arch = "wasm32")]
 pub struct ForeignEmptyClient;
 
 #[cfg(target_arch = "wasm32")]
+#[async_trait]
 impl Client for ForeignEmptyClient {
-    fn fetch(&self, _url: &str, _options: Option<FetchOptions>) -> Result<Response> {
+    async fn fetch(&self, _url: &str, _options: Option<FetchOptions>) -> Result<Response> {
         return Err(Error::Unknown("global client not set".to_string()));
     }
 }

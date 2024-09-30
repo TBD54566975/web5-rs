@@ -9,4 +9,5 @@ license-file.workspace = true
 [dependencies]
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+tokio = { version = "1.38.0", features = ["full"] }
 web5 = { path = "../../crates/web5" }

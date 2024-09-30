@@ -178,11 +178,11 @@ impl PresentationDefinition {
     /// # Returns
     ///
     /// A `Result` containing a vector of VCs that fulfill the input descriptors. If no VCs match, returns an empty vector.
-    pub fn select_credentials(&self, vc_jwts: &Vec<String>) -> Result<Vec<String>> {
+    pub async fn select_credentials(&self, vc_jwts: &Vec<String>) -> Result<Vec<String>> {
         let mut matches: HashSet<String> = HashSet::new();
 
         for input_descriptor in &self.input_descriptors {
-            let matching_vc_jwts = input_descriptor.select_credentials(vc_jwts)?;
+            let matching_vc_jwts = input_descriptor.select_credentials(vc_jwts).await?;
             if matching_vc_jwts.is_empty() {
                 return Ok(vec![]);
             }
@@ -203,7 +203,7 @@ impl PresentationDefinition {
     /// A `PresentationResult` which holds the `PresentationSubmission` and a `Vec<String>` which has the vc_jwts that were used
     /// A `PresentationSubmission` object.
     /// A `Vec<String>` which contains the chosen vc_jwts
-    pub fn create_presentation_from_credentials(
+    pub async fn create_presentation_from_credentials(
         &self,
         vc_jwts: &Vec<String>,
     ) -> Result<PresentationResult> {
@@ -215,7 +215,7 @@ impl PresentationDefinition {
         }
 
         // Select the appropriate credentials that match the presentation definition
-        let selected_credentials = self.select_credentials(vc_jwts)?;
+        let selected_credentials = self.select_credentials(vc_jwts).await?;
 
         if selected_credentials.is_empty() {
             return Err(PexError::IllegalState(
@@ -227,15 +227,17 @@ impl PresentationDefinition {
         let mut used_vc_jwts = Vec::new();
 
         for input_descriptor in &self.input_descriptors {
-            let matching_vcs: Vec<&String> = selected_credentials
-                .iter()
-                .filter(|vc_jwt| {
-                    input_descriptor
-                        .select_credentials(&vec![vc_jwt.to_string()])
-                        .map(|result| !result.is_empty())
-                        .unwrap_or(false)
-                })
-                .collect();
+            let mut matching_vcs = Vec::new();
+            for vc_jwt in &selected_credentials {
+                if let Ok(result) = input_descriptor
+                    .select_credentials(&vec![vc_jwt.to_string()])
+                    .await
+                {
+                    if !result.is_empty() {
+                        matching_vcs.push(vc_jwt);
+                    }
+                }
+            }
 
             if matching_vcs.is_empty() {
                 return Err(PexError::IllegalState(format!(
@@ -301,7 +303,7 @@ fn get_value_at_json_path(json: &str, path: &str) -> Option<Value> {
 }
 
 impl InputDescriptor {
-    pub fn select_credentials(&self, vc_jwts: &Vec<String>) -> Result<Vec<String>> {
+    pub async fn select_credentials(&self, vc_jwts: &Vec<String>) -> Result<Vec<String>> {
         let mut tokenized_fields: Vec<TokenizedField> = vec![];
         let mut json_schema_builder = JsonSchemaBuilder::new();
 
@@ -343,7 +345,7 @@ impl InputDescriptor {
         for vc_jwt in vc_jwts {
             let mut selection_candidate: Map<String, Value> = Map::new();
 
-            let vc = match VerifiableCredential::from_vc_jwt(vc_jwt, true) {
+            let vc = match VerifiableCredential::from_vc_jwt(vc_jwt, true).await {
                 Ok(vc) => vc,
                 Err(_) => {
                     continue;
@@ -422,8 +424,8 @@ mod tests {
     use serde_json::json;
     use std::collections::HashMap;
 
-    #[test]
-    fn test_create_presentation_from_credentials() {
+    #[tokio::test]
+    async fn test_create_presentation_from_credentials() {
         let issuer = DidJwk::create(None).unwrap();
         let issuer_uri = issuer.clone().did.uri;
 
@@ -460,13 +462,16 @@ mod tests {
             CredentialSubject::from(issuer_uri.clone()),
             Default::default(),
         )
+        .await
         .unwrap();
 
         let signed_vcjwt_1 = vc_1.sign(&issuer.clone(), None).unwrap();
 
         let vc_jwts = vec![signed_vcjwt_1];
 
-        let result = presentation_definition.create_presentation_from_credentials(&vc_jwts);
+        let result = presentation_definition
+            .create_presentation_from_credentials(&vc_jwts)
+            .await;
 
         assert!(result.is_ok(), "Failed to create presentation submission");
 
@@ -510,8 +515,8 @@ mod tests {
     ///
     /// This flow illustrates how a holder can create a VP that satisfies a verifier's requirements, based on input descriptors.
 
-    #[test]
-    fn test_presentation_exchange_full_flow() {
+    #[tokio::test]
+    async fn test_presentation_exchange_full_flow() {
         // Step 1: Create an issuer (typically the entity that issued the credential)
         let issuer = DidJwk::create(None).unwrap();
         let issuer_uri = issuer.clone().did.uri;
@@ -552,6 +557,7 @@ mod tests {
             CredentialSubject::from(issuer_uri.clone()),
             Default::default(),
         )
+        .await
         .unwrap();
 
         // Step 4: Sign the VC to generate a VC in JWT format
@@ -563,6 +569,7 @@ mod tests {
         // Step 6: Select the credentials that match the PD's input descriptors
         let presentation_result = presentation_definition
             .create_presentation_from_credentials(&vc_jwts)
+            .await
             .unwrap();
 
         // Step 7: Create the Verifiable Presentation (VP) with the selected credentials and additional data
@@ -588,6 +595,7 @@ mod tests {
             presentation_result.matched_vc_jwts, // Use the selected credentials from the PD
             Some(vp_create_options),
         )
+        .await
         .expect("Failed to create Verifiable Presentation");
 
         // Step 8: Sign the VP to generate a JWT format
@@ -595,6 +603,7 @@ mod tests {
 
         // Step 9: Decode and verify the signed VP to ensure correctness
         let decoded_vp = VerifiablePresentation::from_vp_jwt(&vp_jwt, true)
+            .await
             .expect("Failed to decode Verifiable Presentation JWT");
 
         // Step 10: Verify the holder matches the expected holder
@@ -618,8 +627,8 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_presentation_exchange_with_multiple_vcs() {
+    #[tokio::test]
+    async fn test_presentation_exchange_with_multiple_vcs() {
         let issuer = DidJwk::create(None).unwrap();
         let issuer_uri = issuer.clone().did.uri;
 
@@ -684,6 +693,7 @@ mod tests {
             },
             Default::default(),
         )
+        .await
         .unwrap();
 
         // For vc_2, we add the "role" property to match the second input descriptor
@@ -701,6 +711,7 @@ mod tests {
             vc_2_credential_subject,
             Default::default(),
         )
+        .await
         .unwrap();
 
         // vc_3 won't match either input descriptor
@@ -712,6 +723,7 @@ mod tests {
             },
             Default::default(),
         )
+        .await
         .unwrap();
 
         // Sign all three VCs
@@ -728,6 +740,7 @@ mod tests {
         // Unwrap the result of `create_presentation_from_credentials`
         let presentation_result = presentation_definition
             .create_presentation_from_credentials(&vc_jwts)
+            .await
             .unwrap();
 
         let holder = DidJwk::create(None).unwrap();
@@ -750,12 +763,14 @@ mod tests {
             presentation_result.matched_vc_jwts,
             Some(vp_create_options),
         )
+        .await
         .expect("Failed to create Verifiable Presentation");
 
         let vp_jwt = vp.sign(&holder.clone(), None).unwrap();
 
         // Decode the Verifiable Presentation JWT
         let decoded_vp = VerifiablePresentation::from_vp_jwt(&vp_jwt, true)
+            .await
             .expect("Failed to decode Verifiable Presentation JWT");
 
         // Check that the holder matches

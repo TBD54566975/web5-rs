@@ -1,23 +1,24 @@
 use crate::{Client, FetchOptions, Method, Response, Result};
-use reqwest::blocking::Client as ReqwestBlockingClient;
+use async_trait::async_trait;
 use reqwest::header::HeaderMap;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
 pub struct ReqwestClient {
-    client: ReqwestBlockingClient,
+    client: reqwest::Client,
 }
 
 impl ReqwestClient {
     pub fn new() -> Self {
         ReqwestClient {
-            client: ReqwestBlockingClient::new(),
+            client: reqwest::Client::new(),
         }
     }
 }
 
+#[async_trait]
 impl Client for ReqwestClient {
-    fn fetch(&self, url: &str, options: Option<FetchOptions>) -> Result<Response> {
+    async fn fetch(&self, url: &str, options: Option<FetchOptions>) -> Result<Response> {
         let options = options.unwrap_or_default();
         let method = options.method.unwrap_or(Method::Get).to_string();
 
@@ -43,7 +44,7 @@ impl Client for ReqwestClient {
             req = req.body(body);
         }
 
-        let res = req.send().map_err(crate::Error::from)?;
+        let res = req.send().await.map_err(crate::Error::from)?;
 
         let status_code = res.status().as_u16();
         let mut headers = HashMap::new();
@@ -51,7 +52,7 @@ impl Client for ReqwestClient {
             headers.insert(key.to_string(), value.to_str().unwrap().to_string());
         }
 
-        let body = res.bytes().map_err(crate::Error::from)?.to_vec();
+        let body = res.bytes().await.map_err(crate::Error::from)?.to_vec();
 
         Ok(Response {
             status_code,

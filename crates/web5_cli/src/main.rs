@@ -25,11 +25,12 @@ enum Commands {
     },
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Did { did_command } => did_command.command(),
-        Commands::Vc { vc_command } => vc_command.command(),
+        Commands::Did { did_command } => did_command.command().await,
+        Commands::Vc { vc_command } => vc_command.command().await,
     }
 }
