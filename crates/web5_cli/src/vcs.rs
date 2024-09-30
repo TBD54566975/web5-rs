@@ -3,7 +3,7 @@ use clap::Subcommand;
 use std::time::SystemTime;
 use web5::{
     credentials::{
-        CredentialSubject, Issuer, {VerifiableCredential, VerifiableCredentialCreateOptions},
+        CredentialSubject, Issuer, VerifiableCredential, VerifiableCredentialCreateOptions,
     },
     dids::{bearer_did::BearerDid, portable_did::PortableDid},
     json::{FromJson, ToJson},
@@ -34,7 +34,7 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub fn command(&self) {
+    pub async fn command(&self) {
         match self {
             Commands::Create {
                 credential_subject_id,
@@ -75,6 +75,7 @@ impl Commands {
                         ..Default::default()
                     }),
                 )
+                .await
                 .unwrap();
 
                 let mut output_str = match no_indent {
@@ -98,7 +99,7 @@ impl Commands {
                 vc_jwt,
                 no_indent,
                 json_escape,
-            } => match VerifiableCredential::from_vc_jwt(vc_jwt, true) {
+            } => match VerifiableCredential::from_vc_jwt(vc_jwt, true).await {
                 Err(e) => {
                     println!("\n❌ Verfication failed\n");
                     println!("{:?} {}", e, e);

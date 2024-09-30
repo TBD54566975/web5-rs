@@ -68,32 +68,35 @@ mod tests {
 
         use super::*;
 
-        #[test]
-        fn test_can_sign_then_verify() {
+        #[tokio::test]
+        async fn test_can_sign_then_verify() {
             let bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
                 credential_subject(),
                 Default::default(),
             )
+            .await
             .unwrap();
 
             let vc_jwt =
                 sign_with_did(&vc, &bearer_did, None).expect("should be able to sign vc jwt");
 
             let vc_from_vc_jwt = VerifiableCredential::from_vc_jwt(&vc_jwt, true)
+                .await
                 .expect("should be able to verify the signed vc jwt");
             assert_eq!(vc.id, vc_from_vc_jwt.id)
         }
 
-        #[test]
-        fn test_bearer_did_mismatch_issuer() {
+        #[tokio::test]
+        async fn test_bearer_did_mismatch_issuer() {
             let bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
                 credential_subject(),
                 Default::default(),
             )
+            .await
             .unwrap();
 
             let different_bearer_did = DidJwk::create(None).unwrap();
@@ -113,32 +116,34 @@ mod tests {
             };
         }
 
-        #[test]
-        fn test_defaults_to_first_vm() {
+        #[tokio::test]
+        async fn test_defaults_to_first_vm() {
             let bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
                 credential_subject(),
                 Default::default(),
             )
+            .await
             .unwrap();
 
             let vc_jwt =
                 sign_with_did(&vc, &bearer_did, None).expect("should sign with default vm");
 
-            let kid = Jwt::from_compact_jws(&vc_jwt, false).unwrap().kid;
+            let kid = Jwt::from_compact_jws(&vc_jwt, false).await.unwrap().kid;
 
             assert_eq!(bearer_did.document.verification_method[0].id, kid)
         }
 
-        #[test]
-        fn test_vm_must_be_assertion_method() {
+        #[tokio::test]
+        async fn test_vm_must_be_assertion_method() {
             let mut bearer_did = DidJwk::create(None).unwrap();
             let vc = VerifiableCredential::create(
                 Issuer::String(bearer_did.did.uri.clone()),
                 credential_subject(),
                 Default::default(),
             )
+            .await
             .unwrap();
 
             // remove the assertionMethod

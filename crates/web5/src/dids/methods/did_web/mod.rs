@@ -189,14 +189,14 @@ impl DidWeb {
     /// # Errors
     ///
     /// Returns a `ResolutionMetadataError` if the DID is invalid or cannot be resolved.
-    pub fn resolve(uri: &str) -> ResolutionResult {
+    pub async fn resolve(uri: &str) -> ResolutionResult {
         let did = match Did::parse(uri) {
             Ok(did) => did,
             Err(_) => return ResolutionResult::from(ResolutionMetadataError::InvalidDid),
         };
 
         let resolution_result = match Resolver::new(did) {
-            Ok(resolver) => resolver.resolve(),
+            Ok(resolver) => resolver.resolve().await,
             Err(e) => return ResolutionResult::from(e),
         };
 
@@ -450,17 +450,17 @@ mod tests {
         use super::*;
         use mockito::Server;
 
-        #[test]
-        fn test_invalid_did() {
-            let resolution_result = DidWeb::resolve("something invalid");
+        #[tokio::test]
+        async fn test_invalid_did() {
+            let resolution_result = DidWeb::resolve("something invalid").await;
             assert_eq!(
                 resolution_result.resolution_metadata.error,
                 Some(ResolutionMetadataError::InvalidDid)
             )
         }
 
-        #[test]
-        fn test_create_then_resolve() {
+        #[tokio::test]
+        async fn test_create_then_resolve() {
             let mut mock_server = Server::new();
             let url = mock_server.url();
 
@@ -475,7 +475,7 @@ mod tests {
                 .with_body(serde_json::to_string(&bearer_did.document).unwrap())
                 .create();
 
-            let resolution_result = DidWeb::resolve(&bearer_did.did.uri);
+            let resolution_result = DidWeb::resolve(&bearer_did.did.uri).await;
 
             assert_eq!(resolution_result.resolution_metadata.error, None);
             assert!(resolution_result.document.is_some());

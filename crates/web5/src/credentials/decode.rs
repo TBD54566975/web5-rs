@@ -6,8 +6,8 @@ use super::{
 use crate::errors::Result;
 use crate::{jose::Jwt, json::FromJsonValue};
 
-pub fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredential> {
-    let jwt = Jwt::from_compact_jws(vc_jwt, verify_signature)?;
+pub async fn decode(vc_jwt: &str, verify_signature: bool) -> Result<VerifiableCredential> {
+    let jwt = Jwt::from_compact_jws(vc_jwt, verify_signature).await?;
 
     let jti = jwt
         .claims

@@ -117,8 +117,8 @@ mod test_vectors {
             did_resolution_metadata: ResolutionMetadata,
         }
 
-        #[test]
-        fn resolve() {
+        #[tokio::test]
+        async fn resolve() {
             let path = "did_dht/resolve.json";
             let vectors: TestVectorFile<VectorInput, VectorOutput> =
                 TestVectorFile::load_from_path(path);
@@ -146,7 +146,7 @@ mod test_vectors {
                     // };
                 }
 
-                let resolution_result = DidDht::resolve(&vector_input.did_uri, None);
+                let resolution_result = DidDht::resolve(&vector_input.did_uri, None).await;
 
                 let metadata_error = resolution_result.resolution_metadata.error.as_ref();
                 let expected_error = vector_output.did_resolution_metadata.error.as_ref();
@@ -179,9 +179,9 @@ mod test_vectors {
             pub selected_credentials: Vec<String>,
         }
 
-        #[test]
+        #[tokio::test]
         #[ignore] // TODO temporarily ignoring, because web5-spec test vectors use did:key which isn't supported
-        fn select_credentials() {
+        async fn select_credentials() {
             let path = "presentation_exchange/select_credentials.json";
             let vectors: TestVectorFile<VectorInput, VectorOutput> =
                 TestVectorFile::load_from_path(path);
@@ -196,6 +196,7 @@ mod test_vectors {
 
                 let selected_credentials = presentation_definition
                     .select_credentials(&vc_jwts)
+                    .await
                     .expect(&error_msg);
 
                 let set1: HashSet<_> = selected_credentials.iter().collect();
@@ -335,8 +336,8 @@ mod test_vectors {
             pub vc_jwt: String,
         }
 
-        #[test]
-        fn verify() {
+        #[tokio::test]
+        async fn verify() {
             let path = "credentials/verify.json";
             let vectors: TestVectorFile<VerifyVectorInput, Option<bool>> =
                 TestVectorFile::load_from_path(path);
@@ -347,7 +348,7 @@ mod test_vectors {
                 }
 
                 let vc_jwt = vector.input.vc_jwt;
-                let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true);
+                let result = VerifiableCredential::from_vc_jwt(&vc_jwt, true).await;
 
                 if matches!(vector.errors, Some(true)) {
                     assert!(

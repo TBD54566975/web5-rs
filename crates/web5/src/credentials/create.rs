@@ -13,7 +13,7 @@ use crate::{
 use std::time::SystemTime;
 use uuid::Uuid;
 
-pub fn create_vc(
+pub async fn create_vc(
     issuer: Issuer,
     credential_subject: CredentialSubject,
     options: Option<VerifiableCredentialCreateOptions>,
@@ -42,7 +42,7 @@ pub fn create_vc(
         evidence: options.evidence,
     };
 
-    validate_credential_schema(&verifiable_credential)?;
+    validate_credential_schema(&verifiable_credential).await?;
 
     Ok(verifiable_credential)
 }
@@ -106,6 +106,7 @@ mod tests {
     use super::*;
     use crate::credentials::credential_schema::{CredentialSchema, CREDENTIAL_SCHEMA_TYPE};
     use crate::json::JsonValue;
+    use crate::{credentials::issuer::ObjectIssuer, json::JsonObject};
     use mockito::Server;
     use regex::Regex;
     use std::collections::HashMap;
@@ -116,9 +117,11 @@ mod tests {
     fn issuer() -> Issuer {
         Issuer::from(ISSUER_DID_URI)
     }
+
     fn credential_subject() -> CredentialSubject {
         CredentialSubject::from(SUBJECT_DID_URI)
     }
+
     fn mock_json_schema(url: String, schema_override: Option<String>) -> String {
         let schema = schema_override
             .unwrap_or_else(|| "https://json-schema.org/draft/2020-12/schema".to_string());
@@ -148,6 +151,7 @@ mod tests {
                 }}"###
         )
     }
+
     fn mock_credential_schema(url: String) -> Option<CredentialSchema> {
         Some(CredentialSchema {
             id: format!("{}/schemas/email.json", url),
@@ -155,116 +159,128 @@ mod tests {
         })
     }
 
-    use crate::{credentials::issuer::ObjectIssuer, json::JsonObject};
-
-    #[test]
-    fn test_default_context_added_if_not_supplied() {
+    #[tokio::test]
+    async fn test_default_context_added_if_not_supplied() {
         let vc = create_vc(
             issuer(),
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
         )
+        .await
         .unwrap();
 
         assert_eq!(vc.context, vec![BASE_CONTEXT]);
     }
 
-    #[test]
-    fn test_default_context_not_duplicated_if_supplied() {
+    #[tokio::test]
+    async fn test_default_context_not_duplicated_if_supplied() {
         let options = VerifiableCredentialCreateOptions {
             context: Some(vec![BASE_CONTEXT.to_string()]),
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options))
+            .await
+            .unwrap();
 
         assert_eq!(vc.context, vec![BASE_CONTEXT]);
     }
 
-    #[test]
-    fn test_developer_provided_context_appended_to_default() {
+    #[tokio::test]
+    async fn test_developer_provided_context_appended_to_default() {
         let custom_context = "https://example.com/custom-context";
         let options = VerifiableCredentialCreateOptions {
             context: Some(vec![custom_context.to_string()]),
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options))
+            .await
+            .unwrap();
 
         assert_eq!(vc.context, vec![BASE_CONTEXT, custom_context]);
     }
 
-    #[test]
-    fn test_default_type_added_if_not_supplied() {
+    #[tokio::test]
+    async fn test_default_type_added_if_not_supplied() {
         let vc = create_vc(
             issuer(),
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
         )
+        .await
         .unwrap();
 
         assert_eq!(vc.r#type, vec![BASE_TYPE]);
     }
 
-    #[test]
-    fn test_default_type_not_duplicated_if_supplied() {
+    #[tokio::test]
+    async fn test_default_type_not_duplicated_if_supplied() {
         let options = VerifiableCredentialCreateOptions {
             r#type: Some(vec![BASE_TYPE.to_string()]),
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options))
+            .await
+            .unwrap();
 
         assert_eq!(vc.r#type, vec![BASE_TYPE]);
     }
 
-    #[test]
-    fn test_developer_provided_type_appended_to_default() {
+    #[tokio::test]
+    async fn test_developer_provided_type_appended_to_default() {
         let custom_type = "CustomType";
         let options = VerifiableCredentialCreateOptions {
             r#type: Some(vec![custom_type.to_string()]),
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options))
+            .await
+            .unwrap();
 
         assert_eq!(vc.r#type, vec![BASE_TYPE, custom_type]);
     }
 
-    #[test]
-    fn test_id_generated_if_not_supplied() {
+    #[tokio::test]
+    async fn test_id_generated_if_not_supplied() {
         let vc = create_vc(
             issuer(),
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
         )
+        .await
         .unwrap();
 
         let uuid_regex = Regex::new(r"^urn:uuid:[0-9a-fA-F-]{36}$").unwrap();
         assert!(uuid_regex.is_match(&vc.id));
     }
 
-    #[test]
-    fn test_id_must_be_set_if_supplied() {
+    #[tokio::test]
+    async fn test_id_must_be_set_if_supplied() {
         let custom_id = "custom-id";
         let options = VerifiableCredentialCreateOptions {
             id: Some(custom_id.to_string()),
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options))
+            .await
+            .unwrap();
 
         assert_eq!(vc.id, custom_id);
     }
 
-    #[test]
-    fn test_issuer_string_must_not_be_empty() {
+    #[tokio::test]
+    async fn test_issuer_string_must_not_be_empty() {
         let empty_issuer = Issuer::from("");
         let result = create_vc(
             empty_issuer,
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -274,25 +290,27 @@ mod tests {
         };
     }
 
-    #[test]
-    fn test_issuer_string_must_be_set() {
+    #[tokio::test]
+    async fn test_issuer_string_must_be_set() {
         let vc = create_vc(
             issuer(),
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
         )
+        .await
         .unwrap();
 
         assert_eq!(vc.issuer, issuer());
     }
 
-    #[test]
-    fn test_issuer_string_must_be_valid_did() {
+    #[tokio::test]
+    async fn test_issuer_string_must_be_valid_did() {
         let result = create_vc(
             Issuer::String("did:invalid-123".to_string()),
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -302,8 +320,8 @@ mod tests {
         };
     }
 
-    #[test]
-    fn test_issuer_object_id_must_not_be_empty() {
+    #[tokio::test]
+    async fn test_issuer_object_id_must_not_be_empty() {
         let issuer = Issuer::Object(ObjectIssuer {
             id: "".to_string(),
             name: "Example Name".to_string(),
@@ -314,7 +332,8 @@ mod tests {
             issuer,
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -324,8 +343,8 @@ mod tests {
         };
     }
 
-    #[test]
-    fn test_issuer_object_id_must_be_valid_did() {
+    #[tokio::test]
+    async fn test_issuer_object_id_must_be_valid_did() {
         let result = create_vc(
             issuer(),
             CredentialSubject {
@@ -333,7 +352,8 @@ mod tests {
                 ..Default::default()
             },
             Some(VerifiableCredentialCreateOptions::default()),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -346,8 +366,8 @@ mod tests {
         };
     }
 
-    #[test]
-    fn test_issuer_object_name_must_not_be_empty() {
+    #[tokio::test]
+    async fn test_issuer_object_name_must_not_be_empty() {
         let issuer = Issuer::Object(ObjectIssuer {
             id: ISSUER_DID_URI.to_string(),
             name: "".to_string(),
@@ -358,7 +378,8 @@ mod tests {
             issuer,
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -368,8 +389,8 @@ mod tests {
         };
     }
 
-    #[test]
-    fn test_issuer_object_must_be_set() {
+    #[tokio::test]
+    async fn test_issuer_object_must_be_set() {
         let issuer = Issuer::Object(ObjectIssuer {
             id: ISSUER_DID_URI.to_string(),
             name: "Example Name".to_string(),
@@ -381,13 +402,14 @@ mod tests {
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
         )
+        .await
         .unwrap();
 
         assert_eq!(vc.issuer, issuer);
     }
 
-    #[test]
-    fn test_issuer_object_supports_additional_properties() {
+    #[tokio::test]
+    async fn test_issuer_object_supports_additional_properties() {
         let additional_properties = JsonObject {
             properties: HashMap::from([(
                 "extra_key".to_string(),
@@ -406,6 +428,7 @@ mod tests {
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
         )
+        .await
         .unwrap();
 
         match vc.issuer {
@@ -416,15 +439,16 @@ mod tests {
         };
     }
 
-    #[test]
-    fn test_credential_subject_id_must_not_be_empty() {
+    #[tokio::test]
+    async fn test_credential_subject_id_must_not_be_empty() {
         let credential_subject = CredentialSubject::from("");
 
         let result = create_vc(
             issuer(),
             credential_subject,
             Some(VerifiableCredentialCreateOptions::default()),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -434,20 +458,21 @@ mod tests {
         };
     }
 
-    #[test]
-    fn test_credential_subject_must_be_set() {
+    #[tokio::test]
+    async fn test_credential_subject_must_be_set() {
         let vc = create_vc(
             issuer(),
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
         )
+        .await
         .unwrap();
 
         assert_eq!(vc.credential_subject, credential_subject());
     }
 
-    #[test]
-    fn test_credential_subject_supports_additional_properties() {
+    #[tokio::test]
+    async fn test_credential_subject_supports_additional_properties() {
         let additional_properties = JsonObject {
             properties: HashMap::from([(
                 "extra_key".to_string(),
@@ -465,6 +490,7 @@ mod tests {
             credential_subject.clone(),
             Some(VerifiableCredentialCreateOptions::default()),
         )
+        .await
         .unwrap();
 
         assert_eq!(
@@ -473,8 +499,8 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_issuance_date_must_be_set() {
+    #[tokio::test]
+    async fn test_issuance_date_must_be_set() {
         let issuance_date = SystemTime::now();
 
         let options = VerifiableCredentialCreateOptions {
@@ -482,18 +508,21 @@ mod tests {
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options))
+            .await
+            .unwrap();
 
         assert_eq!(vc.issuance_date, issuance_date);
     }
 
-    #[test]
-    fn test_issuance_date_must_be_now_if_not_supplied() {
+    #[tokio::test]
+    async fn test_issuance_date_must_be_now_if_not_supplied() {
         let vc = create_vc(
             issuer(),
             credential_subject(),
             Some(VerifiableCredentialCreateOptions::default()),
         )
+        .await
         .unwrap();
 
         let now = SystemTime::now();
@@ -502,21 +531,23 @@ mod tests {
         assert!(vc.issuance_date >= hundred_millis_ago && vc.issuance_date <= now);
     }
 
-    #[test]
-    fn test_expiration_date_must_be_set_if_supplied() {
+    #[tokio::test]
+    async fn test_expiration_date_must_be_set_if_supplied() {
         let expiration_date = SystemTime::now();
         let options = VerifiableCredentialCreateOptions {
             expiration_date: Some(expiration_date),
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options))
+            .await
+            .unwrap();
 
         assert_eq!(vc.expiration_date, Some(expiration_date));
     }
 
-    #[test]
-    fn test_evidence_must_be_set_if_supplied() {
+    #[tokio::test]
+    async fn test_evidence_must_be_set_if_supplied() {
         let mut evidence_item = JsonObject::new();
         evidence_item.insert_value("A Key", JsonValue::String("A Value".to_string()));
         let evidence = vec![evidence_item];
@@ -526,13 +557,15 @@ mod tests {
             ..Default::default()
         };
 
-        let vc = create_vc(issuer(), credential_subject(), Some(options)).unwrap();
+        let vc = create_vc(issuer(), credential_subject(), Some(options))
+            .await
+            .unwrap();
 
         assert_eq!(Some(evidence), vc.evidence);
     }
 
-    #[test]
-    fn test_schema_type_must_be_jsonschema() {
+    #[tokio::test]
+    async fn test_schema_type_must_be_jsonschema() {
         let result = create_vc(
             issuer(),
             credential_subject(),
@@ -543,7 +576,8 @@ mod tests {
                 }),
                 ..Default::default()
             }),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::Parameter(err_msg)) => {
@@ -556,8 +590,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_schema_resolve_network_issue() {
+    #[tokio::test]
+    async fn test_schema_resolve_network_issue() {
         let url = "http://local".to_string(); // here
 
         let result = create_vc(
@@ -567,7 +601,8 @@ mod tests {
                 credential_schema: mock_credential_schema(url),
                 ..Default::default()
             }),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::Http(err)) => {
@@ -580,8 +615,8 @@ mod tests {
         };
     }
 
-    #[test]
-    fn test_schema_resolve_non_success() {
+    #[tokio::test]
+    async fn test_schema_resolve_non_success() {
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -597,7 +632,8 @@ mod tests {
                 credential_schema: mock_credential_schema(url),
                 ..Default::default()
             }),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::JsonSchema(err_msg)) => {
@@ -610,8 +646,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_schema_resolve_invalid_response_body() {
+    #[tokio::test]
+    async fn test_schema_resolve_invalid_response_body() {
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -629,7 +665,8 @@ mod tests {
                 credential_schema: mock_credential_schema(url),
                 ..Default::default()
             }),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::Json(err_msg)) => {
@@ -642,8 +679,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_schema_invalid_json_schema() {
+    #[tokio::test]
+    async fn test_schema_invalid_json_schema() {
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -664,7 +701,8 @@ mod tests {
                 credential_schema: mock_credential_schema(url),
                 ..Default::default()
             }),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::JsonSchema(err_msg)) => {
@@ -677,8 +715,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_schema_do_not_support_draft04() {
+    #[tokio::test]
+    async fn test_schema_do_not_support_draft04() {
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -699,7 +737,8 @@ mod tests {
                 credential_schema: mock_credential_schema(url),
                 ..Default::default()
             }),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::JsonSchema(err_msg)) => {
@@ -712,8 +751,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_schema_do_not_support_draft06() {
+    #[tokio::test]
+    async fn test_schema_do_not_support_draft06() {
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -734,7 +773,8 @@ mod tests {
                 credential_schema: mock_credential_schema(url),
                 ..Default::default()
             }),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::JsonSchema(err_msg)) => {
@@ -747,8 +787,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_schema_fails_validation() {
+    #[tokio::test]
+    async fn test_schema_fails_validation() {
         let mut mock_server = Server::new();
         let url = mock_server.url();
 
@@ -766,7 +806,8 @@ mod tests {
                 credential_schema: mock_credential_schema(url),
                 ..Default::default()
             }),
-        );
+        )
+        .await;
 
         match result {
             Err(Web5Error::JsonSchema(err_msg)) => {
@@ -779,8 +820,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_schema_example_from_spec() {
+    #[tokio::test]
+    async fn test_schema_example_from_spec() {
         // using Example 1 & Example 2 from here https://www.w3.org/TR/vc-json-schema/#jsonschema
 
         let mut mock_server = Server::new();
@@ -810,6 +851,7 @@ mod tests {
                 ..Default::default()
             }),
         )
+        .await
         .unwrap();
     }
 }

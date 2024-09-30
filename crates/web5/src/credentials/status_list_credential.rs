@@ -58,7 +58,7 @@ impl StatusListCredential {
     ///     Some(vec![verifiable_credential.clone()]),
     /// ).unwrap();
     /// ```
-    pub fn create(
+    pub async fn create(
         issuer: Issuer,
         status_purpose: String,
         disabled_credentials: Option<Vec<VerifiableCredential>>,
@@ -105,7 +105,7 @@ impl StatusListCredential {
         };
 
         let verifiable_credential =
-            VerifiableCredential::create(issuer, credential_subject, Some(vc_options))?;
+            VerifiableCredential::create(issuer, credential_subject, Some(vc_options)).await?;
 
         Ok(Self {
             base: verifiable_credential,
@@ -347,7 +347,7 @@ mod tests {
         CredentialSubject::from(SUBJECT_DID_URI)
     }
 
-    fn create_test_credential(index: &str, purpose: &str) -> VerifiableCredential {
+    async fn create_test_credential(index: &str, purpose: &str) -> VerifiableCredential {
         let credential_status = CredentialStatus {
             id: format!("https://example.com/status/{}", index),
             r#type: STATUS_LIST_2021_ENTRY.to_string(),
@@ -364,28 +364,30 @@ mod tests {
                 ..Default::default()
             }),
         )
+        .await
         .unwrap()
     }
 
-    fn create_test_credential_with_type(
+    async fn create_test_credential_with_type(
         index: &str,
         status_type: &str,
         purpose: &str,
     ) -> VerifiableCredential {
-        let mut credential = create_test_credential(index, purpose);
+        let mut credential = create_test_credential(index, purpose).await;
         if let Some(status) = &mut credential.credential_status {
             status.r#type = status_type.to_string();
         }
         credential
     }
 
-    #[test]
-    fn test_create_status_list_credential2() {
+    #[tokio::test]
+    async fn test_create_status_list_credential2() {
         let issuer = Issuer::from("did:example:123".to_string());
         let status_purpose = "revocation".to_string();
         let credentials_to_disable = None;
 
-        let result = StatusListCredential::create(issuer, status_purpose, credentials_to_disable);
+        let result =
+            StatusListCredential::create(issuer, status_purpose, credentials_to_disable).await;
 
         assert!(result.is_ok());
         let status_list_credential = result.unwrap();
@@ -449,39 +451,40 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[test]
-    fn test_is_disabled() -> Result<()> {
+    #[tokio::test]
+    async fn test_is_disabled() -> Result<()> {
         // Create a StatusListCredential with some disabled credentials
         let issuer = Issuer::from("did:example:issuer");
         let status_purpose = "revocation".to_string();
         let credentials_to_disable = Some(vec![
-            create_test_credential("3", &status_purpose),
-            create_test_credential("1023", &status_purpose),
+            create_test_credential("3", &status_purpose).await,
+            create_test_credential("1023", &status_purpose).await,
         ]);
         let status_list_credential =
-            StatusListCredential::create(issuer, status_purpose.clone(), credentials_to_disable)?;
+            StatusListCredential::create(issuer, status_purpose.clone(), credentials_to_disable)
+                .await?;
 
         // Test 1: Check a disabled credential (index 3)
-        let disabled_credential = create_test_credential("3", &status_purpose);
+        let disabled_credential = create_test_credential("3", &status_purpose).await;
         assert!(status_list_credential.is_disabled(&disabled_credential)?);
 
         // Test 2: Check another disabled credential (index 1023)
-        let another_disabled_credential = create_test_credential("1023", &status_purpose);
+        let another_disabled_credential = create_test_credential("1023", &status_purpose).await;
         assert!(status_list_credential.is_disabled(&another_disabled_credential)?);
 
         // Test 3: Check an enabled credential (index 5)
-        let enabled_credential = create_test_credential("5", &status_purpose);
+        let enabled_credential = create_test_credential("5", &status_purpose).await;
         assert!(!status_list_credential.is_disabled(&enabled_credential)?);
 
         // Test 4: Check a credential with mismatched status type
         let mismatched_type_credential =
-            create_test_credential_with_type("7", "InvalidType", &status_purpose);
+            create_test_credential_with_type("7", "InvalidType", &status_purpose).await;
         assert!(status_list_credential
             .is_disabled(&mismatched_type_credential)
             .is_err());
 
         // Test 5: Check a credential with mismatched status purpose
-        let mismatched_purpose_credential = create_test_credential("9", "suspension");
+        let mismatched_purpose_credential = create_test_credential("9", "suspension").await;
         assert!(status_list_credential
             .is_disabled(&mismatched_purpose_credential)
             .is_err());
@@ -491,7 +494,8 @@ mod tests {
             Issuer::from("did:example:issuer"),
             CredentialSubject::from("did:example:subject"),
             None,
-        )?;
+        )
+        .await?;
         assert!(status_list_credential
             .is_disabled(&no_status_credential)
             .is_err());
@@ -499,12 +503,14 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn test_full_flow() {
+    #[tokio::test]
+    async fn test_full_flow() {
         let status_purpose = "revocation".to_string();
         let credentials_to_disable = None;
         let status_list_credential =
-            StatusListCredential::create(issuer(), status_purpose, credentials_to_disable).unwrap();
+            StatusListCredential::create(issuer(), status_purpose, credentials_to_disable)
+                .await
+                .unwrap();
 
         let encoded_list = StatusListCredential::get_additional_property(
             &status_list_credential
@@ -540,8 +546,9 @@ mod tests {
             ..Default::default()
         });
 
-        let vc1 =
-            VerifiableCredential::create(issuer(), credential_subject(), vc1_options).unwrap();
+        let vc1 = VerifiableCredential::create(issuer(), credential_subject(), vc1_options)
+            .await
+            .unwrap();
 
         let vc2_options = Some(VerifiableCredentialCreateOptions {
             credential_status: Some(CredentialStatus {
@@ -554,8 +561,9 @@ mod tests {
             ..Default::default()
         });
 
-        let vc2 =
-            VerifiableCredential::create(issuer(), credential_subject(), vc2_options).unwrap();
+        let vc2 = VerifiableCredential::create(issuer(), credential_subject(), vc2_options)
+            .await
+            .unwrap();
 
         let credentials_to_disable = Some(vec![vc1, vc2]);
 
@@ -564,6 +572,7 @@ mod tests {
             "revocation".to_string(),
             credentials_to_disable,
         )
+        .await
         .unwrap();
 
         let updated_encoded_list = StatusListCredential::get_additional_property(

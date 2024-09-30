@@ -105,7 +105,7 @@ impl Jws {
         })
     }
 
-    pub fn from_compact_jws(compact_jws: &str, verify: bool) -> Result<Self> {
+    pub async fn from_compact_jws(compact_jws: &str, verify: bool) -> Result<Self> {
         let parts = compact_jws
             .split('.')
             .map(String::from)
@@ -141,7 +141,7 @@ impl Jws {
         }
 
         if verify {
-            let resolution_result = ResolutionResult::resolve(&kid);
+            let resolution_result = ResolutionResult::resolve(&kid).await;
             let document = match resolution_result.resolution_metadata.error {
                 Some(e) => return Err(e.into()),
                 None => match resolution_result.document {
@@ -250,8 +250,8 @@ impl Jwt {
         })
     }
 
-    pub fn from_compact_jws(compact_jws: &str, verify: bool) -> Result<Self> {
-        let jws = Jws::from_compact_jws(compact_jws, verify)?;
+    pub async fn from_compact_jws(compact_jws: &str, verify: bool) -> Result<Self> {
+        let jws = Jws::from_compact_jws(compact_jws, verify).await?;
         let claims = JwtClaims::from_json_byte_array(&jws.payload)?;
 
         Ok(Self {
