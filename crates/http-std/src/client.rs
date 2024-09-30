@@ -48,7 +48,7 @@ impl FromStr for Method {
             "GET" => Ok(Method::Get),
             "POST" => Ok(Method::Post),
             "PUT" => Ok(Method::Put),
-            _ => return Err(Error::Parameter(format!("unknown method {}", s))),
+            _ => Err(Error::Parameter(format!("unknown method {}", s))),
         }
     }
 }

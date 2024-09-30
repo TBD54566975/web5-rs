@@ -170,9 +170,7 @@ impl Client for DefaultClient {
             "{} {} HTTP/1.1\r\n\
             Host: {}\r\n\
             Connection: close\r\n",
-            method.to_string(),
-            destination.path,
-            destination.host,
+            method, destination.path, destination.host,
         );
         if let Some(headers) = &options.headers {
             if !headers.is_empty() {
