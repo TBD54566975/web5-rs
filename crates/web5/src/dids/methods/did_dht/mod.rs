@@ -160,7 +160,7 @@ impl DidDht {
     /// let bearer_did = DidDht::create(None)?;
     /// DidDht::publish(bearer_did, None)?;
     /// ```
-    pub fn publish(bearer_did: BearerDid, gateway_url: Option<String>) -> Result<()> {
+    pub async fn publish(bearer_did: BearerDid, gateway_url: Option<String>) -> Result<()> {
         let packet = bearer_did.document.to_packet().map_err(|e| {
             Web5Error::Encoding(format!("failed to convert document to packet {}", e))
         })?;
@@ -241,7 +241,7 @@ impl DidDht {
     /// # Errors
     ///
     /// Returns a `ResolutionMetadataError` if the DID cannot be resolved or verified.
-    pub fn resolve(uri: &str, gateway_url: Option<String>) -> ResolutionResult {
+    pub async fn resolve(uri: &str, gateway_url: Option<String>) -> ResolutionResult {
         let result: std::result::Result<ResolutionResult, ResolutionMetadataError> = (|| {
             // check did method and decode id
             let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;

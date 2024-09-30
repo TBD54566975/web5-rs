@@ -42,7 +42,7 @@ impl Resolver {
         })
     }
 
-    pub fn resolve(&self) -> Result<ResolutionResult, ResolutionMetadataError> {
+    pub async fn resolve(&self) -> Result<ResolutionResult, ResolutionMetadataError> {
         let response = http_std::fetch(&self.http_url, None)
             .map_err(|_| ResolutionMetadataError::InternalError)?;
 
