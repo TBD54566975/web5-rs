@@ -12,12 +12,15 @@ impl PresentationDefinition {
         Ok(Self(inner_presentation_definition))
     }
 
-    pub fn select_credentials(&self, vc_jwts: &Vec<String>) -> Result<Vec<String>> {
-        Ok(self.0.select_credentials(vc_jwts)?)
+    pub async fn select_credentials(&self, vc_jwts: &Vec<String>) -> Result<Vec<String>> {
+        Ok(self.0.select_credentials(vc_jwts).await?)
     }
 
-    pub fn create_presentation_from_credentials(&self, vc_jwts: &Vec<String>) -> Result<String> {
-        let presentation_result = self.0.create_presentation_from_credentials(vc_jwts)?;
+    pub async fn create_presentation_from_credentials(
+        &self,
+        vc_jwts: &Vec<String>,
+    ) -> Result<String> {
+        let presentation_result = self.0.create_presentation_from_credentials(vc_jwts).await?;
         let json_serialized_presentation_result = serde_json::to_string(&presentation_result)?;
 
         Ok(json_serialized_presentation_result)

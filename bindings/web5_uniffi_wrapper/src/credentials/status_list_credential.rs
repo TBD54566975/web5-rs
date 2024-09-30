@@ -10,7 +10,7 @@ use web5::{
 pub struct StatusListCredential(pub InnerStatusListCredential);
 
 impl StatusListCredential {
-    pub fn create(
+    pub async fn create(
         json_serialized_issuer: String,
         status_purpose: String,
         credentials_to_disable: Option<Vec<Arc<VerifiableCredential>>>,
@@ -25,11 +25,9 @@ impl StatusListCredential {
                     .collect()
             });
 
-        Ok(Self(InnerStatusListCredential::create(
-            issuer,
-            status_purpose,
-            inner_vcs,
-        )?))
+        Ok(Self(
+            InnerStatusListCredential::create(issuer, status_purpose, inner_vcs).await?,
+        ))
     }
 
     pub fn get_base(&self) -> Result<Arc<VerifiableCredential>> {

@@ -21,7 +21,7 @@ pub struct VerifiablePresentation {
 }
 
 impl VerifiablePresentation {
-    pub fn create(
+    pub async fn create(
         holder: String,
         vc_jwts: Vec<String>,
         options: Option<VerifiablePresentationCreateOptions>,
@@ -44,7 +44,8 @@ impl VerifiablePresentation {
             additional_data,
         };
 
-        let inner_vp = InnerVerifiablePresentation::create(holder, vc_jwts, Some(inner_options))?;
+        let inner_vp =
+            InnerVerifiablePresentation::create(holder, vc_jwts, Some(inner_options)).await?;
 
         Ok(Self { inner_vp })
     }
@@ -67,8 +68,8 @@ impl VerifiablePresentation {
         })
     }
 
-    pub fn from_vp_jwt(vp_jwt: String, verify: bool) -> Result<Self> {
-        let inner_vp = InnerVerifiablePresentation::from_vp_jwt(&vp_jwt, verify)?;
+    pub async fn from_vp_jwt(vp_jwt: String, verify: bool) -> Result<Self> {
+        let inner_vp = InnerVerifiablePresentation::from_vp_jwt(&vp_jwt, verify).await?;
 
         Ok(Self { inner_vp })
     }
