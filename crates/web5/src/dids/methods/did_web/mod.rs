@@ -461,7 +461,7 @@ mod tests {
 
         #[tokio::test]
         async fn test_create_then_resolve() {
-            let mut mock_server = Server::new();
+            let mut mock_server = Server::new_async().await;
             let url = mock_server.url();
 
             let result = DidWeb::create(&url, None);

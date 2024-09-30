@@ -332,7 +332,7 @@ mod tests {
 
         #[tokio::test]
         async fn test_can_specify_publish_and_gateway_url() {
-            let mut mock_server = mockito::Server::new();
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let mock = mock_server
@@ -441,7 +441,7 @@ mod tests {
 
         #[tokio::test]
         async fn test_can_specify_gateway_url() {
-            let mut mock_server = mockito::Server::new();
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let mock = mock_server
@@ -471,7 +471,7 @@ mod tests {
 
         #[tokio::test]
         async fn test_can_handle_network_error() {
-            let mut mock_server = mockito::Server::new();
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let mock = mock_server
@@ -532,7 +532,7 @@ mod tests {
             .await
             .unwrap();
 
-            let mut mock_server = mockito::Server::new();
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let mock = mock_server
@@ -560,7 +560,7 @@ mod tests {
             .await
             .unwrap();
 
-            let mut mock_server = mockito::Server::new();
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let mock = mock_server
@@ -581,7 +581,7 @@ mod tests {
 
         #[tokio::test]
         async fn test_can_create_then_resolve() {
-            let mut mock_server = mockito::Server::new();
+            let mut mock_server = mockito::Server::new_async().await;
             let gateway_url = mock_server.url();
 
             let published_body = Arc::new(Mutex::new(Vec::new()));

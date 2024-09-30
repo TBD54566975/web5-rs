@@ -617,7 +617,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_schema_resolve_non_success() {
-        let mut mock_server = Server::new();
+        let mut mock_server = Server::new_async().await;
         let url = mock_server.url();
 
         let _ = mock_server
@@ -648,7 +648,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_schema_resolve_invalid_response_body() {
-        let mut mock_server = Server::new();
+        let mut mock_server = Server::new_async().await;
         let url = mock_server.url();
 
         let _ = mock_server
@@ -681,7 +681,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_schema_invalid_json_schema() {
-        let mut mock_server = Server::new();
+        let mut mock_server = Server::new_async().await;
         let url = mock_server.url();
 
         let _ = mock_server
@@ -717,7 +717,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_schema_do_not_support_draft04() {
-        let mut mock_server = Server::new();
+        let mut mock_server = Server::new_async().await;
         let url = mock_server.url();
 
         let _ = mock_server
@@ -753,7 +753,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_schema_do_not_support_draft06() {
-        let mut mock_server = Server::new();
+        let mut mock_server = Server::new_async().await;
         let url = mock_server.url();
 
         let _ = mock_server
@@ -789,7 +789,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_schema_fails_validation() {
-        let mut mock_server = Server::new();
+        let mut mock_server = Server::new_async().await;
         let url = mock_server.url();
 
         let _ = mock_server
@@ -824,7 +824,7 @@ mod tests {
     async fn test_schema_example_from_spec() {
         // using Example 1 & Example 2 from here https://www.w3.org/TR/vc-json-schema/#jsonschema
 
-        let mut mock_server = Server::new();
+        let mut mock_server = Server::new_async().await;
         let url = mock_server.url();
 
         let _ = mock_server

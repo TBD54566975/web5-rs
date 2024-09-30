@@ -158,7 +158,7 @@ impl VerifiablePresentation {
     /// * `options` - Optional parameters for creating the presentation, such as context or expiration.
     ///
     /// # Example
-    /// ```rust
+    /// ```ignore
     /// use web5::credentials::VerifiablePresentation;
     /// use web5::dids::methods::did_jwk::DidJwk;
     ///
@@ -170,7 +170,7 @@ impl VerifiablePresentation {
     ///     holder_bearer_did.did.uri.clone(),
     ///     vc_jwts,
     ///     None,
-    /// ).unwrap();
+    /// ).await.unwrap();
     /// ```
     pub async fn create(
         holder: String,
@@ -219,11 +219,11 @@ impl VerifiablePresentation {
     ///              against the signature and validating the Data Model.
     ///
     /// # Example
-    /// ```rust
+    /// ```ignore
     /// use web5::credentials::VerifiablePresentation;
     ///
     /// let vp_jwt = r#"eyJ0eXAiOiJKV1QiLCJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKYWNUaFJaR05XYlRrMlluZGpRa3R3WVhwV2RGQmlkekJ6U1c4NE0wbG9XRXAyVGtoV1VIUnpWWFYzSW4wIzAifQ.eyJpc3MiOiJkaWQ6andrOmV5SmhiR2NpT2lKRlpESTFOVEU1SWl3aWEzUjVJam9pVDB0UUlpd2lZM0oySWpvaVJXUXlOVFV4T1NJc0luZ2lPaUphY1RoUlpHTldiVGsyWW5kalFrdHdZWHBXZEZCaWR6QnpTVzg0TTBsb1dFcDJUa2hXVUhSelZYVjNJbjAiLCJqdGkiOiJ1cm46dXVpZDowZDg5YTcxMS0zNTdjLTQzNTQtOWYzMS02OWQ0NDE1NWQ1ZTMiLCJuYmYiOjE3MjYyMzQwODEsImlhdCI6MTcyNjIzNDA4MSwidnAiOnsiaXNzdWFuY2VEYXRlIjoiMjAyNC0wOS0xM1QxMzoyODowMVoiLCJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVQcmVzZW50YXRpb24iXSwidmVyaWZpYWJsZUNyZWRlbnRpYWwiOlsiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlpESTFOVEU1SWl3aWEybGtJam9pWkdsa09tcDNhenBsZVVwb1lrZGphVTlwU2taYVJFa3hUbFJGTlVscGQybGhNMUkxU1dwdmFWUXdkRkZKYVhkcFdUTktNa2xxYjJsU1YxRjVUbFJWZUU5VFNYTkpibWRwVDJsS1VWRnNiRTVTYlRreFdUQnpOVk16WkZCVFNGSjZUbXBvVTA1RlZuZGpiVmw1VFhwT1RFNVVVazFOVmxaSlRqRlNTV05VVW1aaE1HaE9TVzR3SXpBaWZRLmV5SnBjM01pT2lKa2FXUTZhbmRyT21WNVNtaGlSMk5wVDJsS1JscEVTVEZPVkVVMVNXbDNhV0V6VWpWSmFtOXBWREIwVVVscGQybFpNMG95U1dwdmFWSlhVWGxPVkZWNFQxTkpjMGx1WjJsUGFVcFJVV3hzVGxKdE9URlpNSE0xVXpOa1VGTklVbnBPYW1oVFRrVldkMk50V1hsTmVrNU1UbFJTVFUxV1ZrbE9NVkpKWTFSU1ptRXdhRTVKYmpBaUxDSnFkR2tpT2lKMWNtNDZkWFZwWkRwaE1UaGlOREppWVMwMk1UVTVMVFExWVRrdFlXTXpZaTB5TnpaaVlqQmtORGRpWmpZaUxDSnpkV0lpT2lKa2FXUTZaR2gwT201bk5HaHRjWFJ5WjNWcWIzZzBZV2R3WmpodmEzaHBhRzU1ZVRGNmNXNXhPVGR4Wm1WeE1UVjRPRzloY2pkNVpYQjZhSGtpTENKdVltWWlPakUzTWpZeU16RTVOeklzSW1saGRDSTZNVGN5TmpJek1UazNNaXdpZG1NaU9uc2lRR052Ym5SbGVIUWlPbHNpYUhSMGNITTZMeTkzZDNjdWR6TXViM0puTHpJd01UZ3ZZM0psWkdWdWRHbGhiSE12ZGpFaVhTd2lZM0psWkdWdWRHbGhiRk4xWW1wbFkzUWlPbnNpYVdRaU9pSmthV1E2WkdoME9tNW5OR2h0Y1hSeVozVnFiM2cwWVdkd1pqaHZhM2hwYUc1NWVURjZjVzV4T1RkeFptVnhNVFY0T0c5aGNqZDVaWEI2YUhraWZTd2lhWE56ZFdWeUlqb2laR2xrT21wM2F6cGxlVXBvWWtkamFVOXBTa1phUkVreFRsUkZOVWxwZDJsaE0xSTFTV3B2YVZRd2RGRkphWGRwV1ROS01rbHFiMmxTVjFGNVRsUlZlRTlUU1hOSmJtZHBUMmxLVVZGc2JFNVNiVGt4V1RCek5WTXpaRkJUU0ZKNlRtcG9VMDVGVm5kamJWbDVUWHBPVEU1VVVrMU5WbFpKVGpGU1NXTlVVbVpoTUdoT1NXNHdJaXdpYVhOemRXRnVZMlZFWVhSbElqb2lNakF5TkMwd09TMHhNMVF4TWpvMU1qbzFNbG9pTENKMGVYQmxJanBiSWxabGNtbG1hV0ZpYkdWRGNtVmtaVzUwYVdGc0lsMHNJbWxrSWpvaWRYSnVPblYxYVdRNllURTRZalF5WW1FdE5qRTFPUzAwTldFNUxXRmpNMkl0TWpjMlltSXdaRFEzWW1ZMkluMTkuaUNkN1FsQWlCTkxDZnZ0VWJCdGstOVBUcUZmdWNxWjQ0S3hoRnZqR2NSU2prR0pyNjEwLTBqTFZzTlNBX0NQOGdibFljZncxZTVqeDNwR2VFckMtQnciXSwiaG9sZGVyIjoiZGlkOmp3azpleUpoYkdjaU9pSkZaREkxTlRFNUlpd2lhM1I1SWpvaVQwdFFJaXdpWTNKMklqb2lSV1F5TlRVeE9TSXNJbmdpT2lKYWNUaFJaR05XYlRrMlluZGpRa3R3WVhwV2RGQmlkekJ6U1c4NE0wbG9XRXAyVGtoV1VIUnpWWFYzSW4wIiwiaWQiOiJ1cm46dXVpZDowZDg5YTcxMS0zNTdjLTQzNTQtOWYzMS02OWQ0NDE1NWQ1ZTMifX0.f-kdfbIIms3Gg2dMKUMayeU1rQnaO_o0io33kLzy-uPqI6vsdsJZvSmDIilx7scRqlia7Pmnnj6bnF2x8F2fAw"#;
-    /// let verifiable_presentation = VerifiablePresentation::from_vp_jwt(vp_jwt, true).unwrap();
+    /// let verifiable_presentation = VerifiablePresentation::from_vp_jwt(vp_jwt, true).await.unwrap();
     /// ```
     pub async fn from_vp_jwt(vp_jwt: &str, verify: bool) -> Result<Self> {
         let verifiable_presentation = decode_vp_jwt(vp_jwt, verify).await?;

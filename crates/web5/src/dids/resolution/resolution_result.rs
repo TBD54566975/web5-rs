@@ -118,7 +118,7 @@ mod tests {
 
         #[tokio::test]
         async fn test_did_web() {
-            let mut mock_server = Server::new();
+            let mut mock_server = Server::new_async().await;
             let url = mock_server.url();
 
             let bearer_did = DidWeb::create(&url, None).unwrap();
