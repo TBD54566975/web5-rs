@@ -7,7 +7,6 @@ use web5::crypto::dsa::{
     secp256k1::{Secp256k1Generator, Secp256k1Signer},
     Signer,
 };
-
 #[wasm_bindgen]
 pub struct WasmSigner {
     inner: Arc<dyn Signer>,
