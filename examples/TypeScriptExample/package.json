@@ -1,21 +1,16 @@
 {
-  "name": "typescriptexample",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "start": "node dist/index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "type": "module",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "web5": "../../bound/typescript"
-  },
-  "devDependencies": {
-    "typescript": "^5.6.2"
+    "name": "web5-example",
+    "version": "1.0.0",
+    "description": "A simple Hello World in TypeScript as an ES Module",
+    "type": "module",
+    "main": "./dist/index.js",
+    "scripts": {
+      "build": "tsc",
+      "start": "node dist/index.js"
+    },
+    "dependencies": {},
+    "devDependencies": {
+      "typescript": "^5.0.0"
+    }
   }
-}
+  
