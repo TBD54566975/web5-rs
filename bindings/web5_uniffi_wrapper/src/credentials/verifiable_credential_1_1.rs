@@ -1,4 +1,5 @@
 use crate::{dids::bearer_did::BearerDid, errors::Result};
+use futures::executor::block_on;
 use std::{sync::Arc, time::SystemTime};
 use web5::credentials::CredentialStatus;
 use web5::credentials::Issuer;
@@ -33,7 +34,7 @@ pub struct VerifiableCredential {
 }
 
 impl VerifiableCredential {
-    pub async fn create(
+    pub fn create(
         json_serialized_issuer: String,
         json_serialized_credential_subject: String,
         options: Option<VerifiableCredentialCreateOptions>,
@@ -60,9 +61,11 @@ impl VerifiableCredential {
             evidence,
         };
 
-        let inner_vc =
-            InnerVerifiableCredential::create(issuer, credential_subject, Some(inner_options))
-                .await?;
+        let inner_vc = block_on(InnerVerifiableCredential::create(
+            issuer,
+            credential_subject,
+            Some(inner_options),
+        ))?;
 
         Ok(Self {
             inner_vc,
@@ -91,8 +94,8 @@ impl VerifiableCredential {
         })
     }
 
-    pub async fn from_vc_jwt(vc_jwt: String, verify: bool) -> Result<Self> {
-        let inner_vc = InnerVerifiableCredential::from_vc_jwt(&vc_jwt, verify).await?;
+    pub fn from_vc_jwt(vc_jwt: String, verify: bool) -> Result<Self> {
+        let inner_vc = block_on(InnerVerifiableCredential::from_vc_jwt(&vc_jwt, verify))?;
         let json_serialized_issuer = serde_json::to_string(&inner_vc.issuer)?;
         let json_serialized_credential_subject =
             serde_json::to_string(&inner_vc.credential_subject)?;

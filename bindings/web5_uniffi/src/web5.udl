@@ -8,14 +8,12 @@ namespace web5 {
 
   [Throws=Web5Error]
   BearerDid did_web_create(string domain, DidWebCreateOptions? options);
-  [Async]
   ResolutionResult did_web_resolve([ByRef] string uri);
 
-  [Throws=Web5Error, Async]
+  [Throws=Web5Error]
   BearerDid did_dht_create(DidDhtCreateOptions? options);
-  [Throws=Web5Error, Async]
+  [Throws=Web5Error]
   void did_dht_publish(BearerDid bearer_did, string? gateway_url);
-  [Async]
   ResolutionResult did_dht_resolve([ByRef] string uri, string? gateway_url);
 };
 
@@ -192,7 +190,7 @@ dictionary ResolutionResultData {
 };
 
 interface ResolutionResult {
-  [Name=resolve, Async]
+  [Name=resolve]
   constructor([ByRef] string uri);
   ResolutionResultData get_data();
 };
@@ -258,9 +256,9 @@ interface PresentationDefinition {
   constructor(string json_serialized_presentation_definition);
   [Throws=Web5Error]
   string get_json_serialized_presentation_definition();
-  [Throws=Web5Error, Async]
+  [Throws=Web5Error]
   sequence<string> select_credentials([ByRef] sequence<string> vc_jwts);
-  [Throws=Web5Error, Async]
+  [Throws=Web5Error]
   string create_presentation_from_credentials([ByRef] sequence<string> vc_jwts);
 };
 
@@ -276,7 +274,7 @@ dictionary VerifiableCredentialCreateOptionsData {
 };
 
 interface VerifiableCredential {
-  [Throws=Web5Error, Name=create, Async]
+  [Throws=Web5Error, Name=create]
   constructor(
     string json_serialized_issuer,
     string json_serialized_credential_subject,
@@ -284,7 +282,7 @@ interface VerifiableCredential {
   );
   [Throws=Web5Error]
   VerifiableCredentialData get_data();
-  [Throws=Web5Error, Name=from_vc_jwt, Async]
+  [Throws=Web5Error, Name=from_vc_jwt]
   constructor(string vc_jwt, boolean verify);
   [Throws=Web5Error]
   string sign(BearerDid bearer_did, string? verification_method_id);
@@ -317,7 +315,7 @@ dictionary CredentialStatusData {
 };
 
 interface StatusListCredential {
-  [Throws=Web5Error, Name=create, Async]
+  [Throws=Web5Error, Name=create]
   constructor(
     string json_serialized_issuer,
     string status_purpose,
@@ -340,7 +338,7 @@ dictionary VerifiablePresentationCreateOptionsData {
 };
 
 interface VerifiablePresentation {
-  [Throws=Web5Error, Name=create, Async]
+  [Throws=Web5Error, Name=create]
   constructor(
     string holder,
     sequence<string> vc_jwts,
@@ -350,7 +348,7 @@ interface VerifiablePresentation {
   [Throws=Web5Error]
   VerifiablePresentationData get_data();
 
-  [Throws=Web5Error, Name=from_vp_jwt, Async]
+  [Throws=Web5Error, Name=from_vp_jwt]
   constructor(string vp_jwt, boolean verify);
 
   [Throws=Web5Error]

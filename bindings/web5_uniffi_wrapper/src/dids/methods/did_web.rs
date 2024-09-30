@@ -3,6 +3,7 @@ use crate::{
     dids::{bearer_did::BearerDid, resolution::resolution_result::ResolutionResult},
     errors::Result,
 };
+use futures::executor::block_on;
 use std::sync::Arc;
 use web5::{
     crypto::dsa::Dsa,
@@ -14,8 +15,8 @@ use web5::{
     },
 };
 
-pub async fn did_web_resolve(uri: &str) -> Arc<ResolutionResult> {
-    let resolution_result = InnerDidWeb::resolve(uri).await;
+pub fn did_web_resolve(uri: &str) -> Arc<ResolutionResult> {
+    let resolution_result = block_on(InnerDidWeb::resolve(uri));
     Arc::new(ResolutionResult(resolution_result))
 }
 

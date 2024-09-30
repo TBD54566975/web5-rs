@@ -1,5 +1,6 @@
 use crate::credentials::verifiable_credential_1_1::VerifiableCredential;
 use crate::errors::Result;
+use futures::executor::block_on;
 use std::sync::Arc;
 use web5::credentials::Issuer;
 use web5::{
@@ -10,7 +11,7 @@ use web5::{
 pub struct StatusListCredential(pub InnerStatusListCredential);
 
 impl StatusListCredential {
-    pub async fn create(
+    pub fn create(
         json_serialized_issuer: String,
         status_purpose: String,
         credentials_to_disable: Option<Vec<Arc<VerifiableCredential>>>,
@@ -25,9 +26,11 @@ impl StatusListCredential {
                     .collect()
             });
 
-        Ok(Self(
-            InnerStatusListCredential::create(issuer, status_purpose, inner_vcs).await?,
-        ))
+        Ok(Self(block_on(InnerStatusListCredential::create(
+            issuer,
+            status_purpose,
+            inner_vcs,
+        ))?))
     }
 
     pub fn get_base(&self) -> Result<Arc<VerifiableCredential>> {

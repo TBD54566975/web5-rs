@@ -1,4 +1,5 @@
 use crate::{dids::bearer_did::BearerDid, errors::Result};
+use futures::executor::block_on;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -21,7 +22,7 @@ pub struct VerifiablePresentation {
 }
 
 impl VerifiablePresentation {
-    pub async fn create(
+    pub fn create(
         holder: String,
         vc_jwts: Vec<String>,
         options: Option<VerifiablePresentationCreateOptions>,
@@ -44,8 +45,11 @@ impl VerifiablePresentation {
             additional_data,
         };
 
-        let inner_vp =
-            InnerVerifiablePresentation::create(holder, vc_jwts, Some(inner_options)).await?;
+        let inner_vp = block_on(InnerVerifiablePresentation::create(
+            holder,
+            vc_jwts,
+            Some(inner_options),
+        ))?;
 
         Ok(Self { inner_vp })
     }
@@ -68,8 +72,8 @@ impl VerifiablePresentation {
         })
     }
 
-    pub async fn from_vp_jwt(vp_jwt: String, verify: bool) -> Result<Self> {
-        let inner_vp = InnerVerifiablePresentation::from_vp_jwt(&vp_jwt, verify).await?;
+    pub fn from_vp_jwt(vp_jwt: String, verify: bool) -> Result<Self> {
+        let inner_vp = block_on(InnerVerifiablePresentation::from_vp_jwt(&vp_jwt, verify))?;
 
         Ok(Self { inner_vp })
     }
