@@ -1,8 +1,10 @@
 use crate::Result;
+use async_trait::async_trait;
 use std::collections::HashMap;
 
+#[async_trait]
 pub trait Client: Send + Sync {
-    fn fetch(&self, url: &str, options: Option<FetchOptions>) -> Result<Response>;
+    async fn fetch(&self, url: &str, options: Option<FetchOptions>) -> Result<Response>;
 }
 
 #[derive(Default)]

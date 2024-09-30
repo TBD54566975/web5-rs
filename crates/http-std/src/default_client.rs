@@ -1,4 +1,5 @@
 use crate::{Client, Error, FetchOptions, Method, Response, Result};
+use async_trait::async_trait;
 use rustls::pki_types::ServerName;
 use rustls::{ClientConfig, ClientConnection, RootCertStore, StreamOwned};
 use rustls_native_certs::load_native_certs;
@@ -158,8 +159,9 @@ fn parse_response(response_bytes: &[u8]) -> Result<Response> {
 
 pub struct DefaultClient;
 
+#[async_trait]
 impl Client for DefaultClient {
-    fn fetch(&self, url: &str, options: Option<FetchOptions>) -> Result<Response> {
+    async fn fetch(&self, url: &str, options: Option<FetchOptions>) -> Result<Response> {
         let options = options.unwrap_or_default();
         let destination = parse_destination(url)?;
         let method = options.method.unwrap_or(Method::Get);

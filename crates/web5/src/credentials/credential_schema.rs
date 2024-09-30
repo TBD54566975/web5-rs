@@ -28,7 +28,7 @@ pub(crate) async fn validate_credential_schema(
 
     let url = &credential_schema.id;
 
-    let response = http_std::fetch(url, None)?;
+    let response = http_std::fetch(url, None).await?;
 
     if !(200..300).contains(&response.status_code) {
         return Err(Web5Error::JsonSchema(format!(

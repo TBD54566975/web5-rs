@@ -207,7 +207,8 @@ impl DidDht {
                 ),
                 body: Some(body),
             }),
-        )?;
+        )
+        .await?;
         if response.status_code != 200 {
             return Err(Web5Error::Network(
                 "failed to PUT DID to mainline".to_string(),
@@ -242,7 +243,7 @@ impl DidDht {
     ///
     /// Returns a `ResolutionMetadataError` if the DID cannot be resolved or verified.
     pub async fn resolve(uri: &str, gateway_url: Option<String>) -> ResolutionResult {
-        let result: std::result::Result<ResolutionResult, ResolutionMetadataError> = (|| {
+        let result: std::result::Result<ResolutionResult, ResolutionMetadataError> = async {
             // check did method and decode id
             let did = Did::parse(uri).map_err(|_| ResolutionMetadataError::InvalidDid)?;
             if did.method != "dht" {
@@ -264,8 +265,9 @@ impl DidDht {
                 did.id.trim_start_matches('/')
             );
 
-            let response =
-                http_std::fetch(&url, None).map_err(|_| ResolutionMetadataError::InternalError)?;
+            let response = http_std::fetch(&url, None)
+                .await // todo here
+                .map_err(|_| ResolutionMetadataError::InternalError)?;
 
             if response.status_code == 404 {
                 return Err(ResolutionMetadataError::NotFound);
@@ -291,7 +293,8 @@ impl DidDht {
                 document: Some(document),
                 ..Default::default()
             })
-        })();
+        }
+        .await;
 
         match result {
             Ok(resolution_result) => resolution_result,
