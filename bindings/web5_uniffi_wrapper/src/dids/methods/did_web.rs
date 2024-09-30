@@ -1,9 +1,8 @@
 use crate::{
     crypto::key_manager::{KeyManager, ToInnerKeyManager},
     dids::{bearer_did::BearerDid, resolution::resolution_result::ResolutionResult},
-    errors::Result,
+    errors::Result, get_rt,
 };
-use futures::executor::block_on;
 use std::sync::Arc;
 use web5::{
     crypto::dsa::Dsa,
@@ -15,9 +14,10 @@ use web5::{
     },
 };
 
-pub fn did_web_resolve(uri: &str) -> Arc<ResolutionResult> {
-    let resolution_result = block_on(InnerDidWeb::resolve(uri));
-    Arc::new(ResolutionResult(resolution_result))
+pub fn did_web_resolve(uri: &str) -> Result<Arc<ResolutionResult>> {
+    let rt = get_rt()?;
+    let resolution_result = rt.block_on(InnerDidWeb::resolve(uri));
+    Ok(Arc::new(ResolutionResult(resolution_result)))
 }
 
 #[derive(Default)]

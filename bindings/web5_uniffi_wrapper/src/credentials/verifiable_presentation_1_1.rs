@@ -1,5 +1,5 @@
+use crate::get_rt;
 use crate::{dids::bearer_did::BearerDid, errors::Result};
-use futures::executor::block_on;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -45,7 +45,8 @@ impl VerifiablePresentation {
             additional_data,
         };
 
-        let inner_vp = block_on(InnerVerifiablePresentation::create(
+        let rt = get_rt()?;
+        let inner_vp = rt.block_on(InnerVerifiablePresentation::create(
             holder,
             vc_jwts,
             Some(inner_options),
@@ -73,8 +74,8 @@ impl VerifiablePresentation {
     }
 
     pub fn from_vp_jwt(vp_jwt: String, verify: bool) -> Result<Self> {
-        let inner_vp = block_on(InnerVerifiablePresentation::from_vp_jwt(&vp_jwt, verify))?;
-
+        let rt = get_rt()?;
+        let inner_vp = rt.block_on(InnerVerifiablePresentation::from_vp_jwt(&vp_jwt, verify))?;
         Ok(Self { inner_vp })
     }
 

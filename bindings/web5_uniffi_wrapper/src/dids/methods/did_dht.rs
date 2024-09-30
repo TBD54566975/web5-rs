@@ -2,17 +2,18 @@ use crate::{
     crypto::key_manager::{KeyManager, ToInnerKeyManager},
     dids::{bearer_did::BearerDid, resolution::resolution_result::ResolutionResult},
     errors::Result,
+    get_rt,
 };
-use futures::executor::block_on;
 use std::sync::Arc;
 use web5::dids::{
     data_model::{service::Service, verification_method::VerificationMethod},
     methods::did_dht::{DidDht as InnerDidDht, DidDhtCreateOptions as InnerDidDhtCreateOptions},
 };
 
-pub fn did_dht_resolve(uri: &str, gateway_url: Option<String>) -> Arc<ResolutionResult> {
-    let resolution_result = block_on(InnerDidDht::resolve(uri, gateway_url));
-    Arc::new(ResolutionResult(resolution_result))
+pub fn did_dht_resolve(uri: &str, gateway_url: Option<String>) -> Result<Arc<ResolutionResult>> {
+    let rt = get_rt()?;
+    let resolution_result = rt.block_on(InnerDidDht::resolve(uri, gateway_url));
+    Ok(Arc::new(ResolutionResult(resolution_result)))
 }
 
 #[derive(Default)]
@@ -40,13 +41,12 @@ pub fn did_dht_create(options: Option<DidDhtCreateOptions>) -> Result<Arc<Bearer
         verification_method: o.verification_method,
     });
 
-    let inner_bearer_did = block_on(InnerDidDht::create(inner_options))?;
+    let rt = get_rt()?;
+    let inner_bearer_did = rt.block_on(InnerDidDht::create(inner_options))?;
     Ok(Arc::new(BearerDid(inner_bearer_did)))
 }
 
 pub fn did_dht_publish(bearer_did: Arc<BearerDid>, gateway_url: Option<String>) -> Result<()> {
-    Ok(block_on(InnerDidDht::publish(
-        bearer_did.0.clone(),
-        gateway_url,
-    ))?)
+    let rt = get_rt()?;
+    Ok(rt.block_on(InnerDidDht::publish(bearer_did.0.clone(), gateway_url))?)
 }

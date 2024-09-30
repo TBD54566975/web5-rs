@@ -8,12 +8,14 @@ namespace web5 {
 
   [Throws=Web5Error]
   BearerDid did_web_create(string domain, DidWebCreateOptions? options);
+  [Throws=Web5Error]
   ResolutionResult did_web_resolve([ByRef] string uri);
 
   [Throws=Web5Error]
   BearerDid did_dht_create(DidDhtCreateOptions? options);
   [Throws=Web5Error]
   void did_dht_publish(BearerDid bearer_did, string? gateway_url);
+  [Throws=Web5Error]
   ResolutionResult did_dht_resolve([ByRef] string uri, string? gateway_url);
 };
 
@@ -190,7 +192,7 @@ dictionary ResolutionResultData {
 };
 
 interface ResolutionResult {
-  [Name=resolve]
+  [Name=resolve, Throws=Web5Error]
   constructor([ByRef] string uri);
   ResolutionResultData get_data();
 };

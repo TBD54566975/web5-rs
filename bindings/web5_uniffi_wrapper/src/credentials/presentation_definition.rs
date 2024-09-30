@@ -1,5 +1,4 @@
-use crate::errors::Result;
-use futures::executor::block_on;
+use crate::{errors::Result, get_rt};
 use web5::credentials::presentation_definition::PresentationDefinition as InnerPresentationDefinition;
 
 pub struct PresentationDefinition(pub InnerPresentationDefinition);
@@ -14,11 +13,14 @@ impl PresentationDefinition {
     }
 
     pub fn select_credentials(&self, vc_jwts: &Vec<String>) -> Result<Vec<String>> {
-        Ok(block_on(self.0.select_credentials(vc_jwts))?)
+        let rt = get_rt()?;
+        Ok(rt.block_on(self.0.select_credentials(vc_jwts))?)
     }
 
     pub fn create_presentation_from_credentials(&self, vc_jwts: &Vec<String>) -> Result<String> {
-        let presentation_result = block_on(self.0.create_presentation_from_credentials(vc_jwts))?;
+        let rt = get_rt()?;
+        let presentation_result =
+            rt.block_on(self.0.create_presentation_from_credentials(vc_jwts))?;
         let json_serialized_presentation_result = serde_json::to_string(&presentation_result)?;
 
         Ok(json_serialized_presentation_result)

@@ -1,6 +1,6 @@
 use crate::credentials::verifiable_credential_1_1::VerifiableCredential;
 use crate::errors::Result;
-use futures::executor::block_on;
+use crate::get_rt;
 use std::sync::Arc;
 use web5::credentials::Issuer;
 use web5::{
@@ -26,7 +26,8 @@ impl StatusListCredential {
                     .collect()
             });
 
-        Ok(Self(block_on(InnerStatusListCredential::create(
+        let rt = get_rt()?;
+        Ok(Self(rt.block_on(InnerStatusListCredential::create(
             issuer,
             status_purpose,
             inner_vcs,
