@@ -1,47 +1,10 @@
 # Node.js
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 package-lock.json
-yarn.lock
-.pnpm-debug.log
 
 # Typescript
 dist/
 *.tsbuildinfo
 
-# Logs
-logs
-*.log
-logs/*
-
 # OS generated files
 .DS_Store
-Thumbs.db
-
-# IDEs and Editors
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-
-# Testing
-coverage/
-
-# Optional npm cache directory
-.npm/
-.npmrc
-
-# TypeScript cache
-*.tsbuildinfo
-
-# Mac system files
-.DS_Store
-
-# Environment variables
-.env
-.env.*
