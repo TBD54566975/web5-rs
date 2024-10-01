@@ -322,7 +322,7 @@ class VerifiableCredentialTest {
                 VerifiableCredential.create(ISSUER, CREDENTIAL_SUBJECT, options)
             }
 
-            assertTrue(exception.message.contains("failed to resolve status code 500"))
+            assertTrue(exception.message.contains("Failed to fetch credential schema"))
 
             mockWebServer.shutdown()
         }
@@ -1054,7 +1054,7 @@ class VerifiableCredentialTest {
                 VerifiableCredential.fromVcJwt(vcJwtAtPort, true)
             }
 
-            assertTrue(exception.message.contains("failed to resolve status code 500"))
+            assertTrue(exception.message.contains("Failed to fetch credential schema"))
 
             mockWebServer.shutdown()
         }
