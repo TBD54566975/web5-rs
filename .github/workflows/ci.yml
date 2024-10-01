@@ -51,7 +51,7 @@ jobs:
         uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 #v4.5.0
         with:
           use_oidc: true
-          files: '*.profraw'
+          files: "*.profraw"
 
   assert_full_test_suite:
     runs-on: ubuntu-latest
@@ -270,6 +270,7 @@ jobs:
           path: bound/kt/src/main/resources/
 
       - name: Deploy Snapshot / Verify
+        id: kotlin_test_snapshot
         run: |
 
           # cd into the Kotlin project
@@ -296,6 +297,22 @@ jobs:
           SIGN_KEY_PASS: ${{ secrets.GPG_SECRET_PASSPHRASE }}
           SIGN_KEY: ${{ secrets.GPG_SECRET_KEY }}
 
+      - name: Execute Kotlin Spec Test Vector Report
+        id: spec_report_web5_core_kt
+        if: always() && steps.kotlin_test_snapshot.conclusion != 'skipped'
+        uses: TBD54566975/sdk-report-runner/.github/actions/specs-report@main
+        with:
+          junit-report-paths: bound/kt/target/surefire-reports/*.xml
+          spec-path: web5-spec
+          suite-name-regex: Web5TestVectors
+          feature-regex: Web5TestVectorsTest\$Web5TestVectors(\w+)
+          vector-regex: (\w+)
+          fail-on-missing-vectors: false
+          fail-on-failed-test-cases: true
+          comment-on-pr: true
+          package-name: web5-core-kt
+          git-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload Kotlin Test Results
         uses: actions/upload-artifact@v4.0.0
         with:
@@ -312,7 +329,7 @@ jobs:
     needs: kotlin-build-test-deploy-snapshot
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, macos-12, windows-latest ]
+        os: [ubuntu-latest, macos-latest, macos-12, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -368,14 +385,34 @@ jobs:
           echo 'store-success-output = true' >> nextest.toml
           echo 'store-failure-output = true' >> nextest.toml
       - name: Run Rust Tests
+        id: rust_test
         run: |
           mkdir -p test-results
           cargo nextest run --profile ci --config-file ./nextest.toml -E 'test(test_vectors::)'
       - name: Modify testsuite name in XML for test runner consumption
+        if: always() && steps.rust_test.conclusion != 'skipped'
         run: |
           sed -i '' 's/<testsuite name="web5"/<testsuite name="Web5TestVectorsProtocolTest"/' target/nextest/ci/junit.xml
       - name: Move Test Results
+        if: always() && steps.rust_test.conclusion != 'skipped'
         run: mv target/nextest/ci/junit.xml test-results/rust-test-results.xml
+      - name: Execute Rust Spec Test Vector Report
+        id: spec_report_web5_rs
+        if: always() && steps.rust_test.conclusion != 'skipped'
+        uses: TBD54566975/sdk-report-runner/.github/actions/specs-report@main
+        with:
+          junit-report-paths: test-results/rust-test-results.xml
+          spec-path: web5-spec
+          suite-name-regex: Web5TestVectors
+          feature-regex:
+          vector-regex: test_vectors::test_vectors::(.+)::(.+)$
+          extract-feature-on-test-case-name: true
+          prettify-feature: true
+          fail-on-missing-vectors: false
+          fail-on-failed-test-cases: true
+          comment-on-pr: true
+          package-name: web5-rs
+          git-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Rust Test Vector Results
         uses: actions/upload-artifact@v3
         with:
