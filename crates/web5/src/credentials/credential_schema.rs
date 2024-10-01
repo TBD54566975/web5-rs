@@ -40,7 +40,7 @@ pub(crate) async fn validate_credential_schema(
         .map_err(|e| Web5Error::Network(format!("Failed to fetch credential schema: {}", e)))?;
 
     if !(200..300).contains(&response.status_code) {
-        return Err(Web5Error::Http(format!(
+        return Err(Web5Error::Network(format!(
             "Failed to fetch credential schema: non-successful response code {}",
             response.status_code
         )));

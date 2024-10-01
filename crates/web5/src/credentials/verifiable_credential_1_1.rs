@@ -813,11 +813,11 @@ mod tests {
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_with_invalid_url, true).await;
 
             match result {
-                Err(Web5Error::Http(err)) => {
+                Err(Web5Error::Network(err)) => {
                     assert!(err.to_string().contains("error sending request"))
                 }
                 _ => panic!(
-                    "expected Web5Error::Http with specific message but got {:?}",
+                    "expected Web5Error::Network with specific message but got {:?}",
                     result
                 ),
             };
@@ -839,11 +839,11 @@ mod tests {
 
             let result = VerifiableCredential::from_vc_jwt(vc_jwt_at_port, true).await;
             match result {
-                Err(Web5Error::JsonSchema(err_msg)) => {
-                    assert_eq!("failed to resolve status code 500", err_msg)
+                Err(Web5Error::Network(err_msg)) => {
+                    assert!(err_msg.contains("Failed to fetch credential schema"))
                 }
                 _ => panic!(
-                    "expected Web5Error::JsonSchema with specific message but got {:?}",
+                    "expected Web5Error::Network with specific message but got {:?}",
                     result
                 ),
             }
