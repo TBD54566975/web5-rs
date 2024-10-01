@@ -17,9 +17,9 @@ use crate::{
             resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
         },
     },
-    errors::{Result, Web5Error},
+    errors::{Result, Web5Error}, http::get_http_client,
 };
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 mod bep44;
 mod document_packet;
@@ -190,25 +190,16 @@ impl DidDht {
             bearer_did.did.id.trim_start_matches('/')
         );
 
-        let response = http_std::fetch(
-            &url,
-            Some(http_std::FetchOptions {
-                method: Some(http_std::Method::Put),
-                headers: Some(
-                    [
-                        (
-                            "Content-Type".to_string(),
-                            "application/octet-stream".to_string(),
-                        ),
-                        ("Content-Length".to_string(), body.len().to_string()),
-                    ]
-                    .into_iter()
-                    .collect(),
-                ),
-                body: Some(body),
-            }),
-        )
-        .await?;
+        let headers: HashMap<String, String> = HashMap::from([
+            ("Host".to_string(), "{}".to_string()),
+            ("Connection".to_string(), "close".to_string()),
+            ("Content-Length".to_string(), "{}".to_string()),
+            ("Content-Type".to_string(), "application/octet-stream".to_string())
+        ]);
+
+        let response = get_http_client().put(&url, Some(headers), &body)
+            .await
+            .map_err(|e| Web5Error::Network(format!("Failed to PUT did:dht: {}", e)))?;
         if response.status_code != 200 {
             return Err(Web5Error::Network(
                 "failed to PUT DID to mainline".to_string(),
@@ -265,9 +256,12 @@ impl DidDht {
                 did.id.trim_start_matches('/')
             );
 
-            let response = http_std::fetch(&url, None)
-                .await // todo here
-                .map_err(|_| ResolutionMetadataError::InternalError)?;
+            let headers: HashMap<String, String> = HashMap::from([
+                ("Host".to_string(), "{}".to_string()),
+                ("Connection".to_string(), "close".to_string()),
+                ("Accept".to_string(), "application/octet-stream".to_string())
+            ]);
+            let response = get_http_client().get(&url, Some(headers)).await.map_err(|_| ResolutionMetadataError::InternalError)?;
 
             if response.status_code == 404 {
                 return Err(ResolutionMetadataError::NotFound);

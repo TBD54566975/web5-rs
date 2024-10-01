@@ -2,7 +2,6 @@ use crate::{
     credentials::VerificationError, dids::resolution::resolution_metadata::ResolutionMetadataError,
 };
 use base64::DecodeError;
-use http_std::Error as HttpError;
 use serde_json::Error as SerdeJsonError;
 use std::sync::PoisonError;
 
@@ -30,9 +29,9 @@ pub enum Web5Error {
     Network(String),
     #[error("datetime error {0}")]
     DateTime(String),
+    #[error("http error {0}")]
+    Http(String),
 
-    #[error(transparent)]
-    Http(#[from] HttpError),
     #[error(transparent)]
     Resolution(#[from] ResolutionMetadataError),
     #[error(transparent)]

@@ -1,10 +1,12 @@
-use crate::dids::{
+use std::collections::HashMap;
+
+use crate::{dids::{
     data_model::document::Document,
     did::Did,
     resolution::{
         resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
     },
-};
+}, http::get_http_client};
 use url::Url;
 
 // PORT_SEP is the : character that separates the domain from the port in a URI.
@@ -43,9 +45,18 @@ impl Resolver {
     }
 
     pub async fn resolve(&self) -> Result<ResolutionResult, ResolutionMetadataError> {
-        let response = http_std::fetch(&self.http_url, None)
+        let headers: HashMap<String, String> = HashMap::from([
+            ("Host".to_string(), "{}".to_string()),
+            ("Connection".to_string(), "close".to_string()),
+            ("Accept".to_string(), "application/json".to_string())
+        ]);
+        let response = get_http_client().get(&self.http_url, Some(headers))
             .await
             .map_err(|_| ResolutionMetadataError::InternalError)?;
+
+        if !(200..300).contains(&response.status_code) {
+            return Err(ResolutionMetadataError::InternalError);
+        }
 
         if response.status_code == 404 {
             return Err(ResolutionMetadataError::NotFound);

@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use super::verifiable_credential_1_1::VerifiableCredential;
-use crate::errors::{Result, Web5Error};
+use crate::{errors::{Result, Web5Error}, http::get_http_client};
 use jsonschema::{Draft, JSONSchema};
 use serde::{Deserialize, Serialize};
 
@@ -28,7 +30,21 @@ pub(crate) async fn validate_credential_schema(
 
     let url = &credential_schema.id;
 
-    let response = http_std::fetch(url, None).await?;
+    let headers: HashMap<String, String> = HashMap::from([
+        ("Host".to_string(), "{}".to_string()),
+        ("Connection".to_string(), "close".to_string()),
+        ("Accept".to_string(), "application/json".to_string())
+    ]);
+    let response = get_http_client().get(url, Some(headers))
+        .await
+        .map_err(|e| Web5Error::Network(format!("Failed to fetch credential schema: {}", e)))?;
+
+    if !(200..300).contains(&response.status_code) {
+        return Err(Web5Error::Http(format!(
+            "Failed to fetch credential schema: non-successful response code {}",
+            response.status_code
+        )));
+    }
 
     if !(200..300).contains(&response.status_code) {
         return Err(Web5Error::JsonSchema(format!(
