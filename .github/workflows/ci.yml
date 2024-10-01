@@ -297,7 +297,7 @@ jobs:
           SIGN_KEY_PASS: ${{ secrets.GPG_SECRET_PASSPHRASE }}
           SIGN_KEY: ${{ secrets.GPG_SECRET_KEY }}
 
-      - name: Execute Spec Test Vector Report
+      - name: Execute Kotlin Spec Test Vector Report
         id: spec_report_web5_core_kt
         if: always() && steps.kotlin_test_snapshot.conclusion != 'skipped'
         uses: TBD54566975/sdk-report-runner/.github/actions/specs-report@main
@@ -396,7 +396,7 @@ jobs:
       - name: Move Test Results
         if: always() && steps.rust_test.conclusion != 'skipped'
         run: mv target/nextest/ci/junit.xml test-results/rust-test-results.xml
-      - name: Execute Spec Test Vector Report
+      - name: Execute Rust Spec Test Vector Report
         id: spec_report_web5_rs
         if: always() && steps.rust_test.conclusion != 'skipped'
         uses: TBD54566975/sdk-report-runner/.github/actions/specs-report@main
