@@ -12,3 +12,17 @@ pub use http::set_http_client;
 
 #[cfg(test)]
 mod test_vectors;
+#[cfg(test)]
+mod tests {
+    #[cfg(feature = "http_reqwest")]
+    #[test]
+    fn test_with_reqwest_feature() {
+        println!("http_reqwest feature is enabled!");
+    }
+
+    #[cfg(not(feature = "http_reqwest"))]
+    #[test]
+    fn test_without_reqwest_feature() {
+        println!("http_reqwest feature is NOT enabled!");
+    }
+}

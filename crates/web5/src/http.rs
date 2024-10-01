@@ -35,29 +35,29 @@ pub struct HttpResponse {
 
 static HTTP_CLIENT: OnceCell<Arc<dyn HttpClient>> = OnceCell::new();
 
-#[cfg(feature = "default_http_client")]
+#[cfg(feature = "http_reqwest")]
 pub fn get_http_client() -> &'static dyn HttpClient {
     HTTP_CLIENT.get_or_init(|| {
         Arc::new(reqwest_http_client::ReqwestHttpClient::new())
     }).as_ref()
 }
 
-#[cfg(not(feature = "default_http_client"))]
+#[cfg(not(feature = "http_reqwest"))]
 pub fn get_http_client() -> &'static dyn HttpClient {
     HTTP_CLIENT.get().expect("HttpClient has not been set. Please call set_http_client().").as_ref()
 }
 
-#[cfg(feature = "default_http_client")]
+#[cfg(feature = "http_reqwest")]
 pub fn set_http_client(_: Arc<dyn HttpClient>) {
     panic!("Cannot set a custom HttpClient when the reqwest feature is enabled.");
 }
 
-#[cfg(not(feature = "default_http_client"))]
+#[cfg(not(feature = "http_reqwest"))]
 pub fn set_http_client(client: Arc<dyn HttpClient>) {
     HTTP_CLIENT.set(client).unwrap_or_else(|_| panic!("HttpClient has already been set."));
 }
 
-#[cfg(feature = "default_http_client")]
+#[cfg(feature = "http_reqwest")]
 mod reqwest_http_client {
     use super::*;
     use reqwest::Client;
