@@ -1,7 +1,8 @@
 use crate::{
     crypto::key_manager::{KeyManager, ToInnerKeyManager},
     dids::{bearer_did::BearerDid, resolution::resolution_result::ResolutionResult},
-    errors::Result, get_rt,
+    errors::Result,
+    get_rt,
 };
 use std::sync::Arc;
 use web5::{
