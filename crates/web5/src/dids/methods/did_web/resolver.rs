@@ -1,12 +1,15 @@
 use std::collections::HashMap;
 
-use crate::{dids::{
-    data_model::document::Document,
-    did::Did,
-    resolution::{
-        resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
+use crate::{
+    dids::{
+        data_model::document::Document,
+        did::Did,
+        resolution::{
+            resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
+        },
     },
-}, http::get_http_client};
+    http::get_http_client,
+};
 use url::Url;
 
 // PORT_SEP is the : character that separates the domain from the port in a URI.
@@ -48,9 +51,10 @@ impl Resolver {
         let headers: HashMap<String, String> = HashMap::from([
             ("Host".to_string(), "{}".to_string()),
             ("Connection".to_string(), "close".to_string()),
-            ("Accept".to_string(), "application/json".to_string())
+            ("Accept".to_string(), "application/json".to_string()),
         ]);
-        let response = get_http_client().get(&self.http_url, Some(headers))
+        let response = get_http_client()
+            .get(&self.http_url, Some(headers))
             .await
             .map_err(|_| ResolutionMetadataError::InternalError)?;
 

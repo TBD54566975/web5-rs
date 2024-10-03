@@ -17,7 +17,8 @@ use crate::{
             resolution_metadata::ResolutionMetadataError, resolution_result::ResolutionResult,
         },
     },
-    errors::{Result, Web5Error}, http::get_http_client,
+    errors::{Result, Web5Error},
+    http::get_http_client,
 };
 use std::{collections::HashMap, sync::Arc};
 
@@ -194,10 +195,14 @@ impl DidDht {
             ("Host".to_string(), "{}".to_string()),
             ("Connection".to_string(), "close".to_string()),
             ("Content-Length".to_string(), "{}".to_string()),
-            ("Content-Type".to_string(), "application/octet-stream".to_string())
+            (
+                "Content-Type".to_string(),
+                "application/octet-stream".to_string(),
+            ),
         ]);
 
-        let response = get_http_client().put(&url, Some(headers), &body)
+        let response = get_http_client()
+            .put(&url, Some(headers), &body)
             .await
             .map_err(|e| Web5Error::Network(format!("Failed to PUT did:dht: {}", e)))?;
         if response.status_code != 200 {
@@ -259,9 +264,12 @@ impl DidDht {
             let headers: HashMap<String, String> = HashMap::from([
                 ("Host".to_string(), "{}".to_string()),
                 ("Connection".to_string(), "close".to_string()),
-                ("Accept".to_string(), "application/octet-stream".to_string())
+                ("Accept".to_string(), "application/octet-stream".to_string()),
             ]);
-            let response = get_http_client().get(&url, Some(headers)).await.map_err(|_| ResolutionMetadataError::InternalError)?;
+            let response = get_http_client()
+                .get(&url, Some(headers))
+                .await
+                .map_err(|_| ResolutionMetadataError::InternalError)?;
 
             if response.status_code == 404 {
                 return Err(ResolutionMetadataError::NotFound);
