@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, fmt, str::FromStr, sync::Arc};
+
+use crate::errors::Web5Error;
 
 #[async_trait]
 pub trait HttpClient: Send + Sync {
@@ -80,6 +82,30 @@ pub struct HttpResponse {
     pub status_code: u16,
     pub headers: HashMap<String, String>,
     pub body: Vec<u8>,
+}
+
+impl fmt::Display for Method {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let method_str = match self {
+            Method::Get => "GET",
+            Method::Post => "POST",
+            Method::Put => "PUT",
+        };
+        write!(f, "{}", method_str)
+    }
+}
+
+impl FromStr for Method {
+    type Err = Web5Error;
+
+    fn from_str(s: &str) -> crate::errors::Result<Self> {
+        match s.to_ascii_uppercase().as_ref() {
+            "GET" => Ok(Method::Get),
+            "POST" => Ok(Method::Post),
+            "PUT" => Ok(Method::Put),
+            _ => Err(Web5Error::Parameter(format!("unknown method {}", s))),
+        }
+    }
 }
 
 static HTTP_CLIENT: OnceCell<Arc<dyn HttpClient>> = OnceCell::new();
