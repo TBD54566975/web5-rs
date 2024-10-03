@@ -61,6 +61,7 @@ web5 vc -h
   ]
 }
 ```
+
 ### Create a `did:jwk`
 
 ```shell
@@ -105,6 +106,42 @@ web5 vc -h
       "crv": "Ed25519",
       "d": "Z2TSOicWegPpYJghDn9UVKsVWAexgsgFBjr2Cl5hQ9Y",
       "x": "PjGOpHaQ0l65M71LNFEMoPJIPui3Z_n8Tr3XL3aCVXI"
+    }
+  ]
+}
+```
+
+### Create a `did:web`
+```shell
+➜ web5 did create web https://blackgirlbytes.com
+{
+  "uri": "did:web:blackgirlbytes.com",
+  "document": {
+    "id": "did:web:blackgirlbytes.com",
+    "@context": [
+      "https://www.w3.org/ns/did/v1"
+    ],
+    "verificationMethod": [
+      {
+        "id": "did:web:blackgirlbytes.com#key-0",
+        "type": "JsonWebKey",
+        "controller": "did:web:blackgirlbytes.com",
+        "publicKeyJwk": {
+          "alg": "Ed25519",
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "aJjHLs_8HAg38xpOpRf4DUFkpDD-AwbvDKnNLV_CVqA"
+        }
+      }
+    ]
+  },
+  "privateKeys": [
+    {
+      "alg": "Ed25519",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "d": "jjVbwCwGeOnHkQfJgnLJv8ZQfcQ9e4DunUVUjUwM0ng",
+      "x": "aJjHLs_8HAg38xpOpRf4DUFkpDD-AwbvDKnNLV_CVqA"
     }
   ]
 }
