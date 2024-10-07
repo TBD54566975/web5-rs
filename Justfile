@@ -7,8 +7,9 @@ setup:
   if [ ! -d ".git/modules/web5-spec" ]; then
     git submodule update --init --recursive
   fi
-  if [[ "$(cargo 2>&1)" == *"rustup could not choose a version of cargo to run"* ]]; then
-    rustup default 1.76.0 # TODO undo this
+  if [[ "$(cargo --version)" != "cargo 1.76.0"* ]]; then
+    rustup install 1.76.0
+    rustup default 1.76.0
     rustup target add aarch64-apple-darwin
   fi
   if ! command -v wasm-pack >/dev/null || [[ "$(wasm-pack --version)" != "wasm-pack 0.13.0" ]]; then

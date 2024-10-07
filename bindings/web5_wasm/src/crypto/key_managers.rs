@@ -20,6 +20,18 @@ impl From<InMemoryKeyManager> for WasmKeyManager {
     }
 }
 
+impl From<Arc<dyn KeyManager>> for WasmKeyManager {
+    fn from(value: Arc<dyn KeyManager>) -> Self {
+        Self { inner: value }
+    }
+}
+
+impl From<WasmKeyManager> for Arc<dyn KeyManager> {
+    fn from(wasm_key_manager: WasmKeyManager) -> Self {
+        wasm_key_manager.inner
+    }
+}
+
 #[wasm_bindgen]
 impl WasmKeyManager {
     pub fn import_private_jwk(&self, private_jwk: WasmJwk) -> Result<WasmJwk> {
