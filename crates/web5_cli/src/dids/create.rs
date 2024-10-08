@@ -12,6 +12,8 @@ use web5::{
     },
 };
 
+use crate::utils::warn_if_not_root;
+
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     Jwk {
@@ -57,6 +59,8 @@ impl Commands {
                 no_indent,
                 json_escape,
             } => {
+                // Check if the current process has root privileges because the InMemoryKeyManager may require root privileges
+                warn_if_not_root();
                 let key_manager = Arc::new(InMemoryKeyManager::new());
 
                 let bearer_did = DidJwk::create(Some(DidJwkCreateOptions {
@@ -74,6 +78,8 @@ impl Commands {
                 no_indent,
                 json_escape,
             } => {
+                // Check if the current process has root privileges because the InMemoryKeyManager may require root privileges
+                warn_if_not_root();
                 let key_manager = Arc::new(InMemoryKeyManager::new());
 
                 let bearer_did = DidWeb::create(
@@ -94,6 +100,8 @@ impl Commands {
                 no_indent,
                 json_escape,
             } => {
+                // Check if the current process has root privileges because the InMemoryKeyManager may require root privileges
+                warn_if_not_root();
                 let key_manager = Arc::new(InMemoryKeyManager::new());
 
                 let bearer_did = DidDht::create(Some(DidDhtCreateOptions {
