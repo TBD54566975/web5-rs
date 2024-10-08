@@ -11,16 +11,45 @@ use web5::{
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+    /// Creates a VC.
+    ///
+    /// By default, this command creates an unsigned VC in JSON format.
+    /// If a Portable DID is provided, this command outputs a signed VC
+    /// in JWT format.
+    ///
+    /// Examples:
+    ///
+    /// Create a VC with an issuer and return the minified form
+    ///
+    /// $ web5 vc create did:dht:36xw3konj1pdd93axsn9p3a58a83uatcgx1nsjud97d91dtr56ry \
+    ///     --issuer did:dht:36xw3konj1pdd93axsn9p3a58a83uatcgx1nsjud97d91dtr56ry \
+    ///     --no-indent
+    ///
+    /// Create a VC with a portable DID and return escaped JSON
+    ///
+    /// $ web5 vc create did:dht:36xw3konj1pdd93axsn9p3a58a83uatcgx1nsjud97d91dtr56ry \
+    ///     --portable-did '{"uri": ... }' \
+    ///     --json-escape
+    #[command(verbatim_doc_comment)]
     Create {
+        /// The DID of the entity that the credential is being issued to.
         credential_subject_id: String,
-        #[arg(long, help = "If provided, the VC will be signed")]
+        /// The DID used to sign the VC. If included, the Portable DID's
+        /// URI is automatically set as the issuer, and the VC is signed.
+        #[arg(short, long)]
         portable_did: Option<String>,
-        #[arg(long)]
+        /// The DID of the issuer of the credential. Required if --portable-did
+        /// is not given. Overrides the issuer of the Portable DID if both are passed.
+        #[arg(short, long)]
         issuer: Option<String>,
+        /// The date when the credential expires (in ISO 8601 standard format).
+        /// If not specified, the VC will not expire
         #[arg(long)]
         expiration_date: Option<String>,
+        /// If true, output will be minified
         #[arg(long)]
         no_indent: bool,
+        /// If true, output JSON will be escaped
         #[arg(long)]
         json_escape: bool,
     },
