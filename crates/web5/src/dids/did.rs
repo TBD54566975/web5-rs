@@ -1,13 +1,14 @@
 use crate::errors::{Result, Web5Error};
 use lazy_static::lazy_static;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 
 /// A Decentralized Identifier (DID) is a globally unique identifier that does not require
 /// a centralized registration authority. This struct provides a way to parse and handle Decentralized Identifier (DID) URIs
 /// according to the W3C DID Core specification (https://www.w3.org/TR/did-core/).
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq)]
 pub struct Did {
     /// The complete DID URI.
     pub uri: String,

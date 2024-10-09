@@ -61,6 +61,54 @@ web5 vc -h
   ]
 }
 ```
+### Create a `did:jwk`
+
+```shell
+➜ web5 did create jwk
+{
+  "uri": "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0",
+  "document": {
+    "id": "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0",
+    "@context": [
+      "https://www.w3.org/ns/did/v1"
+    ],
+    "verificationMethod": [
+      {
+        "id": "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0#0",
+        "type": "JsonWebKey",
+        "controller": "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0",
+        "publicKeyJwk": {
+          "alg": "Ed25519",
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "PjGOpHaQ0l65M71LNFEMoPJIPui3Z_n8Tr3XL3aCVXI"
+        }
+      }
+    ],
+    "authentication": [
+      "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0#0"
+    ],
+    "assertionMethod": [
+      "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0#0"
+    ],
+    "capabilityInvocation": [
+      "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0#0"
+    ],
+    "capabilityDelegation": [
+      "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0#0"
+    ]
+  },
+  "privateKeys": [
+    {
+      "alg": "Ed25519",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "d": "Z2TSOicWegPpYJghDn9UVKsVWAexgsgFBjr2Cl5hQ9Y",
+      "x": "PjGOpHaQ0l65M71LNFEMoPJIPui3Z_n8Tr3XL3aCVXI"
+    }
+  ]
+}
+```
 
 ### Create a `did:jwk`
 

@@ -1,0 +1,10 @@
+# Node.js
+node_modules/
+package-lock.json
+
+# Typescript
+dist/
+*.tsbuildinfo
+
+# OS generated files
+.DS_Store
