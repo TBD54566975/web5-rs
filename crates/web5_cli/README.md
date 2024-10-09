@@ -112,6 +112,91 @@ Certain operations, such as those that utilize the `InMemoryKeyManager`, may req
 }
 ```
 
+### Create a `did:jwk`
+
+```shell
+➜ web5 did create jwk
+{
+  "uri": "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0",
+  "document": {
+    "id": "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0",
+    "@context": [
+      "https://www.w3.org/ns/did/v1"
+    ],
+    "verificationMethod": [
+      {
+        "id": "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0#0",
+        "type": "JsonWebKey",
+        "controller": "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0",
+        "publicKeyJwk": {
+          "alg": "Ed25519",
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "PjGOpHaQ0l65M71LNFEMoPJIPui3Z_n8Tr3XL3aCVXI"
+        }
+      }
+    ],
+    "authentication": [
+      "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0#0"
+    ],
+    "assertionMethod": [
+      "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0#0"
+    ],
+    "capabilityInvocation": [
+      "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0#0"
+    ],
+    "capabilityDelegation": [
+      "did:jwk:eyJhbGciOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJQakdPcEhhUTBsNjVNNzFMTkZFTW9QSklQdWkzWl9uOFRyM1hMM2FDVlhJIn0#0"
+    ]
+  },
+  "privateKeys": [
+    {
+      "alg": "Ed25519",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "d": "Z2TSOicWegPpYJghDn9UVKsVWAexgsgFBjr2Cl5hQ9Y",
+      "x": "PjGOpHaQ0l65M71LNFEMoPJIPui3Z_n8Tr3XL3aCVXI"
+    }
+  ]
+}
+```
+
+### Create a `did:web`
+```shell
+➜ web5 did create web https://blackgirlbytes.com
+{
+  "uri": "did:web:blackgirlbytes.com",
+  "document": {
+    "id": "did:web:blackgirlbytes.com",
+    "@context": [
+      "https://www.w3.org/ns/did/v1"
+    ],
+    "verificationMethod": [
+      {
+        "id": "did:web:blackgirlbytes.com#key-0",
+        "type": "JsonWebKey",
+        "controller": "did:web:blackgirlbytes.com",
+        "publicKeyJwk": {
+          "alg": "Ed25519",
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "aJjHLs_8HAg38xpOpRf4DUFkpDD-AwbvDKnNLV_CVqA"
+        }
+      }
+    ]
+  },
+  "privateKeys": [
+    {
+      "alg": "Ed25519",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "d": "jjVbwCwGeOnHkQfJgnLJv8ZQfcQ9e4DunUVUjUwM0ng",
+      "x": "aJjHLs_8HAg38xpOpRf4DUFkpDD-AwbvDKnNLV_CVqA"
+    }
+  ]
+}
+```
+
 ### Resolve a DID URI
 
 ```shell
