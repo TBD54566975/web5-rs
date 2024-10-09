@@ -16,6 +16,8 @@ web5 vc -h
 
 ## Examples
 
+Certain operations, such as those that utilize the `InMemoryKeyManager`, may require root privileges. Ensure that you are running the `did create` command with the appropriate permissions. 
+
 ### Create a `did:dht`
 
 ```shell

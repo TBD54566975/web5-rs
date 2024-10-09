@@ -1,4 +1,6 @@
 mod dids;
+mod test;
+mod utils;
 mod vcs;
 
 use clap::{Parser, Subcommand};
