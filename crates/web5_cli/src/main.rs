@@ -1,4 +1,5 @@
 mod dids;
+mod pds;
 mod test;
 mod utils;
 mod vcs;
@@ -25,6 +26,10 @@ enum Commands {
         #[command(subcommand)]
         vc_command: vcs::Commands,
     },
+    Pd {
+        #[command(subcommand)]
+        pd_command: pds::Commands,
+    },
 }
 
 #[tokio::main]
@@ -34,5 +39,6 @@ async fn main() {
     match cli.command {
         Commands::Did { did_command } => did_command.command().await,
         Commands::Vc { vc_command } => vc_command.command().await,
+        Commands::Pd { pd_command } => pd_command.command().await,
     }
 }
