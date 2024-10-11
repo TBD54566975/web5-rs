@@ -4,7 +4,6 @@ members = [
     "bindings/web5_uniffi",
     "bindings/web5_uniffi_wrapper",
     "bindings/web5_wasm",
-    "crates/http-std",
     "crates/web5",
     "crates/web5_cli",
 ]
