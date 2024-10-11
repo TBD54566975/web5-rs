@@ -2,7 +2,7 @@
 
 # Clean up files in case of error
 clean_up_temp () {
-    [[ -f "/tmp/$FILENAME" ]] && rm -rf "/tmp/$temp_dir"
+    [[ -f "/tmp/$FILENAME" ]] && rm -f "/tmp/$FILENAME"
 }
 
 trap clean_up_temp EXIT
@@ -20,15 +20,30 @@ case $OS in
   "linux")
     echo "Operating System - Architecture: Linux - $ARCH"
     case $ARCH in
-      "x86_64") FILENAME="web5-x86_64-linux-gnu" ;;
+      "x86_64") 
+      if [[ "$VERSION" == "v0.0.2" || "$VERSION" == "v0.0.3" || "$VERSION" == "v0.0.4" ]]; then
+        FILENAME="web5-x86_64-linux-gnu.zip" 
+      else
+        FILENAME="web5_cli-x86_64-unknown-linux-gnu"
+      fi;;
       *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
     esac
     ;;
   "darwin")
     echo "Operating System - Architecture: macOS - $ARCH"
     case $ARCH in
-      "x86_64") FILENAME="web5-x86_64-apple-darwin" ;;
-      "arm64") FILENAME="web5-aarch64-apple-darwin" ;;
+      "x86_64") 
+      if [[ "$VERSION" == "v0.0.2" || "$VERSION" == "v0.0.3" || "$VERSION" == "v0.0.4" ]]; then
+        FILENAME="web5-x86_64-apple-darwin.zip"
+      else
+        FILENAME="web5_cli-x86_64-apple-darwin"
+      fi;;
+      "arm64") 
+      if [[ "$VERSION" == "v0.0.2" || "$VERSION" == "v0.0.3" || "$VERSION" == "v0.0.4" ]]; then
+        FILENAME="web5-aarch64-apple-darwin.zip"
+      else
+        FILENAME="web5_cli-aarch64-apple-darwin"
+      fi;;
       *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
     esac
     ;;
