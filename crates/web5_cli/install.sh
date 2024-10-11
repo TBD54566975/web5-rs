@@ -38,3 +38,6 @@ sudo mv /tmp/$FILENAME /usr/local/bin/web5
 
 # Cleanup
 rm /tmp/$FILENAME
+
+# Running health check
+/usr/local/bin/web5 doctor
