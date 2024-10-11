@@ -53,4 +53,9 @@ void poc_key_manager_from_foreign(const CKeyManager *manager);
 CKeyManager *new_in_memory_key_manager();
 /** --- */
 
+/** did dht */
+char *did_dht_resolve(const char *uri, const char *gateway_url);
+
+/** --- */
+
 #endif // WEB5_C_H

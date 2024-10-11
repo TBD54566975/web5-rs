@@ -10,6 +10,52 @@ pub extern "C" fn free_string(s: *mut c_char) {
     }
 }
 
+use tokio::runtime::Runtime;
+use web5::errors::Result;
+use web5::errors::Web5Error;
+
+pub fn get_rt() -> Result<Runtime> {
+    let rt = Runtime::new()
+        .map_err(|e| Web5Error::Unknown(format!("unable to instantiate tokio runtime {}", e)))?;
+    Ok(rt)
+}
+
+use serde_json;
+use std::ptr;
+use web5::dids::methods::did_dht;
+
+#[no_mangle]
+pub extern "C" fn did_dht_resolve(uri: *const c_char, gateway_url: *const c_char) -> *mut c_char {
+    let uri = match unsafe { CStr::from_ptr(uri).to_str() } {
+        Ok(s) => s,
+        Err(_) => return ptr::null_mut(),
+    };
+
+    let gateway_url = if gateway_url.is_null() {
+        None
+    } else {
+        match unsafe { CStr::from_ptr(gateway_url).to_str() } {
+            Ok(s) => Some(s.to_string()),
+            Err(_) => return ptr::null_mut(),
+        }
+    };
+
+    let rt = match get_rt() {
+        Ok(rt) => rt,
+        Err(_) => return ptr::null_mut(),
+    };
+
+    let resolution_result = rt.block_on(did_dht::DidDht::resolve(uri, gateway_url));
+
+    match serde_json::to_string(&resolution_result) {
+        Ok(json_string) => match CString::new(json_string) {
+            Ok(c_str) => c_str.into_raw(),
+            Err(_) => ptr::null_mut(),
+        },
+        Err(_) => ptr::null_mut(),
+    }
+}
+
 pub fn free_bytes(ptr: *mut u8) {
     if !ptr.is_null() {
         unsafe {

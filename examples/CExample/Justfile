@@ -1,0 +1,9 @@
+compile:
+  mkdir -p build
+  gcc -o build/web5_c_example web5_c.c -L../../target/release -lweb5_c -I../../bindings/web5_c
+
+clean:
+  rm -rf build
+
+run: compile
+  ./build/web5_c_example
