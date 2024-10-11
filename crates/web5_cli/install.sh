@@ -66,9 +66,9 @@ fi
 chmod +x /tmp/$FILENAME
 
 # Move the executable to /usr/local/bin
-if [ -d "$DIRECTORY" ]; then
-  echo "Creating $DIRECTORY."
-  mkdir $DIRECTORY
+if [ -d "/usr/local/bin" ]; then
+  echo "Creating /usr/local/bin"
+  mkdir /usr/local/bin
 fi
 sudo mv /tmp/$FILENAME /usr/local/bin/web5
 
