@@ -18,12 +18,14 @@ ARCH=$(uname -m)
 
 case $OS in
   "linux")
+    echo "Operating System - Architecture: Linux - $ARCH"
     case $ARCH in
       "x86_64") FILENAME="web5-x86_64-linux-gnu" ;;
       *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
     esac
     ;;
   "darwin")
+    echo "Operating System - Architecture: macOS - $ARCH"
     case $ARCH in
       "x86_64") FILENAME="web5-x86_64-apple-darwin" ;;
       "arm64") FILENAME="web5-aarch64-apple-darwin" ;;
@@ -35,6 +37,7 @@ case $OS in
 esac
 
 # Download
+echo "Downloading $FILENAME"
 curl -L -f -o /tmp/$FILENAME https://github.com/TBD54566975/web5-rs/releases/download/$VERSION/$FILENAME
 
 # Check download errors
