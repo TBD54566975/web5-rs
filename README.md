@@ -1,4 +1,4 @@
-# Web5 SDK Mono Repo
+# Web5 SDK Mono Repo 
 
 This monorepo houses the core components of the Web5 platform containing the core Rust code with Kotlin bindings. It features libraries for building applications with decentralized identifiers (DIDs), verifiable credentials (VCs), presentation exchange (PEX), and much more.
 
