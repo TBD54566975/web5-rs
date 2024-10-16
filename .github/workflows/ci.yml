@@ -309,7 +309,7 @@ jobs:
           vector-regex: (\w+)
           fail-on-missing-vectors: false
           fail-on-failed-test-cases: true
-          comment-on-pr: true
+          comment-on-pr: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
           package-name: web5-core-kt
           git-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -410,7 +410,7 @@ jobs:
           prettify-feature: true
           fail-on-missing-vectors: false
           fail-on-failed-test-cases: true
-          comment-on-pr: true
+          comment-on-pr: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
           package-name: web5-rs
           git-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Rust Test Vector Results
