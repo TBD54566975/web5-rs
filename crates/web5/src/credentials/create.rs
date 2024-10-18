@@ -107,10 +107,10 @@ mod tests {
     use crate::credentials::credential_schema::{CredentialSchema, CREDENTIAL_SCHEMA_TYPE};
     use crate::json::JsonValue;
     use crate::{credentials::issuer::ObjectIssuer, json::JsonObject};
+    use chrono::Utc;
     use mockito::Server;
     use regex::Regex;
     use std::collections::HashMap;
-    use chrono::Utc;
 
     const ISSUER_DID_URI: &str = "did:web:tbd.website";
     const SUBJECT_DID_URI: &str = "did:dht:qgmmpyjw5hwnqfgzn7wmrm33ady8gb8z9ideib6m9gj4ys6wny8y";
@@ -502,7 +502,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_issuance_date_must_be_set() {
-        let issuance_date = Utc::now().into();
+        let issuance_date: SystemTime = Utc::now().into();
 
         let options = VerifiableCredentialCreateOptions {
             issuance_date: Some(issuance_date),
@@ -526,7 +526,7 @@ mod tests {
         .await
         .unwrap();
 
-        let now = Utc::now().into();
+        let now: SystemTime = Utc::now().into();
         let hundred_millis_ago = now - std::time::Duration::from_millis(100);
 
         assert!(vc.issuance_date >= hundred_millis_ago && vc.issuance_date <= now);
@@ -534,7 +534,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_expiration_date_must_be_set_if_supplied() {
-        let expiration_date = Utc::now().into();
+        let expiration_date: SystemTime = Utc::now().into();
         let options = VerifiableCredentialCreateOptions {
             expiration_date: Some(expiration_date),
             ..Default::default()
