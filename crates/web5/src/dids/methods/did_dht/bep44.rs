@@ -8,6 +8,7 @@ use crate::{
     errors::Web5Error,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use chrono::Utc;
 
 /// Minimum size of a bep44 encoded message
 /// Signature is 64 bytes and seq is 8 byets
@@ -85,8 +86,8 @@ impl Bep44Message {
         if message_len > MAX_V_LEN {
             return Err(Bep44EncodingError::Size(message_len));
         }
-
-        let seq = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let now: SystemTime = Utc::now().into();
+        let seq = now.duration_since(UNIX_EPOCH)?.as_secs();
 
         let signable = signable(seq, message);
         let sig = sign(signable)?;

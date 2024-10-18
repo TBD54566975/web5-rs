@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::time::SystemTime;
+use chrono::Utc;
 use uuid::Uuid;
 
 pub const BASE_PRESENTATION_CONTEXT: &str = "https://www.w3.org/2018/credentials/v1";
@@ -303,7 +304,7 @@ pub fn sign_presentation_with_did(
         jti: Some(vp.id.clone()),
         sub: None,
         nbf: Some(vp.issuance_date),
-        iat: Some(SystemTime::now()),
+        iat: Some(Utc::now().into()),
         exp: vp.expiration_date,
         additional_properties: Some(additional_properties),
     };
@@ -408,7 +409,7 @@ pub async fn validate_vp_data_model(
         ));
     }
 
-    let now = SystemTime::now();
+    let now: SystemTime = Utc::now().into();
     if vp.issuance_date > now {
         return Err(VerificationError::DataModelValidationError(
             "issuance date in future".to_string(),
@@ -490,8 +491,9 @@ mod tests {
         assert_eq!(vp.verifiable_credential.len(), 1);
         assert_eq!(vp.verifiable_credential[0], vc_jwt);
 
-        assert!(vp.issuance_date <= SystemTime::now());
-        assert!(vp.expiration_date.is_none() || vp.expiration_date.unwrap() > SystemTime::now());
+        let now: SystemTime = Utc::now().into();
+        assert!(vp.issuance_date <= now);
+        assert!(vp.expiration_date.is_none() || vp.expiration_date.unwrap() > now);
 
         validate_vp_data_model(&vp)
             .await
@@ -506,7 +508,8 @@ mod tests {
 
         let vc_jwt = sign_verifiable_credential(&vc, &vc_issuer_did);
 
-        let expired_expiration_date = SystemTime::now() - std::time::Duration::from_secs(3600); // 1 hour ago
+        let now: SystemTime = Utc::now().into();
+        let expired_expiration_date = now - std::time::Duration::from_secs(3600); // 1 hour ago
         let vp = VerifiablePresentation::create(
             holder_uri.clone(),
             vec![vc_jwt.clone()],
