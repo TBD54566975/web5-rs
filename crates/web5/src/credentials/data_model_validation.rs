@@ -1,5 +1,6 @@
 use std::time::SystemTime;
 
+use chrono::Utc;
 use super::{
     verifiable_credential_1_1::{VerifiableCredential, BASE_CONTEXT, BASE_TYPE},
     VerificationError,
@@ -39,7 +40,7 @@ pub fn validate_vc_data_model(
         ));
     }
 
-    let now = SystemTime::now();
+    let now: SystemTime = Utc::now().into();
     if vc.issuance_date > now {
         return Err(VerificationError::DataModelValidationError(
             "issuance date in future".to_string(),

@@ -7,7 +7,8 @@ use crate::{
     jose::{Jwt, JwtClaims},
     json::{JsonValue, ToJsonValue},
 };
-use std::{collections::HashMap, time::SystemTime};
+use std::{collections::HashMap};
+use chrono::Utc;
 
 pub fn sign_with_did(
     vc: &VerifiableCredential,
@@ -43,7 +44,7 @@ pub fn sign_with_did(
         jti: Some(vc.id.clone()),
         sub: Some(vc.credential_subject.id.clone()),
         nbf: Some(vc.issuance_date),
-        iat: Some(SystemTime::now()),
+        iat: Some(Utc::now().into()),
         exp: vc.expiration_date,
         additional_properties: Some(additional_properties),
     };
