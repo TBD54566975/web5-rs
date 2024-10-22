@@ -1,5 +1,6 @@
 use clap::Subcommand;
 use std::sync::Arc;
+use url::Url;
 use web5::{
     crypto::key_managers::in_memory_key_manager::InMemoryKeyManager,
     dids::{
@@ -103,10 +104,25 @@ impl Commands {
                     ..Default::default()
                 };
 
+                // Parse the domain to extract the host without the protocol
+                let domain_host = match Url::parse(domain) {
+                    Ok(parsed_url) => parsed_url.host_str().unwrap_or(domain).to_string(),
+                    Err(_) => {
+                        // Try adding "https://" if parsing fails
+                        match Url::parse(&format!("https://{}", domain)) {
+                            Ok(parsed_url) => parsed_url.host_str().unwrap_or(domain).to_string(),
+                            Err(_) => {
+                                eprintln!("Error: Invalid domain provided.");
+                                return;
+                            }
+                        }
+                    }
+                };
+
                 // If a service endpoint is provided, add it to the DID document
                 if let Some(service_endpoint_url) = service_endpoint {
                     let service = Service {
-                        id: format!("did:web:{}#service-1", domain),
+                        id: format!("did:web:{}#service-1", domain_host),
                         r#type: service_endpoint_type.clone(),
                         service_endpoint: vec![service_endpoint_url.clone()],
                     };
