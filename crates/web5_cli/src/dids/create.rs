@@ -11,7 +11,7 @@ use web5::{
         portable_did::PortableDid,
     },
 };
-
+use web5::dids::data_model::service::Service;
 use crate::utils::warn_if_not_root;
 
 #[derive(Subcommand, Debug)]
@@ -25,11 +25,25 @@ pub enum Commands {
     Web {
         domain: String,
         #[arg(long)]
+        service_endpoint: Option<String>,
+        #[arg(
+            long = "service-endpoint-type",
+            default_value = "LinkedDomains"
+        )]
+        service_endpoint_type: String,
+        #[arg(long)]
         no_indent: bool,
         #[arg(long)]
         json_escape: bool,
     },
     Dht {
+        #[arg(long)]
+        service_endpoint: Option<String>,
+        #[arg(
+            long = "service-endpoint-type",
+            default_value = "LinkedDomains"
+        )]
+        service_endpoint_type: String,
         #[arg(long)]
         no_publish: bool,
         #[arg(long)]
@@ -75,6 +89,8 @@ impl Commands {
             }
             Commands::Web {
                 domain,
+                service_endpoint,
+                service_endpoint_type,
                 no_indent,
                 json_escape,
             } => {
@@ -82,20 +98,31 @@ impl Commands {
                 warn_if_not_root();
                 let key_manager = Arc::new(InMemoryKeyManager::new());
 
-                let bearer_did = DidWeb::create(
-                    domain,
-                    Some(DidWebCreateOptions {
-                        key_manager: Some(key_manager.clone()),
-                        ..Default::default()
-                    }),
-                )
-                .unwrap();
+                let mut did_web_create_options = DidWebCreateOptions {
+                    key_manager: Some(key_manager.clone()),
+                    ..Default::default()
+                };
+
+                // If a service endpoint is provided, add it to the DID document
+                if let Some(service_endpoint_url) = service_endpoint {
+                    let service = Service {
+                        id: format!("did:web:{}#service-1", domain),
+                        r#type: service_endpoint_type.clone(),
+                        service_endpoint: vec![service_endpoint_url.clone()],
+                    };
+                    did_web_create_options.service = Some(vec![service]);
+                }
+
+                let bearer_did = DidWeb::create(domain, Some(did_web_create_options))
+                    .unwrap();
 
                 let portable_did = bearer_did.to_portable_did(key_manager).unwrap();
 
-                print_portable_did(portable_did, no_indent, json_escape)
+                print_portable_did(portable_did, no_indent, json_escape);
             }
             Commands::Dht {
+                service_endpoint,
+                service_endpoint_type,
                 no_publish,
                 no_indent,
                 json_escape,
@@ -104,13 +131,25 @@ impl Commands {
                 warn_if_not_root();
                 let key_manager = Arc::new(InMemoryKeyManager::new());
 
-                let bearer_did = DidDht::create(Some(DidDhtCreateOptions {
+                let mut did_dht_create_options = DidDhtCreateOptions {
                     publish: Some(!no_publish),
                     key_manager: Some(key_manager.clone()),
                     ..Default::default()
-                }))
-                .await
-                .unwrap();
+                };
+
+                // If a service endpoint is provided, add it to the DID document
+                if let Some(service_endpoint_url) = service_endpoint {
+                    let service = Service {
+                        id: "did:dht:#service-1".to_string(),
+                        r#type: service_endpoint_type.clone(),
+                        service_endpoint: vec![service_endpoint_url.clone()],
+                    };
+                    did_dht_create_options.service = Some(vec![service]);
+                }
+
+                let bearer_did = DidDht::create(Some(did_dht_create_options))
+                    .await
+                    .unwrap();
 
                 let portable_did = bearer_did.to_portable_did(key_manager).unwrap();
 
