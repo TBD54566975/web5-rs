@@ -10,6 +10,8 @@ use web5::{
 };
 
 #[derive(Subcommand, Debug)]
+// We allow the warning because memory layout isn't important for the CLI options.
+#[allow(clippy::large_enum_variant)]
 pub enum Commands {
     /// Creates a VC.
     ///
@@ -136,9 +138,9 @@ impl Commands {
                 let credential_schema = credential_schema.as_ref().map(|cs| {
                     serde_json::from_str(cs).expect("Error parsing credential schema JSON string")
                 });
-                let evidence = evidence.as_ref().map(|e| {
-                    serde_json::from_str(e).expect("Error parsing evidence JSON string")
-                });
+                let evidence = evidence
+                    .as_ref()
+                    .map(|e| serde_json::from_str(e).expect("Error parsing evidence JSON string"));
 
                 let vc = VerifiableCredential::create(
                     issuer,
@@ -155,7 +157,6 @@ impl Commands {
                         credential_status,
                         credential_schema,
                         evidence,
-                        ..Default::default()
                     }),
                 )
                 .await
