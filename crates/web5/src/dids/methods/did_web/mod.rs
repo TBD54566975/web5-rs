@@ -147,7 +147,7 @@ impl DidWeb {
             id: did_uri.clone(),
             context: Some(vec!["https://www.w3.org/ns/did/v1".to_string()]),
             verification_method: {
-                let mut methods = vec![verification_method];
+                let mut methods = vec![verification_method.clone()];
                 if let Some(mut additional_methods) = options.verification_method {
                     methods.append(&mut additional_methods);
                 }
@@ -156,6 +156,10 @@ impl DidWeb {
             service: options.service,
             also_known_as: options.also_known_as,
             controller: options.controller,
+            capability_delegation: Some(vec![verification_method.id.clone()]),
+            capability_invocation: Some(vec![verification_method.id.clone()]),
+            authentication: Some(vec![verification_method.id.clone()]),
+            assertion_method: Some(vec![verification_method.id.clone()]),
             ..Default::default()
         };
 
