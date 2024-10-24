@@ -46,6 +46,28 @@ pub enum Commands {
         /// If not specified, the VC will not expire
         #[arg(long)]
         expiration_date: Option<String>,
+        /// The optional credential status, which may indicate revocation or suspension information.
+        #[arg(long)]
+        credential_status: Option<String>,
+        /// The credential schema, used to validate the data structure of the credential. This is optional.
+        /// JSON Schema validation is performed if the value is provided, and creation will fail if validation fails.
+        #[arg(long)]
+        credential_schema: Option<String>,
+        /// An optional array of evidence supporting the claims made in the credential.
+        #[arg(long)]
+        evidence: Option<String>,
+        /// The type(s) of the Verifiable Credential.
+        #[arg(long)]
+        r#type: Option<Vec<String>>,
+        /// The context(s) for the Verifiable Credential, which define the meaning of terms within the credential.
+        #[arg(long)]
+        context: Option<Vec<String>>,
+        /// The unique identifier for the Verifiable Credential. This is optional.
+        #[arg(long)]
+        id: Option<String>,
+        /// The issuance date of the credential. If not provided, defaults to the current date and time.
+        #[arg(long)]
+        issuance_date: Option<String>,
         /// If true, output will be minified
         #[arg(long)]
         no_indent: bool,
@@ -70,6 +92,13 @@ impl Commands {
                 portable_did,
                 issuer,
                 expiration_date,
+                credential_status,
+                credential_schema,
+                evidence,
+                r#type,
+                context,
+                id,
+                issuance_date,
                 no_indent,
                 json_escape,
             } => {
@@ -92,6 +121,24 @@ impl Commands {
                         }
                     },
                 };
+                let issuance_date = match issuance_date {
+                    None => None,
+                    Some(d) => match d.parse::<DateTime<Utc>>() {
+                        Ok(datetime) => Some(SystemTime::from(datetime)),
+                        Err(e) => {
+                            panic!("Error parsing date string: {}", e);
+                        }
+                    },
+                };
+                let credential_status = credential_status.as_ref().map(|cs| {
+                    serde_json::from_str(cs).expect("Error parsing credential status JSON string")
+                });
+                let credential_schema = credential_schema.as_ref().map(|cs| {
+                    serde_json::from_str(cs).expect("Error parsing credential schema JSON string")
+                });
+                let evidence = evidence.as_ref().map(|e| {
+                    serde_json::from_str(e).expect("Error parsing evidence JSON string")
+                });
 
                 let vc = VerifiableCredential::create(
                     issuer,
@@ -100,7 +147,14 @@ impl Commands {
                         ..Default::default()
                     },
                     Some(VerifiableCredentialCreateOptions {
+                        id: id.clone(),
+                        context: context.clone(),
+                        r#type: r#type.clone(),
+                        issuance_date,
                         expiration_date,
+                        credential_status,
+                        credential_schema,
+                        evidence,
                         ..Default::default()
                     }),
                 )
