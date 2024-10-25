@@ -314,38 +314,38 @@ jobs:
     #         done
 
     # kotlin-docs:
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          distribution: "adopt"
-          java-version: "11"
-      - uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - run: mvn dokka:dokka
-        working-directory: bound/kt
-      - run: mkdir -p _site/kt/${GITHUB_REF_NAME} && mv bound/kt/target/dokka/* _site/kt/${GITHUB_REF_NAME}
-        env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    # permissions:
+    #   contents: read
+    #   pages: write
+    #   id-token: write
+    # runs-on: ubuntu-latest
+    # steps:
+    #   - uses: actions/checkout@v4
+    #   - name: Set up JDK 11
+    #     uses: actions/setup-java@v3
+    #     with:
+    #       distribution: "adopt"
+    #       java-version: "11"
+    #   - uses: actions/cache@v3
+    #     with:
+    #       path: ~/.m2/repository
+    #       key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    #       restore-keys: |
+    #         ${{ runner.os }}-maven-
+    #   - run: mvn dokka:dokka
+    #     working-directory: bound/kt
+    #   - run: mkdir -p _site/kt/${GITHUB_REF_NAME} && mv bound/kt/target/dokka/* _site/kt/${GITHUB_REF_NAME}
+    #     env:
+    #       GITHUB_REF_NAME: ${{ github.ref_name }}
+    #   - name: Setup Pages
+    #     uses: actions/configure-pages@v5
+    #   - name: Upload artifact
+    #     uses: actions/upload-pages-artifact@v3
+    #     with:
+    #       path: _site
+    #   - name: Deploy to GitHub Pages
+    #     id: deployment
+    #     uses: actions/deploy-pages@v4
 
   release-conformance-report:
     needs:
