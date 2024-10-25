@@ -11,311 +11,309 @@ env:
   WEB5_SDK_LOG_LEVEL: debug
 
 jobs:
-
   run-ci:
     # This will run CI and also publish the Kotlin release to the TBD Artifactory repo manager
     name: Run CI
-    uses: TBD54566975/web5-rs/.github/workflows/ci.yml@main
+    uses: TBD54566975/web5-rs/.github/workflows/ci.yml@leordev/automated-release-conformance # TODO: switch back to main
     secrets: inherit
     with:
       version: ${{ github.event.inputs.version }}
 
-  build-cli-aarch64-apple-darwin:
-    runs-on: macos-latest
-    name: Build CLI (aarch64-apple-darwin)
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Rust
-        run: rustup toolchain install stable
-      - name: cargo build
-        run: |
-          cargo build --target aarch64-apple-darwin --release --package web5_cli
-          cp -v target/aarch64-apple-darwin/release/web5_cli web5_cli-aarch64-apple-darwin
-      - name: Upload compiled binary
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: web5_cli-aarch64-apple-darwin
-          path: web5_cli-aarch64-apple-darwin
+    # build-cli-aarch64-apple-darwin:
+    #   runs-on: macos-latest
+    #   name: Build CLI (aarch64-apple-darwin)
+    #   steps:
+    #     - uses: actions/checkout@v2
+    #     - name: Install Rust
+    #       run: rustup toolchain install stable
+    #     - name: cargo build
+    #       run: |
+    #         cargo build --target aarch64-apple-darwin --release --package web5_cli
+    #         cp -v target/aarch64-apple-darwin/release/web5_cli web5_cli-aarch64-apple-darwin
+    #     - name: Upload compiled binary
+    #       uses: actions/upload-artifact@v4.0.0
+    #       with:
+    #         name: web5_cli-aarch64-apple-darwin
+    #         path: web5_cli-aarch64-apple-darwin
 
-  build-cli-x86_64_apple_darwin:
-    runs-on: macos-12
-    name: Build CLI (x86_64-apple-darwin)
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Rust
-        run: rustup toolchain install stable
-      - name: cargo build
-        run: |
-          cargo build --target x86_64-apple-darwin --release --package web5_cli
-          cp -v target/x86_64-apple-darwin/release/web5_cli web5_cli-x86_64-apple-darwin
-      - name: Upload compiled binary
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: web5_cli-x86_64-apple-darwin
-          path: web5_cli-x86_64-apple-darwin
+    # build-cli-x86_64_apple_darwin:
+    #   runs-on: macos-12
+    #   name: Build CLI (x86_64-apple-darwin)
+    #   steps:
+    #     - uses: actions/checkout@v2
+    #     - name: Install Rust
+    #       run: rustup toolchain install stable
+    #     - name: cargo build
+    #       run: |
+    #         cargo build --target x86_64-apple-darwin --release --package web5_cli
+    #         cp -v target/x86_64-apple-darwin/release/web5_cli web5_cli-x86_64-apple-darwin
+    #     - name: Upload compiled binary
+    #       uses: actions/upload-artifact@v4.0.0
+    #       with:
+    #         name: web5_cli-x86_64-apple-darwin
+    #         path: web5_cli-x86_64-apple-darwin
 
-  build-cli-x86_64_unknown_linux_gnu:
-    runs-on: ubuntu-latest
-    name: Build CLI (x86_64-unknown-linux-gnu)
-    steps:
-      - uses: actions/checkout@v2
-      - name: cargo build
-        run: |
-          cargo build --target x86_64-unknown-linux-gnu --release --package web5_cli
-          cp -v target/x86_64-unknown-linux-gnu/release/web5_cli web5_cli-x86_64-unknown-linux-gnu
-      - name: Upload compiled binary
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: web5_cli-x86_64-unknown-linux-gnu
-          path: web5_cli-x86_64-unknown-linux-gnu
+    # build-cli-x86_64_unknown_linux_gnu:
+    #   runs-on: ubuntu-latest
+    #   name: Build CLI (x86_64-unknown-linux-gnu)
+    #   steps:
+    #     - uses: actions/checkout@v2
+    #     - name: cargo build
+    #       run: |
+    #         cargo build --target x86_64-unknown-linux-gnu --release --package web5_cli
+    #         cp -v target/x86_64-unknown-linux-gnu/release/web5_cli web5_cli-x86_64-unknown-linux-gnu
+    #     - name: Upload compiled binary
+    #       uses: actions/upload-artifact@v4.0.0
+    #       with:
+    #         name: web5_cli-x86_64-unknown-linux-gnu
+    #         path: web5_cli-x86_64-unknown-linux-gnu
 
-  build-cli-x86_64_unknown_linux_musl:
-    runs-on: ubuntu-latest
-    name: Build CLI (x86_64-unknown-linux-musl)
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run Build Script
-        run: |
-          pushd crates/web5_cli/build/x86_64_unknown_linux_musl
-          ./build
-          popd
-          cp target/x86_64-unknown-linux-musl/release/web5_cli web5_cli-x86_64-unknown-linux-musl
-      - name: Upload compiled binary
-        uses: actions/upload-artifact@v4.0.0
-        with:
-          name: web5_cli-x86_64-unknown-linux-musl
-          path: web5_cli-x86_64-unknown-linux-musl
+    # build-cli-x86_64_unknown_linux_musl:
+    #   runs-on: ubuntu-latest
+    #   name: Build CLI (x86_64-unknown-linux-musl)
+    #   steps:
+    #     - uses: actions/checkout@v2
+    #     - name: Run Build Script
+    #       run: |
+    #         pushd crates/web5_cli/build/x86_64_unknown_linux_musl
+    #         ./build
+    #         popd
+    #         cp target/x86_64-unknown-linux-musl/release/web5_cli web5_cli-x86_64-unknown-linux-musl
+    #     - name: Upload compiled binary
+    #       uses: actions/upload-artifact@v4.0.0
+    #       with:
+    #         name: web5_cli-x86_64-unknown-linux-musl
+    #         path: web5_cli-x86_64-unknown-linux-musl
 
-  git-tag:
-    runs-on: ubuntu-latest
-    needs:
-      - run-ci
-      - build-cli-aarch64-apple-darwin
-      - build-cli-x86_64_apple_darwin
-      - build-cli-x86_64_unknown_linux_gnu
-      - build-cli-x86_64_unknown_linux_musl
-    outputs:
-      RELEASE_TAG: ${{ steps.set-version-and-tag.outputs.RELEASE_TAG }}
-      RELEASE_VERSION: ${{ steps.set-version-and-tag.outputs.RELEASE_VERSION }}
+    # git-tag:
+    #   runs-on: ubuntu-latest
+    #   needs:
+    #     - run-ci
+    #     - build-cli-aarch64-apple-darwin
+    #     - build-cli-x86_64_apple_darwin
+    #     - build-cli-x86_64_unknown_linux_gnu
+    #     - build-cli-x86_64_unknown_linux_musl
+    #   outputs:
+    #     RELEASE_TAG: ${{ steps.set-version-and-tag.outputs.RELEASE_TAG }}
+    #     RELEASE_VERSION: ${{ steps.set-version-and-tag.outputs.RELEASE_VERSION }}
 
-    name: Create Git Tag
-    steps:
-      - id: checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
+    #   name: Create Git Tag
+    #   steps:
+    #     - id: checkout
+    #       uses: actions/checkout@v4
+    #       with:
+    #         submodules: true
+    #         token: ${{ secrets.TBD_RELEASE_GITHUB_PERSONAL_ACCESS_TOKEN }}
 
-      # Used in writing commits in the release process
-      - id: set-git-config
-        name: Set Git Config
-        run: |
-          git config user.name "tbd-releases"
-          git config user.email "releases@tbd.email"
+    #     # Used in writing commits in the release process
+    #     - id: set-git-config
+    #       name: Set Git Config
+    #       run: |
+    #         git config user.name "tbd-releases"
+    #         git config user.email "releases@tbd.email"
 
-      # Cache Maven repo
-      - id: cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+    #     # Cache Maven repo
+    #     - id: cache
+    #       uses: actions/cache@v3
+    #       with:
+    #         path: ~/.m2/repository
+    #         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    #         restore-keys: |
+    #           ${{ runner.os }}-maven-
 
-      - id: set-version-and-tag
-        name: Set version of Kotlin and commit
-        run: |
-          set -exuo pipefail
+    #     - id: set-version-and-tag
+    #       name: Set version of Kotlin and commit
+    #       run: |
+    #         set -exuo pipefail
 
-          # cd into the Kotlin project
-          cd bound/kt/
+    #         # cd into the Kotlin project
+    #         cd bound/kt/
 
-          # Get the required provided version
-          version=${{ github.event.inputs.version }}
-          # Precondition check; do not allow this to proceed if a version ending in "-SNAPSHOT" was specified
-          if [[ $version =~ -SNAPSHOT$ ]]; then
-            echo "Error: The version for release must not end with \"-SNAPSHOT\": $version"
-            exit 1
-          fi
+    #         # Get the required provided version
+    #         version=${{ github.event.inputs.version }}
+    #         # Precondition check; do not allow this to proceed if a version ending in "-SNAPSHOT" was specified
+    #         if [[ $version =~ -SNAPSHOT$ ]]; then
+    #           echo "Error: The version for release must not end with \"-SNAPSHOT\": $version"
+    #           exit 1
+    #         fi
 
-          # Get the existing version from the POM and set it to the nextVersion, keeping the POM effectively versionless
-          nextVersion=$(grep -oPm1 "(?<=<version>)[^<]+" pom.xml)
-          if [[ -z $nextVersion ]]; then
-            echo "Error: Could not find a version in the pom.xml"
-            exit 1
-          fi
+    #         # Get the existing version from the POM and set it to the nextVersion, keeping the POM effectively versionless
+    #         nextVersion=$(grep -oPm1 "(?<=<version>)[^<]+" pom.xml)
+    #         if [[ -z $nextVersion ]]; then
+    #           echo "Error: Could not find a version in the pom.xml"
+    #           exit 1
+    #         fi
 
-          echo "Version to be released: $version"
-          echo "Setting next development version back to original in pom.xml: $nextVersion"
+    #         echo "Version to be released: $version"
+    #         echo "Setting next development version back to original in pom.xml: $nextVersion"
 
-          # Set newly resolved version in POM config
-          mvn \
-            versions:set \
-            --batch-mode \
-            -DnewVersion=$version
+    #         # Set newly resolved version in POM config
+    #         mvn \
+    #           versions:set \
+    #           --batch-mode \
+    #           -DnewVersion=$version
 
-          # Commit
-          git add -Av
-          git commit -m "[TBD Release Manager 🚀] Setting version to: $version"
-          tagName=v$version
-          git tag -a $tagName -m "Tag version: $tagName" # We tag with a prefix of "v"
+    #         # Commit
+    #         git add -Av
+    #         git commit -m "[TBD Release Manager 🚀] Setting version to: $version"
+    #         tagName=v$version
+    #         git tag -a $tagName -m "Tag version: $tagName" # We tag with a prefix of "v"
 
-          # Make the version and tag name available to subsequent jobs as an output param
-          echo "RELEASE_TAG=$tagName" >> "$GITHUB_OUTPUT"
-          echo "RELEASE_VERSION=$version" >> "$GITHUB_OUTPUT"
-          cat $GITHUB_OUTPUT
+    #         # Make the version and tag name available to subsequent jobs as an output param
+    #         echo "RELEASE_TAG=$tagName" >> "$GITHUB_OUTPUT"
+    #         echo "RELEASE_VERSION=$version" >> "$GITHUB_OUTPUT"
+    #         cat $GITHUB_OUTPUT
 
-          # Set the next development version and commit and push
-          mvn \
-            versions:set \
-            --batch-mode \
-            -DnewVersion=$nextVersion
-          git add -Av
-          git commit -m "[TBD Release Manager 🚀] Setting next development version after $version to: $nextVersion"
-          git push origin "${GITHUB_REF#refs/heads/}"
-          git push origin $tagName
+    #         # Set the next development version and commit and push
+    #         mvn \
+    #           versions:set \
+    #           --batch-mode \
+    #           -DnewVersion=$nextVersion
+    #         git add -Av
+    #         git commit -m "[TBD Release Manager 🚀] Setting next development version after $version to: $nextVersion"
+    #         git push origin "${GITHUB_REF#refs/heads/}"
+    #         git push origin $tagName
 
-  kotlin-release-to-tbd-artifactory-and-maven-central:
-    name: Release Kotlin to Maven Central
-    needs: git-tag
-    runs-on: ubuntu-latest
-    steps:
+    # kotlin-release-to-tbd-artifactory-and-maven-central:
+    #   name: Release Kotlin to Maven Central
+    #   needs: git-tag
+    #   runs-on: ubuntu-latest
+    #   steps:
+    #     # Check out the tag we created above
+    #     - uses: actions/checkout@v4
+    #       with:
+    #         submodules: true
+    #         ref: ${{ needs.git-tag.outputs.RELEASE_TAG }} # Check out the tag we created above
 
-      # Check out the tag we created above
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-          ref: ${{ needs.git-tag.outputs.RELEASE_TAG }} # Check out the tag we created above
+    #     # Set up JDK
+    #     - name: Set up JDK 11
+    #       uses: actions/setup-java@v3
+    #       with:
+    #         distribution: "adopt"
+    #         java-version: "11"
 
-      # Set up JDK
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          distribution: "adopt"
-          java-version: "11"
+    #     # Cache Maven repo
+    #     - uses: actions/cache@v3
+    #       with:
+    #         path: ~/.m2/repository
+    #         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    #         restore-keys: |
+    #           ${{ runner.os }}-maven-
 
-      # Cache Maven repo
-      - uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+    #     # Package up the native binaries
+    #     #TODO Centralize this block as we re-use it via copy/paste right now
+    #     - name: Download MacOS aarch64 Native Library
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: aarch64-apple-darwin-dylib
+    #         path: bound/kt/src/main/resources/
+    #     - name: Download MacOS x86_64 Native Library
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: x86_64-apple-darwin-dylib
+    #         path: bound/kt/src/main/resources/
+    #     - name: Download Linux x86_64 GNU Native Library
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: x86_64-unknown-linux-gnu-so
+    #         path: bound/kt/src/main/resources/
+    #     - name: Download Linux x86_64 MUSL Native Library
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: x86_64-unknown-linux-musl-so
+    #         path: bound/kt/src/main/resources/
+    #     - name: Download Windows x86_64 MSVC Native Library
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: x86_64-pc-windows-msvc-dll
+    #         path: bound/kt/src/main/resources/
 
-      # Package up the native binaries
-      #TODO Centralize this block as we re-use it via copy/paste right now
-      - name: Download MacOS aarch64 Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: aarch64-apple-darwin-dylib
-          path: bound/kt/src/main/resources/
-      - name: Download MacOS x86_64 Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-apple-darwin-dylib
-          path: bound/kt/src/main/resources/
-      - name: Download Linux x86_64 GNU Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-unknown-linux-gnu-so
-          path: bound/kt/src/main/resources/
-      - name: Download Linux x86_64 MUSL Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-unknown-linux-musl-so
-          path: bound/kt/src/main/resources/
-      - name: Download Windows x86_64 MSVC Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-pc-windows-msvc-dll
-          path: bound/kt/src/main/resources/
+    #     - name: Deploy Release Version of Kotlin Project to Maven Central
+    #       run: |
+    #         # cd into the Kotlin project
+    #         cd bound/kt/
 
-      - name: Deploy Release Version of Kotlin Project to Maven Central
-        run: |
-          # cd into the Kotlin project
-          cd bound/kt/
-          
-          # Publish to Sonatype
-          # Precondition check: Only attempt to publish artifact if we have credentials
-          if [ -n "${{ secrets.SONATYPE_PASSWORD }}" ]; then
-            # Maven deploy lifecycle will build, run tests, verify, sign, and deploy
-            mvn deploy --batch-mode \
-              --settings .maven_settings.xml \
-              -P ossrh,sign-artifacts
-          else
-              echo "Error: No credentials"
-              exit 1
-          fi
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          SIGN_KEY_PASS: ${{ secrets.GPG_SECRET_PASSPHRASE }}
-          SIGN_KEY: ${{ secrets.GPG_SECRET_KEY }}
+    #         # Publish to Sonatype
+    #         # Precondition check: Only attempt to publish artifact if we have credentials
+    #         if [ -n "${{ secrets.SONATYPE_PASSWORD }}" ]; then
+    #           # Maven deploy lifecycle will build, run tests, verify, sign, and deploy
+    #           mvn deploy --batch-mode \
+    #             --settings .maven_settings.xml \
+    #             -P ossrh,sign-artifacts
+    #         else
+    #             echo "Error: No credentials"
+    #             exit 1
+    #         fi
+    #       env:
+    #         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+    #         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+    #         SIGN_KEY_PASS: ${{ secrets.GPG_SECRET_PASSPHRASE }}
+    #         SIGN_KEY: ${{ secrets.GPG_SECRET_KEY }}
 
-      - name: Create GitHub Release
-        uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e # v1.1.4 final release
-        id: release
-        with:
-          tag_name: "v${{ github.event.inputs.version }}"
-          release_name: "v${{ github.event.inputs.version }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #     - name: Create GitHub Release
+    #       uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e # v1.1.4 final release
+    #       id: release
+    #       with:
+    #         tag_name: "v${{ github.event.inputs.version }}"
+    #         release_name: "v${{ github.event.inputs.version }}"
+    #       env:
+    #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download MacOS x86_64 Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-apple-darwin-dylib
-          path: bound/kt/src/main/resources/
-      - name: Download Linux x86_64 GNU Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-unknown-linux-gnu-so
-          path: bound/kt/src/main/resources/
-      - name: Download Linux x86_64 MUSL Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-unknown-linux-musl-so
-          path: bound/kt/src/main/resources/
-      - name: Download Windows x86_64 MSVC Native Library
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: x86_64-pc-windows-msvc-dll
-          path: bound/kt/src/main/resources/
+    #     - name: Download MacOS x86_64 Native Library
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: x86_64-apple-darwin-dylib
+    #         path: bound/kt/src/main/resources/
+    #     - name: Download Linux x86_64 GNU Native Library
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: x86_64-unknown-linux-gnu-so
+    #         path: bound/kt/src/main/resources/
+    #     - name: Download Linux x86_64 MUSL Native Library
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: x86_64-unknown-linux-musl-so
+    #         path: bound/kt/src/main/resources/
+    #     - name: Download Windows x86_64 MSVC Native Library
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: x86_64-pc-windows-msvc-dll
+    #         path: bound/kt/src/main/resources/
 
-      - name: Download web5_cli-aarch64-apple-darwin
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: web5_cli-aarch64-apple-darwin
-          path: "."
-      - name: Download web5_cli-x86_64-apple-darwin
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: web5_cli-x86_64-apple-darwin
-          path: "."
-      - name: Download web5_cli-x86_64-unknown-linux-gnu
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: web5_cli-x86_64-unknown-linux-gnu
-          path: "."
-      - name: Download web5_cli-x86_64-unknown-linux-musl
-        uses: actions/download-artifact@v4.1.7
-        with:
-          name: web5_cli-x86_64-unknown-linux-musl
-          path: "."
-      - name: Upload release assets
-        run: |
-          set -ex
-          for asset in web5_cli-aarch64-apple-darwin web5_cli-x86_64-apple-darwin web5_cli-x86_64-unknown-linux-gnu web5_cli-x86_64-unknown-linux-musl; do
-            curl -L -f -X POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              -H "Content-Type: application/octet-stream" \
-              "https://uploads.github.com/repos/TBD54566975/web5-rs/releases/${{ steps.release.outputs.id }}/assets?name=${asset}" \
-              --data-binary "@${asset}"
-          done
+    #     - name: Download web5_cli-aarch64-apple-darwin
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: web5_cli-aarch64-apple-darwin
+    #         path: "."
+    #     - name: Download web5_cli-x86_64-apple-darwin
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: web5_cli-x86_64-apple-darwin
+    #         path: "."
+    #     - name: Download web5_cli-x86_64-unknown-linux-gnu
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: web5_cli-x86_64-unknown-linux-gnu
+    #         path: "."
+    #     - name: Download web5_cli-x86_64-unknown-linux-musl
+    #       uses: actions/download-artifact@v4.1.7
+    #       with:
+    #         name: web5_cli-x86_64-unknown-linux-musl
+    #         path: "."
+    #     - name: Upload release assets
+    #       run: |
+    #         set -ex
+    #         for asset in web5_cli-aarch64-apple-darwin web5_cli-x86_64-apple-darwin web5_cli-x86_64-unknown-linux-gnu web5_cli-x86_64-unknown-linux-musl; do
+    #           curl -L -f -X POST \
+    #             -H "Accept: application/vnd.github+json" \
+    #             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+    #             -H "X-GitHub-Api-Version: 2022-11-28" \
+    #             -H "Content-Type: application/octet-stream" \
+    #             "https://uploads.github.com/repos/TBD54566975/web5-rs/releases/${{ steps.release.outputs.id }}/assets?name=${asset}" \
+    #             --data-binary "@${asset}"
+    #         done
 
-  kotlin-docs:
+    # kotlin-docs:
     permissions:
       contents: read
       pages: write
@@ -348,3 +346,65 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  release-conformance-report:
+    needs:
+      # - git-tag # todo: uncomment
+      - run-ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Generate an access token to write to downstream repos
+        uses: actions/create-github-app-token@2986852ad836768dfea7781f31828eb3e17990fa # v1.6.2
+        id: app-token
+        with:
+          app-id: ${{ secrets.CICD_ROBOT_GITHUB_APP_ID }}
+          private-key: ${{ secrets.CICD_ROBOT_GITHUB_APP_PRIVATE_KEY }}
+          owner: TBD54566975
+          repositories: sdk-report-runner
+
+      - name: Update Conformance Report for web5-rs
+        uses: convictional/trigger-workflow-and-wait@v1.6.5
+        with:
+          owner: TBD54566975
+          repo: sdk-report-runner
+          github_token: ${{ steps.app-token.outputs.token }}
+          workflow_file_name: build-conformance-table.yaml
+          wait_interval: 10
+          propagate_failure: true
+          wait_workflow: true
+          client_payload: |
+            {
+              "specTag": "${{ needs.run-ci.outputs.spec_tag }}",
+              "specRepo": "web5-spec",
+              "sdkReleaseRepo": "TBD54566975/web5-rs",
+              "sdkReleasePackageName": "web5-rs",
+              "sdkReleaseTag": "${{ github.event.inputs.version }}",
+              "sdkReleaseJunitFiles": "rust-test-results",
+              "sdkReleaseWorkflowRunId": "${{ github.run_id }}",
+              "sdkSuiteJunitRegexParams": "Web5TestVectors\nWeb5TestVectorsTest\\\\\\$Web5TestVectors(\\w+)\n(\\w+)"
+            }
+
+      - name: Update Conformance Report for web5-core-kt
+        uses: convictional/trigger-workflow-and-wait@v1.6.5
+        with:
+          owner: TBD54566975
+          repo: sdk-report-runner
+          github_token: ${{ steps.app-token.outputs.token }}
+          workflow_file_name: build-conformance-table.yaml
+          wait_interval: 10
+          propagate_failure: true
+          wait_workflow: true
+          client_payload: |
+            {
+              "specTag": "${{ needs.run-ci.outputs.spec_tag }}",
+              "specRepo": "web5-spec",
+              "sdkReleaseRepo": "TBD54566975/web5-rs",
+              "sdkReleasePackageName": "web5-core-kt",
+              "sdkReleaseTag": "${{ github.event.inputs.version }}",
+              "sdkReleaseJunitFiles": "kotlin-test-results",
+              "sdkReleaseWorkflowRunId": "${{ github.run_id }}",
+              "sdkSuiteJunitRegexParams": "Web5TestVectors\nWeb5TestVectorsTest\\\\\\$Web5TestVectors(\\w+)\n(\\w+)"
+            }
