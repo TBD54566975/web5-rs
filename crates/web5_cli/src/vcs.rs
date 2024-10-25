@@ -1,6 +1,5 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, FixedOffset};
 use clap::Subcommand;
-use std::time::SystemTime;
 use web5::{
     credentials::{
         CredentialSubject, Issuer, VerifiableCredential, VerifiableCredentialCreateOptions,
@@ -67,7 +66,8 @@ pub enum Commands {
         /// The unique identifier for the Verifiable Credential. This is optional.
         #[arg(long)]
         id: Option<String>,
-        /// The issuance date of the credential. If not provided, defaults to the current date and time.
+        /// The issuance date of the credential (in ISO 8601 standard format).
+        /// If not provided, defaults to the current date and time.
         #[arg(long)]
         issuance_date: Option<String>,
         /// If true, output will be minified
@@ -116,8 +116,8 @@ impl Commands {
                 });
                 let expiration_date = match expiration_date {
                     None => None,
-                    Some(d) => match d.parse::<DateTime<Utc>>() {
-                        Ok(datetime) => Some(SystemTime::from(datetime)),
+                    Some(d) => match d.parse::<DateTime<FixedOffset>>() {
+                        Ok(datetime) => Some(datetime.into()),
                         Err(e) => {
                             panic!("Error parsing date string: {}", e);
                         }
@@ -125,8 +125,8 @@ impl Commands {
                 };
                 let issuance_date = match issuance_date {
                     None => None,
-                    Some(d) => match d.parse::<DateTime<Utc>>() {
-                        Ok(datetime) => Some(SystemTime::from(datetime)),
+                    Some(d) => match d.parse::<DateTime<FixedOffset>>() {
+                        Ok(datetime) => Some(datetime.into()),
                         Err(e) => {
                             panic!("Error parsing date string: {}", e);
                         }
