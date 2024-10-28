@@ -17,21 +17,21 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn command(&self) {
+    pub async fn command(&self, mut sink: impl std::io::Write) {
         match self {
             Commands::Resolve { uri } => {
                 let resolution_result = ResolutionResult::resolve(uri).await;
                 match &resolution_result.resolution_metadata.error {
-                    Some(e) => println!("{:?} {}", e, e),
+                    Some(e) => eprintln!("{:?} {}", e, e),
                     None => match &resolution_result.document {
-                        None => println!(
+                        None => eprintln!(
                             "{:?} {}",
                             ResolutionMetadataError::InternalError,
                             ResolutionMetadataError::InternalError
                         ),
                         Some(document) => match serde_json::to_string_pretty(&document) {
-                            Ok(s) => println!("{}", s),
-                            Err(_) => println!(
+                            Ok(s) => writeln!(sink, "{}", s).unwrap(),
+                            Err(_) => eprintln!(
                                 "{:?} {}",
                                 ResolutionMetadataError::InternalError,
                                 ResolutionMetadataError::InternalError
@@ -40,7 +40,7 @@ impl Commands {
                     },
                 }
             }
-            Commands::Create { did_create_command } => did_create_command.command().await,
+            Commands::Create { did_create_command } => did_create_command.command(sink).await,
         }
     }
 }

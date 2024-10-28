@@ -94,7 +94,7 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn command(self) {
+    pub async fn command(self, mut sink: impl std::io::Write) {
         match self {
             Commands::Create {
                 credential_subject_id,
@@ -189,12 +189,12 @@ impl Commands {
                     output_str = output_str.replace('"', "\\\"");
                 }
 
-                println!("{}", output_str);
+                writeln!(sink, "{}", output_str).unwrap();
 
                 if let Some(portable_did) = portable_did {
                     let bearer_did = BearerDid::from_portable_did(portable_did).unwrap();
                     let vc_jwt = vc.sign(&bearer_did, None).unwrap();
-                    println!("\n{}", vc_jwt);
+                    writeln!(sink, "\n{}", vc_jwt).unwrap();
                 }
             }
             Commands::Verify {
@@ -203,11 +203,11 @@ impl Commands {
                 json_escape,
             } => match VerifiableCredential::from_vc_jwt(&vc_jwt, true).await {
                 Err(e) => {
-                    println!("\n❌ Verfication failed\n");
-                    println!("{:?} {}", e, e);
+                    eprintln!("\n❌ Verfication failed\n");
+                    eprintln!("{:?} {}", e, e);
                 }
                 Ok(vc) => {
-                    println!("\n✅ Verfied\n");
+                    writeln!(sink, "\n✅ Verfied\n").unwrap();
 
                     let mut output_str = match no_indent {
                         true => serde_json::to_string(&vc).unwrap(),
@@ -218,7 +218,7 @@ impl Commands {
                         output_str = output_str.replace('"', "\\\"");
                     }
 
-                    println!("{}", output_str);
+                    writeln!(sink, "{}", output_str).unwrap();
                 }
             },
         }

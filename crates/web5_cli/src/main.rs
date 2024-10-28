@@ -4,6 +4,8 @@ mod test;
 mod utils;
 mod vcs;
 
+use std::fs::File;
+
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
@@ -14,6 +16,9 @@ use clap::{Parser, Subcommand};
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+    /// A file to output command output to.
+    #[arg(long, global = true)]
+    output: Option<String>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -37,9 +42,18 @@ enum Commands {
 async fn main() {
     let cli = Cli::parse();
 
-    match cli.command {
-        Commands::Did { did_command } => did_command.command().await,
-        Commands::Vc { vc_command } => vc_command.command().await,
-        Commands::Pd { pd_command } => pd_command.command().await,
+    if let Some(path) = cli.output {
+        let file = File::create(path).unwrap();
+        command(cli.command, file).await;
+    } else {
+        command(cli.command, std::io::stdout()).await;
+    }
+}
+
+async fn command(command: Commands, sink: impl std::io::Write) {
+    match command {
+        Commands::Did { did_command } => did_command.command(sink).await,
+        Commands::Vc { vc_command } => vc_command.command(sink).await,
+        Commands::Pd { pd_command } => pd_command.command(sink).await,
     }
 }
