@@ -5,7 +5,7 @@ use web5::{
         CredentialSubject, Issuer, VerifiableCredential, VerifiableCredentialCreateOptions,
     },
     dids::{bearer_did::BearerDid, portable_did::PortableDid},
-    json::{FromJson, ToJson},
+    json::{FromJson, JsonObject, ToJson},
 };
 
 #[derive(Subcommand, Debug)]
@@ -20,16 +20,19 @@ pub enum Commands {
     ///
     /// Examples:
     ///
-    /// Create a VC with an issuer and return the minified form
+    /// Create a VC with an issuer and two additional properties and return the minified form
     ///
     /// $ web5 vc create did:dht:36xw3konj1pdd93axsn9p3a58a83uatcgx1nsjud97d91dtr56ry \
     ///     --issuer did:dht:36xw3konj1pdd93axsn9p3a58a83uatcgx1nsjud97d91dtr56ry \
+    ///     --additional-property "role:engineer" \
+    //      --additional-property "clearance:level5" \
     ///     --no-indent
     ///
-    /// Create a VC with a portable DID and return escaped JSON
+    /// Create a VC with a portable DID and one additional property and return escaped JSON
     ///
     /// $ web5 vc create did:dht:36xw3konj1pdd93axsn9p3a58a83uatcgx1nsjud97d91dtr56ry \
     ///     --portable-did '{"uri": ... }' \
+    ///     --additional-property "role:engineer" \
     ///     --json-escape
     #[command(verbatim_doc_comment)]
     Create {
@@ -76,6 +79,10 @@ pub enum Commands {
         /// If true, output JSON will be escaped
         #[arg(long)]
         json_escape: bool,
+        /// An additional property to add to the credentials subject of the VC. The
+        /// key and value are separated by a colon.
+        #[arg(long = "additional-property")]
+        additional_properties: Option<Vec<String>>,
     },
     Verify {
         vc_jwt: String,
@@ -87,7 +94,7 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn command(&self) {
+    pub async fn command(self) {
         match self {
             Commands::Create {
                 credential_subject_id,
@@ -101,6 +108,7 @@ impl Commands {
                 context,
                 id,
                 issuance_date,
+                additional_properties,
                 no_indent,
                 json_escape,
             } => {
@@ -141,12 +149,22 @@ impl Commands {
                 let evidence = evidence
                     .as_ref()
                     .map(|e| serde_json::from_str(e).expect("Error parsing evidence JSON string"));
+                let additional_properties = additional_properties.map(|vs| {
+                    vs.into_iter().fold(JsonObject::new(), |mut acc, cur| {
+                        let split = cur.split(':').map(String::from).collect::<Vec<_>>();
+                        // clap will make sure we are getting a string. since we will always split a string
+                        // and get two strings, the insert should never fail since the passed in value will
+                        // always be a string and therefore always be able to successfully become a JSON value
+                        acc.insert(&split[0], &split[1]).unwrap();
+                        acc
+                    })
+                });
 
                 let vc = VerifiableCredential::create(
                     issuer,
                     CredentialSubject {
                         id: credential_subject_id.to_string(),
-                        ..Default::default()
+                        additional_properties,
                     },
                     Some(VerifiableCredentialCreateOptions {
                         id: id.clone(),
@@ -167,7 +185,7 @@ impl Commands {
                     false => serde_json::to_string_pretty(&vc).unwrap(),
                 };
 
-                if *json_escape {
+                if json_escape {
                     output_str = output_str.replace('"', "\\\"");
                 }
 
@@ -183,7 +201,7 @@ impl Commands {
                 vc_jwt,
                 no_indent,
                 json_escape,
-            } => match VerifiableCredential::from_vc_jwt(vc_jwt, true).await {
+            } => match VerifiableCredential::from_vc_jwt(&vc_jwt, true).await {
                 Err(e) => {
                     println!("\n❌ Verfication failed\n");
                     println!("{:?} {}", e, e);
@@ -196,7 +214,7 @@ impl Commands {
                         false => serde_json::to_string_pretty(&vc).unwrap(),
                     };
 
-                    if *json_escape {
+                    if json_escape {
                         output_str = output_str.replace('"', "\\\"");
                     }
 
