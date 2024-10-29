@@ -1,6 +1,8 @@
+use crate::utils::warn_if_not_root;
 use clap::Subcommand;
 use std::sync::Arc;
 use url::Url;
+use web5::dids::data_model::service::Service;
 use web5::{
     crypto::key_managers::in_memory_key_manager::InMemoryKeyManager,
     dids::{
@@ -12,8 +14,6 @@ use web5::{
         portable_did::PortableDid,
     },
 };
-use web5::dids::data_model::service::Service;
-use crate::utils::warn_if_not_root;
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
@@ -27,10 +27,7 @@ pub enum Commands {
         domain: String,
         #[arg(long)]
         service_endpoint: Option<String>,
-        #[arg(
-            long = "service-endpoint-type",
-            default_value = "LinkedDomains"
-        )]
+        #[arg(long = "service-endpoint-type", default_value = "LinkedDomains")]
         service_endpoint_type: String,
         #[arg(long)]
         no_indent: bool,
@@ -40,10 +37,7 @@ pub enum Commands {
     Dht {
         #[arg(long)]
         service_endpoint: Option<String>,
-        #[arg(
-            long = "service-endpoint-type",
-            default_value = "LinkedDomains"
-        )]
+        #[arg(long = "service-endpoint-type", default_value = "LinkedDomains")]
         service_endpoint_type: String,
         #[arg(long)]
         no_publish: bool,
@@ -54,7 +48,12 @@ pub enum Commands {
     },
 }
 
-fn print_portable_did(portable_did: PortableDid, no_indent: &bool, json_escape: &bool) {
+fn print_portable_did(
+    mut sink: impl std::io::Write,
+    portable_did: PortableDid,
+    no_indent: &bool,
+    json_escape: &bool,
+) {
     let mut output_str = match no_indent {
         true => serde_json::to_string(&portable_did).unwrap(),
         false => serde_json::to_string_pretty(&portable_did).unwrap(),
@@ -64,11 +63,11 @@ fn print_portable_did(portable_did: PortableDid, no_indent: &bool, json_escape: 
         output_str = output_str.replace('"', "\\\"");
     }
 
-    println!("{}", output_str);
+    writeln!(sink, "{}", output_str).unwrap();
 }
 
 impl Commands {
-    pub async fn command(&self) {
+    pub async fn command(&self, sink: impl std::io::Write) {
         match self {
             Commands::Jwk {
                 no_indent,
@@ -86,7 +85,7 @@ impl Commands {
 
                 let portable_did = bearer_did.to_portable_did(key_manager).unwrap();
 
-                print_portable_did(portable_did, no_indent, json_escape);
+                print_portable_did(sink, portable_did, no_indent, json_escape);
             }
             Commands::Web {
                 domain,
@@ -129,12 +128,11 @@ impl Commands {
                     did_web_create_options.service = Some(vec![service]);
                 }
 
-                let bearer_did = DidWeb::create(domain, Some(did_web_create_options))
-                    .unwrap();
+                let bearer_did = DidWeb::create(domain, Some(did_web_create_options)).unwrap();
 
                 let portable_did = bearer_did.to_portable_did(key_manager).unwrap();
 
-                print_portable_did(portable_did, no_indent, json_escape);
+                print_portable_did(sink, portable_did, no_indent, json_escape);
             }
             Commands::Dht {
                 service_endpoint,
@@ -163,13 +161,11 @@ impl Commands {
                     did_dht_create_options.service = Some(vec![service]);
                 }
 
-                let bearer_did = DidDht::create(Some(did_dht_create_options))
-                    .await
-                    .unwrap();
+                let bearer_did = DidDht::create(Some(did_dht_create_options)).await.unwrap();
 
                 let portable_did = bearer_did.to_portable_did(key_manager).unwrap();
 
-                print_portable_did(portable_did, no_indent, json_escape);
+                print_portable_did(sink, portable_did, no_indent, json_escape);
             }
         }
     }

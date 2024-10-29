@@ -229,6 +229,6 @@ fn str_to_option_string(value: &str) -> Option<String> {
     (!value.is_empty()).then(|| value.to_string())
 }
 
-pub fn run_create_command(args: CreatePresentationDefinition) {
-    println!("{}", args.get_output());
+pub fn run_create_command(args: CreatePresentationDefinition, mut sink: impl std::io::Write) {
+    writeln!(sink, "{}", args.get_output()).unwrap();
 }

@@ -37,9 +37,9 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub async fn command(self) {
+    pub async fn command(self, sink: impl std::io::Write) {
         match self {
-            Commands::Create(args) => create::run_create_command(args),
+            Commands::Create(args) => create::run_create_command(args, sink),
         };
     }
 }
