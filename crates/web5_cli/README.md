@@ -202,3 +202,28 @@ web5 vc create "alice" --portable-did $PORTABLE_DID
 
 web5 vc verify eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpkaHQ6OXFnOGgxc3Jvd2hzZHNla3hwODk4eTU0MXhndGZ4Ym1ybW5oaGdzanlobXRtOHRjb253byMwIn0.eyJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InVybjp2Yzp1dWlkOjlkMDhhNjAzLWMyNTMtNGQyNC05M2MzLWIzYzAwMzg2NjM5MCIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmRodDo5cWc4aDFzcm93aHNkc2VreHA4OTh5NTQxeGd0ZnhibXJtbmhoZ3NqeWhtdG04dGNvbndvIiwiaXNzdWFuY2VEYXRlIjoiMjAyNC0wNi0yOFQxMzoxOTo1OS45OTY2MzMrMDA6MDAiLCJleHBpcmF0aW9uRGF0ZSI6bnVsbCwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJhbGljZSJ9fSwiaXNzIjoiZGlkOmRodDo5cWc4aDFzcm93aHNkc2VreHA4OTh5NTQxeGd0ZnhibXJtbmhoZ3NqeWhtdG04dGNvbndvIiwianRpIjoidXJuOnZjOnV1aWQ6OWQwOGE2MDMtYzI1My00ZDI0LTkzYzMtYjNjMDAzODY2MzkwIiwic3ViIjoiYWxpY2UiLCJuYmYiOjE3MTk1ODA3OTksImlhdCI6MTcxOTU4MDgwMH0.PJbb9EidggoqHL3IkfcglcTNzp_obBqbZjE0M4mL2XlecdLKNusZ3i4Hm0BtnzJ0ME7zYAvdIwg4shW4U884Bg
 ```
+
+
+## Doctor Command
+
+The `doctor` command is a feature to check the health of the cli. This command performs a series of diagnostic checks and reports the status of various functionalities. It is useful for ensuring that the system is functioning correctly and for troubleshooting potential issues.
+
+### Usage
+
+To use the `doctor` command, simply run:
+
+```shell
+#/bin/bash
+
+web5 doctor
+```
+
+To apply for a specific check you can run:
+
+```shell
+#/bin/bash
+
+web5 doctor --check cli-version
+web5 doctor --check connectivity
+web5 doctor --check env-vars
+```
