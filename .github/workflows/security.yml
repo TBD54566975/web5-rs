@@ -3,7 +3,7 @@ name: Security and License Scans
 on:
   pull_request_target:
     branches:
-      - main
+      - none
 
   push:
     branches:
