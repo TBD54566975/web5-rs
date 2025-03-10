@@ -17,6 +17,10 @@ on:
         description: 'Version of Kotlin binary to publish to TBD Artifactory. For example "1.0.0-SNAPSHOT". If not supplied, will default to "commit-$shortSHA-SNAPSHOT" where $shortSHA is the shortform commit SHA. Must end in "-SNAPSHOT".'
         required: true
         type: string
+    outputs:
+      spec_tag:
+        description: "The tag of the web5-spec"
+        value: ${{ jobs.assert_spec_version.outputs.spec_tag }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -52,6 +56,37 @@ jobs:
         with:
           use_oidc: true
           files: "*.profraw"
+
+  assert_spec_version:
+    runs-on: ubuntu-latest
+    outputs:
+      spec_tag: ${{ steps.assert_spec_version.outputs.spec_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Assert Spec Version
+        id: assert_spec_version
+        run: |
+          spec_tag=$(cat .web5-spec)
+          echo ".web5-spec tag: $spec_tag"
+
+          # Get the submodule commit hash
+          submodule_commit=$(git submodule status | grep web5-spec | awk '{print $1}' | sed 's/^-//')
+
+          # Get the tag pointing to this commit, if any
+          submodule_tag=$(git -C web5-spec describe --tags --exact-match $submodule_commit 2>/dev/null || echo "No tag found")
+
+          echo "Web5-spec submodule is at: $submodule_tag"
+
+          # TODO: can be removed once we remove the submodule
+          if [ "$spec_tag" != "$submodule_tag" ]; then
+            echo "Spec version mismatch: $specTag != $submodule_tag"
+            exit 1
+          fi
+
+          echo "spec_tag=$spec_tag" >> $GITHUB_OUTPUT
 
   assert_full_test_suite:
     runs-on: ubuntu-latest
